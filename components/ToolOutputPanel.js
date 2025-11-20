@@ -129,8 +129,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'timestamp-converter':
         if (result.error) return null
         const fields = []
-        if (result.readable) fields.push({ label: 'Readable', value: result.readable })
-        if (result.timestamp) fields.push({ label: 'Timestamp', value: result.timestamp })
+        if (result.readable) fields.push({ label: 'ISO 8601', value: result.readable })
+        if (result.local) fields.push({ label: 'Local Date', value: result.local })
+        if (result.timestamp !== undefined) fields.push({ label: 'Unix Timestamp', value: result.timestamp })
+        if (result.iso) fields.push({ label: 'ISO 8601', value: result.iso })
+        if (result.date) fields.push({ label: 'Input Date', value: result.date })
         return fields.length > 0 ? fields : null
 
       default:
