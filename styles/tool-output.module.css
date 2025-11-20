@@ -148,14 +148,14 @@
 
 .textOutput {
   margin: 0;
-  padding: 20px;
+  padding: 16px;
   background-color: #f5f5f5;
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid #e0e0e0;
-  font-size: 14px;
-  line-height: 1.8;
+  font-size: 13px;
+  line-height: 1.7;
   overflow-x: auto;
-  max-height: 600px;
+  max-height: 500px;
   transition: opacity 0.3s ease;
   word-wrap: break-word;
 }
