@@ -137,13 +137,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
       <div className={styles.header}>
         <h3>Output</h3>
         {displayResult && !loading && !error && (
-          <button
-            className={styles.copyButton}
-            onClick={handleCopy}
-            title="Copy to clipboard"
-          >
-            {copied ? '✓ Copied' : 'Copy'}
-          </button>
+          <>
+            {displayResult?.resizedImage ? (
+              <button
+                className={styles.copyButton}
+                onClick={handleDownloadImage}
+                title="Download resized image"
+              >
+                ⬇ Download
+              </button>
+            ) : (
+              <button
+                className={styles.copyButton}
+                onClick={handleCopy}
+                title="Copy to clipboard"
+              >
+                {copied ? '✓ Copied' : 'Copy'}
+              </button>
+            )}
+          </>
         )}
       </div>
 
