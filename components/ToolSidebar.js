@@ -1,11 +1,30 @@
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import styles from '../styles/tool-sidebar.module.css'
 
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const filteredTools = useMemo(() => {
+    if (!searchQuery.trim()) return predictedTools
+
+    const query = searchQuery.toLowerCase()
+    return predictedTools.filter(tool =>
+      tool.name.toLowerCase().includes(query) ||
+      tool.description.toLowerCase().includes(query)
+    )
+  }, [predictedTools, searchQuery])
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.header}>
-        <h2>Recommended Tools</h2>
+        <input
+          type="text"
+          placeholder="Search tools..."
+          className={styles.searchInput}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Search tools"
+        />
       </div>
 
       {loading && (
