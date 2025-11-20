@@ -386,12 +386,6 @@ export default async function handler(req, res) {
         }
       }
 
-      // Random/Generate-related
-      if (lowerInput.includes('random') || lowerInput.includes('generate')) {
-        if (['random-string-generator', 'variable-name-generator', 'function-name-generator', 'password-generator'].includes(toolId)) {
-          score = Math.max(score, 0.85)
-        }
-      }
 
       return { toolId, score }
     })
