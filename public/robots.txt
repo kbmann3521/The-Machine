@@ -4,4 +4,4 @@ Allow: /
 Disallow: /api/
 Disallow: /.next/
 
-Sitemap: https://your-domain.com/sitemap.xml
+Sitemap: https://your-domain.com/api/sitemap
