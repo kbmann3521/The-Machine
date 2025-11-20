@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, onPredict }) {
+export default function UniversalInput({ onInputChange, onImageChange }) {
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
@@ -14,7 +14,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onPredict
     const text = e.target.value
     setInputText(text)
     setCharCount(text.length)
-    onInputChange(text)
+    onInputChange(text, inputImage, imagePreview)
   }
 
   const handleImageFile = (file) => {
@@ -28,6 +28,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onPredict
       setImagePreview(e.target.result)
       setInputImage(file)
       onImageChange(file, e.target.result)
+      onInputChange(inputText, file, e.target.result)
     }
     reader.readAsDataURL(file)
   }
@@ -77,88 +78,71 @@ export default function UniversalInput({ onInputChange, onImageChange, onPredict
     setImagePreview(null)
     setInputImage(null)
     onImageChange(null, null)
+    onInputChange(inputText, null, null)
   }
 
-  const handleRunClick = () => {
-    if (inputText || inputImage) {
-      onPredict(inputText, inputImage, imagePreview)
-    } else {
-      alert('Please enter text or upload an image')
-    }
+  const openFileDialog = () => {
+    fileInputRef.current?.click()
   }
 
   return (
     <div className={styles.container}>
-      <div className={styles.inputSection}>
-        <div className={styles.textareaWrapper}>
-          <label className={styles.label}>Enter Text or Upload Image</label>
+      <div className={styles.inputWrapper}>
+        <div
+          className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <textarea
             ref={textareaRef}
             className={styles.textarea}
             value={inputText}
             onChange={handleTextChange}
             onPaste={handlePaste}
-            placeholder="Type text here... or paste an image (Ctrl+V)"
+            placeholder="Type your text here... drag & drop or paste an image (Ctrl+V)"
           />
-          <div className={styles.charCounter}>{charCount} characters</div>
-        </div>
 
-        <div
-          className={`${styles.dropZone} ${isDragging ? styles.dragging : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className={styles.dropZoneContent}>
-            <svg className={styles.uploadIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <button
+            className={styles.uploadButton}
+            onClick={openFileDialog}
+            title="Click to upload an image"
+            type="button"
+          >
+            <svg className={styles.uploadIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            <p>Drag & drop an image here</p>
-            <p className={styles.subtext}>or click to select</p>
-          </div>
+          </button>
+
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleFileSelect}
             accept="image/*"
             className={styles.fileInput}
-            onClick={(e) => {
-              const rect = e.currentTarget.parentElement.getBoundingClientRect()
-              const x = e.clientX - rect.left
-              const y = e.clientY - rect.top
-              if (
-                x > 0 &&
-                x < rect.width &&
-                y > 0 &&
-                y < rect.height
-              ) {
-                e.currentTarget.click()
-              }
-            }}
           />
+
+          <div className={styles.charCounter}>{charCount} characters</div>
         </div>
 
         {imagePreview && (
           <div className={styles.imagePreview}>
-            <div className={styles.previewLabel}>Image Preview</div>
-            <div className={styles.previewContainer}>
-              <img src={imagePreview} alt="Preview" />
+            <div className={styles.previewHeader}>
+              <span className={styles.previewLabel}>Image attached</span>
               <button
                 className={styles.removeButton}
                 onClick={removeImage}
                 title="Remove image"
+                type="button"
               >
                 ✕
               </button>
             </div>
+            <img src={imagePreview} alt="Preview" className={styles.previewImage} />
           </div>
         )}
-
-        <button className={styles.runButton} onClick={handleRunClick}>
-          Predict Tool & Run
-        </button>
       </div>
     </div>
   )
