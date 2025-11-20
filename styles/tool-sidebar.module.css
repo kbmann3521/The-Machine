@@ -6,10 +6,8 @@
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   flex-shrink: 0;
-  scrollbar-gutter: stable;
 }
 
 .header {
