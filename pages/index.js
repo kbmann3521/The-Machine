@@ -153,13 +153,7 @@ export default function Home() {
         return
       }
 
-      const noInputRequiredTools = [
-        'random-string-generator',
-        'variable-name-generator',
-        'function-name-generator',
-        'api-endpoint-generator',
-        'lorem-ipsum-generator',
-      ]
+      const noInputRequiredTools = []
 
       const requiresInput = !noInputRequiredTools.includes(tool.toolId)
       if (requiresInput && !inputText && !imagePreview) {
