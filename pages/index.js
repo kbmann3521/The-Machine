@@ -221,7 +221,7 @@ export default function Home() {
         autoRunTool(selectedTool, configOptions)
       }
     }
-  }, [selectedTool, inputText, configOptions, autoRunTool])
+  }, [selectedTool, inputText, configOptions])
 
 
   return (
