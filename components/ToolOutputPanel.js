@@ -36,6 +36,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleDownloadImage = () => {
+    if (displayResult?.resizedImage) {
+      const link = document.createElement('a')
+      link.href = displayResult.resizedImage
+      link.download = `resized-image-${Date.now()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
   const renderOutput = () => {
     if (error) {
       return (
