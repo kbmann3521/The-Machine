@@ -87,10 +87,11 @@
   display: flex;
   flex-direction: column;
   padding: 25px;
-  overflow-y: auto;
+  overflow-y: scroll;
   max-height: 850px;
   width: 100%;
   box-sizing: border-box;
+  scrollbar-gutter: stable;
 }
 
 .outputSection {
