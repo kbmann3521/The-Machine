@@ -32,7 +32,7 @@ export default function App({ Component, pageProps }) {
         <link rel="canonical" href={siteMetadata.url} />
 
         {/* Favicon */}
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </Head>
 
       <ThemeProvider>
