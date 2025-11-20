@@ -76,15 +76,6 @@ export default function Home() {
         if (!prevSelected && toolsWithMetadata.length > 0) {
           return toolsWithMetadata[0]
         }
-
-        if (prevSelected && toolsWithMetadata.some(t => t.toolId === prevSelected.toolId)) {
-          return prevSelected
-        }
-
-        if (toolsWithMetadata.length > 0) {
-          return toolsWithMetadata[0]
-        }
-
         return prevSelected
       })
     } catch (err) {
