@@ -50,10 +50,13 @@
 
 .copyButton:hover {
   background-color: #e3f2fd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
 }
 
 .copyButton:active {
   background-color: #bbdefb;
+  transform: translateY(0);
 }
 
 .content {
