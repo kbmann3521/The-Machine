@@ -144,6 +144,9 @@
   font-size: 12px;
   line-height: 1.4;
   transition: opacity 0.3s ease;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .error strong {
