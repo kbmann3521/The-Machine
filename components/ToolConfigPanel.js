@@ -29,6 +29,16 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     onConfigChange(newConfig)
   }
 
+  const noInputRequiredTools = [
+    'random-string-generator',
+    'variable-name-generator',
+    'function-name-generator',
+    'api-endpoint-generator',
+    'lorem-ipsum-generator',
+  ]
+
+  const isGeneratorTool = tool && noInputRequiredTools.includes(tool.toolId)
+
   const renderField = field => {
     const value = config[field.id]
 
