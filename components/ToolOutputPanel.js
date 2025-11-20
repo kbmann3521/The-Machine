@@ -113,7 +113,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
     <div className={styles.container}>
       <div className={styles.header}>
         <h3>Output</h3>
-        {result && !loading && !error && (
+        {displayResult && !loading && !error && (
           <button
             className={styles.copyButton}
             onClick={handleCopy}
@@ -124,7 +124,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
         )}
       </div>
 
-      <div className={styles.content}>
+      <div className={`${styles.content} ${loading ? styles.isLoading : ''}`}>
         {renderOutput()}
       </div>
     </div>
