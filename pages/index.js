@@ -145,6 +145,12 @@ export default function Home() {
     setConfigOptions(config)
   }, [])
 
+  const handleRegenerate = useCallback(() => {
+    if (selectedTool) {
+      autoRunTool(selectedTool, configOptions)
+    }
+  }, [selectedTool, configOptions, autoRunTool])
+
   const autoRunTool = useCallback(
     async (tool, config) => {
       if (!tool) {
