@@ -9,6 +9,9 @@
   --color-header-gradient-start: #f5f5f5;
   --color-header-gradient-end: #ffffff;
   --color-shadow: rgba(0, 0, 0, 0.08);
+  --scrollbar-track: #f5f5f5;
+  --scrollbar-thumb: #d0d0d0;
+  --scrollbar-thumb-hover: #b3b3b3;
 }
 
 :root[data-theme="dark"] {
@@ -22,6 +25,9 @@
   --color-header-gradient-start: #2d2d2d;
   --color-header-gradient-end: #1f1f1f;
   --color-shadow: rgba(0, 0, 0, 0.3);
+  --scrollbar-track: #2d2d2d;
+  --scrollbar-thumb: #505050;
+  --scrollbar-thumb-hover: #656565;
 }
 
 * {
