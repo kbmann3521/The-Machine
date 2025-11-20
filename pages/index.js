@@ -179,11 +179,12 @@ export default function Home() {
             }),
           })
 
+          const data = await response.json()
+
           if (!response.ok) {
-            throw new Error('Failed to run tool')
+            throw new Error(data.error || 'Failed to run tool')
           }
 
-          const data = await response.json()
           setOutputResult(data.result)
         }
       } catch (err) {
