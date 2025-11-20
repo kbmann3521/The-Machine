@@ -236,14 +236,6 @@ export default function Home() {
       </Head>
 
       <div className={styles.layout}>
-      <ToolSidebar
-        predictedTools={predictedTools}
-        selectedTool={selectedTool}
-        onSelectTool={handleSelectTool}
-        loading={loading}
-      />
-
-      <main className={styles.mainContent}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1>All-in-One Internet Tools</h1>
@@ -252,7 +244,16 @@ export default function Home() {
           <ThemeToggle />
         </div>
 
-        <div className={styles.content}>
+        <div className={styles.bodyContainer}>
+          <ToolSidebar
+            predictedTools={predictedTools}
+            selectedTool={selectedTool}
+            onSelectTool={handleSelectTool}
+            loading={loading}
+          />
+
+          <main className={styles.mainContent}>
+            <div className={styles.content}>
           <div className={styles.toolContainer}>
             <div className={styles.leftPanel}>
               <div className={styles.inputSection}>
@@ -288,7 +289,8 @@ export default function Home() {
           </div>
         </div>
       </main>
-    </div>
+        </div>
+      </div>
     </>
   )
 }
