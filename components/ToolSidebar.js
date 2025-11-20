@@ -16,26 +16,30 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
       )}
 
       {!loading && predictedTools.length > 0 && (
-        <div className={styles.toolsList}>
+        <nav className={styles.toolsList} aria-label="Available tools">
           {predictedTools.map((tool, index) => (
-            <button
+            <article
               key={tool.toolId}
               className={`${styles.toolItem} ${
                 selectedTool?.toolId === tool.toolId ? styles.selected : ''
               }`}
               onClick={() => onSelectTool(tool)}
+              onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
+              role="button"
+              tabIndex={0}
+              aria-pressed={selectedTool?.toolId === tool.toolId}
             >
               <div className={styles.toolRank}>#{index + 1}</div>
-              <div className={styles.toolContent}>
+              <section className={styles.toolContent}>
                 <h3 className={styles.toolName}>{tool.name}</h3>
                 <p className={styles.toolDescription}>{tool.description}</p>
                 <div className={styles.toolScore}>
                   Match: {(tool.similarity * 100).toFixed(0)}%
                 </div>
-              </div>
-            </button>
+              </section>
+            </article>
           ))}
-        </div>
+        </nav>
       )}
 
       {!loading && predictedTools.length === 0 && (
