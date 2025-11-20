@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
+import Head from 'next/head'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
@@ -6,6 +7,7 @@ import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import { TOOLS } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
+import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
 
 export default function Home() {
