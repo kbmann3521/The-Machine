@@ -258,6 +258,7 @@ export default function Home() {
                 <UniversalInput
                   onInputChange={handleInputChange}
                   onImageChange={handleImageChange}
+                  selectedTool={selectedTool}
                 />
               </div>
 
