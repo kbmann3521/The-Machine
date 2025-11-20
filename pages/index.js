@@ -91,6 +91,14 @@ export default function Home() {
     setSelectedTool(tool)
     setOutputResult(null)
     setError(null)
+
+    const initialConfig = {}
+    if (tool?.configSchema) {
+      tool.configSchema.forEach(field => {
+        initialConfig[field.id] = field.default || ''
+      })
+    }
+    setConfigOptions(initialConfig)
   }, [])
 
   const handleConfigChange = useCallback((config) => {
