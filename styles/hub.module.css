@@ -64,8 +64,8 @@
 .leftPanel {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 25px;
+  gap: 15px;
+  padding: 20px;
   border-right: 1px solid #e0e0e0;
   overflow-y: scroll;
   max-height: 850px;
