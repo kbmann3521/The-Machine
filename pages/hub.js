@@ -131,6 +131,7 @@ export default function Hub() {
             onInputChange={handleInputChange}
             onImageChange={handleImageChange}
             onPredict={handlePredict}
+            selectedTool={selectedTool}
           />
 
           {selectedTool && (
