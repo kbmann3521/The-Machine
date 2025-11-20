@@ -75,15 +75,13 @@
 
 .toolsList {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   padding: 10px;
-  padding-right: 2px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 0;
-  scrollbar-gutter: stable;
 }
 
 .toolItem {
