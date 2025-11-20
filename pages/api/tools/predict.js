@@ -60,7 +60,10 @@ export default async function handler(req, res) {
     const lowerInput = inputContent.toLowerCase()
     let topToolIds = [
       'word-counter', 'case-converter', 'base64-converter', 'url-converter', 'html-formatter', 'json-formatter',
-      'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras', 'text-analyzer'
+      'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras', 'text-analyzer',
+      'uuid-generator', 'regex-tester', 'hash-generator', 'timestamp-converter', 'password-generator', 'csv-json-converter',
+      'markdown-html-converter', 'xml-formatter', 'yaml-formatter', 'url-parser', 'jwt-decoder', 'qr-code-generator',
+      'text-diff-checker', 'color-converter', 'checksum-calculator'
     ]
 
     if (inputImage) {
@@ -77,6 +80,22 @@ export default async function handler(req, res) {
     } else if (lowerInput.match(/^[a-z0-9+/]*={0,2}$/i) && lowerInput.length > 4) {
       // Potential Base64 content
       topToolIds = ['base64-converter', 'url-converter', 'word-counter', 'case-converter', 'plain-text-stripper', 'find-replace', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
+    } else if (lowerInput.includes('regex') || lowerInput.includes('pattern') || lowerInput.includes('match')) {
+      topToolIds = ['regex-tester', 'find-replace', 'word-counter', 'plain-text-stripper', ...topToolIds.filter(t => !['regex-tester', 'find-replace', 'word-counter', 'plain-text-stripper'].includes(t))]
+    } else if (lowerInput.includes('uuid') || lowerInput.includes('guid')) {
+      topToolIds = ['uuid-generator', 'random', ...topToolIds.filter(t => t !== 'uuid-generator')]
+    } else if (lowerInput.includes('csv') || lowerInput.includes('comma')) {
+      topToolIds = ['csv-json-converter', 'json-formatter', ...topToolIds.filter(t => !['csv-json-converter', 'json-formatter'].includes(t))]
+    } else if (lowerInput.includes('yaml') || lowerInput.includes('yml') || lowerInput.includes('config')) {
+      topToolIds = ['yaml-formatter', 'xml-formatter', ...topToolIds.filter(t => !['yaml-formatter', 'xml-formatter'].includes(t))]
+    } else if (lowerInput.includes('xml')) {
+      topToolIds = ['xml-formatter', 'html-formatter', ...topToolIds.filter(t => !['xml-formatter', 'html-formatter'].includes(t))]
+    } else if (lowerInput.includes('color') || lowerInput.includes('rgb') || lowerInput.includes('hex') || /^#[0-9a-f]{6}/i.test(lowerInput)) {
+      topToolIds = ['color-converter', ...topToolIds.filter(t => t !== 'color-converter')]
+    } else if (lowerInput.includes('jwt') || lowerInput.includes('token')) {
+      topToolIds = ['jwt-decoder', 'base64-converter', ...topToolIds.filter(t => !['jwt-decoder', 'base64-converter'].includes(t))]
+    } else if (lowerInput.includes('timestamp') || lowerInput.includes('unix') || /^\d{10}/.test(lowerInput)) {
+      topToolIds = ['timestamp-converter', ...topToolIds.filter(t => t !== 'timestamp-converter')]
     }
 
     const fallbackTools = topToolIds
