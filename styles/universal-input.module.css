@@ -15,15 +15,15 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--color-border);
   border-radius: 6px;
-  background-color: white;
+  background-color: var(--color-background-secondary);
   transition: all 0.2s;
   padding-bottom: 6px;
 }
 
 .inputField:hover {
-  border-color: #d0d0d0;
+  border-color: var(--color-border-hover);
 }
 
 .inputField:focus-within {
@@ -33,7 +33,7 @@
 
 .inputField.dragging {
   border-color: #0066cc;
-  background-color: #f0f7ff;
+  background-color: rgba(0, 102, 204, 0.08);
 }
 
 .inputField.hasImage {
@@ -53,15 +53,18 @@
   outline: none;
   background-color: transparent;
   line-height: 1.5;
+  color: var(--color-text-primary);
 }
 
 .textarea::placeholder {
-  color: #999;
+  color: var(--color-text-secondary);
+  opacity: 0.6;
 }
 
 .charCounter {
   font-size: 11px;
-  color: #999;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
   padding: 0 12px;
   text-align: right;
 }
@@ -73,25 +76,25 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  background-color: #f0f0f0;
-  border: 1px solid #d0d0d0;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  color: #666;
+  color: var(--color-text-secondary);
 }
 
 .uploadButton:hover {
-  background-color: #e8e8e8;
+  background-color: var(--color-background-secondary);
   border-color: #0066cc;
   color: #0066cc;
 }
 
 .uploadButton:active {
-  background-color: #ddd;
+  background-color: var(--color-border);
 }
 
 .uploadIcon {
@@ -108,9 +111,9 @@
   flex-direction: column;
   gap: 6px;
   padding: 10px;
-  background-color: #f5f5f5;
+  background-color: var(--color-background-tertiary);
   border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--color-border);
 }
 
 .previewHeader {
@@ -122,7 +125,7 @@
 .previewLabel {
   font-size: 12px;
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -131,10 +134,10 @@
   width: 24px;
   height: 24px;
   padding: 0;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--color-border);
   border: none;
   border-radius: 4px;
-  color: #666;
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -144,8 +147,8 @@
 }
 
 .removeButton:hover {
-  background-color: rgba(0, 0, 0, 0.2);
-  color: #333;
+  background-color: var(--color-border-hover);
+  color: var(--color-text-primary);
 }
 
 .previewImage {
@@ -153,7 +156,7 @@
   max-height: 200px;
   object-fit: contain;
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--color-background-secondary);
 }
 
 @media (max-width: 640px) {
