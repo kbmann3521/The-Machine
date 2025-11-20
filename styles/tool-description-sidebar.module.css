@@ -1,5 +1,5 @@
 .descriptionSidebar {
-  position: fixed;
+  position: absolute;
   right: -400px;
   top: 0;
   width: 400px;
