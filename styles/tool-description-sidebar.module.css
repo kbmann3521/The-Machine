@@ -161,9 +161,13 @@
   margin-bottom: 0;
 }
 
-@media (min-width: 1201px) {
+@media (min-width: 769px) {
   .descriptionSidebar {
     position: absolute;
+  }
+
+  .closeButton {
+    display: none;
   }
 }
 
