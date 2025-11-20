@@ -76,7 +76,7 @@ export default async function handler(req, res) {
 
       // UUID-related
       if (lowerInput.includes('uuid') || lowerInput.includes('guid') || lowerInput.includes('identifier')) {
-        if (['uuid-generator', 'uuid-validator'].includes(toolId)) {
+        if (['uuid-validator'].includes(toolId)) {
           score = Math.max(score, 0.95)
         }
       }
