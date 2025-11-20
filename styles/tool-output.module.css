@@ -131,13 +131,13 @@
 }
 
 .error {
-  padding: 15px;
+  padding: 12px 14px;
   background-color: #ffebee;
   border: 1px solid #ffcdd2;
-  border-radius: 6px;
+  border-radius: 5px;
   color: #c62828;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
   transition: opacity 0.3s ease;
 }
 
