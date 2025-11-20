@@ -148,12 +148,6 @@ export default async function handler(req, res) {
       }
 
 
-      // QR code-related
-      if (lowerInput.includes('qr') || lowerInput.includes('barcode')) {
-        if (['qr-code-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
 
       // Case-related
       if (lowerInput.includes('case') || lowerInput.includes('uppercase') || lowerInput.includes('lowercase')) {
