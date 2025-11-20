@@ -152,6 +152,7 @@
   line-height: 1.6;
   overflow-x: auto;
   max-height: 600px;
+  transition: opacity 0.3s ease;
 }
 
 .textOutput code {
