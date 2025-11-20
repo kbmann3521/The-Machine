@@ -22,6 +22,10 @@ export default async function handler(req, res) {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Supabase credentials not configured')
+      }
+
       const response = await fetch(`${supabaseUrl}/rest/v1/rpc/match_tools`, {
         method: 'POST',
         headers: {
@@ -33,6 +37,7 @@ export default async function handler(req, res) {
           query_embedding: userEmbedding,
           match_count: 5,
         }),
+        timeout: 5000,
       })
 
       if (response.ok) {
@@ -51,9 +56,12 @@ export default async function handler(req, res) {
             inputContent,
           })
         }
+      } else {
+        const errorText = await response.text()
+        console.warn(`Vector search failed with status ${response.status}:`, errorText)
       }
     } catch (vectorError) {
-      console.log('Vector search error, using fallback:', vectorError.message)
+      console.warn('Vector search error, using keyword-based fallback:', vectorError.message)
     }
 
     // Fallback: Smart keyword-based tool ranking
