@@ -77,7 +77,7 @@ export default function Home() {
 
       setPredictedTools(prevTools => {
         let finalTools = [...toolsWithMetadata]
-        const currentSelected = selectedTool
+        const currentSelected = selectedToolRef.current
 
         if (currentSelected) {
           const isSelectedInPredicted = finalTools.some(t => t.toolId === currentSelected.toolId)
