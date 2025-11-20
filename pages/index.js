@@ -258,6 +258,7 @@ export default function Home() {
                     tool={selectedTool}
                     onConfigChange={handleConfigChange}
                     loading={toolLoading}
+                    onRegenerate={handleRegenerate}
                   />
                 </div>
               )}
