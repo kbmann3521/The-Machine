@@ -105,6 +105,48 @@ export default function Home() {
     setConfigOptions(config)
   }, [])
 
+  const autoRunTool = useCallback(
+    async (tool, config) => {
+      if (!tool || !inputText) {
+        return
+      }
+
+      setToolLoading(true)
+      setError(null)
+
+      try {
+        const response = await fetch('/api/tools/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            toolId: tool.toolId,
+            inputText,
+            config,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to run tool')
+        }
+
+        const data = await response.json()
+        setOutputResult(data.result)
+      } catch (err) {
+        setError(err.message)
+        console.error('Tool execution error:', err)
+      } finally {
+        setToolLoading(false)
+      }
+    },
+    [inputText]
+  )
+
+  useEffect(() => {
+    if (selectedTool && inputText) {
+      autoRunTool(selectedTool, configOptions)
+    }
+  }, [selectedTool, inputText, configOptions, autoRunTool])
+
   const handleRunTool = useCallback(
     async (tool, config) => {
       if (!inputText) {
