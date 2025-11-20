@@ -3,6 +3,7 @@ import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
+import ThemeToggle from '../components/ThemeToggle'
 import { TOOLS } from '../lib/tools'
 import styles from '../styles/hub.module.css'
 
@@ -159,8 +160,11 @@ export default function Home() {
 
       <main className={styles.mainContent}>
         <div className={styles.header}>
-          <h1>All-in-One Internet Tools</h1>
-          <p>Start typing or upload an image to get AI-powered tool suggestions</p>
+          <div className={styles.headerContent}>
+            <h1>All-in-One Internet Tools</h1>
+            <p>Start typing or upload an image to get AI-powered tool suggestions</p>
+          </div>
+          <ThemeToggle />
         </div>
 
         <div className={styles.content}>
