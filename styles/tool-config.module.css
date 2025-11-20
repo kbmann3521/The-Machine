@@ -236,6 +236,33 @@
   cursor: not-allowed;
 }
 
+.regenerateButton {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background-color: #0066cc;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 12px;
+}
+
+.regenerateButton:hover:not(:disabled) {
+  background-color: #0052a3;
+}
+
+.regenerateButton:active:not(:disabled) {
+  background-color: #003d7a;
+}
+
+.regenerateButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 0;
