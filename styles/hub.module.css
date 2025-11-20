@@ -64,6 +64,7 @@
   overflow-y: auto;
   max-height: 850px;
   min-width: 0;
+  width: 100%;
 }
 
 .inputSection {
