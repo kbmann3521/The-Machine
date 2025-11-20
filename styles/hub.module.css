@@ -98,6 +98,61 @@
   animation: slideIn 0.3s ease-out;
 }
 
+.configHeader {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.descriptionToggle {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-background-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+}
+
+.descriptionToggle:hover {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.descriptionToggle:active {
+  transform: scale(0.95);
+}
+
+.descriptionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebarOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 30;
+  display: none;
+}
+
+.bodyContainer {
+  transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .rightPanel {
   display: flex;
   flex-direction: column;
