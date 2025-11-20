@@ -20,6 +20,11 @@ export default function Home() {
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
   const debounceTimerRef = useRef(null)
+  const selectedToolRef = useRef(null)
+
+  useEffect(() => {
+    selectedToolRef.current = selectedTool
+  }, [selectedTool])
 
   useEffect(() => {
     const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
