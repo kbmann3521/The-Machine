@@ -1,19 +1,20 @@
 .sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
   width: 300px;
-  height: 100vh;
   background-color: var(--color-background-tertiary);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  z-index: 100;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--color-border-hover) transparent;
+  flex: 0 0 300px;
+  min-height: 0;
+  max-height: calc(100vh - 100px);
 }
 
 .header {
-  padding: 16px;
+  padding: 16px 12px;
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-background-secondary);
   position: sticky;
@@ -77,8 +78,7 @@
 }
 
 .toolsList {
-  flex: 1;
-  overflow-y: auto;
+  flex: 0 1 auto;
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -172,16 +172,31 @@
   opacity: 0.7;
 }
 
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-border-hover);
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border);
+}
+
 @media (max-width: 768px) {
   .sidebar {
-    position: relative;
     width: 100%;
     height: auto;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
     max-height: 300px;
-    margin-bottom: 20px;
-    order: 2;
+    flex-shrink: 0;
   }
 
   .toolsList {

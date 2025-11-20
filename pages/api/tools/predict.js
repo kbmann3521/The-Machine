@@ -291,21 +291,21 @@ export default async function handler(req, res) {
 
       // JavaScript-related
       if (lowerInput.includes('javascript') || lowerInput.includes('minify js') || lowerInput.includes('beautify js')) {
-        if (['js-minifier', 'js-beautifier'].includes(toolId)) {
+        if (['js-formatter'].includes(toolId)) {
           score = Math.max(score, 0.95)
         }
       }
 
       // Minify-related
       if (lowerInput.includes('minify')) {
-        if (['js-minifier', 'css-formatter', 'json-formatter'].includes(toolId)) {
+        if (['js-formatter', 'css-formatter', 'json-formatter'].includes(toolId)) {
           score = Math.max(score, 0.95)
         }
       }
 
       // Format/beautify-related
       if (lowerInput.includes('beautify') || lowerInput.includes('format')) {
-        if (['js-beautifier', 'html-formatter', 'json-formatter', 'xml-formatter'].includes(toolId)) {
+        if (['js-formatter', 'html-formatter', 'json-formatter', 'xml-formatter'].includes(toolId)) {
           score = Math.max(score, 0.85)
         }
       }

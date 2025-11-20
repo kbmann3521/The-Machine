@@ -331,13 +331,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.pioneerwebtools.com/?tool=js-minifier</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=js-beautifier</loc>
+    <loc>https://www.pioneerwebtools.com/?tool=js-formatter</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

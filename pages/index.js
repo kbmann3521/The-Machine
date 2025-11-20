@@ -5,6 +5,7 @@ import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
+import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import { TOOLS } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
@@ -21,6 +22,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
+  const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
 
@@ -133,6 +135,7 @@ export default function Home() {
     setSelectedTool(tool)
     setOutputResult(null)
     setError(null)
+    setDescriptionSidebarOpen(false)
 
     const initialConfig = {}
     if (tool?.configSchema) {
@@ -236,14 +239,6 @@ export default function Home() {
       </Head>
 
       <div className={styles.layout}>
-      <ToolSidebar
-        predictedTools={predictedTools}
-        selectedTool={selectedTool}
-        onSelectTool={handleSelectTool}
-        loading={loading}
-      />
-
-      <main className={styles.mainContent}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1>All-in-One Internet Tools</h1>
@@ -252,7 +247,16 @@ export default function Home() {
           <ThemeToggle />
         </div>
 
-        <div className={styles.content}>
+        <div className={`${styles.bodyContainer} ${descriptionSidebarOpen ? styles.sidebarOpenDesktop : ''}`}>
+          <ToolSidebar
+            predictedTools={predictedTools}
+            selectedTool={selectedTool}
+            onSelectTool={handleSelectTool}
+            loading={loading}
+          />
+
+          <main className={styles.mainContent}>
+            <div className={styles.content}>
           <div className={styles.toolContainer}>
             <div className={styles.leftPanel}>
               <div className={styles.inputSection}>
@@ -265,12 +269,22 @@ export default function Home() {
 
               {selectedTool && (
                 <div className={styles.configSection}>
-                  <ToolConfigPanel
-                    tool={selectedTool}
-                    onConfigChange={handleConfigChange}
-                    loading={toolLoading}
-                    onRegenerate={handleRegenerate}
-                  />
+                  <div className={styles.configHeader}>
+                    <ToolConfigPanel
+                      tool={selectedTool}
+                      onConfigChange={handleConfigChange}
+                      loading={toolLoading}
+                      onRegenerate={handleRegenerate}
+                    />
+                    <button
+                      className={styles.descriptionToggle}
+                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                      aria-label="Toggle tool description"
+                      title="View tool description"
+                    >
+                      <span className={styles.descriptionIcon}>ℹ</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -288,7 +302,21 @@ export default function Home() {
           </div>
         </div>
       </main>
-    </div>
+        </div>
+
+        <ToolDescriptionSidebar
+          tool={selectedTool}
+          isOpen={descriptionSidebarOpen}
+          onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+        />
+      </div>
+
+      {descriptionSidebarOpen && (
+        <div
+          className={styles.sidebarOverlay}
+          onClick={() => setDescriptionSidebarOpen(false)}
+        />
+      )}
     </>
   )
 }
