@@ -67,10 +67,12 @@
 
 .inputSection {
   flex-shrink: 0;
+  width: 100%;
 }
 
 .configSection {
   flex-shrink: 0;
+  width: 100%;
   animation: slideIn 0.3s ease-out;
 }
 
