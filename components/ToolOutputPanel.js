@@ -3,8 +3,18 @@ import styles from '../styles/tool-output.module.css'
 
 export default function ToolOutputPanel({ result, outputType, loading, error }) {
   const [copied, setCopied] = useState(false)
+  const [previousResult, setPreviousResult] = useState(null)
 
-  if (!result && !loading && !error) {
+  React.useEffect(() => {
+    if (result && !loading) {
+      setPreviousResult(result)
+    }
+  }, [result, loading])
+
+  const displayResult = result || previousResult
+  const isEmpty = !displayResult && !loading && !error
+
+  if (isEmpty) {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
@@ -16,10 +26,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
 
   const handleCopy = () => {
     let textToCopy = ''
-    if (typeof result === 'string') {
-      textToCopy = result
+    if (typeof displayResult === 'string') {
+      textToCopy = displayResult
     } else {
-      textToCopy = JSON.stringify(result, null, 2)
+      textToCopy = JSON.stringify(displayResult, null, 2)
     }
     navigator.clipboard.writeText(textToCopy)
     setCopied(true)
