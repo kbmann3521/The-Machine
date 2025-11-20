@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 
-export default function ToolConfigPanel({ tool, onRun, onConfigChange, loading }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
   const [config, setConfig] = useState({})
 
   useEffect(() => {
@@ -11,8 +11,9 @@ export default function ToolConfigPanel({ tool, onRun, onConfigChange, loading }
         initialConfig[field.id] = field.default || ''
       })
       setConfig(initialConfig)
+      onConfigChange(initialConfig)
     }
-  }, [tool])
+  }, [tool, onConfigChange])
 
   if (!tool) {
     return (
