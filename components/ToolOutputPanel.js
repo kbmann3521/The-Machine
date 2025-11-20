@@ -56,6 +56,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
       )
     }
 
+    if (displayResult?.error) {
+      return (
+        <div className={`${styles.error} ${styles.fadeIn}`}>
+          <strong>Error:</strong> {displayResult.error}
+        </div>
+      )
+    }
+
     if (!displayResult) {
       if (loading) {
         return (
