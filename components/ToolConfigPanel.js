@@ -129,14 +129,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
           ))}
         </div>
       )}
-
-      <button
-        className={styles.runButton}
-        onClick={handleRun}
-        disabled={loading}
-      >
-        {loading ? 'Running...' : 'Run Tool'}
-      </button>
     </div>
   )
 }
