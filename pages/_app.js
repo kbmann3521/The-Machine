@@ -1,10 +1,43 @@
+import Head from 'next/head'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
+import { generateMetaTags, siteMetadata } from '../lib/seoUtils'
 
 export default function App({ Component, pageProps }) {
+  const metaTags = generateMetaTags()
+
   return (
-    <ThemeProvider>
-      <Component {...pageProps} />
-    </ThemeProvider>
+    <>
+      <Head>
+        <title>{metaTags.title}</title>
+        <meta name="description" content={metaTags.description} />
+        <meta name="keywords" content={metaTags.keywords} />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="language" content="English" />
+        <meta name="author" content={siteMetadata.author} />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={metaTags.title} />
+        <meta property="og:description" content={metaTags.description} />
+        <meta property="og:url" content={siteMetadata.url} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metaTags.title} />
+        <meta name="twitter:description" content={metaTags.description} />
+
+        {/* Canonical */}
+        <link rel="canonical" href={siteMetadata.url} />
+
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <ThemeProvider>
+        <Component {...pageProps} />
+      </ThemeProvider>
+    </>
   )
 }
