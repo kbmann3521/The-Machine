@@ -36,6 +36,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleDownloadImage = () => {
+    if (displayResult?.resizedImage) {
+      const link = document.createElement('a')
+      link.href = displayResult.resizedImage
+      link.download = `resized-image-${Date.now()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
   const renderOutput = () => {
     if (error) {
       return (
@@ -58,6 +69,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
     }
 
     const contentClass = loading ? styles.fadingOut : styles.fadeIn
+
+    if (displayResult?.resizedImage) {
+      return (
+        <div className={`${styles.imageOutput} ${contentClass}`}>
+          <img src={displayResult.resizedImage} alt="Resized" className={styles.outputImage} />
+          <div className={styles.imageInfo}>
+            <p>Original: {displayResult.originalDimensions.width} x {displayResult.originalDimensions.height}px</p>
+            <p>Resized: {displayResult.newDimensions.width} x {displayResult.newDimensions.height}px</p>
+          </div>
+        </div>
+      )
+    }
 
     if (typeof displayResult === 'string') {
       return (
@@ -114,13 +137,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
       <div className={styles.header}>
         <h3>Output</h3>
         {displayResult && !loading && !error && (
-          <button
-            className={styles.copyButton}
-            onClick={handleCopy}
-            title="Copy to clipboard"
-          >
-            {copied ? '✓ Copied' : 'Copy'}
-          </button>
+          <>
+            {displayResult?.resizedImage ? (
+              <button
+                className={styles.copyButton}
+                onClick={handleDownloadImage}
+                title="Download resized image"
+              >
+                ⬇ Download
+              </button>
+            ) : (
+              <button
+                className={styles.copyButton}
+                onClick={handleCopy}
+                title="Copy to clipboard"
+              >
+                {copied ? '✓ Copied' : 'Copy'}
+              </button>
+            )}
+          </>
         )}
       </div>
 

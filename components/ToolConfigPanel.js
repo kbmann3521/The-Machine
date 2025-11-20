@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate }) {
   const [config, setConfig] = useState({})
 
   useEffect(() => {
@@ -29,6 +29,16 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
     onConfigChange(newConfig)
   }
 
+  const noInputRequiredTools = [
+    'random-string-generator',
+    'variable-name-generator',
+    'function-name-generator',
+    'api-endpoint-generator',
+    'lorem-ipsum-generator',
+  ]
+
+  const isGeneratorTool = tool && noInputRequiredTools.includes(tool.toolId)
+
   const renderField = field => {
     const value = config[field.id]
 
@@ -41,6 +51,18 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
             className={styles.input}
             value={value || ''}
             onChange={e => handleFieldChange(field.id, e.target.value)}
+            placeholder={field.placeholder || ''}
+          />
+        )
+
+      case 'number':
+        return (
+          <input
+            key={field.id}
+            type="number"
+            className={styles.input}
+            value={value || ''}
+            onChange={e => handleFieldChange(field.id, parseInt(e.target.value) || e.target.value)}
             placeholder={field.placeholder || ''}
           />
         )
@@ -128,6 +150,17 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
             </div>
           ))}
         </div>
+      )}
+
+      {isGeneratorTool && (
+        <button
+          className={styles.regenerateButton}
+          onClick={onRegenerate}
+          disabled={loading}
+          title="Generate new output with current settings"
+        >
+          {loading ? 'Generating...' : '🔄 Regenerate'}
+        </button>
       )}
     </div>
   )

@@ -6,13 +6,26 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { toolId, inputText, config } = req.body
+    const { toolId, inputText, inputImage, config } = req.body
 
-    if (!toolId || !inputText) {
-      return res.status(400).json({ error: 'Missing toolId or inputText' })
+    if (!toolId) {
+      return res.status(400).json({ error: 'Missing toolId' })
     }
 
-    const result = runTool(toolId, inputText, config || {})
+    const noInputRequiredTools = [
+      'random-string-generator',
+      'variable-name-generator',
+      'function-name-generator',
+      'api-endpoint-generator',
+      'lorem-ipsum-generator',
+    ]
+
+    const requiresInput = !noInputRequiredTools.includes(toolId)
+    if (requiresInput && !inputText && !inputImage) {
+      return res.status(400).json({ error: 'Missing inputText or inputImage' })
+    }
+
+    const result = runTool(toolId, inputText, config || {}, inputImage)
 
     res.status(200).json({
       success: true,

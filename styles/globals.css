@@ -1,3 +1,35 @@
+:root[data-theme="light"] {
+  --color-background-primary: #fafafa;
+  --color-background-secondary: #ffffff;
+  --color-background-tertiary: #f5f5f5;
+  --color-text-primary: #333;
+  --color-text-secondary: #666;
+  --color-border: #e0e0e0;
+  --color-border-hover: #d0d0d0;
+  --color-header-gradient-start: #f5f5f5;
+  --color-header-gradient-end: #ffffff;
+  --color-shadow: rgba(0, 0, 0, 0.08);
+  --scrollbar-track: #f5f5f5;
+  --scrollbar-thumb: #d0d0d0;
+  --scrollbar-thumb-hover: #b3b3b3;
+}
+
+:root[data-theme="dark"] {
+  --color-background-primary: #1a1a1a;
+  --color-background-secondary: #2d2d2d;
+  --color-background-tertiary: #3a3a3a;
+  --color-text-primary: #e4e4e4;
+  --color-text-secondary: #a8a8a8;
+  --color-border: #404040;
+  --color-border-hover: #505050;
+  --color-header-gradient-start: #2d2d2d;
+  --color-header-gradient-end: #1f1f1f;
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --scrollbar-track: #2d2d2d;
+  --scrollbar-thumb: #505050;
+  --scrollbar-thumb-hover: #656565;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -12,17 +44,40 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fafafa;
-  color: #333;
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
   overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 #__next {
   display: flex;
   min-height: 100vh;
+}
+
+/* Webkit scrollbar styling (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 5px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 .container {
@@ -34,12 +89,12 @@ body {
 h1 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 p {
   font-size: 1rem;
-  color: #666;
+  color: var(--color-text-secondary);
   line-height: 1.6;
 }
 

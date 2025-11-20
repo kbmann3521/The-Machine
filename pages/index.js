@@ -3,7 +3,9 @@ import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
+import ThemeToggle from '../components/ThemeToggle'
 import { TOOLS } from '../lib/tools'
+import { resizeImage } from '../lib/imageUtils'
 import styles from '../styles/hub.module.css'
 
 export default function Home() {
@@ -18,11 +20,33 @@ export default function Home() {
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
   const debounceTimerRef = useRef(null)
+  const selectedToolRef = useRef(null)
+
+  useEffect(() => {
+    selectedToolRef.current = selectedTool
+  }, [selectedTool])
+
+  useEffect(() => {
+    const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+      toolId,
+      name: toolData.name,
+      description: toolData.description,
+      similarity: 0.75,
+      ...toolData,
+    }))
+    setPredictedTools(allTools)
+  }, [])
 
   const predictTools = useCallback(async (text, image, preview) => {
     if (!text && !image) {
-      setPredictedTools([])
-      setSelectedTool(null)
+      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+        toolId,
+        name: toolData.name,
+        description: toolData.description,
+        similarity: 0.75,
+        ...toolData,
+      }))
+      setPredictedTools(allTools)
       return
     }
 
@@ -51,10 +75,26 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      setPredictedTools(toolsWithMetadata)
-      if (toolsWithMetadata.length > 0) {
-        setSelectedTool(toolsWithMetadata[0])
-      }
+      setPredictedTools(prevTools => {
+        let finalTools = [...toolsWithMetadata]
+        const currentSelected = selectedToolRef.current
+
+        if (currentSelected) {
+          const isSelectedInPredicted = finalTools.some(t => t.toolId === currentSelected.toolId)
+          if (!isSelectedInPredicted) {
+            finalTools.unshift(currentSelected)
+          }
+        }
+
+        return finalTools
+      })
+
+      setSelectedTool(prevSelected => {
+        if (!prevSelected && toolsWithMetadata.length > 0) {
+          return toolsWithMetadata[0]
+        }
+        return prevSelected
+      })
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
@@ -107,7 +147,20 @@ export default function Home() {
 
   const autoRunTool = useCallback(
     async (tool, config) => {
-      if (!tool || !inputText) {
+      if (!tool) {
+        return
+      }
+
+      const noInputRequiredTools = [
+        'random-string-generator',
+        'variable-name-generator',
+        'function-name-generator',
+        'api-endpoint-generator',
+        'lorem-ipsum-generator',
+      ]
+
+      const requiresInput = !noInputRequiredTools.includes(tool.toolId)
+      if (requiresInput && !inputText && !imagePreview) {
         return
       }
 
@@ -115,22 +168,28 @@ export default function Home() {
       setError(null)
 
       try {
-        const response = await fetch('/api/tools/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            toolId: tool.toolId,
-            inputText,
-            config,
-          }),
-        })
+        if (tool.toolId === 'image-resizer' && imagePreview) {
+          const resizedData = await resizeImage(imagePreview, config)
+          setOutputResult(resizedData)
+        } else {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: tool.toolId,
+              inputText,
+              inputImage: imagePreview,
+              config,
+            }),
+          })
 
-        if (!response.ok) {
-          throw new Error('Failed to run tool')
+          if (!response.ok) {
+            throw new Error('Failed to run tool')
+          }
+
+          const data = await response.json()
+          setOutputResult(data.result)
         }
-
-        const data = await response.json()
-        setOutputResult(data.result)
       } catch (err) {
         setError(err.message)
         console.error('Tool execution error:', err)
@@ -138,12 +197,29 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText]
+    [inputText, imagePreview]
   )
 
-  useEffect(() => {
-    if (selectedTool && inputText) {
+  const handleRegenerate = useCallback(() => {
+    if (selectedTool) {
       autoRunTool(selectedTool, configOptions)
+    }
+  }, [selectedTool, configOptions, autoRunTool])
+
+  useEffect(() => {
+    const noInputRequiredTools = [
+      'random-string-generator',
+      'variable-name-generator',
+      'function-name-generator',
+      'api-endpoint-generator',
+      'lorem-ipsum-generator',
+    ]
+
+    if (selectedTool) {
+      const isGeneratorTool = noInputRequiredTools.includes(selectedTool.toolId)
+      if (isGeneratorTool || inputText) {
+        autoRunTool(selectedTool, configOptions)
+      }
     }
   }, [selectedTool, inputText, configOptions, autoRunTool])
 
@@ -159,8 +235,11 @@ export default function Home() {
 
       <main className={styles.mainContent}>
         <div className={styles.header}>
-          <h1>All-in-One Internet Tools</h1>
-          <p>Start typing or upload an image to get AI-powered tool suggestions</p>
+          <div className={styles.headerContent}>
+            <h1>All-in-One Internet Tools</h1>
+            <p>Start typing or upload an image to get AI-powered tool suggestions</p>
+          </div>
+          <ThemeToggle />
         </div>
 
         <div className={styles.content}>
@@ -179,6 +258,7 @@ export default function Home() {
                     tool={selectedTool}
                     onConfigChange={handleConfigChange}
                     loading={toolLoading}
+                    onRegenerate={handleRegenerate}
                   />
                 </div>
               )}
