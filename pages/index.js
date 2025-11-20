@@ -54,9 +54,26 @@ export default function Home() {
       }))
 
       setPredictedTools(toolsWithMetadata)
-      if (toolsWithMetadata.length > 0) {
-        setSelectedTool(toolsWithMetadata[0])
-      }
+
+      // Only auto-select the first tool if no tool is currently selected
+      // Otherwise, keep the current selection if it's still in the predicted list
+      setSelectedTool(prevSelected => {
+        if (!prevSelected && toolsWithMetadata.length > 0) {
+          return toolsWithMetadata[0]
+        }
+
+        // Check if the currently selected tool is still in the new predictions
+        if (prevSelected && toolsWithMetadata.some(t => t.toolId === prevSelected.toolId)) {
+          return prevSelected
+        }
+
+        // If currently selected tool is no longer in predictions but there are predictions, select the first one
+        if (toolsWithMetadata.length > 0) {
+          return toolsWithMetadata[0]
+        }
+
+        return prevSelected
+      })
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
