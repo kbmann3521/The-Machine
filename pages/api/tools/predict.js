@@ -142,9 +142,7 @@ export default async function handler(req, res) {
 
       // Hash-related
       if (lowerInput.includes('hash') || lowerInput.includes('md5') || lowerInput.includes('sha')) {
-        if (['hash-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['checksum-calculator'].includes(toolId)) {
+        if (['checksum-calculator'].includes(toolId)) {
           score = Math.max(score, 0.75)
         }
       }
