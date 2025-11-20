@@ -34,9 +34,9 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         </div>
       )}
 
-      {!loading && predictedTools.length > 0 && (
+      {!loading && filteredTools.length > 0 && (
         <nav className={styles.toolsList} aria-label="Available tools">
-          {predictedTools.map((tool, index) => (
+          {filteredTools.map((tool, index) => (
             <article
               key={tool.toolId}
               className={`${styles.toolItem} ${
