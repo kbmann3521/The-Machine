@@ -198,6 +198,35 @@
   color: #d4d4d4;
 }
 
+.imageOutput {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+}
+
+.outputImage {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+.imageInfo {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.imageInfo p {
+  margin: 4px 0;
+}
+
 .tableContainer {
   width: 100%;
   overflow: hidden;
