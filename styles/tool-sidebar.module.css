@@ -10,6 +10,7 @@
   scrollbar-color: var(--color-border-hover) transparent;
   flex: 0 0 300px;
   min-height: 0;
+  max-height: calc(100vh - 100px);
 }
 
 .header {
