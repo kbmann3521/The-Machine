@@ -91,6 +91,7 @@
 
 .outputSection {
   flex: 1;
+  width: 100%;
   animation: slideIn 0.3s ease-out;
 }
 
