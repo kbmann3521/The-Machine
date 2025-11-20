@@ -58,50 +58,95 @@ export default async function handler(req, res) {
 
     // Fallback: Smart keyword-based tool ranking
     const lowerInput = inputContent.toLowerCase()
-    let topToolIds = [
-      'word-counter', 'case-converter', 'base64-converter', 'url-converter', 'html-formatter', 'json-formatter',
-      'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras', 'text-analyzer',
-      'uuid-generator', 'regex-tester', 'hash-generator', 'timestamp-converter', 'password-generator', 'csv-json-converter',
-      'markdown-html-converter', 'xml-formatter', 'yaml-formatter', 'url-parser', 'jwt-decoder', 'qr-code-generator',
-      'text-diff-checker', 'color-converter', 'checksum-calculator'
-    ]
+    let topToolIds = []
 
     if (inputImage) {
-      topToolIds = ['image-resizer', 'word-counter', 'case-converter', 'find-replace', 'remove-extras']
+      topToolIds = ['image-resizer', 'image-to-base64']
     } else if (lowerInput.includes('html') || (lowerInput.includes('<') && lowerInput.includes('>'))) {
-      // HTML content detected - moved first to catch "html" keyword
       topToolIds = ['html-formatter', 'html-entities-converter', 'plain-text-stripper', 'markdown-html-converter', 'word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'json-formatter', 'slug-generator', 'reverse-text']
     } else if (lowerInput.includes('json') || (lowerInput.includes('{') && lowerInput.includes('}'))) {
-      // JSON content detected
-      topToolIds = ['json-formatter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
-    } else if (lowerInput.includes('http') || lowerInput.includes('url') || lowerInput.includes('%') || lowerInput.includes('?')) {
-      // URL content detected
-      topToolIds = ['url-converter', 'url-parser', 'base64-converter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text']
+      topToolIds = ['json-formatter', 'json-path-extractor', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
+    } else if (lowerInput.includes('http://') || lowerInput.includes('https://') || lowerInput.includes('url') || lowerInput.includes('://')) {
+      topToolIds = ['url-parser', 'url-converter', 'base64-converter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text']
     } else if (lowerInput.match(/^[a-z0-9+/]*={0,2}$/i) && lowerInput.length > 4) {
-      // Potential Base64 content
       topToolIds = ['base64-converter', 'url-converter', 'word-counter', 'case-converter', 'plain-text-stripper', 'find-replace', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
     } else if (lowerInput.includes('regex') || lowerInput.includes('pattern') || lowerInput.includes('match')) {
-      topToolIds = ['regex-tester', 'find-replace', 'word-counter', 'plain-text-stripper', ...topToolIds.filter(t => !['regex-tester', 'find-replace', 'word-counter', 'plain-text-stripper'].includes(t))]
+      topToolIds = ['regex-tester', 'find-replace', 'word-counter', 'text-analyzer', 'plain-text-stripper']
     } else if (lowerInput.includes('uuid') || lowerInput.includes('guid') || lowerInput.includes('identifier')) {
-      topToolIds = ['uuid-generator', ...topToolIds.filter(t => t !== 'uuid-generator')]
+      topToolIds = ['uuid-generator', 'uuid-validator']
     } else if (lowerInput.includes('csv') || lowerInput.includes('comma')) {
-      topToolIds = ['csv-json-converter', 'json-formatter', ...topToolIds.filter(t => !['csv-json-converter', 'json-formatter'].includes(t))]
+      topToolIds = ['csv-json-converter', 'json-formatter']
     } else if (lowerInput.includes('yaml') || lowerInput.includes('yml') || lowerInput.includes('config')) {
-      topToolIds = ['yaml-formatter', 'xml-formatter', ...topToolIds.filter(t => !['yaml-formatter', 'xml-formatter'].includes(t))]
+      topToolIds = ['yaml-formatter', 'xml-formatter', 'json-formatter']
     } else if (lowerInput.includes('xml')) {
-      topToolIds = ['xml-formatter', 'html-formatter', ...topToolIds.filter(t => !['xml-formatter', 'html-formatter'].includes(t))]
+      topToolIds = ['xml-formatter', 'html-formatter', 'plain-text-stripper']
     } else if (lowerInput.includes('markdown') || lowerInput.includes('.md')) {
-      topToolIds = ['markdown-html-converter', 'html-formatter', ...topToolIds.filter(t => !['markdown-html-converter', 'html-formatter'].includes(t))]
+      topToolIds = ['markdown-html-converter', 'html-formatter', 'plain-text-stripper']
     } else if (lowerInput.includes('color') || lowerInput.includes('rgb') || lowerInput.includes('hex') || /^#[0-9a-f]{6}/i.test(lowerInput)) {
-      topToolIds = ['color-converter', ...topToolIds.filter(t => t !== 'color-converter')]
+      topToolIds = ['color-converter']
     } else if (lowerInput.includes('jwt') || lowerInput.includes('token')) {
-      topToolIds = ['jwt-decoder', 'base64-converter', ...topToolIds.filter(t => !['jwt-decoder', 'base64-converter'].includes(t))]
+      topToolIds = ['jwt-decoder', 'base64-converter']
     } else if (lowerInput.includes('timestamp') || lowerInput.includes('unix') || /^\d{10}/.test(lowerInput)) {
-      topToolIds = ['timestamp-converter', ...topToolIds.filter(t => t !== 'timestamp-converter')]
+      topToolIds = ['timestamp-converter', 'timezone-converter']
     } else if (lowerInput.includes('hash') || lowerInput.includes('md5') || lowerInput.includes('sha')) {
-      topToolIds = ['hash-generator', 'checksum-calculator', ...topToolIds.filter(t => !['hash-generator', 'checksum-calculator'].includes(t))]
+      topToolIds = ['hash-generator', 'checksum-calculator']
     } else if (lowerInput.includes('password') || lowerInput.includes('secure')) {
-      topToolIds = ['password-generator', ...topToolIds.filter(t => t !== 'password-generator')]
+      topToolIds = ['password-generator']
+    } else if (lowerInput.includes('qr') || lowerInput.includes('barcode')) {
+      topToolIds = ['qr-code-generator']
+    } else if (lowerInput.includes('base64') || lowerInput.includes('encode') || lowerInput.includes('decode')) {
+      topToolIds = ['base64-converter', 'url-converter', 'html-entities-converter']
+    } else if (lowerInput.includes('case') || lowerInput.includes('uppercase') || lowerInput.includes('lowercase')) {
+      topToolIds = ['case-converter', 'slug-generator']
+    } else if (lowerInput.includes('reverse')) {
+      topToolIds = ['reverse-text']
+    } else if (lowerInput.includes('slug') || lowerInput.includes('slug-friendly')) {
+      topToolIds = ['slug-generator']
+    } else if (lowerInput.includes('sql')) {
+      topToolIds = ['sql-formatter']
+    } else if (lowerInput.includes('css')) {
+      topToolIds = ['css-formatter']
+    } else if (lowerInput.includes('http')) {
+      topToolIds = ['http-status-lookup', 'http-header-parser']
+    } else if (lowerInput.includes('mime')) {
+      topToolIds = ['mime-type-lookup']
+    } else if (lowerInput.includes('escape') || lowerInput.includes('unescape')) {
+      topToolIds = ['escape-unescape']
+    } else if (lowerInput.includes('sort')) {
+      topToolIds = ['sort-lines']
+    } else if (lowerInput.includes('diff') || lowerInput.includes('compare')) {
+      topToolIds = ['text-diff-checker']
+    } else if (lowerInput.includes('unit') || lowerInput.includes('convert')) {
+      topToolIds = ['unit-converter', 'file-size-converter', 'number-formatter']
+    } else if (lowerInput.includes('cron')) {
+      topToolIds = ['cron-tester']
+    } else if (lowerInput.includes('ascii') || lowerInput.includes('unicode')) {
+      topToolIds = ['ascii-unicode-converter']
+    } else if (lowerInput.includes('punycode') || lowerInput.includes('domain')) {
+      topToolIds = ['punycode-converter', 'url-parser']
+    } else if (lowerInput.includes('binary') || lowerInput.includes('hex') || lowerInput.includes('octal')) {
+      topToolIds = ['binary-converter', 'base-converter']
+    } else if (lowerInput.includes('rot13') || lowerInput.includes('cipher') || lowerInput.includes('caesar')) {
+      topToolIds = ['rot13-cipher', 'caesar-cipher']
+    } else if (lowerInput.includes('svg')) {
+      topToolIds = ['svg-optimizer']
+    } else if (lowerInput.includes('whitespace') || lowerInput.includes('space')) {
+      topToolIds = ['whitespace-visualizer', 'remove-extras']
+    } else if (lowerInput.includes('math') || lowerInput.includes('calculate')) {
+      topToolIds = ['math-evaluator']
+    } else if (lowerInput.includes('keyword')) {
+      topToolIds = ['keyword-extractor']
+    }
+
+    // If no specific pattern matched, use general tools
+    if (topToolIds.length === 0) {
+      topToolIds = [
+        'word-counter', 'text-analyzer', 'case-converter', 'base64-converter', 'url-converter', 'html-formatter', 'json-formatter',
+        'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras',
+        'uuid-generator', 'regex-tester', 'hash-generator', 'timestamp-converter', 'password-generator', 'csv-json-converter',
+        'markdown-html-converter', 'xml-formatter', 'yaml-formatter', 'url-parser', 'jwt-decoder', 'qr-code-generator',
+        'text-diff-checker', 'color-converter', 'checksum-calculator'
+      ]
     }
 
     const fallbackTools = topToolIds
