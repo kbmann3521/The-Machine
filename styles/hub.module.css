@@ -194,24 +194,16 @@
 }
 
 @media (max-width: 768px) {
-  .layout {
+  .bodyContainer {
     flex-direction: column;
-  }
-
-  .mainContent {
-    margin-left: 0;
-    width: 100vw;
-    order: 1;
   }
 
   .header {
     padding: 15px 20px;
-    margin-bottom: 10px;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    width: 100vw;
   }
 
   .header h1 {
@@ -230,7 +222,7 @@
 
   .content {
     padding: 25px 20px;
-    width: 100vw;
+    width: 100%;
   }
 
   .leftPanel,
@@ -242,7 +234,7 @@
     grid-template-columns: 1fr;
     gap: 15px;
     border-radius: 8px;
-    width: calc(100vw - 40px);
+    width: 100%;
   }
 
   .leftPanel {
