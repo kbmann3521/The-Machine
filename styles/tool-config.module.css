@@ -209,11 +209,10 @@
 
 @media (max-width: 640px) {
   .container {
-    padding: 15px;
+    padding: 0;
   }
 
   .fieldsContainer {
-    grid-template-columns: 1fr;
     gap: 12px;
   }
 }
