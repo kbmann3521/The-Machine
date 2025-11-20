@@ -52,7 +52,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'svg-optimizer': 'Paste SVG code to optimize...',
       'unit-converter': 'Enter value with unit (e.g., 5km, 100lb)...',
       'number-formatter': 'Enter number to format with different notations...',
-      'timezone-converter': 'Paste timestamp or time to convert timezones...',
+      'timezone-converter': 'Enter time to convert (e.g., 1:00 PM, 13:00, 2:30 PM)...',
       'base-converter': 'Enter number and select base to convert between...',
       'math-evaluator': 'Paste math expression to evaluate (e.g., 2+2*3)...',
       'keyword-extractor': 'Paste text to extract important keywords...',
