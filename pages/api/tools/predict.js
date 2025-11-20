@@ -147,12 +147,6 @@ export default async function handler(req, res) {
         }
       }
 
-      // Password-related
-      if (lowerInput.includes('password') || lowerInput.includes('secure')) {
-        if (['password-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
 
       // QR code-related
       if (lowerInput.includes('qr') || lowerInput.includes('barcode')) {
