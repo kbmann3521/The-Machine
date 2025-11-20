@@ -56,10 +56,28 @@ export default async function handler(req, res) {
       console.log('Vector search error, using fallback:', vectorError.message)
     }
 
-    // Fallback: return top tools in predictable order
-    const topToolIds = inputImage
-      ? ['image-resizer', 'word-counter', 'case-converter', 'find-replace', 'remove-extras']
-      : ['word-counter', 'case-converter', 'base64-converter', 'url-converter', 'html-formatter', 'json-formatter', 'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras', 'text-analyzer']
+    // Fallback: Smart keyword-based tool ranking
+    const lowerInput = inputContent.toLowerCase()
+    let topToolIds = [
+      'word-counter', 'case-converter', 'base64-converter', 'url-converter', 'html-formatter', 'json-formatter',
+      'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras', 'text-analyzer'
+    ]
+
+    if (inputImage) {
+      topToolIds = ['image-resizer', 'word-counter', 'case-converter', 'find-replace', 'remove-extras']
+    } else if (lowerInput.includes('<') && lowerInput.includes('>')) {
+      // HTML content detected
+      topToolIds = ['html-formatter', 'html-entities-converter', 'plain-text-stripper', 'word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'json-formatter', 'slug-generator', 'reverse-text']
+    } else if (lowerInput.includes('{') && lowerInput.includes('}')) {
+      // JSON content detected
+      topToolIds = ['json-formatter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
+    } else if (lowerInput.includes('http') || lowerInput.includes('%') || lowerInput.includes('?')) {
+      // URL content detected
+      topToolIds = ['url-converter', 'base64-converter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
+    } else if (lowerInput.match(/^[a-z0-9+/]*={0,2}$/i) && lowerInput.length > 4) {
+      // Potential Base64 content
+      topToolIds = ['base64-converter', 'url-converter', 'word-counter', 'case-converter', 'plain-text-stripper', 'find-replace', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
+    }
 
     const fallbackTools = topToolIds
       .filter(id => TOOLS[id])
