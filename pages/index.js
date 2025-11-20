@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
@@ -17,20 +17,17 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
+  const debounceTimerRef = useRef(null)
 
-  const handleInputChange = useCallback((text) => {
-    setInputText(text)
-  }, [])
+  const predictTools = useCallback(async (text, image, preview) => {
+    if (!text && !image) {
+      setPredictedTools([])
+      setSelectedTool(null)
+      return
+    }
 
-  const handleImageChange = useCallback((file, preview) => {
-    setInputImage(file)
-    setImagePreview(preview)
-  }, [])
-
-  const handlePredict = useCallback(async (text, image, preview) => {
     setLoading(true)
     setError(null)
-    setSelectedTool(null)
     setOutputResult(null)
 
     try {
@@ -59,12 +56,36 @@ export default function Home() {
         setSelectedTool(toolsWithMetadata[0])
       }
     } catch (err) {
-      setError(err.message)
       console.error('Prediction error:', err)
     } finally {
       setLoading(false)
     }
   }, [])
+
+  const handleInputChange = useCallback((text, image, preview) => {
+    setInputText(text)
+    setInputImage(image)
+    setImagePreview(preview)
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      predictTools(text, image, preview)
+    }, 300)
+  }, [predictTools])
+
+  const handleImageChange = useCallback((file, preview) => {
+    setInputImage(file)
+    setImagePreview(preview)
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    predictTools(inputText, file, preview)
+  }, [inputText, predictTools])
 
   const handleSelectTool = useCallback((tool) => {
     setSelectedTool(tool)
@@ -76,40 +97,43 @@ export default function Home() {
     setConfigOptions(config)
   }, [])
 
-  const handleRunTool = useCallback(async (tool, config) => {
-    if (!inputText) {
-      setError('Please enter text to process')
-      return
-    }
-
-    setToolLoading(true)
-    setError(null)
-    setOutputResult(null)
-
-    try {
-      const response = await fetch('/api/tools/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          toolId: tool.toolId,
-          inputText,
-          config,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to run tool')
+  const handleRunTool = useCallback(
+    async (tool, config) => {
+      if (!inputText) {
+        setError('Please enter text to process')
+        return
       }
 
-      const data = await response.json()
-      setOutputResult(data.result)
-    } catch (err) {
-      setError(err.message)
-      console.error('Tool execution error:', err)
-    } finally {
-      setToolLoading(false)
-    }
-  }, [inputText])
+      setToolLoading(true)
+      setError(null)
+      setOutputResult(null)
+
+      try {
+        const response = await fetch('/api/tools/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            toolId: tool.toolId,
+            inputText,
+            config,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to run tool')
+        }
+
+        const data = await response.json()
+        setOutputResult(data.result)
+      } catch (err) {
+        setError(err.message)
+        console.error('Tool execution error:', err)
+      } finally {
+        setToolLoading(false)
+      }
+    },
+    [inputText]
+  )
 
   return (
     <div className={styles.layout}>
@@ -123,14 +147,13 @@ export default function Home() {
       <main className={styles.mainContent}>
         <div className={styles.header}>
           <h1>All-in-One Internet Tools</h1>
-          <p>Enter text or upload an image, and get AI-powered tool suggestions</p>
+          <p>Start typing or upload an image to get AI-powered tool suggestions</p>
         </div>
 
         <div className={styles.content}>
           <UniversalInput
             onInputChange={handleInputChange}
             onImageChange={handleImageChange}
-            onPredict={handlePredict}
           />
 
           {selectedTool && (
