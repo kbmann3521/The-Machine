@@ -29,10 +29,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
     onConfigChange(newConfig)
   }
 
-  const handleRun = () => {
-    onRun(tool, config)
-  }
-
   const renderField = field => {
     const value = config[field.id]
 
