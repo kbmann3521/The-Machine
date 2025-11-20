@@ -64,6 +64,28 @@
   justify-content: flex-start;
 }
 
+.content.isLoading {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.fadeIn {
+  animation: fadeInSmooth 0.4s ease-out;
+}
+
+.fadingOut {
+  opacity: 0.5;
+}
+
+@keyframes fadeInSmooth {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .spinner {
   display: flex;
   align-items: center;
