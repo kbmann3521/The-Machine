@@ -207,6 +207,7 @@
   .mainContent {
     margin-left: 0;
     width: 100vw;
+    order: 1;
   }
 
   .header {
