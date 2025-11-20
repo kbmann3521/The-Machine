@@ -61,6 +61,12 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         </nav>
       )}
 
+      {!loading && predictedTools.length > 0 && filteredTools.length === 0 && (
+        <div className={styles.emptyState}>
+          <p>No tools match your search. Try a different query.</p>
+        </div>
+      )}
+
       {!loading && predictedTools.length === 0 && (
         <div className={styles.emptyState}>
           <p>No tools available. Enter text or upload an image to get started.</p>
