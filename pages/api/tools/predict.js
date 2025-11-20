@@ -98,6 +98,32 @@ export default async function handler(req, res) {
       topToolIds = ['math-evaluator']
     } else if (lowerInput.includes('keyword')) {
       topToolIds = ['keyword-extractor']
+    } else if (lowerInput.includes('javascript') || lowerInput.includes('minify js') || lowerInput.includes('beautify js')) {
+      topToolIds = ['js-minifier', 'js-beautifier']
+    } else if (lowerInput.includes('minify')) {
+      topToolIds = ['js-minifier', 'css-formatter', 'html-minifier', 'json-formatter']
+    } else if (lowerInput.includes('beautify') || lowerInput.includes('format')) {
+      topToolIds = ['js-beautifier', 'html-formatter', 'json-formatter', 'xml-formatter']
+    } else if (lowerInput.includes('email')) {
+      topToolIds = ['email-validator']
+    } else if (lowerInput.includes('ip')) {
+      topToolIds = ['ip-validator', 'ip-to-integer', 'integer-to-ip', 'ip-range-calculator']
+    } else if (lowerInput.includes('ipv4') || lowerInput.includes('ipv6')) {
+      topToolIds = ['ip-validator']
+    } else if (lowerInput.includes('cidr') || lowerInput.includes('subnet')) {
+      topToolIds = ['ip-range-calculator']
+    } else if (lowerInput.includes('markdown')) {
+      topToolIds = ['markdown-linter', 'markdown-html-converter']
+    } else if (lowerInput.includes('variable') || lowerInput.includes('var')) {
+      topToolIds = ['variable-name-generator']
+    } else if (lowerInput.includes('function') || lowerInput.includes('func')) {
+      topToolIds = ['function-name-generator']
+    } else if (lowerInput.includes('api') || lowerInput.includes('endpoint')) {
+      topToolIds = ['api-endpoint-generator']
+    } else if (lowerInput.includes('lorem') || lowerInput.includes('placeholder') || lowerInput.includes('dummy')) {
+      topToolIds = ['lorem-ipsum-generator']
+    } else if (lowerInput.includes('random') || lowerInput.includes('generate')) {
+      topToolIds = ['random-string-generator', 'variable-name-generator', 'function-name-generator', 'password-generator']
     }
 
     // If no specific pattern matched, use general tools
@@ -107,7 +133,8 @@ export default async function handler(req, res) {
         'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras',
         'uuid-generator', 'regex-tester', 'hash-generator', 'timestamp-converter', 'password-generator', 'csv-json-converter',
         'markdown-html-converter', 'xml-formatter', 'yaml-formatter', 'url-parser', 'jwt-decoder', 'qr-code-generator',
-        'text-diff-checker', 'color-converter', 'checksum-calculator'
+        'text-diff-checker', 'color-converter', 'checksum-calculator', 'js-minifier', 'email-validator', 'ip-validator',
+        'lorem-ipsum-generator', 'random-string-generator', 'variable-name-generator', 'function-name-generator'
       ]
     }
 
