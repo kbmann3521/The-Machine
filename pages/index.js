@@ -247,7 +247,7 @@ export default function Home() {
           <ThemeToggle />
         </div>
 
-        <div className={styles.bodyContainer}>
+        <div className={`${styles.bodyContainer} ${descriptionSidebarOpen ? styles.sidebarOpenDesktop : ''}`}>
           <ToolSidebar
             predictedTools={predictedTools}
             selectedTool={selectedTool}
