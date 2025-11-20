@@ -396,10 +396,25 @@ export default async function handler(req, res) {
       return { toolId, score }
     })
 
-    // Sort all tools by similarity score in descending order
-    const sortedTools = toolScores.sort((a, b) => b.score - a.score)
+    // Generator tools to exclude
+    const generatorTools = [
+      'random-string-generator',
+      'variable-name-generator',
+      'function-name-generator',
+      'api-endpoint-generator',
+      'lorem-ipsum-generator',
+      'uuid-generator',
+      'hash-generator',
+      'password-generator',
+      'qr-code-generator',
+    ]
 
-    // Return all tools with their scores
+    // Sort all tools by similarity score in descending order, excluding generator tools
+    const sortedTools = toolScores
+      .filter(({ toolId }) => !generatorTools.includes(toolId))
+      .sort((a, b) => b.score - a.score)
+
+    // Return all non-generator tools with their scores
     const fallbackTools = sortedTools.map(({ toolId, score }) => ({
       toolId,
       name: TOOLS[toolId].name,
