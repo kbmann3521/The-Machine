@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
+import Head from 'next/head'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
@@ -6,6 +7,7 @@ import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import { TOOLS } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
+import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
 
 export default function Home() {
@@ -225,7 +227,31 @@ export default function Home() {
 
 
   return (
-    <div className={styles.layout}>
+    <>
+      <Head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateSoftwareAppSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateFAQSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateBreadcrumbSchema([
+              { name: 'Tools', item: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com'}/` }
+            ])),
+          }}
+        />
+      </Head>
+
+      <div className={styles.layout}>
       <ToolSidebar
         predictedTools={predictedTools}
         selectedTool={selectedTool}
@@ -278,5 +304,6 @@ export default function Home() {
         </div>
       </main>
     </div>
+    </>
   )
 }
