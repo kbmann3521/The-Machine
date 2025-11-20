@@ -1,14 +1,6 @@
-import { generateEmbedding, cosineSimilarity } from '../../../lib/embeddings'
+import { generateEmbedding } from '../../../lib/embeddings'
+import { supabase } from '../../../lib/supabase'
 import { TOOLS } from '../../../lib/tools'
-
-// Pre-computed embeddings for each tool description
-const TOOL_EMBEDDINGS = {
-  'word-counter': [0.8, 0.2, 0.5, 0.3, 0.6, 0.1, 0.4, 0.7, 0.2, 0.5, 0.3, 0.6, 0.1, 0.4, 0.9, 0.2],
-  'case-converter': [0.6, 0.3, 0.7, 0.2, 0.5, 0.4, 0.8, 0.1, 0.6, 0.3, 0.7, 0.2, 0.5, 0.9, 0.4, 0.1],
-  'find-replace': [0.7, 0.4, 0.6, 0.5, 0.3, 0.8, 0.2, 0.6, 0.4, 0.7, 0.5, 0.3, 0.8, 0.1, 0.6, 0.4],
-  'remove-extras': [0.5, 0.6, 0.3, 0.7, 0.2, 0.8, 0.4, 0.6, 0.5, 0.3, 0.7, 0.2, 0.8, 0.4, 0.6, 0.1],
-  'text-analyzer': [0.9, 0.1, 0.5, 0.4, 0.7, 0.2, 0.6, 0.3, 0.8, 0.1, 0.5, 0.4, 0.7, 0.2, 0.6, 0.9],
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -24,35 +16,97 @@ export default async function handler(req, res) {
 
     let inputContent = inputText || 'image input'
 
-    const embedding = await generateEmbedding(inputContent)
+    const userEmbedding = await generateEmbedding(inputContent)
 
-    const toolIds = Object.keys(TOOLS)
-    const toolScores = toolIds.map(toolId => {
-      const tool = TOOLS[toolId]
-      const toolEmbedding = TOOL_EMBEDDINGS[toolId] || [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-
-      const similarity = cosineSimilarity(embedding, toolEmbedding)
-      return {
-        toolId,
-        similarity,
-        tool,
-      }
+    // Query Supabase for similar tools using vector search
+    const { data: toolsData, error: toolsError } = await supabase.rpc('match_tools', {
+      query_embedding: userEmbedding,
+      match_count: 5,
     })
 
-    const sorted = toolScores.sort((a, b) => b.similarity - a.similarity)
-    const topTools = sorted.slice(0, 5)
+    if (toolsError) {
+      console.log('Vector search not available, using fallback method:', toolsError.message)
+
+      // Fallback: return all tools with similarity scores
+      const { data: allTools } = await supabase
+        .from('tools')
+        .select('id, name, description, embedding')
+
+      if (allTools && allTools.length > 0) {
+        const toolScores = allTools
+          .map(tool => {
+            const similarity = cosineSimilarity(userEmbedding, tool.embedding)
+            return {
+              toolId: tool.id,
+              name: tool.name,
+              description: tool.description,
+              similarity,
+            }
+          })
+          .sort((a, b) => b.similarity - a.similarity)
+          .slice(0, 5)
+
+        return res.status(200).json({
+          predictedTools: toolScores,
+          inputContent,
+        })
+      }
+    }
+
+    // Use vector search results
+    if (toolsData && toolsData.length > 0) {
+      const predictedTools = toolsData.map(tool => ({
+        toolId: tool.id,
+        name: tool.name,
+        description: tool.description,
+        similarity: tool.similarity || 0.75,
+      }))
+
+      return res.status(200).json({
+        predictedTools,
+        inputContent,
+      })
+    }
+
+    // Fallback: return top tools in order
+    const topToolIds = ['word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer']
+    const fallbackTools = topToolIds
+      .filter(id => TOOLS[id])
+      .map((id, index) => ({
+        toolId: id,
+        name: TOOLS[id].name,
+        description: TOOLS[id].description,
+        similarity: 0.9 - index * 0.1,
+      }))
 
     res.status(200).json({
-      predictedTools: topTools.map(t => ({
-        toolId: t.toolId,
-        name: t.tool.name,
-        description: t.tool.description,
-        similarity: Math.min(0.95, Math.max(0.5, t.similarity)),
-      })),
+      predictedTools: fallbackTools,
       inputContent,
     })
   } catch (error) {
     console.error('Prediction error:', error)
     res.status(500).json({ error: error.message })
   }
+}
+
+function cosineSimilarity(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
+    return 0.5
+  }
+
+  let dotProduct = 0
+  let normA = 0
+  let normB = 0
+
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i]
+    normA += a[i] * a[i]
+    normB += b[i] * b[i]
+  }
+
+  normA = Math.sqrt(normA)
+  normB = Math.sqrt(normB)
+
+  if (normA === 0 || normB === 0) return 0.5
+  return dotProduct / (normA * normB)
 }
