@@ -193,8 +193,20 @@
   }
 
   .toolContainer {
-    gap: 0;
+    grid-template-columns: 1fr;
+    gap: 15px;
     border-radius: 8px;
+  }
+
+  .leftPanel {
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    max-height: none;
+  }
+
+  .rightPanel {
+    border-left: none;
+    max-height: none;
   }
 }
 
