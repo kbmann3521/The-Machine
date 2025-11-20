@@ -12,7 +12,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing toolId' })
     }
 
-    if (!inputText && !inputImage) {
+    const noInputRequiredTools = [
+      'random-string-generator',
+      'variable-name-generator',
+      'function-name-generator',
+      'api-endpoint-generator',
+      'lorem-ipsum-generator',
+    ]
+
+    const requiresInput = !noInputRequiredTools.includes(toolId)
+    if (requiresInput && !inputText && !inputImage) {
       return res.status(400).json({ error: 'Missing inputText or inputImage' })
     }
 
