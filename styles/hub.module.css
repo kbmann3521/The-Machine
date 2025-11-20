@@ -130,10 +130,6 @@
 }
 
 @media (max-width: 1200px) {
-  .mainContent {
-    margin-left: 280px;
-  }
-
   .header {
     padding: 24px 30px;
   }
