@@ -45,6 +45,18 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
           />
         )
 
+      case 'number':
+        return (
+          <input
+            key={field.id}
+            type="number"
+            className={styles.input}
+            value={value || ''}
+            onChange={e => handleFieldChange(field.id, parseInt(e.target.value) || e.target.value)}
+            placeholder={field.placeholder || ''}
+          />
+        )
+
       case 'textarea':
         return (
           <textarea
