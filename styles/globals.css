@@ -48,7 +48,13 @@ body {
   background-color: var(--color-background-primary);
   color: var(--color-text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
-  overflow: hidden;
+}
+
+@media (min-width: 1025px) {
+  html,
+  body {
+    overflow: hidden;
+  }
 }
 
 body {
