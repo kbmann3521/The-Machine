@@ -77,12 +77,10 @@
 
 .toolsList {
   flex: 1;
-  overflow: visible;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 0;
 }
 
 .toolItem {
