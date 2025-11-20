@@ -3,7 +3,7 @@
   right: -400px;
   top: 0;
   width: 400px;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 84px);
   background-color: var(--color-background-secondary);
   border-left: 1px solid var(--color-border);
   display: flex;
@@ -11,7 +11,7 @@
   transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 40;
   overflow: hidden;
-  margin-top: 80px;
+  margin-top: 84px;
 }
 
 .descriptionSidebar.open {
