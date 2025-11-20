@@ -70,9 +70,18 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      setPredictedTools(toolsWithMetadata)
-
       setSelectedTool(prevSelected => {
+        let finalTools = toolsWithMetadata
+
+        if (prevSelected) {
+          const isSelectedInPredicted = toolsWithMetadata.some(t => t.toolId === prevSelected.toolId)
+          if (!isSelectedInPredicted) {
+            finalTools = [prevSelected, ...toolsWithMetadata]
+          }
+        }
+
+        setPredictedTools(finalTools)
+
         if (!prevSelected && toolsWithMetadata.length > 0) {
           return toolsWithMetadata[0]
         }
