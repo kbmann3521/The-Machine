@@ -269,12 +269,22 @@ export default function Home() {
 
               {selectedTool && (
                 <div className={styles.configSection}>
-                  <ToolConfigPanel
-                    tool={selectedTool}
-                    onConfigChange={handleConfigChange}
-                    loading={toolLoading}
-                    onRegenerate={handleRegenerate}
-                  />
+                  <div className={styles.configHeader}>
+                    <ToolConfigPanel
+                      tool={selectedTool}
+                      onConfigChange={handleConfigChange}
+                      loading={toolLoading}
+                      onRegenerate={handleRegenerate}
+                    />
+                    <button
+                      className={styles.descriptionToggle}
+                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                      aria-label="Toggle tool description"
+                      title="View tool description"
+                    >
+                      <span className={styles.descriptionIcon}>ℹ</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -293,7 +303,20 @@ export default function Home() {
         </div>
       </main>
         </div>
+
+        <ToolDescriptionSidebar
+          tool={selectedTool}
+          isOpen={descriptionSidebarOpen}
+          onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+        />
       </div>
+
+      {descriptionSidebarOpen && (
+        <div
+          className={styles.sidebarOverlay}
+          onClick={() => setDescriptionSidebarOpen(false)}
+        />
+      )}
     </>
   )
 }
