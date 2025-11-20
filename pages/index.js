@@ -227,7 +227,31 @@ export default function Home() {
 
 
   return (
-    <div className={styles.layout}>
+    <>
+      <Head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateSoftwareAppSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateFAQSchema()),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateBreadcrumbSchema([
+              { name: 'Tools', item: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com'}/` }
+            ])),
+          }}
+        />
+      </Head>
+
+      <div className={styles.layout}>
       <ToolSidebar
         predictedTools={predictedTools}
         selectedTool={selectedTool}
@@ -280,5 +304,6 @@ export default function Home() {
         </div>
       </main>
     </div>
+    </>
   )
 }
