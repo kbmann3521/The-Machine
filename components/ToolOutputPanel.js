@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import React, { useState } from 'react'
 import styles from '../styles/tool-output.module.css'
 
 export default function ToolOutputPanel({ result, outputType, loading, error }) {
