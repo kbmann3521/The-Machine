@@ -1,0 +1,259 @@
+.descriptionSidebar {
+  position: fixed;
+  right: -400px;
+  top: 0;
+  width: 400px;
+  height: 100vh;
+  background-color: var(--color-background-secondary);
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 40;
+  overflow: hidden;
+  padding-top: 60px;
+}
+
+.descriptionSidebar.open {
+  right: 0;
+}
+
+.sidebarHeader {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  position: fixed;
+  top: 60px;
+  right: 0;
+  width: 400px;
+  background-color: var(--color-background-secondary);
+  z-index: 41;
+}
+
+.toolTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-primary);
+  word-break: break-word;
+  flex: 1;
+  min-width: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  color: var(--color-text-primary);
+}
+
+.sidebarContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  margin-top: 56px;
+  scrollbar-gutter: stable;
+}
+
+.section {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+}
+
+.sectionHeader {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.sectionHeader:hover {
+  background-color: var(--color-background-secondary);
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: left;
+  flex: 1;
+}
+
+.toggleIcon {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.sectionHeader.expanded .toggleIcon {
+  transform: rotate(90deg);
+}
+
+.sectionContent {
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  animation: sectionExpand 0.2s ease-out;
+}
+
+@keyframes sectionExpand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.sectionContent p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.instructionsList,
+.featuresList,
+.usecasesList {
+  margin: 0;
+  padding-left: 20px;
+  list-style-position: outside;
+}
+
+.instructionsList li,
+.featuresList li,
+.usecasesList li {
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.instructionsList li:last-child,
+.featuresList li:last-child,
+.usecasesList li:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1200px) {
+  .descriptionSidebar {
+    width: 350px;
+    right: -350px;
+  }
+
+  .sidebarHeader {
+    width: 350px;
+  }
+
+  .sectionContent {
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .descriptionSidebar {
+    position: fixed;
+    right: -100%;
+    width: 100%;
+    max-width: 100vw;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+    padding-top: 0;
+    bottom: 0;
+    top: auto;
+    height: auto;
+    max-height: 70vh;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .descriptionSidebar.open {
+    right: 0;
+  }
+
+  .sidebarHeader {
+    position: static;
+    width: 100%;
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 12px 12px 0 0;
+    z-index: auto;
+    background-color: var(--color-background-secondary);
+  }
+
+  .toolTitle {
+    font-size: 15px;
+  }
+
+  .closeButton {
+    display: flex;
+  }
+
+  .sidebarContent {
+    margin-top: 0;
+    padding: 12px;
+    max-height: calc(70vh - 56px);
+  }
+
+  .sectionContent {
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .descriptionSidebar {
+    max-height: 80vh;
+  }
+
+  .sidebarContent {
+    max-height: calc(80vh - 56px);
+  }
+
+  .sectionHeader {
+    padding: 10px 12px;
+  }
+
+  .sectionContent {
+    padding: 8px 12px;
+  }
+
+  .toolTitle {
+    font-size: 14px;
+  }
+
+  .sectionTitle {
+    font-size: 13px;
+  }
+
+  .sectionContent p,
+  .instructionsList li,
+  .featuresList li,
+  .usecasesList li {
+    font-size: 12px;
+  }
+}
