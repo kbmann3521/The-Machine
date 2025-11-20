@@ -204,6 +204,7 @@
   border-collapse: collapse;
   background-color: white;
   font-size: 13px;
+  flex: 1;
 }
 
 .table th {
