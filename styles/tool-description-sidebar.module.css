@@ -161,6 +161,12 @@
   margin-bottom: 0;
 }
 
+@media (min-width: 1201px) {
+  .descriptionSidebar {
+    position: absolute;
+  }
+}
+
 @media (max-width: 1200px) {
   .descriptionSidebar {
     width: 350px;
@@ -173,6 +179,12 @@
 
   .sectionContent {
     padding: 10px 14px;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 769px) {
+  .descriptionSidebar.open {
+    right: 0;
   }
 }
 

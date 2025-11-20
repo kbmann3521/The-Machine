@@ -193,11 +193,7 @@
 }
 
 .sidebarOpenDesktop {
-  margin-right: 400px;
-}
-
-.sidebarOpenDesktop .mainContent {
-  width: calc(100% - 0px);
+  padding-right: 400px;
 }
 
 @media (max-width: 1200px) {
