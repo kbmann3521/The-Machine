@@ -39,6 +39,8 @@
   flex-direction: column;
   gap: 15px;
   margin-bottom: 15px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .field {
