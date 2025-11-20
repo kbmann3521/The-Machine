@@ -5,6 +5,7 @@ import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
+import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import { TOOLS } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
@@ -21,6 +22,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
+  const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
 
@@ -133,6 +135,7 @@ export default function Home() {
     setSelectedTool(tool)
     setOutputResult(null)
     setError(null)
+    setDescriptionSidebarOpen(false)
 
     const initialConfig = {}
     if (tool?.configSchema) {
