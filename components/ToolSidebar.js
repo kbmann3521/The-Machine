@@ -1,4 +1,5 @@
 import React from 'react'
+import React from 'react'
 import styles from '../styles/tool-sidebar.module.css'
 
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
