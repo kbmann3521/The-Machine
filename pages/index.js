@@ -296,6 +296,7 @@ export default function Home() {
                   outputType={selectedTool?.outputType}
                   loading={toolLoading}
                   error={error}
+                  toolId={selectedTool?.toolId}
                 />
               </div>
             </div>
