@@ -88,6 +88,7 @@ export default function ToolConfigPanel({ tool, onRun, onConfigChange, loading }
                 className={styles.toggleInput}
               />
               <span className={styles.toggleSlider}></span>
+              <span>{field.label}</span>
             </label>
           </div>
         )
