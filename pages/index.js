@@ -82,10 +82,10 @@ export default function Home() {
         const currentSelected = selectedToolRef.current
 
         if (currentSelected) {
-          const isSelectedInPredicted = finalTools.some(t => t.toolId === currentSelected.toolId)
-          if (!isSelectedInPredicted) {
-            finalTools.unshift(currentSelected)
-          }
+          // Remove the selected tool from the list if it exists
+          finalTools = finalTools.filter(t => t.toolId !== currentSelected.toolId)
+          // Always put the selected tool at the top
+          finalTools.unshift(currentSelected)
         }
 
         return finalTools
