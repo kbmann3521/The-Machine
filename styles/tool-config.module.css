@@ -140,6 +140,12 @@
   left: 22px;
 }
 
+.toggleLabel span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+}
+
 .sliderContainer {
   display: flex;
   align-items: center;
