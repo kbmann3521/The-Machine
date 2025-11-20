@@ -147,43 +147,6 @@ export default function Home() {
     }
   }, [selectedTool, inputText, configOptions, autoRunTool])
 
-  const handleRunTool = useCallback(
-    async (tool, config) => {
-      if (!inputText) {
-        setError('Please enter text to process')
-        return
-      }
-
-      setToolLoading(true)
-      setError(null)
-      setOutputResult(null)
-
-      try {
-        const response = await fetch('/api/tools/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            toolId: tool.toolId,
-            inputText,
-            config,
-          }),
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to run tool')
-        }
-
-        const data = await response.json()
-        setOutputResult(data.result)
-      } catch (err) {
-        setError(err.message)
-        console.error('Tool execution error:', err)
-      } finally {
-        setToolLoading(false)
-      }
-    },
-    [inputText]
-  )
 
   return (
     <div className={styles.layout}>
