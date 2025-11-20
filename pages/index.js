@@ -108,7 +108,11 @@ export default function Home() {
 
   const autoRunTool = useCallback(
     async (tool, config) => {
-      if (!tool || !inputText) {
+      if (!tool) {
+        return
+      }
+
+      if (!inputText && !imagePreview) {
         return
       }
 
@@ -122,6 +126,7 @@ export default function Home() {
           body: JSON.stringify({
             toolId: tool.toolId,
             inputText,
+            inputImage: imagePreview,
             config,
           }),
         })
@@ -139,7 +144,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText]
+    [inputText, imagePreview]
   )
 
   useEffect(() => {
