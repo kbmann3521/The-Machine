@@ -180,18 +180,33 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             placeholder={getPlaceholder()}
           />
 
-          <button
-            className={styles.uploadButton}
-            onClick={openFileDialog}
-            title="Click to upload an image"
-            type="button"
-          >
-            <svg className={styles.uploadIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-          </button>
+          <div className={styles.buttonGroup}>
+            {selectedTool?.example && (
+              <button
+                className={styles.exampleButton}
+                onClick={fillWithExample}
+                title="Fill with example data"
+                type="button"
+              >
+                <svg className={styles.exampleIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 1 0 4 0m0 0a2 2 0 1 0-4 0"></path>
+                </svg>
+                <span>Example</span>
+              </button>
+            )}
+            <button
+              className={styles.uploadButton}
+              onClick={openFileDialog}
+              title="Click to upload an image"
+              type="button"
+            >
+              <svg className={styles.uploadIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </button>
+          </div>
 
           <input
             type="file"
