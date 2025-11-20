@@ -214,7 +214,6 @@ export default function Home() {
                 <div className={styles.configSection}>
                   <ToolConfigPanel
                     tool={selectedTool}
-                    onRun={handleRunTool}
                     onConfigChange={handleConfigChange}
                     loading={toolLoading}
                   />
