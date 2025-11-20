@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import styles from '../styles/universal-input.module.css'
 
 export default function UniversalInput({ onInputChange, onImageChange }) {
