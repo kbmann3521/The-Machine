@@ -1,0 +1,245 @@
+.container {
+  width: 100%;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
+  box-sizing: border-box;
+}
+
+.placeholder {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  margin: 40px 0;
+}
+
+.header {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header h3 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+.description {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.3;
+}
+
+.fieldsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field input[type="checkbox"] {
+  margin: 0;
+}
+
+.field:has(input[type="checkbox"]) .fieldLabel {
+  display: none;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.input,
+.textarea,
+.select {
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 5px;
+  background-color: white;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.toggleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  align-items: flex-start;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  gap: 10px;
+}
+
+.toggleInput {
+  display: none;
+}
+
+.toggleSlider {
+  width: 40px;
+  height: 20px;
+  background-color: #d0d0d0;
+  border-radius: 10px;
+  display: inline-block;
+  position: relative;
+  transition: background-color 0.3s;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.toggleInput:checked + .toggleSlider {
+  background-color: #0066cc;
+}
+
+.toggleSlider::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: left 0.3s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.toggleInput:checked + .toggleSlider::after {
+  left: 22px;
+}
+
+.toggleLabel span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+}
+
+.sliderContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #d0d0d0 0%, #d0d0d0 100%);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #0066cc;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background-color: #0052a3;
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #0066cc;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.slider::-moz-range-thumb:hover {
+  background-color: #0052a3;
+}
+
+.sliderValue {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  min-width: 30px;
+  text-align: right;
+}
+
+.runButton {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background-color: #0066cc;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.runButton:hover {
+  background-color: #0052a3;
+}
+
+.runButton:active {
+  background-color: #003d7a;
+}
+
+.runButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0;
+  }
+
+  .fieldsContainer {
+    gap: 12px;
+  }
+}
