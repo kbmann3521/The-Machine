@@ -201,8 +201,19 @@ export default function Home() {
   )
 
   useEffect(() => {
-    if (selectedTool && inputText) {
-      autoRunTool(selectedTool, configOptions)
+    const noInputRequiredTools = [
+      'random-string-generator',
+      'variable-name-generator',
+      'function-name-generator',
+      'api-endpoint-generator',
+      'lorem-ipsum-generator',
+    ]
+
+    if (selectedTool) {
+      const isGeneratorTool = noInputRequiredTools.includes(selectedTool.toolId)
+      if (isGeneratorTool || inputText) {
+        autoRunTool(selectedTool, configOptions)
+      }
     }
   }, [selectedTool, inputText, configOptions, autoRunTool])
 
