@@ -68,6 +68,7 @@
   flex-direction: column;
   justify-content: flex-start;
   overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
 }
 
