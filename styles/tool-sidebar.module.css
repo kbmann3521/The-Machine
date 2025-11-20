@@ -172,6 +172,23 @@
   opacity: 0.7;
 }
 
+.toolsList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.toolsList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.toolsList::-webkit-scrollbar-thumb {
+  background: var(--color-border-hover);
+  border-radius: 4px;
+}
+
+.toolsList::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border);
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
