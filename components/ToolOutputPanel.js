@@ -70,6 +70,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
 
     const contentClass = loading ? styles.fadingOut : styles.fadeIn
 
+    if (displayResult?.resizedImage) {
+      return (
+        <div className={`${styles.imageOutput} ${contentClass}`}>
+          <img src={displayResult.resizedImage} alt="Resized" className={styles.outputImage} />
+          <div className={styles.imageInfo}>
+            <p>Original: {displayResult.originalDimensions.width} x {displayResult.originalDimensions.height}px</p>
+            <p>Resized: {displayResult.newDimensions.width} x {displayResult.newDimensions.height}px</p>
+          </div>
+        </div>
+      )
+    }
+
     if (typeof displayResult === 'string') {
       return (
         <pre className={`${styles.textOutput} ${contentClass}`}>
