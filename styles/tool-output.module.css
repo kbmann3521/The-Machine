@@ -195,7 +195,7 @@
 
 .tableContainer {
   width: 100%;
-  overflow-x: auto;
+  overflow: hidden;
   border-radius: 6px;
   border: 1px solid #e0e0e0;
   transition: opacity 0.3s ease;
