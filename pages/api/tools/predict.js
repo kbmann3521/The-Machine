@@ -14,138 +14,398 @@ export default async function handler(req, res) {
     }
 
     let inputContent = inputText || 'image input'
-
-    // Vector search is disabled due to incorrect similarity scores from RPC function
-    // Using keyword-based fallback which works correctly
-
-    // Fallback: Smart keyword-based tool ranking
     const lowerInput = inputContent.toLowerCase()
-    let topToolIds = []
 
-    if (inputImage) {
-      topToolIds = ['image-resizer', 'image-to-base64']
-    } else if (lowerInput.includes('html') || (lowerInput.includes('<') && lowerInput.includes('>'))) {
-      topToolIds = ['html-formatter', 'html-entities-converter', 'plain-text-stripper', 'markdown-html-converter', 'word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'json-formatter', 'slug-generator', 'reverse-text']
-    } else if (lowerInput.includes('json') || (lowerInput.includes('{') && lowerInput.includes('}'))) {
-      topToolIds = ['json-formatter', 'json-path-extractor', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
-    } else if (lowerInput.includes('http://') || lowerInput.includes('https://') || lowerInput.includes('url') || lowerInput.includes('://')) {
-      topToolIds = ['url-parser', 'url-converter', 'base64-converter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text']
-    } else if (lowerInput.match(/^[a-z0-9+/]*={0,2}$/i) && lowerInput.length > 4) {
-      topToolIds = ['base64-converter', 'url-converter', 'word-counter', 'case-converter', 'plain-text-stripper', 'find-replace', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter']
-    } else if (lowerInput.includes('regex') || lowerInput.includes('pattern') || lowerInput.includes('match')) {
-      topToolIds = ['regex-tester', 'find-replace', 'word-counter', 'text-analyzer', 'plain-text-stripper']
-    } else if (lowerInput.includes('uuid') || lowerInput.includes('guid') || lowerInput.includes('identifier')) {
-      topToolIds = ['uuid-generator', 'uuid-validator']
-    } else if (lowerInput.includes('csv') || lowerInput.includes('comma')) {
-      topToolIds = ['csv-json-converter', 'json-formatter']
-    } else if (lowerInput.includes('yaml') || lowerInput.includes('yml') || lowerInput.includes('config')) {
-      topToolIds = ['yaml-formatter', 'xml-formatter', 'json-formatter']
-    } else if (lowerInput.includes('xml')) {
-      topToolIds = ['xml-formatter', 'html-formatter', 'plain-text-stripper']
-    } else if (lowerInput.includes('markdown') || lowerInput.includes('.md')) {
-      topToolIds = ['markdown-html-converter', 'html-formatter', 'plain-text-stripper']
-    } else if (lowerInput.includes('color') || lowerInput.includes('rgb') || lowerInput.includes('hex') || /^#[0-9a-f]{6}/i.test(lowerInput)) {
-      topToolIds = ['color-converter']
-    } else if (lowerInput.includes('jwt') || lowerInput.includes('token')) {
-      topToolIds = ['jwt-decoder', 'base64-converter']
-    } else if (lowerInput.includes('timestamp') || lowerInput.includes('unix') || /^\d{10}/.test(lowerInput)) {
-      topToolIds = ['timestamp-converter', 'timezone-converter']
-    } else if (lowerInput.includes('hash') || lowerInput.includes('md5') || lowerInput.includes('sha')) {
-      topToolIds = ['hash-generator', 'checksum-calculator']
-    } else if (lowerInput.includes('password') || lowerInput.includes('secure')) {
-      topToolIds = ['password-generator']
-    } else if (lowerInput.includes('qr') || lowerInput.includes('barcode')) {
-      topToolIds = ['qr-code-generator']
-    } else if (lowerInput.includes('base64') || lowerInput.includes('encode') || lowerInput.includes('decode')) {
-      topToolIds = ['base64-converter', 'url-converter', 'html-entities-converter']
-    } else if (lowerInput.includes('case') || lowerInput.includes('uppercase') || lowerInput.includes('lowercase')) {
-      topToolIds = ['case-converter', 'slug-generator']
-    } else if (lowerInput.includes('reverse')) {
-      topToolIds = ['reverse-text']
-    } else if (lowerInput.includes('slug') || lowerInput.includes('slug-friendly')) {
-      topToolIds = ['slug-generator']
-    } else if (lowerInput.includes('sql')) {
-      topToolIds = ['sql-formatter']
-    } else if (lowerInput.includes('css')) {
-      topToolIds = ['css-formatter']
-    } else if (lowerInput.includes('http')) {
-      topToolIds = ['http-status-lookup', 'http-header-parser']
-    } else if (lowerInput.includes('mime')) {
-      topToolIds = ['mime-type-lookup']
-    } else if (lowerInput.includes('escape') || lowerInput.includes('unescape')) {
-      topToolIds = ['escape-unescape']
-    } else if (lowerInput.includes('sort')) {
-      topToolIds = ['sort-lines']
-    } else if (lowerInput.includes('diff') || lowerInput.includes('compare')) {
-      topToolIds = ['text-diff-checker']
-    } else if (lowerInput.includes('unit') || lowerInput.includes('convert')) {
-      topToolIds = ['unit-converter', 'file-size-converter', 'number-formatter']
-    } else if (lowerInput.includes('cron')) {
-      topToolIds = ['cron-tester']
-    } else if (lowerInput.includes('ascii') || lowerInput.includes('unicode')) {
-      topToolIds = ['ascii-unicode-converter']
-    } else if (lowerInput.includes('punycode') || lowerInput.includes('domain')) {
-      topToolIds = ['punycode-converter', 'url-parser']
-    } else if (lowerInput.includes('binary') || lowerInput.includes('hex') || lowerInput.includes('octal')) {
-      topToolIds = ['binary-converter', 'base-converter']
-    } else if (lowerInput.includes('rot13') || lowerInput.includes('cipher') || lowerInput.includes('caesar')) {
-      topToolIds = ['rot13-cipher', 'caesar-cipher']
-    } else if (lowerInput.includes('svg')) {
-      topToolIds = ['svg-optimizer']
-    } else if (lowerInput.includes('whitespace') || lowerInput.includes('space')) {
-      topToolIds = ['whitespace-visualizer', 'remove-extras']
-    } else if (lowerInput.includes('math') || lowerInput.includes('calculate')) {
-      topToolIds = ['math-evaluator']
-    } else if (lowerInput.includes('keyword')) {
-      topToolIds = ['keyword-extractor']
-    } else if (lowerInput.includes('javascript') || lowerInput.includes('minify js') || lowerInput.includes('beautify js')) {
-      topToolIds = ['js-minifier', 'js-beautifier']
-    } else if (lowerInput.includes('minify')) {
-      topToolIds = ['js-minifier', 'css-formatter', 'html-minifier', 'json-formatter']
-    } else if (lowerInput.includes('beautify') || lowerInput.includes('format')) {
-      topToolIds = ['js-beautifier', 'html-formatter', 'json-formatter', 'xml-formatter']
-    } else if (lowerInput.includes('email')) {
-      topToolIds = ['email-validator']
-    } else if (lowerInput.includes('ip')) {
-      topToolIds = ['ip-validator', 'ip-to-integer', 'integer-to-ip', 'ip-range-calculator']
-    } else if (lowerInput.includes('ipv4') || lowerInput.includes('ipv6')) {
-      topToolIds = ['ip-validator']
-    } else if (lowerInput.includes('cidr') || lowerInput.includes('subnet')) {
-      topToolIds = ['ip-range-calculator']
-    } else if (lowerInput.includes('markdown')) {
-      topToolIds = ['markdown-linter', 'markdown-html-converter']
-    } else if (lowerInput.includes('variable') || lowerInput.includes('var')) {
-      topToolIds = ['variable-name-generator']
-    } else if (lowerInput.includes('function') || lowerInput.includes('func')) {
-      topToolIds = ['function-name-generator']
-    } else if (lowerInput.includes('api') || lowerInput.includes('endpoint')) {
-      topToolIds = ['api-endpoint-generator']
-    } else if (lowerInput.includes('lorem') || lowerInput.includes('placeholder') || lowerInput.includes('dummy')) {
-      topToolIds = ['lorem-ipsum-generator']
-    } else if (lowerInput.includes('random') || lowerInput.includes('generate')) {
-      topToolIds = ['random-string-generator', 'variable-name-generator', 'function-name-generator', 'password-generator']
-    }
+    // Calculate similarity scores for ALL tools based on keyword matching
+    const toolScores = Object.entries(TOOLS).map(([toolId, toolData]) => {
+      let score = 0.3 // Base score for all tools
 
-    // If no specific pattern matched, use general tools
-    if (topToolIds.length === 0) {
-      topToolIds = [
-        'word-counter', 'text-analyzer', 'case-converter', 'base64-converter', 'url-converter', 'html-formatter', 'json-formatter',
-        'plain-text-stripper', 'slug-generator', 'reverse-text', 'html-entities-converter', 'find-replace', 'remove-extras',
-        'uuid-generator', 'regex-tester', 'hash-generator', 'timestamp-converter', 'password-generator', 'csv-json-converter',
-        'markdown-html-converter', 'xml-formatter', 'yaml-formatter', 'url-parser', 'jwt-decoder', 'qr-code-generator',
-        'text-diff-checker', 'color-converter', 'checksum-calculator', 'js-minifier', 'email-validator', 'ip-validator',
-        'lorem-ipsum-generator', 'random-string-generator', 'variable-name-generator', 'function-name-generator'
-      ]
-    }
+      // Image-based tools
+      if (inputImage) {
+        if (toolId === 'image-resizer' || toolId === 'image-to-base64') {
+          score = 0.95
+        } else if (toolData.inputTypes?.includes('image')) {
+          score = 0.85
+        }
+      }
 
-    const fallbackTools = topToolIds
-      .filter(id => TOOLS[id])
-      .map((id, index) => ({
-        toolId: id,
-        name: TOOLS[id].name,
-        description: TOOLS[id].description,
-        similarity: Math.max(0.5, 0.9 - index * 0.08),
-      }))
+      // HTML-related
+      if (lowerInput.includes('html') || (lowerInput.includes('<') && lowerInput.includes('>'))) {
+        if (['html-formatter', 'html-entities-converter', 'plain-text-stripper', 'markdown-html-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'json-formatter', 'slug-generator', 'reverse-text'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // JSON-related
+      if (lowerInput.includes('json') || (lowerInput.includes('{') && lowerInput.includes('}'))) {
+        if (['json-formatter', 'json-path-extractor'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // URL-related
+      if (lowerInput.includes('http://') || lowerInput.includes('https://') || lowerInput.includes('url') || lowerInput.includes('://')) {
+        if (['url-parser', 'url-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['base64-converter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Base64
+      if ((lowerInput.match(/^[a-z0-9+/]*={0,2}$/i) && lowerInput.length > 4) || lowerInput.includes('base64') || lowerInput.includes('encode') || lowerInput.includes('decode')) {
+        if (['base64-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['url-converter', 'word-counter', 'case-converter', 'plain-text-stripper', 'find-replace', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Regex-related
+      if (lowerInput.includes('regex') || lowerInput.includes('pattern') || lowerInput.includes('match')) {
+        if (['regex-tester'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['find-replace', 'word-counter', 'text-analyzer', 'plain-text-stripper'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // UUID-related
+      if (lowerInput.includes('uuid') || lowerInput.includes('guid') || lowerInput.includes('identifier')) {
+        if (['uuid-generator', 'uuid-validator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // CSV-related
+      if (lowerInput.includes('csv') || lowerInput.includes('comma')) {
+        if (['csv-json-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['json-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // YAML-related
+      if (lowerInput.includes('yaml') || lowerInput.includes('yml') || lowerInput.includes('config')) {
+        if (['yaml-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['xml-formatter', 'json-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // XML-related
+      if (lowerInput.includes('xml')) {
+        if (['xml-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['html-formatter', 'plain-text-stripper'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Markdown-related
+      if (lowerInput.includes('markdown') || lowerInput.includes('.md')) {
+        if (['markdown-html-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['html-formatter', 'plain-text-stripper'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Color-related
+      if (lowerInput.includes('color') || lowerInput.includes('rgb') || lowerInput.includes('hex') || /^#[0-9a-f]{6}/i.test(lowerInput)) {
+        if (['color-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // JWT-related
+      if (lowerInput.includes('jwt') || lowerInput.includes('token')) {
+        if (['jwt-decoder'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['base64-converter'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Timestamp-related
+      if (lowerInput.includes('timestamp') || lowerInput.includes('unix') || /^\d{10}/.test(lowerInput)) {
+        if (['timestamp-converter', 'timezone-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Hash-related
+      if (lowerInput.includes('hash') || lowerInput.includes('md5') || lowerInput.includes('sha')) {
+        if (['hash-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['checksum-calculator'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Password-related
+      if (lowerInput.includes('password') || lowerInput.includes('secure')) {
+        if (['password-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // QR code-related
+      if (lowerInput.includes('qr') || lowerInput.includes('barcode')) {
+        if (['qr-code-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Case-related
+      if (lowerInput.includes('case') || lowerInput.includes('uppercase') || lowerInput.includes('lowercase')) {
+        if (['case-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['slug-generator'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Reverse-related
+      if (lowerInput.includes('reverse')) {
+        if (['reverse-text'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Slug-related
+      if (lowerInput.includes('slug') || lowerInput.includes('slug-friendly')) {
+        if (['slug-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // SQL-related
+      if (lowerInput.includes('sql')) {
+        if (['sql-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // CSS-related
+      if (lowerInput.includes('css')) {
+        if (['css-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // HTTP-related
+      if (lowerInput.includes('http')) {
+        if (['http-status-lookup', 'http-header-parser'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // MIME-related
+      if (lowerInput.includes('mime')) {
+        if (['mime-type-lookup'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Escape-related
+      if (lowerInput.includes('escape') || lowerInput.includes('unescape')) {
+        if (['escape-unescape'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Sort-related
+      if (lowerInput.includes('sort')) {
+        if (['sort-lines'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Diff-related
+      if (lowerInput.includes('diff') || lowerInput.includes('compare')) {
+        if (['text-diff-checker'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Unit conversion-related
+      if (lowerInput.includes('unit') || lowerInput.includes('convert')) {
+        if (['unit-converter', 'number-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Cron-related
+      if (lowerInput.includes('cron')) {
+        if (['cron-tester'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // ASCII/Unicode-related
+      if (lowerInput.includes('ascii') || lowerInput.includes('unicode')) {
+        if (['ascii-unicode-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Punycode-related
+      if (lowerInput.includes('punycode') || lowerInput.includes('domain')) {
+        if (['punycode-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['url-parser'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Binary conversion-related
+      if (lowerInput.includes('binary') || lowerInput.includes('hex') || lowerInput.includes('octal')) {
+        if (['binary-converter', 'base-converter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Cipher-related
+      if (lowerInput.includes('rot13') || lowerInput.includes('cipher') || lowerInput.includes('caesar')) {
+        if (['caesar-cipher'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // SVG-related
+      if (lowerInput.includes('svg')) {
+        if (['svg-optimizer'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Whitespace-related
+      if (lowerInput.includes('whitespace') || lowerInput.includes('space')) {
+        if (['whitespace-visualizer'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        } else if (['remove-extras'].includes(toolId)) {
+          score = Math.max(score, 0.75)
+        }
+      }
+
+      // Math-related
+      if (lowerInput.includes('math') || lowerInput.includes('calculate')) {
+        if (['math-evaluator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Keyword extraction-related
+      if (lowerInput.includes('keyword')) {
+        if (['keyword-extractor'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // JavaScript-related
+      if (lowerInput.includes('javascript') || lowerInput.includes('minify js') || lowerInput.includes('beautify js')) {
+        if (['js-minifier', 'js-beautifier'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Minify-related
+      if (lowerInput.includes('minify')) {
+        if (['js-minifier', 'css-formatter', 'json-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Format/beautify-related
+      if (lowerInput.includes('beautify') || lowerInput.includes('format')) {
+        if (['js-beautifier', 'html-formatter', 'json-formatter', 'xml-formatter'].includes(toolId)) {
+          score = Math.max(score, 0.85)
+        }
+      }
+
+      // Email-related
+      if (lowerInput.includes('email')) {
+        if (['email-validator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // IP-related
+      if (lowerInput.includes('ip')) {
+        if (['ip-validator', 'ip-to-integer', 'integer-to-ip', 'ip-range-calculator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // IPv4/IPv6-related
+      if (lowerInput.includes('ipv4') || lowerInput.includes('ipv6')) {
+        if (['ip-validator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // CIDR/Subnet-related
+      if (lowerInput.includes('cidr') || lowerInput.includes('subnet')) {
+        if (['ip-range-calculator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Variable-related
+      if (lowerInput.includes('variable') || lowerInput.includes('var')) {
+        if (['variable-name-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Function-related
+      if (lowerInput.includes('function') || lowerInput.includes('func')) {
+        if (['function-name-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // API/Endpoint-related
+      if (lowerInput.includes('api') || lowerInput.includes('endpoint')) {
+        if (['api-endpoint-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Lorem ipsum-related
+      if (lowerInput.includes('lorem') || lowerInput.includes('placeholder') || lowerInput.includes('dummy')) {
+        if (['lorem-ipsum-generator'].includes(toolId)) {
+          score = Math.max(score, 0.95)
+        }
+      }
+
+      // Random/Generate-related
+      if (lowerInput.includes('random') || lowerInput.includes('generate')) {
+        if (['random-string-generator', 'variable-name-generator', 'function-name-generator', 'password-generator'].includes(toolId)) {
+          score = Math.max(score, 0.85)
+        }
+      }
+
+      return { toolId, score }
+    })
+
+    // Sort all tools by similarity score in descending order
+    const sortedTools = toolScores.sort((a, b) => b.score - a.score)
+
+    // Return all tools with their scores
+    const fallbackTools = sortedTools.map(({ toolId, score }) => ({
+      toolId,
+      name: TOOLS[toolId].name,
+      description: TOOLS[toolId].description,
+      similarity: score,
+    }))
 
     res.status(200).json({
       predictedTools: fallbackTools,
