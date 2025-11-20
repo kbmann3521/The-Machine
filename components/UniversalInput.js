@@ -30,7 +30,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'yaml-formatter': 'Paste YAML configuration to format...',
       'url-parser': 'Paste a URL to parse components...',
       'jwt-decoder': 'Paste a JWT token to decode...',
-      'text-diff-checker': 'Enter first text (compare with second in config)...',
+      'text-diff-checker': 'Paste the first text to compare...',
       'color-converter': 'Paste color value (hex, rgb, hsl, etc.)...',
       'checksum-calculator': 'Paste text to calculate checksums...',
       'escape-unescape': 'Paste text or escaped strings to convert...',
