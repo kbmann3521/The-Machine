@@ -236,15 +236,6 @@ export default async function handler(req, res) {
         }
       }
 
-      // Punycode-related
-      if (lowerInput.includes('punycode') || lowerInput.includes('domain')) {
-        if (['punycode-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['url-parser'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
       // Binary conversion-related
       if (lowerInput.includes('binary') || lowerInput.includes('hex') || lowerInput.includes('octal')) {
         if (['binary-converter', 'base-converter'].includes(toolId)) {

@@ -275,6 +275,109 @@
   opacity: 0.8;
 }
 
+.structuredOutput {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.outputField {
+  padding: 12px 14px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.outputField:hover {
+  border-color: #0066cc;
+  background-color: var(--color-background-secondary);
+  box-shadow: 0 1px 3px rgba(0, 102, 204, 0.15);
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fieldCopyButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #0066cc;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.fieldCopyButton:hover {
+  border-color: #0066cc;
+  background-color: #e3f2fd;
+  transform: translateY(-1px);
+}
+
+.fieldCopyButton:active {
+  background-color: #bbdefb;
+  transform: translateY(0);
+}
+
+.fieldValue {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: pre-wrap;
+  padding: 8px;
+  background-color: var(--color-background-primary);
+  border-radius: 4px;
+  line-height: 1.6;
+  border: 1px solid var(--color-border);
+}
+
+.jsonFallback {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.jsonFallback summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #0066cc;
+  font-weight: 500;
+  padding: 8px;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.jsonFallback summary:hover {
+  background-color: var(--color-background-tertiary);
+  border-radius: 4px;
+}
+
+.jsonFallback details[open] summary {
+  margin-bottom: 8px;
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 15px;
@@ -298,5 +401,23 @@
   .table th,
   .table td {
     padding: 8px;
+  }
+
+  .structuredOutput {
+    gap: 10px;
+  }
+
+  .outputField {
+    padding: 10px 12px;
+  }
+
+  .fieldValue {
+    font-size: 12px;
+  }
+
+  .fieldCopyButton {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
   }
 }

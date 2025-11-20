@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import styles from '../styles/tool-output.module.css'
 
-export default function ToolOutputPanel({ result, outputType, loading, error }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId }) {
   const [copied, setCopied] = useState(false)
+  const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
 
   React.useEffect(() => {
@@ -44,6 +45,99 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+    }
+  }
+
+  const handleCopyField = (value, fieldName) => {
+    navigator.clipboard.writeText(String(value))
+    setCopiedField(fieldName)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
+
+  const renderStructuredOutput = () => {
+    const fieldsToShow = getDisplayFields(toolId, displayResult)
+    if (!fieldsToShow || fieldsToShow.length === 0) return null
+
+    return (
+      <div className={styles.structuredOutput}>
+        {fieldsToShow.map((field, idx) => (
+          <div key={idx} className={styles.outputField}>
+            <div className={styles.fieldHeader}>
+              <span className={styles.fieldLabel}>{field.label}:</span>
+              <button
+                className={styles.fieldCopyButton}
+                onClick={() => handleCopyField(field.value, field.label)}
+                title={`Copy ${field.label}`}
+              >
+                {copiedField === field.label ? '✓' : '📋'}
+              </button>
+            </div>
+            <div className={styles.fieldValue}>{field.value}</div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const getDisplayFields = (toolId, result) => {
+    if (!result || typeof result !== 'object') return null
+
+    switch (toolId) {
+      case 'color-converter':
+        return [
+          { label: 'HEX', value: result.hex },
+          { label: 'RGB', value: result.rgb },
+          { label: 'HSL', value: result.hsl },
+          { label: 'Detected Format', value: result.detectedFormat },
+        ].filter(f => f.value)
+
+      case 'mime-type-lookup':
+        if (result.found === false) return null
+        return [
+          { label: 'Extension', value: result.extension || (Array.isArray(result.extensions) ? result.extensions.join(', ') : result.extensions) },
+          { label: 'MIME Type', value: result.mimeType || result.extension },
+        ].filter(f => f.value)
+
+      case 'url-parser':
+        return [
+          { label: 'Protocol', value: result.protocol },
+          { label: 'Host', value: result.host },
+          { label: 'Port', value: result.port },
+          { label: 'Path', value: result.path },
+          { label: 'Query', value: result.query },
+          { label: 'Fragment', value: result.fragment },
+        ].filter(f => f.value)
+
+      case 'base64-converter':
+        return [
+          { label: 'Result', value: result },
+        ]
+
+      case 'uuid-validator':
+        return [
+          { label: 'UUID', value: result.uuid },
+          { label: 'Valid', value: result.isValid ? 'Yes' : 'No' },
+        ].filter(f => f.value)
+
+      case 'regex-tester':
+        return [
+          { label: 'Pattern', value: result.pattern },
+          { label: 'Matches Found', value: result.matchCount },
+          result.result ? { label: 'Replacement Result', value: result.result } : null,
+        ].filter(f => f)
+
+      case 'timestamp-converter':
+        if (result.error) return null
+        const fields = []
+        if (result.readable) fields.push({ label: 'ISO 8601', value: result.readable })
+        if (result.local) fields.push({ label: 'Local Date', value: result.local })
+        if (result.timestamp !== undefined) fields.push({ label: 'Unix Timestamp', value: result.timestamp })
+        if (result.iso) fields.push({ label: 'ISO 8601', value: result.iso })
+        if (result.date) fields.push({ label: 'Input Date', value: result.date })
+        return fields.length > 0 ? fields : null
+
+      default:
+        return null
     }
   }
 
@@ -99,6 +193,23 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
     }
 
     if (typeof displayResult === 'object') {
+      const structuredView = renderStructuredOutput()
+      if (structuredView) {
+        return (
+          <div className={contentClass}>
+            {structuredView}
+            <div className={styles.jsonFallback}>
+              <details>
+                <summary>View full JSON</summary>
+                <pre className={styles.jsonOutput}>
+                  <code>{JSON.stringify(displayResult, null, 2)}</code>
+                </pre>
+              </details>
+            </div>
+          </div>
+        )
+      }
+
       if (outputType === 'json' || typeof displayResult === 'object') {
         return (
           <pre className={`${styles.jsonOutput} ${contentClass}`}>
