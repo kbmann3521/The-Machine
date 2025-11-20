@@ -57,7 +57,10 @@ export default async function handler(req, res) {
     }
 
     // Fallback: return top tools in predictable order
-    const topToolIds = ['word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer']
+    const topToolIds = inputImage
+      ? ['image-resizer', 'word-counter', 'case-converter', 'find-replace', 'remove-extras']
+      : ['word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer']
+
     const fallbackTools = topToolIds
       .filter(id => TOOLS[id])
       .map((id, index) => ({
