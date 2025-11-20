@@ -16,10 +16,10 @@
   flex-direction: column;
   width: 100%;
   border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 6px;
   background-color: white;
   transition: all 0.2s;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .inputField:hover {
