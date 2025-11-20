@@ -148,10 +148,16 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 30;
   display: none;
+  animation: fadeIn 0.2s ease-out;
 }
 
-.bodyContainer {
-  transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .rightPanel {
