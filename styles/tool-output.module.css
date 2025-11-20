@@ -159,7 +159,7 @@
   font-size: 13px;
   line-height: 1.7;
   overflow-x: auto;
-  max-height: 500px;
+  flex: 1;
   transition: opacity 0.3s ease;
   word-wrap: break-word;
 }
