@@ -1,0 +1,200 @@
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.textareaWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 15px;
+  font-family: inherit;
+  font-size: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.charCounter {
+  font-size: 12px;
+  color: #666;
+  text-align: right;
+}
+
+.dropZone {
+  position: relative;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #f9f9f9;
+}
+
+.dropZone:hover {
+  border-color: #999;
+  background-color: #f5f5f5;
+}
+
+.dropZone.dragging {
+  border-color: #0066cc;
+  background-color: #e3f2fd;
+}
+
+.dropZoneContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.uploadIcon {
+  width: 40px;
+  height: 40px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.dropZone.dragging .uploadIcon {
+  color: #0066cc;
+}
+
+.dropZoneContent p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.subtext {
+  color: #999;
+  font-size: 12px !important;
+  font-weight: normal !important;
+}
+
+.fileInput {
+  display: none;
+}
+
+.imagePreview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.previewLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.previewContainer {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  max-height: 300px;
+}
+
+.previewContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  max-height: 300px;
+}
+
+.removeButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.removeButton:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.runButton {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background-color: #0066cc;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.runButton:hover {
+  background-color: #0052a3;
+}
+
+.runButton:active {
+  background-color: #003d7a;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 15px;
+  }
+
+  .textarea {
+    min-height: 120px;
+    font-size: 16px;
+  }
+
+  .dropZone {
+    padding: 30px 15px;
+  }
+
+  .uploadIcon {
+    width: 32px;
+    height: 32px;
+  }
+}
