@@ -258,8 +258,13 @@
 }
 
 @media (max-width: 640px) {
+  .mainContent {
+    width: 100vw;
+  }
+
   .header {
     padding: 12px 15px;
+    width: 100vw;
   }
 
   .header h1 {
@@ -268,6 +273,11 @@
 
   .content {
     padding: 0 15px 15px 15px;
+    width: 100vw;
+  }
+
+  .toolContainer {
+    width: calc(100vw - 30px);
   }
 
   .leftPanel,
