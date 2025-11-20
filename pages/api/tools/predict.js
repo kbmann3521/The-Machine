@@ -165,12 +165,6 @@ export default async function handler(req, res) {
         }
       }
 
-      // Slug-related
-      if (lowerInput.includes('slug') || lowerInput.includes('slug-friendly')) {
-        if (['slug-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
 
       // SQL-related
       if (lowerInput.includes('sql')) {
