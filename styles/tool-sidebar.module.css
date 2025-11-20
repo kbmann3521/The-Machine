@@ -1,13 +1,12 @@
 .sidebar {
   width: 300px;
-  height: 100%;
+  min-height: 0;
   background-color: var(--color-background-tertiary);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
   flex-shrink: 0;
-  scrollbar-gutter: stable;
 }
 
 .header {
