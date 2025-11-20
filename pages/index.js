@@ -34,8 +34,14 @@ export default function Home() {
 
   const predictTools = useCallback(async (text, image, preview) => {
     if (!text && !image) {
-      setPredictedTools([])
-      setSelectedTool(null)
+      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+        toolId,
+        name: toolData.name,
+        description: toolData.description,
+        similarity: 0.75,
+        ...toolData,
+      }))
+      setPredictedTools(allTools)
       return
     }
 
@@ -66,19 +72,15 @@ export default function Home() {
 
       setPredictedTools(toolsWithMetadata)
 
-      // Only auto-select the first tool if no tool is currently selected
-      // Otherwise, keep the current selection if it's still in the predicted list
       setSelectedTool(prevSelected => {
         if (!prevSelected && toolsWithMetadata.length > 0) {
           return toolsWithMetadata[0]
         }
 
-        // Check if the currently selected tool is still in the new predictions
         if (prevSelected && toolsWithMetadata.some(t => t.toolId === prevSelected.toolId)) {
           return prevSelected
         }
 
-        // If currently selected tool is no longer in predictions but there are predictions, select the first one
         if (toolsWithMetadata.length > 0) {
           return toolsWithMetadata[0]
         }
