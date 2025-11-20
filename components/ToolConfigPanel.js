@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate }) {
   const [config, setConfig] = useState({})
 
   useEffect(() => {
