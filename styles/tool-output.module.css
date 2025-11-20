@@ -210,6 +210,7 @@
   background-color: white;
   font-size: 13px;
   flex: 1;
+  table-layout: fixed;
 }
 
 .table th {
