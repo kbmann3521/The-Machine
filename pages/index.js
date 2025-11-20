@@ -5,6 +5,7 @@ import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import { TOOLS } from '../lib/tools'
+import { resizeImage } from '../lib/imageUtils'
 import styles from '../styles/hub.module.css'
 
 export default function Home() {
@@ -120,23 +121,28 @@ export default function Home() {
       setError(null)
 
       try {
-        const response = await fetch('/api/tools/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            toolId: tool.toolId,
-            inputText,
-            inputImage: imagePreview,
-            config,
-          }),
-        })
+        if (tool.toolId === 'image-resizer' && imagePreview) {
+          const resizedData = await resizeImage(imagePreview, config)
+          setOutputResult(resizedData)
+        } else {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: tool.toolId,
+              inputText,
+              inputImage: imagePreview,
+              config,
+            }),
+          })
 
-        if (!response.ok) {
-          throw new Error('Failed to run tool')
+          if (!response.ok) {
+            throw new Error('Failed to run tool')
+          }
+
+          const data = await response.json()
+          setOutputResult(data.result)
         }
-
-        const data = await response.json()
-        setOutputResult(data.result)
       } catch (err) {
         setError(err.message)
         console.error('Tool execution error:', err)
