@@ -26,8 +26,8 @@
   align-items: center;
   flex-shrink: 0;
   gap: 8px;
-  position: fixed;
-  top: 60px;
+  position: absolute;
+  top: 0;
   right: 0;
   width: 400px;
   background-color: var(--color-background-secondary);
