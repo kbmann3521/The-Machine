@@ -169,7 +169,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             value={inputText}
             onChange={handleTextChange}
             onPaste={handlePaste}
-            placeholder="Type your text here... drag & drop or paste an image (Ctrl+V)"
+            placeholder={getPlaceholder()}
           />
 
           <button
