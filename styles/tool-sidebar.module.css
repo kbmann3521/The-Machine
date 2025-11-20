@@ -1,15 +1,13 @@
 .sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
   width: 300px;
-  height: 100vh;
+  height: 100%;
   background-color: var(--color-background-tertiary);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  z-index: 100;
+  flex-shrink: 0;
+  scrollbar-gutter: stable;
 }
 
 .header {
