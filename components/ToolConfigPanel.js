@@ -151,6 +151,17 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
           ))}
         </div>
       )}
+
+      {isGeneratorTool && (
+        <button
+          className={styles.regenerateButton}
+          onClick={onRegenerate}
+          disabled={loading}
+          title="Generate new output with current settings"
+        >
+          {loading ? 'Generating...' : '🔄 Regenerate'}
+        </button>
+      )}
     </div>
   )
 }
