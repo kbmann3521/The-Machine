@@ -151,29 +151,37 @@ export default function Home() {
         </div>
 
         <div className={styles.content}>
-          <UniversalInput
-            onInputChange={handleInputChange}
-            onImageChange={handleImageChange}
-          />
+          <div className={styles.toolContainer}>
+            <div className={styles.leftPanel}>
+              <div className={styles.inputSection}>
+                <UniversalInput
+                  onInputChange={handleInputChange}
+                  onImageChange={handleImageChange}
+                />
+              </div>
 
-          {selectedTool && (
-            <div className={styles.configSection}>
-              <ToolConfigPanel
-                tool={selectedTool}
-                onRun={handleRunTool}
-                onConfigChange={handleConfigChange}
-                loading={toolLoading}
-              />
+              {selectedTool && (
+                <div className={styles.configSection}>
+                  <ToolConfigPanel
+                    tool={selectedTool}
+                    onRun={handleRunTool}
+                    onConfigChange={handleConfigChange}
+                    loading={toolLoading}
+                  />
+                </div>
+              )}
             </div>
-          )}
 
-          <div className={styles.outputSection}>
-            <ToolOutputPanel
-              result={outputResult}
-              outputType={selectedTool?.outputType}
-              loading={toolLoading}
-              error={error}
-            />
+            <div className={styles.rightPanel}>
+              <div className={styles.outputSection}>
+                <ToolOutputPanel
+                  result={outputResult}
+                  outputType={selectedTool?.outputType}
+                  loading={toolLoading}
+                  error={error}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </main>
