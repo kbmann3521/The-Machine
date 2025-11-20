@@ -8,10 +8,11 @@
 .mainContent {
   flex: 1;
   margin-left: 300px;
-  overflow-y: auto;
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
   width: 100%;
+  scrollbar-gutter: stable;
 }
 
 .header {
