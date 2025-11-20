@@ -24,9 +24,9 @@
   padding: 20px 40px;
   background: linear-gradient(135deg, var(--color-header-gradient-start) 0%, var(--color-header-gradient-end) 100%);
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 15px;
+  margin-bottom: 0;
   flex-shrink: 0;
-  width: calc(100vw - 300px);
+  width: 100%;
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
