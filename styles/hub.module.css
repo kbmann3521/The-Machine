@@ -148,9 +148,14 @@
 }
 
 @media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
+  }
+
   .mainContent {
     margin-left: 0;
     width: 100vw;
+    order: 1;
   }
 
   .header {
@@ -192,6 +197,10 @@
     max-height: 750px;
     padding: 20px;
   }
+}
+
+.sidebar {
+  order: 2;
 }
 
 @media (max-width: 768px) {
