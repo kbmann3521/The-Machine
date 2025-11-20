@@ -21,6 +21,17 @@ export default function Home() {
   const [toolLoading, setToolLoading] = useState(false)
   const debounceTimerRef = useRef(null)
 
+  useEffect(() => {
+    const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+      toolId,
+      name: toolData.name,
+      description: toolData.description,
+      similarity: 0.75,
+      ...toolData,
+    }))
+    setPredictedTools(allTools)
+  }, [])
+
   const predictTools = useCallback(async (text, image, preview) => {
     if (!text && !image) {
       setPredictedTools([])
