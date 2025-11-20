@@ -82,10 +82,10 @@ export default function Home() {
         const currentSelected = selectedToolRef.current
 
         if (currentSelected) {
-          const isSelectedInPredicted = finalTools.some(t => t.toolId === currentSelected.toolId)
-          if (!isSelectedInPredicted) {
-            finalTools.unshift(currentSelected)
-          }
+          // Remove the selected tool from the list if it exists
+          finalTools = finalTools.filter(t => t.toolId !== currentSelected.toolId)
+          // Always put the selected tool at the top
+          finalTools.unshift(currentSelected)
         }
 
         return finalTools
@@ -153,13 +153,7 @@ export default function Home() {
         return
       }
 
-      const noInputRequiredTools = [
-        'random-string-generator',
-        'variable-name-generator',
-        'function-name-generator',
-        'api-endpoint-generator',
-        'lorem-ipsum-generator',
-      ]
+      const noInputRequiredTools = []
 
       const requiresInput = !noInputRequiredTools.includes(tool.toolId)
       if (requiresInput && !inputText && !imagePreview) {
@@ -185,11 +179,12 @@ export default function Home() {
             }),
           })
 
+          const data = await response.json()
+
           if (!response.ok) {
-            throw new Error('Failed to run tool')
+            throw new Error(data.error || 'Failed to run tool')
           }
 
-          const data = await response.json()
           setOutputResult(data.result)
         }
       } catch (err) {
@@ -209,19 +204,8 @@ export default function Home() {
   }, [selectedTool, configOptions, autoRunTool])
 
   useEffect(() => {
-    const noInputRequiredTools = [
-      'random-string-generator',
-      'variable-name-generator',
-      'function-name-generator',
-      'api-endpoint-generator',
-      'lorem-ipsum-generator',
-    ]
-
-    if (selectedTool) {
-      const isGeneratorTool = noInputRequiredTools.includes(selectedTool.toolId)
-      if (isGeneratorTool || inputText) {
-        autoRunTool(selectedTool, configOptions)
-      }
+    if (selectedTool && inputText) {
+      autoRunTool(selectedTool, configOptions)
     }
   }, [selectedTool, inputText, configOptions, autoRunTool])
 
@@ -275,6 +259,7 @@ export default function Home() {
                 <UniversalInput
                   onInputChange={handleInputChange}
                   onImageChange={handleImageChange}
+                  selectedTool={selectedTool}
                 />
               </div>
 

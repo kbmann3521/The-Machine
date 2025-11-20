@@ -69,10 +69,47 @@
   text-align: right;
 }
 
-.uploadButton {
+.buttonGroup {
   position: absolute;
   top: 6px;
   right: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.exampleButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.exampleButton:hover {
+  background-color: var(--color-background-secondary);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.exampleButton:active {
+  background-color: var(--color-border);
+}
+
+.exampleIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.uploadButton {
   width: 32px;
   height: 32px;
   padding: 0;

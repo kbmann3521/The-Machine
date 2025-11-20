@@ -13,7 +13,7 @@
 }
 
 .header {
-  padding: 20px;
+  padding: 16px;
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-background-secondary);
   position: sticky;
@@ -26,6 +26,29 @@
   font-size: 16px;
   font-weight: 700;
   color: var(--color-text-primary);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
 }
 
 .loadingState {
