@@ -71,19 +71,19 @@ export default function Home() {
       }))
 
       setSelectedTool(prevSelected => {
-        let finalTools = toolsWithMetadata
+        let finalTools = [...toolsWithMetadata]
 
         if (prevSelected) {
-          const isSelectedInPredicted = toolsWithMetadata.some(t => t.toolId === prevSelected.toolId)
+          const isSelectedInPredicted = finalTools.some(t => t.toolId === prevSelected.toolId)
           if (!isSelectedInPredicted) {
-            finalTools = [prevSelected, ...toolsWithMetadata]
+            finalTools.unshift(prevSelected)
           }
         }
 
         setPredictedTools(finalTools)
 
-        if (!prevSelected && toolsWithMetadata.length > 0) {
-          return toolsWithMetadata[0]
+        if (!prevSelected && finalTools.length > 0) {
+          return finalTools[0]
         }
         return prevSelected
       })
