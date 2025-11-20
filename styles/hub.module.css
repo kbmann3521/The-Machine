@@ -82,6 +82,7 @@
   padding: 25px;
   overflow-y: auto;
   max-height: 850px;
+  min-width: 0;
 }
 
 .outputSection {
