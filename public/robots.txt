@@ -4,4 +4,4 @@ Allow: /
 Disallow: /api/
 Disallow: /.next/
 
-Sitemap: https://your-domain.com/api/sitemap
+Sitemap: https://www.pioneerwebtools.com/api/sitemap
