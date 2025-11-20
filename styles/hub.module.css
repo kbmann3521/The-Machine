@@ -6,13 +6,17 @@
   overflow: hidden;
 }
 
+.bodyContainer {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
 .mainContent {
   flex: 1;
-  margin-left: 300px;
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
-  width: calc(100vw - 300px);
   scrollbar-gutter: stable;
 }
 
