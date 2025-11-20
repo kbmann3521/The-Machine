@@ -1,6 +1,5 @@
 .sidebar {
   width: 300px;
-  height: 100%;
   background-color: var(--color-background-tertiary);
   border-right: 1px solid var(--color-border);
   display: flex;
@@ -9,7 +8,8 @@
   overflow-x: hidden;
   scrollbar-gutter: stable;
   scrollbar-color: var(--color-border-hover) transparent;
-  box-sizing: border-box;
+  flex: 0 0 300px;
+  min-height: 0;
 }
 
 .header {
