@@ -338,33 +338,6 @@ export default async function handler(req, res) {
         }
       }
 
-      // Variable-related
-      if (lowerInput.includes('variable') || lowerInput.includes('var')) {
-        if (['variable-name-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Function-related
-      if (lowerInput.includes('function') || lowerInput.includes('func')) {
-        if (['function-name-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // API/Endpoint-related
-      if (lowerInput.includes('api') || lowerInput.includes('endpoint')) {
-        if (['api-endpoint-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Lorem ipsum-related
-      if (lowerInput.includes('lorem') || lowerInput.includes('placeholder') || lowerInput.includes('dummy')) {
-        if (['lorem-ipsum-generator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
 
 
       return { toolId, score }
