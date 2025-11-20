@@ -37,50 +37,58 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
   }
 
   const renderOutput = () => {
-    if (loading) {
-      return <div className={styles.spinner}></div>
-    }
-
     if (error) {
       return (
-        <div className={styles.error}>
+        <div className={`${styles.error} ${styles.fadeIn}`}>
           <strong>Error:</strong> {error}
         </div>
       )
     }
 
-    if (!result) return null
+    if (!displayResult) {
+      if (loading) {
+        return (
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner}></div>
+            <p className={styles.loadingText}>Processing...</p>
+          </div>
+        )
+      }
+      return null
+    }
 
-    if (typeof result === 'string') {
+    const contentClass = loading ? styles.fadingOut : styles.fadeIn
+
+    if (typeof displayResult === 'string') {
       return (
-        <pre className={styles.textOutput}>
-          <code>{result}</code>
+        <pre className={`${styles.textOutput} ${contentClass}`}>
+          <code>{displayResult}</code>
         </pre>
       )
     }
 
-    if (typeof result === 'object') {
-      if (outputType === 'json' || typeof result === 'object') {
+    if (typeof displayResult === 'object') {
+      if (outputType === 'json' || typeof displayResult === 'object') {
         return (
-          <pre className={styles.jsonOutput}>
-            <code>{JSON.stringify(result, null, 2)}</code>
+          <pre className={`${styles.jsonOutput} ${contentClass}`}>
+            <code>{JSON.stringify(displayResult, null, 2)}</code>
           </pre>
         )
       }
 
-      if (result.type === 'table' && Array.isArray(result.data)) {
+      if (displayResult.type === 'table' && Array.isArray(displayResult.data)) {
         return (
-          <div className={styles.tableContainer}>
+          <div className={`${styles.tableContainer} ${contentClass}`}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  {Object.keys(result.data[0] || {}).map(key => (
+                  {Object.keys(displayResult.data[0] || {}).map(key => (
                     <th key={key}>{key}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {result.data.map((row, idx) => (
+                {displayResult.data.map((row, idx) => (
                   <tr key={idx}>
                     {Object.values(row).map((val, i) => (
                       <td key={i}>{String(val)}</td>
@@ -94,8 +102,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error }) 
       }
 
       return (
-        <pre className={styles.jsonOutput}>
-          <code>{JSON.stringify(result, null, 2)}</code>
+        <pre className={`${styles.jsonOutput} ${contentClass}`}>
+          <code>{JSON.stringify(displayResult, null, 2)}</code>
         </pre>
       )
     }
