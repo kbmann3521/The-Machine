@@ -15,8 +15,60 @@ export default async function handler(req, res) {
 
     let inputContent = inputText || 'image input'
 
-    // Skip vector search - use keyword-based fallback only for now
-    console.log('Using keyword-based fallback for tool prediction')
+    const userEmbedding = await generateEmbedding(inputContent)
+
+    // Query Supabase for similar tools using vector search
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Supabase credentials not configured')
+      }
+
+      console.log('Attempting vector search with embedding length:', userEmbedding?.length)
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/match_tools`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          query_embedding: userEmbedding,
+          match_count: 5,
+        }),
+      })
+
+      const responseBody = await response.text()
+      console.log(`Vector search response status: ${response.status}, body:`, responseBody.substring(0, 200))
+
+      if (response.ok) {
+        const toolsData = JSON.parse(responseBody)
+
+        if (Array.isArray(toolsData) && toolsData.length > 0) {
+          console.log('Vector search succeeded, returning tools')
+          const predictedTools = toolsData.map(tool => ({
+            toolId: tool.id,
+            name: tool.name,
+            description: tool.description,
+            similarity: Math.min(0.95, Math.max(0.5, tool.similarity || 0.75)),
+          }))
+
+          return res.status(200).json({
+            predictedTools,
+            inputContent,
+          })
+        } else {
+          console.log('Vector search returned empty results:', toolsData)
+        }
+      } else {
+        console.warn(`Vector search failed with status ${response.status}:`, responseBody)
+      }
+    } catch (vectorError) {
+      console.warn('Vector search error, falling back to keyword matching:', vectorError.message)
+    }
 
     // Fallback: Smart keyword-based tool ranking
     const lowerInput = inputContent.toLowerCase()
