@@ -15,54 +15,8 @@ export default async function handler(req, res) {
 
     let inputContent = inputText || 'image input'
 
-    const userEmbedding = await generateEmbedding(inputContent)
-
-    // Query Supabase for similar tools using vector search
-    try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Supabase credentials not configured')
-      }
-
-      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/match_tools`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: supabaseAnonKey,
-          Authorization: `Bearer ${supabaseAnonKey}`,
-        },
-        body: JSON.stringify({
-          query_embedding: userEmbedding,
-          match_count: 5,
-        }),
-        timeout: 5000,
-      })
-
-      if (response.ok) {
-        const toolsData = await response.json()
-
-        if (Array.isArray(toolsData) && toolsData.length > 0) {
-          const predictedTools = toolsData.map(tool => ({
-            toolId: tool.id,
-            name: tool.name,
-            description: tool.description,
-            similarity: Math.min(0.95, Math.max(0.5, tool.similarity || 0.75)),
-          }))
-
-          return res.status(200).json({
-            predictedTools,
-            inputContent,
-          })
-        }
-      } else {
-        const errorText = await response.text()
-        console.warn(`Vector search failed with status ${response.status}:`, errorText)
-      }
-    } catch (vectorError) {
-      console.warn('Vector search error, using keyword-based fallback:', vectorError.message)
-    }
+    // Skip vector search - use keyword-based fallback only for now
+    console.log('Using keyword-based fallback for tool prediction')
 
     // Fallback: Smart keyword-based tool ranking
     const lowerInput = inputContent.toLowerCase()
