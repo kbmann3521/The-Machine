@@ -69,7 +69,7 @@
   overflow: hidden;
   background-color: var(--color-background-secondary);
   box-shadow: 0 1px 3px var(--color-shadow);
-  width: calc(100vw - 300px - 80px);
+  width: 100%;
   box-sizing: border-box;
 }
 
