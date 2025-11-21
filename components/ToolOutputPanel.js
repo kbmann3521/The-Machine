@@ -53,9 +53,37 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const handleCopy = async () => {
     let textToCopy = ''
 
-    // Special handling for Find & Replace in text-toolkit
-    if (toolId === 'text-toolkit' && activeToolkitSection === 'findReplace' && displayResult.findReplace) {
-      textToCopy = displayResult.findReplace
+    // Special handling for text-toolkit sections
+    if (toolId === 'text-toolkit' && displayResult) {
+      if (activeToolkitSection === 'findReplace' && displayResult.findReplace) {
+        textToCopy = displayResult.findReplace
+      } else if (activeToolkitSection === 'caseConverter' && displayResult.caseConverter) {
+        const cases = displayResult.caseConverter
+        textToCopy = `UPPERCASE:\n${cases.uppercase}\n\nlowercase:\n${cases.lowercase}\n\nTitle Case:\n${cases.titleCase}\n\nSentence case:\n${cases.sentenceCase}`
+      } else if (activeToolkitSection === 'textAnalyzer' && displayResult.textAnalyzer) {
+        const analyzer = displayResult.textAnalyzer
+        let content = ''
+        if (analyzer.readability) {
+          content += `Readability Level: ${analyzer.readability.readabilityLevel}\n`
+          content += `Flesch Reading Ease: ${analyzer.readability.fleschReadingEase}\n`
+          content += `Flesch-Kincaid Grade: ${analyzer.readability.fleschKincaidGrade}\n`
+        }
+        if (analyzer.statistics) {
+          content += `Avg Word Length: ${analyzer.statistics.averageWordLength?.toFixed(2)}\n`
+          content += `Avg Words per Sentence: ${analyzer.statistics.averageWordsPerSentence?.toFixed(2)}`
+        }
+        textToCopy = content
+      } else if (activeToolkitSection === 'slugGenerator' && displayResult.slugGenerator) {
+        textToCopy = displayResult.slugGenerator
+      } else if (activeToolkitSection === 'reverseText' && displayResult.reverseText) {
+        textToCopy = displayResult.reverseText
+      } else if (activeToolkitSection === 'removeExtras' && displayResult.removeExtras) {
+        textToCopy = displayResult.removeExtras
+      } else if (activeToolkitSection === 'whitespaceVisualizer' && displayResult.whitespaceVisualizer) {
+        textToCopy = displayResult.whitespaceVisualizer
+      } else if (activeToolkitSection === 'sortLines' && displayResult.sortLines) {
+        textToCopy = displayResult.sortLines
+      }
     } else if (typeof displayResult === 'string') {
       textToCopy = displayResult
     } else {
