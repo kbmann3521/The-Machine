@@ -238,11 +238,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return null
     }
 
-    const contentClass = getContentClass()
-
     if (displayResult?.resizedImage) {
       return (
-        <div className={`${styles.imageOutput} ${contentClass}`}>
+        <div className={styles.imageOutput}>
           <img src={displayResult.resizedImage} alt="Resized" className={styles.outputImage} />
           <div className={styles.imageInfo}>
             <p>Original: {displayResult.originalDimensions.width} x {displayResult.originalDimensions.height}px</p>
