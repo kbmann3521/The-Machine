@@ -40,6 +40,23 @@
   color: var(--color-text-primary);
 }
 
+.buttonContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 60px;
+  height: 32px;
+}
+
+.buttonContainer.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.buttonContainer.visible {
+  visibility: visible;
+}
+
 .copyButton {
   padding: 5px 10px;
   font-size: 11px;
