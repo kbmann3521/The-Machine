@@ -114,34 +114,27 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      setPredictedTools(prevTools => {
-        let finalTools = [...toolsWithMetadata]
-        const currentSelected = selectedToolRef.current
+      setPredictedTools(toolsWithMetadata)
 
-        if (currentSelected) {
-          // Remove the selected tool from the list if it exists
-          finalTools = finalTools.filter(t => t.toolId !== currentSelected.toolId)
-          // Always put the selected tool at the top
-          finalTools.unshift(currentSelected)
+      // Auto-select the tool with the highest similarity match
+      if (toolsWithMetadata.length > 0) {
+        const topTool = toolsWithMetadata[0]
+        setSelectedTool(topTool)
+
+        const initialConfig = {}
+        if (topTool?.configSchema) {
+          topTool.configSchema.forEach(field => {
+            initialConfig[field.id] = field.default || ''
+          })
         }
 
-        // Only update if the order has changed
-        const newOrder = finalTools.map(t => t.toolId).join(',')
-        const prevOrder = prevTools.map(t => t.toolId).join(',')
-
-        if (newOrder === prevOrder) {
-          return prevTools
+        const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
+        if (detectedConfig) {
+          Object.assign(initialConfig, detectedConfig)
         }
 
-        return finalTools
-      })
-
-      setSelectedTool(prevSelected => {
-        if (!prevSelected && toolsWithMetadata.length > 0) {
-          return toolsWithMetadata[0]
-        }
-        return prevSelected
-      })
+        setConfigOptions(initialConfig)
+      }
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
