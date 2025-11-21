@@ -188,6 +188,10 @@ export default function Home() {
         }
       }
 
+      if (!textToUse && !imagePreview) {
+        return
+      }
+
       setToolLoading(true)
       setError(null)
 
