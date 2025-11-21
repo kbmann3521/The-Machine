@@ -210,34 +210,71 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       case 'text-toolkit':
         const toolkitFields = []
-        if (result.wordCounter) {
+
+        // Word Counter Statistics
+        if (result.wordCounter && typeof result.wordCounter === 'object') {
           toolkitFields.push({ label: 'Word Count', value: String(result.wordCounter.wordCount || 0) })
           toolkitFields.push({ label: 'Character Count', value: String(result.wordCounter.characterCount || 0) })
+          toolkitFields.push({ label: 'Character Count (no spaces)', value: String(result.wordCounter.characterCountNoSpaces || 0) })
           toolkitFields.push({ label: 'Sentence Count', value: String(result.wordCounter.sentenceCount || 0) })
+          toolkitFields.push({ label: 'Line Count', value: String(result.wordCounter.lineCount || 0) })
+          toolkitFields.push({ label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) })
         }
+
+        // Case Conversions
+        if (result.caseConverter && typeof result.caseConverter === 'object') {
+          if (result.caseConverter.uppercase) {
+            toolkitFields.push({ label: 'UPPERCASE', value: result.caseConverter.uppercase })
+          }
+          if (result.caseConverter.lowercase) {
+            toolkitFields.push({ label: 'lowercase', value: result.caseConverter.lowercase })
+          }
+          if (result.caseConverter.titleCase) {
+            toolkitFields.push({ label: 'Title Case', value: result.caseConverter.titleCase })
+          }
+          if (result.caseConverter.sentenceCase) {
+            toolkitFields.push({ label: 'Sentence case', value: result.caseConverter.sentenceCase })
+          }
+        }
+
+        // Text Analysis
+        if (result.textAnalyzer && typeof result.textAnalyzer === 'object') {
+          if (result.textAnalyzer.readability) {
+            toolkitFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
+            toolkitFields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
+            toolkitFields.push({ label: 'Flesch-Kincaid Grade', value: result.textAnalyzer.readability.fleschKincaidGrade })
+          }
+          if (result.textAnalyzer.statistics) {
+            toolkitFields.push({ label: 'Avg Word Length', value: result.textAnalyzer.statistics.averageWordLength?.toFixed(2) })
+            toolkitFields.push({ label: 'Avg Words per Sentence', value: result.textAnalyzer.statistics.averageWordsPerSentence?.toFixed(2) })
+          }
+        }
+
+        // Slug Generation
+        if (result.slugGenerator) {
+          toolkitFields.push({ label: 'URL Slug', value: result.slugGenerator })
+        }
+
+        // Reversed Text
         if (result.reverseText) {
           toolkitFields.push({ label: 'Reversed Text', value: result.reverseText })
         }
+
+        // Cleaned Text
+        if (result.removeExtras) {
+          toolkitFields.push({ label: 'Cleaned Text', value: result.removeExtras })
+        }
+
+        // Whitespace Visualization
         if (result.whitespaceVisualizer) {
           toolkitFields.push({ label: 'Whitespace Visualization', value: result.whitespaceVisualizer })
         }
-        if (result.caseConverter) {
-          toolkitFields.push({ label: 'Uppercase', value: result.caseConverter })
-        }
-        if (result.textAnalyzer && typeof result.textAnalyzer === 'object') {
-          if (result.textAnalyzer.readability?.readabilityLevel) {
-            toolkitFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
-          }
-          if (result.textAnalyzer.readability?.fleschReadingEase) {
-            toolkitFields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
-          }
-        }
-        if (result.slugGenerator) {
-          toolkitFields.push({ label: 'Slug', value: result.slugGenerator })
-        }
+
+        // Sorted Lines
         if (result.sortLines) {
           toolkitFields.push({ label: 'Sorted Lines', value: result.sortLines })
         }
+
         return toolkitFields.filter(f => f.value !== undefined && f.value !== null)
 
       default:
