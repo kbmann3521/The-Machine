@@ -152,6 +152,12 @@
   }
 }
 
+@keyframes spinSmooth {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .error {
   padding: 12px 14px;
   background-color: rgba(198, 40, 40, 0.15);
