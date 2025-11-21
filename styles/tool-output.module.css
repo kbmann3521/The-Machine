@@ -48,18 +48,20 @@
   border: 1px solid #0066cc;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .copyButton:hover {
   background-color: #e3f2fd;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
 }
 
 .copyButton:active {
   background-color: #bbdefb;
   transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.15);
 }
 
 .content {
