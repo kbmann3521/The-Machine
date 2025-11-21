@@ -80,9 +80,18 @@ export default function Home() {
       return
     }
 
-    setLoading(true)
     setError(null)
     setOutputResult(null)
+
+    // Clear any existing loading timer
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current)
+    }
+
+    // Only show loading if the request takes longer than 300ms
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(true)
+    }, 300)
 
     try {
       const response = await fetch('/api/tools/predict', {
@@ -121,11 +130,9 @@ export default function Home() {
         const prevOrder = prevTools.map(t => t.toolId).join(',')
 
         if (newOrder === prevOrder) {
-          orderChangedRef.current = false
           return prevTools
         }
 
-        orderChangedRef.current = true
         return finalTools
       })
 
@@ -138,12 +145,11 @@ export default function Home() {
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
-      // Only show loading if the order actually changed
-      if (!orderChangedRef.current) {
-        setLoading(false)
-      } else {
-        setLoading(false)
+      // Clear the loading timer and disable loading
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
       }
+      setLoading(false)
     }
   }, [])
 
