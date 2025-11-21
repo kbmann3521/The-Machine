@@ -29,8 +29,14 @@
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
   animation: fadeInContent 0.5s ease-out;
+}
+
+.mainContent::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes fadeInContent {
@@ -143,9 +149,15 @@
   max-height: 850px;
   width: 100%;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
   animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   contain: layout style;
+}
+
+.leftPanel::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes slideInLeft {
@@ -241,10 +253,16 @@
   max-height: 850px;
   width: 100%;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
   background-color: var(--color-background-secondary);
   animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   contain: layout style;
+}
+
+.rightPanel::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes slideInRight {
