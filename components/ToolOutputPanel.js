@@ -39,7 +39,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   const handleCopy = async () => {
     let textToCopy = ''
-    if (typeof displayResult === 'string') {
+
+    // Special handling for Find & Replace in text-toolkit
+    if (toolId === 'text-toolkit' && activeToolkitSection === 'findReplace' && displayResult.findReplace) {
+      textToCopy = displayResult.findReplace
+    } else if (typeof displayResult === 'string') {
       textToCopy = displayResult
     } else {
       textToCopy = JSON.stringify(displayResult, null, 2)
