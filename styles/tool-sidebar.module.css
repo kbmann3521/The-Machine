@@ -68,7 +68,13 @@
   border: 3px solid var(--color-border);
   border-top-color: #0066cc;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spinSmooth 1s cubic-bezier(0.4, 0.2, 0.8, 0.6) infinite;
+}
+
+@keyframes spinSmooth {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes spin {
