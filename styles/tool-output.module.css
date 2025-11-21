@@ -91,6 +91,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
+  max-height: 100%;
   scrollbar-width: none;
   -ms-overflow-style: none;
   scrollbar-gutter: stable;
