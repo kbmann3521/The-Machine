@@ -389,6 +389,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return null
     }
 
+    // Special handling for Find & Replace in text-toolkit
+    if (toolId === 'text-toolkit' && activeToolkitSection === 'findReplace' && displayResult.findReplace) {
+      return (
+        <pre className={styles.textOutput}>
+          <code>{displayResult.findReplace}</code>
+        </pre>
+      )
+    }
+
     if (displayResult?.resizedImage) {
       return (
         <div className={styles.imageOutput}>
