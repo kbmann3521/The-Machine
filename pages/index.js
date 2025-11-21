@@ -24,6 +24,12 @@ export default function Home() {
   const [toolLoading, setToolLoading] = useState(false)
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
+  const [findReplaceConfig, setFindReplaceConfig] = useState({
+    findText: '',
+    replaceText: '',
+    useRegex: false,
+    matchCase: false,
+  })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
