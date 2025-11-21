@@ -174,9 +174,18 @@ export default function Home() {
 
       const noInputRequiredTools = []
 
-      const requiresInput = !noInputRequiredTools.includes(tool.toolId)
-      if (requiresInput && !inputText && !imagePreview) {
-        return
+      let textToUse = inputText
+
+      if (!textToUse && !imagePreview) {
+        const example = getToolExample(tool.toolId, config)
+        if (example) {
+          textToUse = example
+        } else {
+          const requiresInput = !noInputRequiredTools.includes(tool.toolId)
+          if (requiresInput) {
+            return
+          }
+        }
       }
 
       setToolLoading(true)
@@ -192,7 +201,7 @@ export default function Home() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               toolId: tool.toolId,
-              inputText,
+              inputText: textToUse,
               inputImage: imagePreview,
               config,
             }),
