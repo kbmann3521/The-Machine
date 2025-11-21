@@ -18,6 +18,12 @@
   opacity: 0.85;
 }
 
+@media (max-width: 991px) {
+  .instructionLabel {
+    min-height: 25px;
+  }
+}
+
 .inputField {
   position: relative;
   display: flex;
