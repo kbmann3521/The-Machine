@@ -341,6 +341,12 @@ export default function Home() {
           isOpen={descriptionSidebarOpen}
           onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
         />
+
+        <footer className={styles.footer}>
+          <div className={styles.footerContent}>
+            <p>© 2024 Pioneer Web Tools. All rights reserved.</p>
+          </div>
+        </footer>
       </div>
 
       {descriptionSidebarOpen && (
