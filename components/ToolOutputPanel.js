@@ -344,22 +344,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (activeToolkitSection === 'findReplace' && displayResult.findReplace) {
         textContent = displayResult.findReplace
-      } else if (activeToolkitSection === 'caseConverter' && displayResult.caseConverter) {
-        const cases = displayResult.caseConverter
-        textContent = `UPPERCASE:\n${cases.uppercase}\n\nlowercase:\n${cases.lowercase}\n\nTitle Case:\n${cases.titleCase}\n\nSentence case:\n${cases.sentenceCase}`
-      } else if (activeToolkitSection === 'textAnalyzer' && displayResult.textAnalyzer) {
-        const analyzer = displayResult.textAnalyzer
-        let content = ''
-        if (analyzer.readability) {
-          content += `Readability Level: ${analyzer.readability.readabilityLevel}\n`
-          content += `Flesch Reading Ease: ${analyzer.readability.fleschReadingEase}\n`
-          content += `Flesch-Kincaid Grade: ${analyzer.readability.fleschKincaidGrade}\n`
-        }
-        if (analyzer.statistics) {
-          content += `Avg Word Length: ${analyzer.statistics.averageWordLength?.toFixed(2)}\n`
-          content += `Avg Words per Sentence: ${analyzer.statistics.averageWordsPerSentence?.toFixed(2)}`
-        }
-        textContent = content
       } else if (activeToolkitSection === 'slugGenerator' && displayResult.slugGenerator) {
         textContent = displayResult.slugGenerator
       } else if (activeToolkitSection === 'reverseText' && displayResult.reverseText) {
