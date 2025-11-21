@@ -235,14 +235,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (!displayResult) {
-      if (loading) {
-        return (
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
-            <p className={styles.loadingText}>Processing...</p>
-          </div>
-        )
-      }
       return null
     }
 
