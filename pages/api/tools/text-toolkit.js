@@ -1,5 +1,4 @@
-import { TOOLS } from '../../../lib/tools'
-import { runToolLogic } from '../run'
+import { TOOLS, runTool } from '../../../lib/tools'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
