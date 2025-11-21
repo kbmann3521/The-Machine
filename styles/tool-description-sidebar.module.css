@@ -74,8 +74,13 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
-  scrollbar-color: var(--color-border-hover) transparent;
+}
+
+.sidebarContent::-webkit-scrollbar {
+  display: none;
 }
 
 .section {
