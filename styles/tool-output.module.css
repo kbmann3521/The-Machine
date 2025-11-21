@@ -91,7 +91,13 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
 }
 
 .content.isLoading {
