@@ -25,16 +25,38 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     let textToCopy = ''
     if (typeof displayResult === 'string') {
       textToCopy = displayResult
     } else {
       textToCopy = JSON.stringify(displayResult, null, 2)
     }
-    navigator.clipboard.writeText(textToCopy)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+
+    try {
+      await navigator.clipboard.writeText(textToCopy)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      fallbackCopy(textToCopy)
+    }
+  }
+
+  const fallbackCopy = (text) => {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+    document.body.removeChild(textarea)
   }
 
   const handleDownloadImage = () => {
