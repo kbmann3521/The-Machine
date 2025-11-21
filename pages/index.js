@@ -25,6 +25,7 @@ export default function Home() {
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
+  const orderChangedRef = useRef(false)
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
