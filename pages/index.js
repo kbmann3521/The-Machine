@@ -239,11 +239,11 @@ export default function Home() {
   useEffect(() => {
     if (selectedTool) {
       const hasExample = getToolExample(selectedTool.toolId, configOptions)
-      if (inputText || hasExample) {
+      if (inputText || hasExample || imagePreview) {
         autoRunTool(selectedTool, configOptions)
       }
     }
-  }, [selectedTool, inputText, configOptions, autoRunTool])
+  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview])
 
 
   return (
