@@ -138,7 +138,12 @@ export default function Home() {
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
-      setLoading(false)
+      // Only show loading if the order actually changed
+      if (!orderChangedRef.current) {
+        setLoading(false)
+      } else {
+        setLoading(false)
+      }
     }
   }, [])
 
