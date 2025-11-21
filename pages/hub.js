@@ -122,7 +122,7 @@ export default function Hub() {
     } finally {
       setToolLoading(false)
     }
-  }, [inputText])
+  }, [inputText, activeToolkitSection, findReplaceConfig])
 
   return (
     <div className={styles.layout}>
