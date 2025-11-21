@@ -121,9 +121,11 @@ export default function Home() {
         const prevOrder = prevTools.map(t => t.toolId).join(',')
 
         if (newOrder === prevOrder) {
+          orderChangedRef.current = false
           return prevTools
         }
 
+        orderChangedRef.current = true
         return finalTools
       })
 
