@@ -97,7 +97,13 @@ export default function Hub() {
       // For text-toolkit, merge find/replace config if that section is active
       let finalConfig = config
       if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
-        finalConfig = { ...config, ...findReplaceConfig }
+        finalConfig = {
+          ...config,
+          findText: findReplaceConfig.findText || '',
+          replaceText: findReplaceConfig.replaceText || '',
+          useRegex: findReplaceConfig.useRegex || false,
+          matchCase: findReplaceConfig.matchCase || false,
+        }
       }
 
       const response = await fetch('/api/tools/run', {
