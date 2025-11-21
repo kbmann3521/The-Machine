@@ -296,7 +296,7 @@ export default function Home() {
         autoRunTool(selectedTool, configOptions)
       }
     }
-  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview])
+  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview, activeToolkitSection])
 
 
   return (
