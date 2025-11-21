@@ -142,6 +142,8 @@ export default function Hub() {
                 onRun={handleRunTool}
                 onConfigChange={handleConfigChange}
                 loading={toolLoading}
+                activeToolkitSection={activeToolkitSection}
+                onToolkitSectionChange={setActiveToolkitSection}
               />
             </div>
           )}
@@ -152,6 +154,8 @@ export default function Hub() {
               outputType={selectedTool?.outputType}
               loading={toolLoading}
               error={error}
+              toolId={selectedTool?.toolId}
+              activeToolkitSection={activeToolkitSection}
             />
           </div>
         </div>
