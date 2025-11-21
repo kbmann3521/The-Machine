@@ -248,6 +248,12 @@ export default function Home() {
           const resizedData = await resizeImage(imagePreview, config)
           setOutputResult(resizedData)
         } else {
+          // For text-toolkit, merge find/replace config if that section is active
+          let finalConfig = config
+          if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
+            finalConfig = { ...config, ...findReplaceConfig }
+          }
+
           const response = await fetch('/api/tools/run', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -255,7 +261,7 @@ export default function Home() {
               toolId: tool.toolId,
               inputText: textToUse,
               inputImage: imagePreview,
-              config,
+              config: finalConfig,
             }),
           })
 
