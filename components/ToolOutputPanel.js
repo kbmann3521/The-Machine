@@ -226,15 +226,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ].filter(f => f.value !== undefined && f.value !== null)
 
       case 'text-toolkit':
-        // Find & Replace renders as full-height text, not as structured fields
-        if (result.findReplace && activeToolkitSection === 'findReplace') {
-          return null
-        }
-
+        // Only Word Counter shows structured fields, all others render as full-height text
         const allToolkitFields = []
 
-        // Word Counter Statistics
-        if (result.wordCounter && typeof result.wordCounter === 'object') {
+        // Word Counter Statistics - show as structured fields
+        if (activeToolkitSection === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
           allToolkitFields.push({
             section: 'wordCounter',
             label: 'Word Count',
