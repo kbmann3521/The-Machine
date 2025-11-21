@@ -23,7 +23,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [toolId, previousToolId])
 
-  const displayResult = result || previousResult
+  const displayResult = (toolId === previousToolId) ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
 
   if (isEmpty) {
