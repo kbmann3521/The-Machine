@@ -7,6 +7,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousResult, setPreviousResult] = useState(null)
   const [previousToolId, setPreviousToolId] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+  const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
 
   React.useEffect(() => {
     if (result && !loading) {
