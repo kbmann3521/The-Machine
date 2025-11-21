@@ -150,10 +150,14 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const fillWithExample = () => {
-    let exampleText = selectedTool?.example
+    let exampleText = null
 
-    if (getToolExample && selectedTool?.toolId === 'escape-unescape') {
-      exampleText = getToolExample('escape-unescape', configOptions)
+    if (getToolExample && selectedTool?.toolId) {
+      exampleText = getToolExample(selectedTool.toolId, configOptions)
+    }
+
+    if (!exampleText) {
+      exampleText = selectedTool?.example
     }
 
     if (exampleText) {
