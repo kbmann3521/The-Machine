@@ -160,9 +160,76 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     fileInputRef.current?.click()
   }
 
+  const getInstructionText = () => {
+    if (!selectedTool) return null
+
+    const instructions = {
+      'image-resizer': 'Upload an image to resize',
+      'word-counter': 'Paste your text to count words, characters, sentences, and lines',
+      'case-converter': 'Enter text to convert between different case styles',
+      'find-replace': 'Paste text and configure find/replace options',
+      'remove-extras': 'Paste text with extra spaces and line breaks to clean',
+      'text-analyzer': 'Paste text to analyze readability and generate statistics',
+      'base64-converter': 'Paste text or base64 string to encode/decode',
+      'url-converter': 'Paste text or URL-encoded string to encode/decode',
+      'html-entities-converter': 'Paste HTML content to convert entities',
+      'html-formatter': 'Paste HTML code to format and beautify',
+      'plain-text-stripper': 'Paste HTML or styled text to strip formatting',
+      'json-formatter': 'Paste JSON code to format and validate',
+      'reverse-text': 'Paste text to reverse character order',
+      'slug-generator': 'Paste text to convert to URL-friendly slug',
+      'regex-tester': 'Paste text and test regex patterns',
+      'timestamp-converter': 'Paste Unix timestamp or date to convert',
+      'csv-json-converter': 'Paste CSV data or JSON to convert',
+      'markdown-html-converter': 'Paste Markdown or HTML to convert',
+      'xml-formatter': 'Paste XML code to format and beautify',
+      'yaml-formatter': 'Paste YAML configuration to format',
+      'url-parser': 'Paste a URL to parse components',
+      'jwt-decoder': 'Paste a JWT token to decode',
+      'text-diff-checker': 'Paste text to compare with another',
+      'color-converter': 'Paste color value (hex, rgb, hsl, etc.)',
+      'checksum-calculator': 'Paste text to calculate checksums',
+      'escape-unescape': 'Paste text or escaped strings to convert',
+      'sort-lines': 'Paste text with multiple lines to sort',
+      'whitespace-visualizer': 'Paste text to visualize whitespace and special characters',
+      'ascii-unicode-converter': 'Paste ASCII text or Unicode codes to convert',
+      'punycode-converter': 'Paste domain name or punycode to convert',
+      'binary-converter': 'Paste binary, hex, octal, or decimal number to convert',
+      'rot13-cipher': 'Paste text to apply ROT13 cipher',
+      'caesar-cipher': 'Paste text to apply Caesar cipher',
+      'css-formatter': 'Paste CSS code to format and beautify',
+      'sql-formatter': 'Paste SQL query to format and beautify',
+      'http-status-lookup': 'Enter HTTP status code to look up',
+      'mime-type-lookup': 'Enter file extension to look up MIME type',
+      'http-header-parser': 'Paste HTTP headers to parse and analyze',
+      'uuid-validator': 'Paste UUID to validate format',
+      'json-path-extractor': 'Paste JSON to extract paths',
+      'image-to-base64': 'Upload an image to convert to base64',
+      'svg-optimizer': 'Paste SVG code to optimize',
+      'unit-converter': 'Enter value with unit to convert',
+      'number-formatter': 'Enter number to format with different notations',
+      'timezone-converter': 'Enter time to convert between timezones',
+      'base-converter': 'Enter number and select base to convert between',
+      'math-evaluator': 'Paste math expression to evaluate',
+      'keyword-extractor': 'Paste text to extract important keywords',
+      'cron-tester': 'Paste cron expression to test and validate',
+      'file-size-converter': 'Enter file size with unit to convert',
+      'js-formatter': 'Paste JavaScript code to format, minify, or beautify',
+      'email-validator': 'Enter email address to validate format',
+      'ip-validator': 'Enter IP address to validate',
+      'ip-integer-converter': 'Paste IP address or integer to convert',
+      'markdown-linter': 'Paste Markdown to check for issues',
+    }
+
+    return instructions[selectedTool.toolId] || null
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.inputWrapper}>
+        {getInstructionText() && (
+          <div className={styles.instructionLabel}>{getInstructionText()}</div>
+        )}
         <div
           className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
           onDragOver={handleDragOver}
