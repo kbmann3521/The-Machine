@@ -111,6 +111,16 @@ export default function Home() {
     setInputImage(image)
     setImagePreview(preview)
 
+    if (selectedToolRef.current && text) {
+      const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
+      if (detectedConfig) {
+        setConfigOptions(prevConfig => ({
+          ...prevConfig,
+          ...detectedConfig,
+        }))
+      }
+    }
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
