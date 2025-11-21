@@ -211,7 +211,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'text-toolkit':
         // Find & Replace renders as full-height text, not as structured fields
         if (result.findReplace && activeToolkitSection === 'findReplace') {
-          return null // Will be handled by string type check in renderOutput
+          return null
         }
 
         const allToolkitFields = []
