@@ -8,21 +8,29 @@
   background-color: var(--color-background-secondary);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--color-text-primary);
   padding: 0;
+  position: relative;
 }
 
 .toggleButton:hover {
   background-color: var(--color-background-tertiary);
   border-color: var(--color-border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .toggleButton:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(0);
 }
 
 .icon {
   width: 18px;
   height: 18px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggleButton:active .icon {
+  transform: rotate(180deg);
 }
