@@ -188,7 +188,7 @@
   border-radius: 8px;
   background-color: var(--color-background-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 18px;
   color: var(--color-text-secondary);
 }
@@ -197,10 +197,12 @@
   background-color: var(--color-background-secondary);
   color: var(--color-text-primary);
   border-color: var(--color-text-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .descriptionToggle:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(0);
 }
 
 .descriptionIcon {
