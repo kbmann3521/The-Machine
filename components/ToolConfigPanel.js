@@ -148,6 +148,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     { id: 'removeExtras', label: 'Clean Text' },
     { id: 'whitespaceVisualizer', label: 'Whitespace' },
     { id: 'sortLines', label: 'Sort Lines' },
+    { id: 'findReplace', label: 'Find & Replace' },
   ]
 
   return (
