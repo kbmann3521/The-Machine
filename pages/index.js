@@ -39,6 +39,20 @@ export default function Home() {
       ...toolData,
     }))
     setPredictedTools(allTools)
+
+    // Set Word Counter as default tool
+    const wordCounterTool = allTools.find(tool => tool.toolId === 'word-counter')
+    if (wordCounterTool) {
+      setSelectedTool(wordCounterTool)
+
+      const initialConfig = {}
+      if (wordCounterTool?.configSchema) {
+        wordCounterTool.configSchema.forEach(field => {
+          initialConfig[field.id] = field.default || ''
+        })
+      }
+      setConfigOptions(initialConfig)
+    }
   }, [])
 
   const predictTools = useCallback(async (text, image, preview) => {
