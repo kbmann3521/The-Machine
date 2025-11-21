@@ -29,9 +29,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   if (isEmpty) {
     return (
       <div className={styles.container}>
-        <div className={styles.emptyState}>
-          <p>Results will appear here after running a tool</p>
+        <div className={styles.header}>
+          <h3>Output</h3>
         </div>
+        <div className={styles.content}></div>
       </div>
     )
   }
