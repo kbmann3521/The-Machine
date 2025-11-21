@@ -29,8 +29,14 @@
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
   animation: fadeInContent 0.5s ease-out;
+}
+
+.mainContent::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes fadeInContent {
@@ -120,6 +126,7 @@
   height: 100%;
   box-sizing: border-box;
   animation: scaleInContainer 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 0;
 }
 
 @keyframes scaleInContainer {
@@ -140,12 +147,18 @@
   padding: 20px;
   border-right: 1px solid var(--color-border);
   overflow-y: scroll;
-  max-height: 850px;
   width: 100%;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
   animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   contain: layout style;
+  min-height: 0;
+}
+
+.leftPanel::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes slideInLeft {
@@ -238,13 +251,19 @@
   flex-direction: column;
   padding: 20px;
   overflow-y: scroll;
-  max-height: 850px;
   width: 100%;
   box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
   background-color: var(--color-background-secondary);
   animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   contain: layout style;
+  min-height: 0;
+}
+
+.rightPanel::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes slideInRight {

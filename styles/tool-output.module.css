@@ -91,7 +91,14 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
+  max-height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   scrollbar-gutter: stable;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
 }
 
 .content.isLoading {
@@ -199,13 +206,21 @@
   border: 1px solid var(--color-border);
   font-size: 13px;
   line-height: 1.7;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  min-height: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   transition: none;
   word-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
   color: var(--color-text-primary);
+}
+
+.textOutput::-webkit-scrollbar {
+  display: none;
 }
 
 .textOutput code {
@@ -221,12 +236,20 @@
   border: 1px solid #333;
   font-size: 12px;
   line-height: 1.6;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  min-height: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   transition: none;
   word-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
+}
+
+.jsonOutput::-webkit-scrollbar {
+  display: none;
 }
 
 .jsonOutput code {
@@ -266,13 +289,21 @@
 
 .tableContainer {
   width: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   border-radius: 6px;
   border: 1px solid var(--color-border);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   transition: none;
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+
+.tableContainer::-webkit-scrollbar {
+  display: none;
 }
 
 .table {
