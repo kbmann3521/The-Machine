@@ -366,6 +366,8 @@ export default function Home() {
                       currentConfig={configOptions}
                       activeToolkitSection={activeToolkitSection}
                       onToolkitSectionChange={setActiveToolkitSection}
+                      findReplaceConfig={findReplaceConfig}
+                      onFindReplaceConfigChange={setFindReplaceConfig}
                     />
                     <button
                       className={styles.descriptionToggle}
