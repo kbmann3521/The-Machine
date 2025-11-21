@@ -7,7 +7,14 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       return "Type your text here... drag & drop or paste an image (Ctrl+V)"
     }
 
-    const placeholders = {
+    if (getToolExample && selectedTool?.toolId) {
+      const example = getToolExample(selectedTool.toolId, configOptions)
+      if (example) {
+        return example
+      }
+    }
+
+    const staticPlaceholders = {
       'image-resizer': 'Upload an image to resize',
       'word-counter': 'Paste your text to count words, characters, sentences, and lines...',
       'case-converter': 'Enter text to convert case (uppercase, lowercase, title case, etc.)...',
@@ -68,7 +75,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'markdown-linter': 'Paste Markdown to check for issues...',
     }
 
-    return placeholders[selectedTool.toolId] || "Type or paste content here..."
+    return staticPlaceholders[selectedTool.toolId] || "Type or paste content here..."
   }
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
