@@ -70,10 +70,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  const handleCopyField = (value, fieldName) => {
-    navigator.clipboard.writeText(String(value))
-    setCopiedField(fieldName)
-    setTimeout(() => setCopiedField(null), 2000)
+  const handleCopyField = async (value, fieldName) => {
+    try {
+      await navigator.clipboard.writeText(String(value))
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    } catch (err) {
+      fallbackCopy(String(value))
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    }
   }
 
   const renderStructuredOutput = () => {
