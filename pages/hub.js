@@ -156,6 +156,8 @@ export default function Hub() {
                 loading={toolLoading}
                 activeToolkitSection={activeToolkitSection}
                 onToolkitSectionChange={setActiveToolkitSection}
+                findReplaceConfig={findReplaceConfig}
+                onFindReplaceConfigChange={setFindReplaceConfig}
               />
             </div>
           )}
