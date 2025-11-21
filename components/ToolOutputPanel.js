@@ -40,7 +40,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
 
-  if (isEmpty) {
+  // For text-toolkit, check if current section has content
+  const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
+    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
+    !displayResult[getToolkitSectionKey(activeToolkitSection)]
+
+  if (isEmpty || isTextToolkitWithoutContent) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
