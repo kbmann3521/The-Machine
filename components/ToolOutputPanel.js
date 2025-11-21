@@ -9,6 +9,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
 
+  const getToolkitSectionKey = (section) => {
+    const keyMap = {
+      'findReplace': 'findReplace',
+      'slugGenerator': 'slugGenerator',
+      'reverseText': 'reverseText',
+      'removeExtras': 'removeExtras',
+      'whitespaceVisualizer': 'whitespaceVisualizer',
+      'sortLines': 'sortLines',
+    }
+    return keyMap[section]
+  }
+
   React.useEffect(() => {
     if (result && !loading) {
       setPreviousResult(result)
