@@ -83,14 +83,15 @@ export default async function handler(req, res) {
             }
           }
 
+          // Get tool's placeholder/example text
+          const toolPlaceholder = toolData.example || toolData.description || toolData.name
+
           // 2. FUZZY MATCHING (20% weight)
           // Fuzzy match input against tool's placeholder/example text
-          const toolPlaceholder = toolData.example || toolData.description || toolData.name
           fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
 
           // 3. VECTOR SEMANTIC MATCHING (40% weight)
           // Compare embeddings of input and tool placeholder/example
-          const toolPlaceholder = toolData.example || toolData.description || toolData.name
           const toolEmbedding = await generateEmbedding(toolPlaceholder)
           vectorScore = cosineSimilarity(inputEmbedding, toolEmbedding)
 
