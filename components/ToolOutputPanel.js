@@ -60,21 +60,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     return (
       <div className={styles.structuredOutput}>
-        {fieldsToShow.map((field, idx) => (
-          <div key={idx} className={styles.outputField}>
-            <div className={styles.fieldHeader}>
-              <span className={styles.fieldLabel}>{field.label}:</span>
-              <button
-                className={styles.fieldCopyButton}
-                onClick={() => handleCopyField(field.value, field.label)}
-                title={`Copy ${field.label}`}
-              >
-                {copiedField === field.label ? '✓' : '📋'}
-              </button>
+        {fieldsToShow.map((field, idx) => {
+          const displayValue = typeof field.value === 'string' || typeof field.value === 'number'
+            ? field.value
+            : JSON.stringify(field.value)
+          return (
+            <div key={idx} className={styles.outputField}>
+              <div className={styles.fieldHeader}>
+                <span className={styles.fieldLabel}>{field.label}:</span>
+                <button
+                  className={styles.fieldCopyButton}
+                  onClick={() => handleCopyField(displayValue, field.label)}
+                  title={`Copy ${field.label}`}
+                >
+                  {copiedField === field.label ? '✓' : '📋'}
+                </button>
+              </div>
+              <div className={styles.fieldValue}>{displayValue}</div>
             </div>
-            <div className={styles.fieldValue}>{field.value}</div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     )
   }
