@@ -156,24 +156,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     onInputChange(inputText, null, null)
   }
 
-  const fillWithExample = () => {
-    let exampleText = null
-
-    if (getToolExample && selectedTool?.toolId) {
-      exampleText = getToolExample(selectedTool.toolId, configOptions)
-    }
-
-    if (!exampleText) {
-      exampleText = selectedTool?.example
-    }
-
-    if (exampleText) {
-      setInputText(exampleText)
-      setCharCount(exampleText.length)
-      onInputChange(exampleText, inputImage, imagePreview)
-    }
-  }
-
   const openFileDialog = () => {
     fileInputRef.current?.click()
   }
