@@ -376,6 +376,7 @@ export default function Home() {
                   loading={toolLoading}
                   error={error}
                   toolId={selectedTool?.toolId}
+                  activeToolkitSection={activeToolkitSection}
                 />
               </div>
             </div>
