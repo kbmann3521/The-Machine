@@ -271,6 +271,15 @@
   .fieldsContainer {
     gap: 12px;
   }
+
+  .findReplaceInputs {
+    grid-template-columns: 1fr;
+  }
+
+  .findReplaceToggles {
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 
 .toolkitFilters {
