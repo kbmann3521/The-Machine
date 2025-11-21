@@ -36,12 +36,12 @@ export default function Home() {
       toolId,
       name: toolData.name,
       description: toolData.description,
-      similarity: 0.75,
+      similarity: 0.5, // Neutral similarity for unranked tools
       ...toolData,
     }))
     setPredictedTools(allTools)
 
-    // Set Word Counter as default tool
+    // Set Word Counter as default tool when no input is provided
     const wordCounterTool = allTools.find(tool => tool.toolId === 'word-counter')
     if (wordCounterTool) {
       setSelectedTool(wordCounterTool)
