@@ -30,6 +30,16 @@
   display: flex;
   flex-direction: column;
   scrollbar-gutter: stable;
+  animation: fadeInContent 0.5s ease-out;
+}
+
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .header {
