@@ -159,7 +159,9 @@
 
 @media (min-width: 769px) {
   .descriptionSidebar {
-    position: absolute;
+    position: fixed;
+    bottom: auto;
+    max-height: calc(100vh - 100px);
   }
 
   .closeButton {
