@@ -175,36 +175,38 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
           {activeToolkitSection === 'findReplace' && (
             <div className={styles.findReplaceFields}>
-              <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor="findText">
-                  Find
-                </label>
-                <input
-                  id="findText"
-                  type="text"
-                  className={styles.input}
-                  placeholder="Text to find"
-                  value={findReplaceConfig?.findText || ''}
-                  onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, findText: e.target.value })}
-                />
+              <div className={styles.findReplaceInputs}>
+                <div className={styles.field}>
+                  <label className={styles.fieldLabel} htmlFor="findText">
+                    Find
+                  </label>
+                  <input
+                    id="findText"
+                    type="text"
+                    className={styles.input}
+                    placeholder="Text to find"
+                    value={findReplaceConfig?.findText || ''}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, findText: e.target.value })}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.fieldLabel} htmlFor="replaceText">
+                    Replace
+                  </label>
+                  <input
+                    id="replaceText"
+                    type="text"
+                    className={styles.input}
+                    placeholder="Replacement text"
+                    value={findReplaceConfig?.replaceText || ''}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, replaceText: e.target.value })}
+                  />
+                </div>
               </div>
 
-              <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor="replaceText">
-                  Replace With
-                </label>
-                <input
-                  id="replaceText"
-                  type="text"
-                  className={styles.input}
-                  placeholder="Replacement text"
-                  value={findReplaceConfig?.replaceText || ''}
-                  onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, replaceText: e.target.value })}
-                />
-              </div>
-
-              <div className={styles.toggleContainer}>
-                <label className={styles.toggleLabel}>
+              <div className={styles.findReplaceToggles}>
+                <label className={styles.inlineToggleLabel}>
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
@@ -212,12 +214,10 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, useRegex: e.target.checked })}
                   />
                   <span className={styles.toggleSlider}></span>
-                  <span>Use Regular Expression</span>
+                  <span>Regex</span>
                 </label>
-              </div>
 
-              <div className={styles.toggleContainer}>
-                <label className={styles.toggleLabel}>
+                <label className={styles.inlineToggleLabel}>
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
