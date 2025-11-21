@@ -19,6 +19,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (toolId !== previousToolId) {
       setPreviousToolId(toolId)
       setIsFirstLoad(true)
+      setPreviousResult(null)
     }
   }, [toolId, previousToolId])
 
