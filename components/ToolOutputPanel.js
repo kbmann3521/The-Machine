@@ -214,10 +214,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const getContentClass = () => {
-    if (loading) {
-      return styles.fadingOut
-    }
-    return isFirstLoad ? styles.fadeIn : ''
+    return ''
   }
 
   const renderOutput = () => {
