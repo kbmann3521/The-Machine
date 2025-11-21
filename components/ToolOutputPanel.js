@@ -211,10 +211,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const getContentClass = () => {
+    if (loading) {
+      return styles.fadingOut
+    }
+    return isFirstLoad ? styles.fadeIn : ''
+  }
+
   const renderOutput = () => {
     if (error) {
       return (
-        <div className={`${styles.error} ${styles.fadeIn}`}>
+        <div className={`${styles.error} ${getContentClass()}`}>
           <strong>Error:</strong> {error}
         </div>
       )
@@ -222,7 +229,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult?.error) {
       return (
-        <div className={`${styles.error} ${styles.fadeIn}`}>
+        <div className={`${styles.error} ${getContentClass()}`}>
           <strong>Error:</strong> {displayResult.error}
         </div>
       )
@@ -240,7 +247,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return null
     }
 
-    const contentClass = loading ? styles.fadingOut : styles.fadeIn
+    const contentClass = getContentClass()
 
     if (displayResult?.resizedImage) {
       return (
