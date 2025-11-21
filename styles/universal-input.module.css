@@ -24,6 +24,12 @@
   }
 }
 
+@media (max-width: 640px) {
+  .instructionLabel {
+    min-height: 30px;
+  }
+}
+
 .inputField {
   position: relative;
   display: flex;
