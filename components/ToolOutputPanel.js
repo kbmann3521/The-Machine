@@ -38,10 +38,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     (toolId !== 'text-toolkit' || activeToolkitSection === previousToolkitSection)
 
   const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
-
-  // If we're in text-toolkit and section changed, don't render old result until new one arrives
-  const isSectionMismatch = toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection
-  const isEmpty = !displayResult && !loading && !error || (isSectionMismatch && !loading)
+  const isEmpty = !displayResult && !loading && !error
 
   if (isEmpty) {
     return (
