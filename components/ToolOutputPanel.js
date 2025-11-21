@@ -5,12 +5,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
+  const [previousToolId, setPreviousToolId] = useState(null)
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
 
   React.useEffect(() => {
     if (result && !loading) {
       setPreviousResult(result)
+      setIsFirstLoad(false)
     }
   }, [result, loading])
+
+  React.useEffect(() => {
+    if (toolId !== previousToolId) {
+      setPreviousToolId(toolId)
+      setIsFirstLoad(true)
+    }
+  }, [toolId, previousToolId])
 
   const displayResult = result || previousResult
   const isEmpty = !displayResult && !loading && !error
