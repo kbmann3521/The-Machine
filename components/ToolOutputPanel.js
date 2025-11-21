@@ -6,6 +6,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
   const [previousToolId, setPreviousToolId] = useState(null)
+  const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
 
   React.useEffect(() => {
