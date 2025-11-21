@@ -11,6 +11,7 @@
   flex: 1;
   position: relative;
   transition: padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .sidebarOpenDesktop {
