@@ -75,11 +75,13 @@
   overflow-x: hidden;
   min-height: 0;
   scrollbar-gutter: stable;
+  will-change: contents;
 }
 
 .content.isLoading {
   opacity: 0.7;
   transition: none;
+  will-change: opacity;
 }
 
 .fadeIn {
