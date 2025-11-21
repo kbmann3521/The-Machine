@@ -50,17 +50,10 @@ export default async function handler(req, res) {
           }
         } else {
           // Use vector embedding similarity for text input
+          // Compare user input directly to tool's placeholder/example text
           const toolPlaceholder = toolData.example || toolData.description || toolData.name
           const toolEmbedding = await generateEmbedding(toolPlaceholder)
           similarity = cosineSimilarity(inputEmbedding, toolEmbedding)
-
-          // Boost similarity if tool description matches content type
-          if (toolData.description) {
-            const descriptionEmbedding = await generateEmbedding(toolData.description)
-            const descriptionSimilarity = cosineSimilarity(inputEmbedding, descriptionEmbedding)
-            // Weighted average: 70% placeholder/example match, 30% description match
-            similarity = similarity * 0.7 + descriptionSimilarity * 0.3
-          }
         }
 
         return {
