@@ -175,8 +175,9 @@ export default function Home() {
       const noInputRequiredTools = []
 
       let textToUse = inputText
+      const hasImageInput = imagePreview
 
-      if (!textToUse && !imagePreview) {
+      if (!textToUse && !hasImageInput) {
         const example = getToolExample(tool.toolId, config)
         if (example) {
           textToUse = example
@@ -188,7 +189,7 @@ export default function Home() {
         }
       }
 
-      if (!textToUse && !imagePreview) {
+      if (!textToUse && !hasImageInput) {
         return
       }
 
