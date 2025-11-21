@@ -463,34 +463,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  const toolkitSections = [
-    { id: 'wordCounter', label: 'Word Counter' },
-    { id: 'caseConverter', label: 'Case Converter' },
-    { id: 'textAnalyzer', label: 'Text Analyzer' },
-    { id: 'slugGenerator', label: 'Slug Generator' },
-    { id: 'reverseText', label: 'Reverse Text' },
-    { id: 'removeExtras', label: 'Clean Text' },
-    { id: 'whitespaceVisualizer', label: 'Whitespace' },
-    { id: 'sortLines', label: 'Sort Lines' },
-  ]
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h3>Output</h3>
-        {toolId === 'text-toolkit' && (
-          <div className={styles.toolkitTabs}>
-            {toolkitSections.map(section => (
-              <button
-                key={section.id}
-                className={`${styles.toolkitTabButton} ${activeToolkitSection === section.id ? styles.active : ''}`}
-                onClick={() => setActiveToolkitSection(section.id)}
-              >
-                {section.label}
-              </button>
-            ))}
-          </div>
-        )}
         <div className={`${styles.buttonContainer} ${(displayResult && !loading && !error) ? styles.visible : styles.hidden}`}>
           {displayResult?.resizedImage ? (
             <button
