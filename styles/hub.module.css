@@ -54,6 +54,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  animation: slideDownHeader 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDownHeader {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .header h1 {
