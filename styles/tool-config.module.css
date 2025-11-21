@@ -327,6 +327,29 @@
 .findReplaceFields {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding-top: 8px;
+}
+
+.findReplaceInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.findReplaceToggles {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.inlineToggleLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
 }
