@@ -254,7 +254,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ].filter(f => f.value !== undefined && f.value !== null)
 
       case 'text-toolkit':
-        // Only Word Counter shows structured fields, all others render as full-height text
+        // Word Counter - show as structured fields
         if (activeToolkitSection === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
           return [
             { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
@@ -264,6 +264,49 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             { label: 'Line Count', value: String(result.wordCounter.lineCount || 0) },
             { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
           ].filter(f => f.value !== undefined && f.value !== null)
+        }
+
+        // Case Converter - show as structured fields
+        if (activeToolkitSection === 'caseConverter' && result.caseConverter && typeof result.caseConverter === 'object') {
+          const fields = []
+          if (result.caseConverter.uppercase) {
+            fields.push({ label: 'UPPERCASE', value: result.caseConverter.uppercase })
+          }
+          if (result.caseConverter.lowercase) {
+            fields.push({ label: 'lowercase', value: result.caseConverter.lowercase })
+          }
+          if (result.caseConverter.titleCase) {
+            fields.push({ label: 'Title Case', value: result.caseConverter.titleCase })
+          }
+          if (result.caseConverter.sentenceCase) {
+            fields.push({ label: 'Sentence case', value: result.caseConverter.sentenceCase })
+          }
+          return fields.filter(f => f.value !== undefined && f.value !== null)
+        }
+
+        // Text Analyzer - show as structured fields
+        if (activeToolkitSection === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
+          const fields = []
+          if (result.textAnalyzer.readability) {
+            if (result.textAnalyzer.readability.readabilityLevel) {
+              fields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
+            }
+            if (result.textAnalyzer.readability.fleschReadingEase) {
+              fields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
+            }
+            if (result.textAnalyzer.readability.fleschKincaidGrade) {
+              fields.push({ label: 'Flesch-Kincaid Grade', value: result.textAnalyzer.readability.fleschKincaidGrade })
+            }
+          }
+          if (result.textAnalyzer.statistics) {
+            if (result.textAnalyzer.statistics.averageWordLength) {
+              fields.push({ label: 'Avg Word Length', value: result.textAnalyzer.statistics.averageWordLength?.toFixed(2) })
+            }
+            if (result.textAnalyzer.statistics.averageWordsPerSentence) {
+              fields.push({ label: 'Avg Words per Sentence', value: result.textAnalyzer.statistics.averageWordsPerSentence?.toFixed(2) })
+            }
+          }
+          return fields.filter(f => f.value !== undefined && f.value !== null)
         }
 
         // All other sections render as full-height text, not structured fields
