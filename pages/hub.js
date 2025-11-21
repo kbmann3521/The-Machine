@@ -94,13 +94,19 @@ export default function Hub() {
     setOutputResult(null)
 
     try {
+      // For text-toolkit, merge find/replace config if that section is active
+      let finalConfig = config
+      if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
+        finalConfig = { ...config, ...findReplaceConfig }
+      }
+
       const response = await fetch('/api/tools/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           toolId: tool.toolId,
           inputText,
-          config,
+          config: finalConfig,
         }),
       })
 
