@@ -153,8 +153,14 @@ export default function Home() {
         initialConfig[field.id] = field.default || ''
       })
     }
+
+    const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
+    if (detectedConfig) {
+      Object.assign(initialConfig, detectedConfig)
+    }
+
     setConfigOptions(initialConfig)
-  }, [])
+  }, [inputText])
 
   const handleConfigChange = useCallback((config) => {
     setConfigOptions(config)
