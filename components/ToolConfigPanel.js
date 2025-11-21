@@ -139,12 +139,40 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     }
   }
 
+  const toolkitSections = [
+    { id: 'wordCounter', label: 'Word Counter' },
+    { id: 'caseConverter', label: 'Case Converter' },
+    { id: 'textAnalyzer', label: 'Text Analyzer' },
+    { id: 'slugGenerator', label: 'Slug Generator' },
+    { id: 'reverseText', label: 'Reverse Text' },
+    { id: 'removeExtras', label: 'Clean Text' },
+    { id: 'whitespaceVisualizer', label: 'Whitespace' },
+    { id: 'sortLines', label: 'Sort Lines' },
+  ]
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h3>{tool.name}</h3>
         <p className={styles.description}>{tool.description}</p>
       </div>
+
+      {tool.toolId === 'text-toolkit' && (
+        <div className={styles.toolkitFilters}>
+          <div className={styles.filterLabel}>Filter Results:</div>
+          <div className={styles.filterButtonsGrid}>
+            {toolkitSections.map(section => (
+              <button
+                key={section.id}
+                className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
+                onClick={() => onToolkitSectionChange(section.id)}
+              >
+                {section.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {tool.configSchema && tool.configSchema.length > 0 && (
         <div className={styles.fieldsContainer}>
