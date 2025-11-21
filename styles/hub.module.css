@@ -154,7 +154,7 @@
 .configSection {
   flex-shrink: 0;
   width: 100%;
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .configHeader {
