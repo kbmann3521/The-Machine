@@ -291,6 +291,7 @@ export default function Home() {
                       onConfigChange={handleConfigChange}
                       loading={toolLoading}
                       onRegenerate={handleRegenerate}
+                      currentConfig={configOptions}
                     />
                     <button
                       className={styles.descriptionToggle}
