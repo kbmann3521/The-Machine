@@ -322,8 +322,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Special handling for text-toolkit sections that render as full-height text
-    // Only show full-height text when the result is available (not loading) or when displaying previousResult
-    if (toolId === 'text-toolkit' && displayResult && !loading) {
+    if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
 
       if (activeToolkitSection === 'findReplace' && displayResult.findReplace) {
