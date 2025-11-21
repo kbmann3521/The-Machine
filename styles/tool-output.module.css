@@ -81,18 +81,18 @@
 }
 
 .fadeIn {
-  animation: fadeInSmooth 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInSmooth 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fadingOut {
   opacity: 0.5;
-  animation: fadeOutSmooth 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeOutSmooth 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeInSmooth {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -107,7 +107,7 @@
   }
   to {
     opacity: 0.5;
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
 }
 
