@@ -21,8 +21,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setPreviousToolId(toolId)
       setIsFirstLoad(true)
       setPreviousResult(null)
+      setPreviousToolkitSection(null)
     }
   }, [toolId, previousToolId])
+
+  React.useEffect(() => {
+    if (toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection) {
+      setPreviousToolkitSection(activeToolkitSection)
+    }
+  }, [activeToolkitSection, previousToolkitSection, toolId])
 
   const displayResult = (toolId === previousToolId) ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
