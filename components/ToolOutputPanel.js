@@ -213,14 +213,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  const getContentClass = () => {
-    return ''
-  }
-
   const renderOutput = () => {
     if (error) {
       return (
-        <div className={`${styles.error} ${getContentClass()}`}>
+        <div className={styles.error}>
           <strong>Error:</strong> {error}
         </div>
       )
@@ -228,7 +224,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult?.error) {
       return (
-        <div className={`${styles.error} ${getContentClass()}`}>
+        <div className={styles.error}>
           <strong>Error:</strong> {displayResult.error}
         </div>
       )
@@ -252,7 +248,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (typeof displayResult === 'string') {
       return (
-        <pre className={`${styles.textOutput} ${contentClass}`}>
+        <pre className={styles.textOutput}>
           <code>{displayResult}</code>
         </pre>
       )
@@ -262,7 +258,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const structuredView = renderStructuredOutput()
       if (structuredView) {
         return (
-          <div className={contentClass}>
+          <div>
             {structuredView}
             <div className={styles.jsonFallback}>
               <details>
@@ -278,7 +274,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (outputType === 'json' || typeof displayResult === 'object') {
         return (
-          <pre className={`${styles.jsonOutput} ${contentClass}`}>
+          <pre className={styles.jsonOutput}>
             <code>{JSON.stringify(displayResult, null, 2)}</code>
           </pre>
         )
@@ -286,7 +282,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (displayResult.type === 'table' && Array.isArray(displayResult.data)) {
         return (
-          <div className={`${styles.tableContainer} ${contentClass}`}>
+          <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -310,7 +306,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
 
       return (
-        <pre className={`${styles.jsonOutput} ${contentClass}`}>
+        <pre className={styles.jsonOutput}>
           <code>{JSON.stringify(displayResult, null, 2)}</code>
         </pre>
       )
