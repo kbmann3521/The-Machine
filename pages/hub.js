@@ -18,6 +18,12 @@ export default function Hub() {
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
   const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
+  const [findReplaceConfig, setFindReplaceConfig] = useState({
+    findText: '',
+    replaceText: '',
+    useRegex: false,
+    matchCase: false,
+  })
 
   const handleInputChange = useCallback((text) => {
     setInputText(text)
