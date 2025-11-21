@@ -386,6 +386,38 @@
   margin-bottom: 8px;
 }
 
+@media (max-width: 1024px) {
+  .structuredOutput {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .structuredOutput {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .outputField {
+    padding: 7px 8px;
+  }
+
+  .fieldLabel {
+    font-size: 9px;
+  }
+
+  .fieldValue {
+    font-size: 11px;
+  }
+
+  .fieldCopyButton {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 15px;
@@ -412,20 +444,21 @@
   }
 
   .structuredOutput {
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
   .outputField {
-    padding: 10px 12px;
+    padding: 7px 8px;
   }
 
   .fieldValue {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .fieldCopyButton {
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
   }
 }
