@@ -323,3 +323,10 @@
   border-color: #0066cc;
   font-weight: 600;
 }
+
+.findReplaceFields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
