@@ -6,23 +6,11 @@
   background-color: var(--color-background-primary);
 }
 
-@media (min-width: 769px) {
-  .layout {
-    overflow: hidden;
-  }
-}
-
 .bodyContainer {
   display: flex;
   flex: 1;
   position: relative;
   transition: padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (min-width: 769px) {
-  .bodyContainer {
-    overflow: hidden;
-  }
 }
 
 .sidebarOpenDesktop {
