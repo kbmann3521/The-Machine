@@ -27,6 +27,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   React.useEffect(() => {
     if (toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection) {
+      // Clear previousResult when switching toolkit sections to prevent showing old content
+      setPreviousResult(null)
       setPreviousToolkitSection(activeToolkitSection)
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
