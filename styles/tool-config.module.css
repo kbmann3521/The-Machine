@@ -353,3 +353,19 @@
   color: var(--color-text-primary);
   white-space: nowrap;
 }
+
+.inlineToggleLabel .toggleSlider {
+  width: 32px;
+  height: 16px;
+}
+
+.inlineToggleLabel .toggleSlider::after {
+  width: 12px;
+  height: 12px;
+  top: 2px;
+  left: 2px;
+}
+
+.inlineToggleLabel .toggleInput:checked + .toggleSlider::after {
+  left: 18px;
+}
