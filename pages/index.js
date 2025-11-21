@@ -57,14 +57,25 @@ export default function Home() {
 
   const predictTools = useCallback(async (text, image, preview) => {
     if (!text && !image) {
-      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-        toolId,
-        name: toolData.name,
-        description: toolData.description,
-        similarity: 0.75,
-        ...toolData,
-      }))
-      setPredictedTools(allTools)
+      setPredictedTools(prevTools => {
+        const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+          toolId,
+          name: toolData.name,
+          description: toolData.description,
+          similarity: 0.75,
+          ...toolData,
+        }))
+
+        // Only update if the order has changed
+        const newOrder = allTools.map(t => t.toolId).join(',')
+        const prevOrder = prevTools.map(t => t.toolId).join(',')
+
+        if (newOrder === prevOrder) {
+          return prevTools
+        }
+
+        return allTools
+      })
       return
     }
 
