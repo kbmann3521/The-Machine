@@ -307,12 +307,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderOutput = () => {
-    // If we've switched sections and loading, don't show stale content
-    const isSectionMismatch = toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection
-    if (isSectionMismatch && loading) {
-      return null
-    }
-
     if (error) {
       return (
         <div className={styles.error}>
@@ -336,21 +330,29 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
+      let hasContentForCurrentSection = false
 
-      if (activeToolkitSection === 'findReplace' && displayResult.findReplace) {
+      if (activeToolkitSection === 'findReplace') {
+        hasContentForCurrentSection = !!displayResult.findReplace
         textContent = displayResult.findReplace
-      } else if (activeToolkitSection === 'slugGenerator' && displayResult.slugGenerator) {
+      } else if (activeToolkitSection === 'slugGenerator') {
+        hasContentForCurrentSection = !!displayResult.slugGenerator
         textContent = displayResult.slugGenerator
-      } else if (activeToolkitSection === 'reverseText' && displayResult.reverseText) {
+      } else if (activeToolkitSection === 'reverseText') {
+        hasContentForCurrentSection = !!displayResult.reverseText
         textContent = displayResult.reverseText
-      } else if (activeToolkitSection === 'removeExtras' && displayResult.removeExtras) {
+      } else if (activeToolkitSection === 'removeExtras') {
+        hasContentForCurrentSection = !!displayResult.removeExtras
         textContent = displayResult.removeExtras
-      } else if (activeToolkitSection === 'whitespaceVisualizer' && displayResult.whitespaceVisualizer) {
+      } else if (activeToolkitSection === 'whitespaceVisualizer') {
+        hasContentForCurrentSection = !!displayResult.whitespaceVisualizer
         textContent = displayResult.whitespaceVisualizer
-      } else if (activeToolkitSection === 'sortLines' && displayResult.sortLines) {
+      } else if (activeToolkitSection === 'sortLines') {
+        hasContentForCurrentSection = !!displayResult.sortLines
         textContent = displayResult.sortLines
       }
 
+      // Only render text content if we have it for the current section
       if (textContent) {
         return (
           <pre className={styles.textOutput}>
@@ -359,8 +361,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )
       }
 
-      // If we don't have content for the current section, return null to avoid showing old structured output
-      if (isSectionMismatch) {
+      // If the current section is a full-height text section but we don't have content for it,
+      // don't render the old structured output - wait for the new result
+      if (!hasContentForCurrentSection && ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)) {
         return null
       }
     }
