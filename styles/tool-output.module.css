@@ -322,6 +322,11 @@
   transform: translateY(-2px);
 }
 
+.outputField *,
+.fieldValue {
+  transition: none;
+}
+
 .fieldHeader {
   display: flex;
   justify-content: space-between;
