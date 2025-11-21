@@ -17,6 +17,7 @@ export default function Hub() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
+  const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
 
   const handleInputChange = useCallback((text) => {
     setInputText(text)
