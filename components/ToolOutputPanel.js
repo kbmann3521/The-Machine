@@ -31,7 +31,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
 
-  const displayResult = (toolId === previousToolId) ? (result || previousResult) : result
+  const displayResult =
+    (toolId === previousToolId)
+      ? (result || previousResult)
+      : (toolId === 'text-toolkit' && activeToolkitSection === previousToolkitSection)
+        ? (result || previousResult)
+        : result
   const isEmpty = !displayResult && !loading && !error
 
   if (isEmpty) {
