@@ -53,26 +53,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const handleCopy = async () => {
     let textToCopy = ''
 
-    // Special handling for text-toolkit sections
+    // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       if (activeToolkitSection === 'findReplace' && displayResult.findReplace) {
         textToCopy = displayResult.findReplace
-      } else if (activeToolkitSection === 'caseConverter' && displayResult.caseConverter) {
-        const cases = displayResult.caseConverter
-        textToCopy = `UPPERCASE:\n${cases.uppercase}\n\nlowercase:\n${cases.lowercase}\n\nTitle Case:\n${cases.titleCase}\n\nSentence case:\n${cases.sentenceCase}`
-      } else if (activeToolkitSection === 'textAnalyzer' && displayResult.textAnalyzer) {
-        const analyzer = displayResult.textAnalyzer
-        let content = ''
-        if (analyzer.readability) {
-          content += `Readability Level: ${analyzer.readability.readabilityLevel}\n`
-          content += `Flesch Reading Ease: ${analyzer.readability.fleschReadingEase}\n`
-          content += `Flesch-Kincaid Grade: ${analyzer.readability.fleschKincaidGrade}\n`
-        }
-        if (analyzer.statistics) {
-          content += `Avg Word Length: ${analyzer.statistics.averageWordLength?.toFixed(2)}\n`
-          content += `Avg Words per Sentence: ${analyzer.statistics.averageWordsPerSentence?.toFixed(2)}`
-        }
-        textToCopy = content
       } else if (activeToolkitSection === 'slugGenerator' && displayResult.slugGenerator) {
         textToCopy = displayResult.slugGenerator
       } else if (activeToolkitSection === 'reverseText' && displayResult.reverseText) {
@@ -84,10 +68,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else if (activeToolkitSection === 'sortLines' && displayResult.sortLines) {
         textToCopy = displayResult.sortLines
       }
-    } else if (typeof displayResult === 'string') {
-      textToCopy = displayResult
-    } else {
-      textToCopy = JSON.stringify(displayResult, null, 2)
+    }
+
+    if (!textToCopy) {
+      if (typeof displayResult === 'string') {
+        textToCopy = displayResult
+      } else {
+        textToCopy = JSON.stringify(displayResult, null, 2)
+      }
     }
 
     try {
