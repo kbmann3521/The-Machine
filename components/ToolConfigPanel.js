@@ -171,6 +171,64 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               </button>
             ))}
           </div>
+
+          {activeToolkitSection === 'findReplace' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="findText">
+                  Find
+                </label>
+                <input
+                  id="findText"
+                  type="text"
+                  className={styles.input}
+                  placeholder="Text to find"
+                  value={findReplaceConfig?.findText || ''}
+                  onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, findText: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="replaceText">
+                  Replace With
+                </label>
+                <input
+                  id="replaceText"
+                  type="text"
+                  className={styles.input}
+                  placeholder="Replacement text"
+                  value={findReplaceConfig?.replaceText || ''}
+                  onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, replaceText: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.toggleContainer}>
+                <label className={styles.toggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={findReplaceConfig?.useRegex || false}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, useRegex: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Use Regular Expression</span>
+                </label>
+              </div>
+
+              <div className={styles.toggleContainer}>
+                <label className={styles.toggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={findReplaceConfig?.matchCase || false}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, matchCase: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Match Case</span>
+                </label>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
