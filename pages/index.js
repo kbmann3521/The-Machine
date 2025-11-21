@@ -280,7 +280,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig]
   )
 
   const handleRegenerate = useCallback(() => {
