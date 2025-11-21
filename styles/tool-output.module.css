@@ -209,7 +209,7 @@
   line-height: 1.6;
   overflow: hidden;
   flex: 1;
-  transition: opacity 0.3s ease;
+  transition: none;
   word-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
