@@ -211,6 +211,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'text-toolkit':
         const allToolkitFields = []
 
+        // Find & Replace
+        if (result.findReplace && activeToolkitSection === 'findReplace') {
+          allToolkitFields.push({
+            section: 'findReplace',
+            label: 'Result',
+            value: result.findReplace,
+          })
+          return allToolkitFields.filter(f => f.value !== undefined && f.value !== null && f.section === activeToolkitSection)
+        }
+
         // Word Counter Statistics
         if (result.wordCounter && typeof result.wordCounter === 'object') {
           allToolkitFields.push({
