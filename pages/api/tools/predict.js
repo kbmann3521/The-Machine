@@ -84,10 +84,9 @@ export default async function handler(req, res) {
           }
 
           // 2. FUZZY MATCHING (20% weight)
-          // Compare input to tool name and description
-          const toolNameMatch = levenshteinDistance(inputContent, toolData.name)
-          const toolDescMatch = levenshteinDistance(inputContent, toolData.description || '')
-          fuzzyScore = Math.max(toolNameMatch, toolDescMatch) * 0.5
+          // Fuzzy match input against tool's placeholder/example text
+          const toolPlaceholder = toolData.example || toolData.description || toolData.name
+          fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
 
           // 3. VECTOR SEMANTIC MATCHING (40% weight)
           // Compare embeddings of input and tool placeholder/example
