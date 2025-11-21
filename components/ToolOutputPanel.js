@@ -310,6 +310,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderOutput = () => {
+    // If we've switched sections and loading, don't show stale content
+    const isSectionMismatch = toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection
+    if (isSectionMismatch && loading) {
+      return null
+    }
+
     if (error) {
       return (
         <div className={styles.error}>
@@ -354,6 +360,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             <code>{textContent}</code>
           </pre>
         )
+      }
+
+      // If we don't have content for the current section, return null to avoid showing old structured output
+      if (isSectionMismatch) {
+        return null
       }
     }
 
