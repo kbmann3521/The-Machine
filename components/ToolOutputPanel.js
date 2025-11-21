@@ -209,17 +209,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ].filter(f => f.value !== undefined && f.value !== null)
 
       case 'text-toolkit':
-        const allToolkitFields = []
-
-        // Find & Replace
+        // Find & Replace renders as full-height text, not as structured fields
         if (result.findReplace && activeToolkitSection === 'findReplace') {
-          allToolkitFields.push({
-            section: 'findReplace',
-            label: 'Result',
-            value: result.findReplace,
-          })
-          return allToolkitFields.filter(f => f.value !== undefined && f.value !== null && f.section === activeToolkitSection)
+          return null // Will be handled by string type check in renderOutput
         }
+
+        const allToolkitFields = []
 
         // Word Counter Statistics
         if (result.wordCounter && typeof result.wordCounter === 'object') {
