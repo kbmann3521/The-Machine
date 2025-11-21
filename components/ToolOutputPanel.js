@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
 import styles from '../styles/tool-output.module.css'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
   const [previousToolId, setPreviousToolId] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
-  const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
 
   React.useEffect(() => {
     if (result && !loading) {
