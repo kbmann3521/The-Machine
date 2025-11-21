@@ -384,6 +384,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-height: 40px;
+  transition: none;
 }
 
 .jsonFallback {
