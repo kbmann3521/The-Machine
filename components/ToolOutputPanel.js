@@ -28,6 +28,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   React.useEffect(() => {
     if (toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection) {
       setPreviousToolkitSection(activeToolkitSection)
+      // Keep previousResult for smooth transitions between sections
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
 
