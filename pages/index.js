@@ -352,6 +352,8 @@ export default function Home() {
                       loading={toolLoading}
                       onRegenerate={handleRegenerate}
                       currentConfig={configOptions}
+                      activeToolkitSection={activeToolkitSection}
+                      onToolkitSectionChange={setActiveToolkitSection}
                     />
                     <button
                       className={styles.descriptionToggle}
