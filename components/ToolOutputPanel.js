@@ -227,154 +227,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       case 'text-toolkit':
         // Only Word Counter shows structured fields, all others render as full-height text
-        const allToolkitFields = []
-
-        // Word Counter Statistics - show as structured fields
         if (activeToolkitSection === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
-          allToolkitFields.push({
-            section: 'wordCounter',
-            label: 'Word Count',
-            value: String(result.wordCounter.wordCount || 0),
-          })
-          allToolkitFields.push({
-            section: 'wordCounter',
-            label: 'Character Count',
-            value: String(result.wordCounter.characterCount || 0),
-          })
-          allToolkitFields.push({
-            section: 'wordCounter',
-            label: 'Character Count (no spaces)',
-            value: String(result.wordCounter.characterCountNoSpaces || 0),
-          })
-          allToolkitFields.push({
-            section: 'wordCounter',
-            label: 'Sentence Count',
-            value: String(result.wordCounter.sentenceCount || 0),
-          })
-          allToolkitFields.push({
-            section: 'wordCounter',
-            label: 'Line Count',
-            value: String(result.wordCounter.lineCount || 0),
-          })
-          allToolkitFields.push({
-            section: 'wordCounter',
-            label: 'Paragraph Count',
-            value: String(result.wordCounter.paragraphCount || 0),
-          })
+          return [
+            { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
+            { label: 'Character Count', value: String(result.wordCounter.characterCount || 0) },
+            { label: 'Character Count (no spaces)', value: String(result.wordCounter.characterCountNoSpaces || 0) },
+            { label: 'Sentence Count', value: String(result.wordCounter.sentenceCount || 0) },
+            { label: 'Line Count', value: String(result.wordCounter.lineCount || 0) },
+            { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
+          ].filter(f => f.value !== undefined && f.value !== null)
         }
 
-        // Case Conversions
-        if (result.caseConverter && typeof result.caseConverter === 'object') {
-          if (result.caseConverter.uppercase) {
-            allToolkitFields.push({
-              section: 'caseConverter',
-              label: 'UPPERCASE',
-              value: result.caseConverter.uppercase,
-            })
-          }
-          if (result.caseConverter.lowercase) {
-            allToolkitFields.push({
-              section: 'caseConverter',
-              label: 'lowercase',
-              value: result.caseConverter.lowercase,
-            })
-          }
-          if (result.caseConverter.titleCase) {
-            allToolkitFields.push({
-              section: 'caseConverter',
-              label: 'Title Case',
-              value: result.caseConverter.titleCase,
-            })
-          }
-          if (result.caseConverter.sentenceCase) {
-            allToolkitFields.push({
-              section: 'caseConverter',
-              label: 'Sentence case',
-              value: result.caseConverter.sentenceCase,
-            })
-          }
-        }
-
-        // Text Analysis
-        if (result.textAnalyzer && typeof result.textAnalyzer === 'object') {
-          if (result.textAnalyzer.readability) {
-            allToolkitFields.push({
-              section: 'textAnalyzer',
-              label: 'Readability Level',
-              value: result.textAnalyzer.readability.readabilityLevel,
-            })
-            allToolkitFields.push({
-              section: 'textAnalyzer',
-              label: 'Flesch Reading Ease',
-              value: result.textAnalyzer.readability.fleschReadingEase,
-            })
-            allToolkitFields.push({
-              section: 'textAnalyzer',
-              label: 'Flesch-Kincaid Grade',
-              value: result.textAnalyzer.readability.fleschKincaidGrade,
-            })
-          }
-          if (result.textAnalyzer.statistics) {
-            allToolkitFields.push({
-              section: 'textAnalyzer',
-              label: 'Avg Word Length',
-              value: result.textAnalyzer.statistics.averageWordLength?.toFixed(2),
-            })
-            allToolkitFields.push({
-              section: 'textAnalyzer',
-              label: 'Avg Words per Sentence',
-              value: result.textAnalyzer.statistics.averageWordsPerSentence?.toFixed(2),
-            })
-          }
-        }
-
-        // Slug Generation
-        if (result.slugGenerator) {
-          allToolkitFields.push({
-            section: 'slugGenerator',
-            label: 'URL Slug',
-            value: result.slugGenerator,
-          })
-        }
-
-        // Reversed Text
-        if (result.reverseText) {
-          allToolkitFields.push({
-            section: 'reverseText',
-            label: 'Reversed Text',
-            value: result.reverseText,
-          })
-        }
-
-        // Cleaned Text
-        if (result.removeExtras) {
-          allToolkitFields.push({
-            section: 'removeExtras',
-            label: 'Cleaned Text',
-            value: result.removeExtras,
-          })
-        }
-
-        // Whitespace Visualization
-        if (result.whitespaceVisualizer) {
-          allToolkitFields.push({
-            section: 'whitespaceVisualizer',
-            label: 'Whitespace Visualization',
-            value: result.whitespaceVisualizer,
-          })
-        }
-
-        // Sorted Lines
-        if (result.sortLines) {
-          allToolkitFields.push({
-            section: 'sortLines',
-            label: 'Sorted Lines',
-            value: result.sortLines,
-          })
-        }
-
-        // Return filtered fields based on active section
-        return allToolkitFields.filter(f => f.value !== undefined && f.value !== null && f.section === activeToolkitSection)
+        // All other sections render as full-height text, not structured fields
+        return null
 
       default:
         return null
