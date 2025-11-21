@@ -1,5 +1,23 @@
-import { generateEmbedding, cosineSimilarity } from '../../../lib/embeddings'
+import { generateEmbedding, cosineSimilarity, detectInputPatterns, levenshteinDistance } from '../../../lib/embeddings'
 import { TOOLS } from '../../../lib/tools'
+
+// Map input patterns to relevant tool IDs
+const patternToTools = {
+  urlEncoded: ['url-converter', 'url-parser'],
+  url: ['url-parser', 'url-converter'],
+  json: ['json-formatter', 'escape-unescape'],
+  base64: ['base64-converter', 'escape-unescape'],
+  html: ['html-formatter', 'html-entities-converter', 'plain-text-stripper'],
+  xml: ['xml-formatter', 'plain-text-stripper'],
+  csv: ['csv-json-converter'],
+  markdown: ['markdown-html-converter', 'plain-text-stripper'],
+  regex: ['regex-tester', 'find-replace'],
+  yaml: ['yaml-formatter'],
+  timestamp: ['timestamp-converter'],
+  ipAddress: ['ip-validator'],
+  jwt: ['jwt-decoder', 'base64-converter'],
+  email: ['email-validator'],
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -15,9 +33,6 @@ export default async function handler(req, res) {
 
     let inputContent = inputText || 'image input'
 
-    // Generate embedding for user input
-    const inputEmbedding = await generateEmbedding(inputContent)
-
     // Generator tools to exclude
     const generatorTools = [
       'random-string-generator',
@@ -31,36 +46,64 @@ export default async function handler(req, res) {
       'qr-code-generator',
     ]
 
-    // Calculate vector similarity scores for all tools
+    // Detect patterns in input
+    const patterns = detectInputPatterns(inputContent)
+    const detectedPatternKeys = Object.entries(patterns)
+      .filter(([_, detected]) => detected)
+      .map(([key, _]) => key)
+
+    // Generate embedding for user input
+    const inputEmbedding = await generateEmbedding(inputContent)
+
+    // Calculate scores for all tools
     const toolEntries = Object.entries(TOOLS).filter(([toolId]) => !generatorTools.includes(toolId))
     
     const toolScores = await Promise.all(
       toolEntries.map(async ([toolId, toolData]) => {
-        let similarity = 0
+        let patternScore = 0
+        let vectorScore = 0
+        let fuzzyScore = 0
+        let finalScore = 0
 
         // For image input, prioritize image-capable tools
         if (inputImage) {
           if (toolId === 'image-resizer') {
-            similarity = 0.99
+            finalScore = 0.99
           } else if (toolData.inputTypes?.includes('image')) {
-            similarity = 0.90
+            finalScore = 0.90
           } else {
-            // Non-image tools get lower score for image input
-            similarity = 0.1
+            finalScore = 0.1
           }
         } else {
-          // Use vector embedding similarity for text input
-          // Compare user input directly to tool's placeholder/example text
+          // 1. PATTERN MATCHING (40% weight)
+          // Check if tool matches detected input patterns
+          for (const pattern of detectedPatternKeys) {
+            if (patternToTools[pattern]?.includes(toolId)) {
+              patternScore = Math.max(patternScore, 0.95)
+            }
+          }
+
+          // 2. FUZZY MATCHING (20% weight)
+          // Compare input to tool name and description
+          const toolNameMatch = levenshteinDistance(inputContent, toolData.name)
+          const toolDescMatch = levenshteinDistance(inputContent, toolData.description || '')
+          fuzzyScore = Math.max(toolNameMatch, toolDescMatch) * 0.5
+
+          // 3. VECTOR SEMANTIC MATCHING (40% weight)
+          // Compare embeddings of input and tool placeholder/example
           const toolPlaceholder = toolData.example || toolData.description || toolData.name
           const toolEmbedding = await generateEmbedding(toolPlaceholder)
-          similarity = cosineSimilarity(inputEmbedding, toolEmbedding)
+          vectorScore = cosineSimilarity(inputEmbedding, toolEmbedding)
+
+          // Combine scores with weights
+          finalScore = (patternScore * 0.4) + (fuzzyScore * 0.2) + (vectorScore * 0.4)
         }
 
         return {
           toolId,
           name: toolData.name,
           description: toolData.description,
-          similarity: Math.max(0, Math.min(1, similarity)), // Clamp to 0-1 range
+          similarity: Math.max(0, Math.min(1, finalScore)), // Clamp to 0-1 range
         }
       })
     )
