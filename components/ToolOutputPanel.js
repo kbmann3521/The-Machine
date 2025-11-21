@@ -369,24 +369,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (typeof displayResult === 'object') {
-      const structuredView = renderStructuredOutput()
-      if (structuredView) {
-        return (
-          <div>
-            {structuredView}
-            <div className={styles.jsonFallback}>
-              <details>
-                <summary>View full JSON</summary>
-                <pre className={styles.jsonOutput}>
-                  <code>{JSON.stringify(displayResult, null, 2)}</code>
-                </pre>
-              </details>
+      // For text-toolkit with full-height text sections, don't show JSON fallback
+      const isFullHeightTextSection = toolId === 'text-toolkit' &&
+        ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)
+
+      if (!isFullHeightTextSection) {
+        const structuredView = renderStructuredOutput()
+        if (structuredView) {
+          return (
+            <div>
+              {structuredView}
+              <div className={styles.jsonFallback}>
+                <details>
+                  <summary>View full JSON</summary>
+                  <pre className={styles.jsonOutput}>
+                    <code>{JSON.stringify(displayResult, null, 2)}</code>
+                  </pre>
+                </details>
+              </div>
             </div>
-          </div>
-        )
+          )
+        }
       }
 
-      if (outputType === 'json' || typeof displayResult === 'object') {
+      if (outputType === 'json' || (typeof displayResult === 'object' && !isFullHeightTextSection)) {
         return (
           <pre className={styles.jsonOutput}>
             <code>{JSON.stringify(displayResult, null, 2)}</code>
