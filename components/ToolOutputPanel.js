@@ -137,14 +137,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return fields.length > 0 ? fields : null
 
       case 'text-analyzer':
-        return [
-          { label: 'Word Count', value: result.wordCount },
-          { label: 'Character Count', value: result.characterCount },
-          { label: 'Character Count (no spaces)', value: result.characterCountNoSpaces },
-          { label: 'Sentence Count', value: result.sentenceCount },
-          { label: 'Line Count', value: result.lineCount },
-          { label: 'Paragraph Count', value: result.paragraphCount },
-        ].filter(f => f.value !== undefined && f.value !== null)
+        const analyzerFields = []
+        if (result.readability) {
+          analyzerFields.push({ label: 'Readability Level', value: result.readability.readabilityLevel })
+          analyzerFields.push({ label: 'Flesch Reading Ease', value: result.readability.fleschReadingEase })
+          analyzerFields.push({ label: 'Flesch-Kincaid Grade', value: result.readability.fleschKincaidGrade })
+        }
+        if (result.statistics) {
+          analyzerFields.push({ label: 'Words', value: result.statistics.words })
+          analyzerFields.push({ label: 'Characters', value: result.statistics.characters })
+          analyzerFields.push({ label: 'Sentences', value: result.statistics.sentences })
+          analyzerFields.push({ label: 'Lines', value: result.statistics.lines })
+          analyzerFields.push({ label: 'Avg Word Length', value: result.statistics.averageWordLength?.toFixed(2) })
+          analyzerFields.push({ label: 'Avg Words per Sentence', value: result.statistics.averageWordsPerSentence?.toFixed(2) })
+        }
+        return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
 
       case 'word-counter':
         return [
