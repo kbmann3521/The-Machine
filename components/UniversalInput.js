@@ -150,10 +150,16 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const fillWithExample = () => {
-    if (selectedTool?.example) {
-      setInputText(selectedTool.example)
-      setCharCount(selectedTool.example.length)
-      onInputChange(selectedTool.example, inputImage, imagePreview)
+    let exampleText = selectedTool?.example
+
+    if (getToolExample && selectedTool?.toolId === 'escape-unescape') {
+      exampleText = getToolExample('escape-unescape', configOptions)
+    }
+
+    if (exampleText) {
+      setInputText(exampleText)
+      setCharCount(exampleText.length)
+      onInputChange(exampleText, inputImage, imagePreview)
     }
   }
 
