@@ -9,6 +9,7 @@
   box-sizing: border-box;
   flex: 1;
   min-height: 0;
+  contain: layout style paint;
 }
 
 .emptyState {
@@ -26,17 +27,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .header h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-text-primary);
+}
+
+.buttonContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 60px;
+  height: 32px;
+}
+
+.buttonContainer.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.buttonContainer.visible {
+  visibility: visible;
 }
 
 .copyButton {
@@ -48,18 +66,20 @@
   border: 1px solid #0066cc;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .copyButton:hover {
   background-color: #e3f2fd;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
 }
 
 .copyButton:active {
   background-color: #bbdefb;
   transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.15);
 }
 
 .content {
@@ -71,19 +91,20 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
+  scrollbar-gutter: stable;
 }
 
 .content.isLoading {
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  opacity: 1;
 }
 
 .fadeIn {
-  animation: fadeInSmooth 0.4s ease-out;
+  animation: fadeInSmooth 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fadingOut {
   opacity: 0.5;
+  animation: fadeOutSmooth 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeInSmooth {
@@ -92,6 +113,15 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes fadeOutSmooth {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.5;
   }
 }
 
@@ -136,6 +166,12 @@
   }
 }
 
+@keyframes spinSmooth {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .error {
   padding: 12px 14px;
   background-color: rgba(198, 40, 40, 0.15);
@@ -144,7 +180,7 @@
   color: #ef5350;
   font-size: 12px;
   line-height: 1.4;
-  transition: opacity 0.3s ease;
+  transition: none;
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -165,7 +201,7 @@
   line-height: 1.7;
   overflow: hidden;
   flex: 1;
-  transition: opacity 0.3s ease;
+  transition: none;
   word-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
@@ -187,7 +223,7 @@
   line-height: 1.6;
   overflow: hidden;
   flex: 1;
-  transition: opacity 0.3s ease;
+  transition: none;
   word-wrap: break-word;
   word-break: break-word;
   white-space: pre-wrap;
@@ -207,6 +243,7 @@
   background-color: var(--color-background-tertiary);
   border-radius: 5px;
   border: 1px solid var(--color-border);
+  animation: none;
 }
 
 .outputImage {
@@ -232,7 +269,7 @@
   overflow: hidden;
   border-radius: 6px;
   border: 1px solid var(--color-border);
-  transition: opacity 0.3s ease;
+  transition: none;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -276,95 +313,108 @@
 }
 
 .structuredOutput {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+  animation: none;
 }
 
 .outputField {
-  padding: 12px 14px;
+  padding: 8px 10px;
   background-color: var(--color-background-tertiary);
   border: 1px solid var(--color-border);
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  border-radius: 5px;
+  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .outputField:hover {
   border-color: #0066cc;
   background-color: var(--color-background-secondary);
-  box-shadow: 0 1px 3px rgba(0, 102, 204, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+  transform: translateY(-2px);
 }
 
 .fieldHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 4px;
 }
 
 .fieldLabel {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  flex: 1;
+  min-width: 0;
 }
 
 .fieldCopyButton {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 10px;
   color: #0066cc;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  position: relative;
 }
 
 .fieldCopyButton:hover {
   border-color: #0066cc;
   background-color: #e3f2fd;
-  transform: translateY(-1px);
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 102, 204, 0.2);
 }
 
 .fieldCopyButton:active {
   background-color: #bbdefb;
-  transform: translateY(0);
+  transform: scale(0.95);
 }
 
 .fieldValue {
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-primary);
   word-wrap: break-word;
-  word-break: break-all;
-  white-space: pre-wrap;
-  padding: 8px;
+  word-break: break-word;
+  padding: 4px;
   background-color: var(--color-background-primary);
-  border-radius: 4px;
-  line-height: 1.6;
+  border-radius: 3px;
+  line-height: 1.4;
   border: 1px solid var(--color-border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 40px;
+  transition: none;
 }
 
 .jsonFallback {
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
   border-top: 1px solid var(--color-border);
 }
 
 .jsonFallback summary {
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   color: #0066cc;
   font-weight: 500;
-  padding: 8px;
+  padding: 6px;
   user-select: none;
   transition: all 0.2s ease;
 }
@@ -375,7 +425,39 @@
 }
 
 .jsonFallback details[open] summary {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 1024px) {
+  .structuredOutput {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .structuredOutput {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .outputField {
+    padding: 7px 8px;
+  }
+
+  .fieldLabel {
+    font-size: 9px;
+  }
+
+  .fieldValue {
+    font-size: 11px;
+  }
+
+  .fieldCopyButton {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -404,20 +486,21 @@
   }
 
   .structuredOutput {
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
   .outputField {
-    padding: 10px 12px;
+    padding: 7px 8px;
   }
 
   .fieldValue {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .fieldCopyButton {
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
   }
 }

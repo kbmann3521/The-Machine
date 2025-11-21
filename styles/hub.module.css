@@ -1,15 +1,9 @@
 .layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   width: 100vw;
   background-color: var(--color-background-primary);
-}
-
-@media (min-width: 769px) {
-  .layout {
-    overflow: hidden;
-  }
 }
 
 .bodyContainer {
@@ -17,12 +11,7 @@
   flex: 1;
   position: relative;
   transition: padding-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (min-width: 769px) {
-  .bodyContainer {
-    overflow: hidden;
-  }
+  overflow: hidden;
 }
 
 .sidebarOpenDesktop {
@@ -41,6 +30,16 @@
   display: flex;
   flex-direction: column;
   scrollbar-gutter: stable;
+  animation: fadeInContent 0.5s ease-out;
+}
+
+@keyframes fadeInContent {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .header {
@@ -55,6 +54,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  animation: slideDownHeader 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDownHeader {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .header h1 {
@@ -82,6 +93,18 @@
   gap: 15px;
   width: 100%;
   box-sizing: border-box;
+  animation: slideInContent 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInContent {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .toolContainer {
@@ -92,10 +115,22 @@
   border-radius: 12px;
   overflow: hidden;
   background-color: var(--color-background-secondary);
-  box-shadow: 0 1px 3px var(--color-shadow);
+  box-shadow: 0 2px 8px var(--color-shadow);
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  animation: scaleInContainer 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes scaleInContainer {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .leftPanel {
@@ -109,6 +144,19 @@
   width: 100%;
   box-sizing: border-box;
   scrollbar-gutter: stable;
+  animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  contain: layout style;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .inputSection {
@@ -119,7 +167,7 @@
 .configSection {
   flex-shrink: 0;
   width: 100%;
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .configHeader {
@@ -141,7 +189,7 @@
   border-radius: 8px;
   background-color: var(--color-background-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 18px;
   color: var(--color-text-secondary);
 }
@@ -150,10 +198,12 @@
   background-color: var(--color-background-secondary);
   color: var(--color-text-primary);
   border-color: var(--color-text-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .descriptionToggle:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(0);
 }
 
 .descriptionIcon {
@@ -193,25 +243,72 @@
   box-sizing: border-box;
   scrollbar-gutter: stable;
   background-color: var(--color-background-secondary);
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  contain: layout style;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .outputSection {
   flex: 1;
   width: 100%;
-  animation: slideIn 0.3s ease-out;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  contain: layout style;
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateX(-10px);
+    transform: translateX(-12px);
   }
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+.footer {
+  padding: 20px 40px;
+  background: linear-gradient(135deg, var(--color-header-gradient-start) 0%, var(--color-header-gradient-end) 100%);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  animation: slideUpFooter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footerContent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footerContent p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: color 0.3s ease;
+}
+
+@keyframes slideUpFooter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -353,6 +450,16 @@
   }
 }
 
+@media (max-width: 768px) {
+  .footer {
+    padding: 16px 20px;
+  }
+
+  .footerContent p {
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 640px) {
   .header {
     height: 100px;
@@ -385,5 +492,9 @@
     width: 36px;
     height: 36px;
     font-size: 16px;
+  }
+
+  .footer {
+    padding: 12px 15px;
   }
 }

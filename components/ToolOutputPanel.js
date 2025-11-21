@@ -5,36 +5,70 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
+  const [previousToolId, setPreviousToolId] = useState(null)
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
 
   React.useEffect(() => {
     if (result && !loading) {
       setPreviousResult(result)
+      setIsFirstLoad(false)
     }
   }, [result, loading])
 
-  const displayResult = result || previousResult
+  React.useEffect(() => {
+    if (toolId !== previousToolId) {
+      setPreviousToolId(toolId)
+      setIsFirstLoad(true)
+      setPreviousResult(null)
+    }
+  }, [toolId, previousToolId])
+
+  const displayResult = (toolId === previousToolId) ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
 
   if (isEmpty) {
     return (
       <div className={styles.container}>
-        <div className={styles.emptyState}>
-          <p>Results will appear here after running a tool</p>
+        <div className={styles.header}>
+          <h3>Output</h3>
         </div>
+        <div className={styles.content}></div>
       </div>
     )
   }
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     let textToCopy = ''
     if (typeof displayResult === 'string') {
       textToCopy = displayResult
     } else {
       textToCopy = JSON.stringify(displayResult, null, 2)
     }
-    navigator.clipboard.writeText(textToCopy)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+
+    try {
+      await navigator.clipboard.writeText(textToCopy)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      fallbackCopy(textToCopy)
+    }
+  }
+
+  const fallbackCopy = (text) => {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+    document.body.removeChild(textarea)
   }
 
   const handleDownloadImage = () => {
@@ -48,10 +82,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  const handleCopyField = (value, fieldName) => {
-    navigator.clipboard.writeText(String(value))
-    setCopiedField(fieldName)
-    setTimeout(() => setCopiedField(null), 2000)
+  const handleCopyField = async (value, fieldName) => {
+    try {
+      await navigator.clipboard.writeText(String(value))
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    } catch (err) {
+      fallbackCopy(String(value))
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    }
   }
 
   const renderStructuredOutput = () => {
@@ -60,21 +100,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     return (
       <div className={styles.structuredOutput}>
-        {fieldsToShow.map((field, idx) => (
-          <div key={idx} className={styles.outputField}>
-            <div className={styles.fieldHeader}>
-              <span className={styles.fieldLabel}>{field.label}:</span>
-              <button
-                className={styles.fieldCopyButton}
-                onClick={() => handleCopyField(field.value, field.label)}
-                title={`Copy ${field.label}`}
-              >
-                {copiedField === field.label ? '✓' : '📋'}
-              </button>
+        {fieldsToShow.map((field, idx) => {
+          const displayValue = typeof field.value === 'string' || typeof field.value === 'number'
+            ? field.value
+            : JSON.stringify(field.value)
+          return (
+            <div key={idx} className={styles.outputField}>
+              <div className={styles.fieldHeader}>
+                <span className={styles.fieldLabel}>{field.label}:</span>
+                <button
+                  className={styles.fieldCopyButton}
+                  onClick={() => handleCopyField(displayValue, field.label)}
+                  title={`Copy ${field.label}`}
+                >
+                  {copiedField === field.label ? '✓' : '📋'}
+                </button>
+              </div>
+              <div className={styles.fieldValue}>{displayValue}</div>
             </div>
-            <div className={styles.fieldValue}>{field.value}</div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     )
   }
@@ -136,6 +181,33 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         if (result.date) fields.push({ label: 'Input Date', value: result.date })
         return fields.length > 0 ? fields : null
 
+      case 'text-analyzer':
+        const analyzerFields = []
+        if (result.readability) {
+          analyzerFields.push({ label: 'Readability Level', value: result.readability.readabilityLevel })
+          analyzerFields.push({ label: 'Flesch Reading Ease', value: result.readability.fleschReadingEase })
+          analyzerFields.push({ label: 'Flesch-Kincaid Grade', value: result.readability.fleschKincaidGrade })
+        }
+        if (result.statistics) {
+          analyzerFields.push({ label: 'Words', value: result.statistics.words })
+          analyzerFields.push({ label: 'Characters', value: result.statistics.characters })
+          analyzerFields.push({ label: 'Sentences', value: result.statistics.sentences })
+          analyzerFields.push({ label: 'Lines', value: result.statistics.lines })
+          analyzerFields.push({ label: 'Avg Word Length', value: result.statistics.averageWordLength?.toFixed(2) })
+          analyzerFields.push({ label: 'Avg Words per Sentence', value: result.statistics.averageWordsPerSentence?.toFixed(2) })
+        }
+        return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
+
+      case 'word-counter':
+        return [
+          { label: 'Word Count', value: String(result.wordCount || 0) },
+          { label: 'Character Count', value: String(result.characterCount || 0) },
+          { label: 'Character Count (no spaces)', value: String(result.characterCountNoSpaces || 0) },
+          { label: 'Sentence Count', value: String(result.sentenceCount || 0) },
+          { label: 'Line Count', value: String(result.lineCount || 0) },
+          { label: 'Paragraph Count', value: String(result.paragraphCount || 0) },
+        ].filter(f => f.value !== undefined && f.value !== null)
+
       default:
         return null
     }
@@ -144,7 +216,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderOutput = () => {
     if (error) {
       return (
-        <div className={`${styles.error} ${styles.fadeIn}`}>
+        <div className={styles.error}>
           <strong>Error:</strong> {error}
         </div>
       )
@@ -152,29 +224,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult?.error) {
       return (
-        <div className={`${styles.error} ${styles.fadeIn}`}>
+        <div className={styles.error}>
           <strong>Error:</strong> {displayResult.error}
         </div>
       )
     }
 
     if (!displayResult) {
-      if (loading) {
-        return (
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
-            <p className={styles.loadingText}>Processing...</p>
-          </div>
-        )
-      }
       return null
     }
 
-    const contentClass = loading ? styles.fadingOut : styles.fadeIn
-
     if (displayResult?.resizedImage) {
       return (
-        <div className={`${styles.imageOutput} ${contentClass}`}>
+        <div className={styles.imageOutput}>
           <img src={displayResult.resizedImage} alt="Resized" className={styles.outputImage} />
           <div className={styles.imageInfo}>
             <p>Original: {displayResult.originalDimensions.width} x {displayResult.originalDimensions.height}px</p>
@@ -186,7 +248,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (typeof displayResult === 'string') {
       return (
-        <pre className={`${styles.textOutput} ${contentClass}`}>
+        <pre className={styles.textOutput}>
           <code>{displayResult}</code>
         </pre>
       )
@@ -196,7 +258,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const structuredView = renderStructuredOutput()
       if (structuredView) {
         return (
-          <div className={contentClass}>
+          <div>
             {structuredView}
             <div className={styles.jsonFallback}>
               <details>
@@ -212,7 +274,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (outputType === 'json' || typeof displayResult === 'object') {
         return (
-          <pre className={`${styles.jsonOutput} ${contentClass}`}>
+          <pre className={styles.jsonOutput}>
             <code>{JSON.stringify(displayResult, null, 2)}</code>
           </pre>
         )
@@ -220,7 +282,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (displayResult.type === 'table' && Array.isArray(displayResult.data)) {
         return (
-          <div className={`${styles.tableContainer} ${contentClass}`}>
+          <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -244,7 +306,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
 
       return (
-        <pre className={`${styles.jsonOutput} ${contentClass}`}>
+        <pre className={styles.jsonOutput}>
           <code>{JSON.stringify(displayResult, null, 2)}</code>
         </pre>
       )
@@ -255,27 +317,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     <div className={styles.container}>
       <div className={styles.header}>
         <h3>Output</h3>
-        {displayResult && !loading && !error && (
-          <>
-            {displayResult?.resizedImage ? (
-              <button
-                className={styles.copyButton}
-                onClick={handleDownloadImage}
-                title="Download resized image"
-              >
-                ⬇ Download
-              </button>
-            ) : (
-              <button
-                className={styles.copyButton}
-                onClick={handleCopy}
-                title="Copy to clipboard"
-              >
-                {copied ? '✓ Copied' : 'Copy'}
-              </button>
-            )}
-          </>
-        )}
+        <div className={`${styles.buttonContainer} ${(displayResult && !loading && !error) ? styles.visible : styles.hidden}`}>
+          {displayResult?.resizedImage ? (
+            <button
+              className={styles.copyButton}
+              onClick={handleDownloadImage}
+              title="Download resized image"
+            >
+              ⬇ Download
+            </button>
+          ) : (
+            <button
+              className={styles.copyButton}
+              onClick={handleCopy}
+              title="Copy to clipboard"
+            >
+              {copied ? '✓ Copied' : 'Copy'}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className={`${styles.content} ${loading ? styles.isLoading : ''}`}>

@@ -6,7 +6,7 @@ import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
-import { TOOLS } from '../lib/tools'
+import { TOOLS, autoDetectToolConfig, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
@@ -25,6 +25,7 @@ export default function Home() {
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
+  const loadingTimerRef = useRef(null)
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
@@ -39,24 +40,58 @@ export default function Home() {
       ...toolData,
     }))
     setPredictedTools(allTools)
+
+    // Set Word Counter as default tool
+    const wordCounterTool = allTools.find(tool => tool.toolId === 'word-counter')
+    if (wordCounterTool) {
+      setSelectedTool(wordCounterTool)
+
+      const initialConfig = {}
+      if (wordCounterTool?.configSchema) {
+        wordCounterTool.configSchema.forEach(field => {
+          initialConfig[field.id] = field.default || ''
+        })
+      }
+      setConfigOptions(initialConfig)
+    }
   }, [])
 
   const predictTools = useCallback(async (text, image, preview) => {
     if (!text && !image) {
-      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-        toolId,
-        name: toolData.name,
-        description: toolData.description,
-        similarity: 0.75,
-        ...toolData,
-      }))
-      setPredictedTools(allTools)
+      setPredictedTools(prevTools => {
+        const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+          toolId,
+          name: toolData.name,
+          description: toolData.description,
+          similarity: 0.75,
+          ...toolData,
+        }))
+
+        // Only update if the order has changed
+        const newOrder = allTools.map(t => t.toolId).join(',')
+        const prevOrder = prevTools.map(t => t.toolId).join(',')
+
+        if (newOrder === prevOrder) {
+          return prevTools
+        }
+
+        return allTools
+      })
       return
     }
 
-    setLoading(true)
     setError(null)
     setOutputResult(null)
+
+    // Clear any existing loading timer
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current)
+    }
+
+    // Only show loading if the request takes longer than 300ms
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(true)
+    }, 300)
 
     try {
       const response = await fetch('/api/tools/predict', {
@@ -90,6 +125,14 @@ export default function Home() {
           finalTools.unshift(currentSelected)
         }
 
+        // Only update if the order has changed
+        const newOrder = finalTools.map(t => t.toolId).join(',')
+        const prevOrder = prevTools.map(t => t.toolId).join(',')
+
+        if (newOrder === prevOrder) {
+          return prevTools
+        }
+
         return finalTools
       })
 
@@ -102,6 +145,10 @@ export default function Home() {
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
+      // Clear the loading timer and disable loading
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
+      }
       setLoading(false)
     }
   }, [])
@@ -110,6 +157,16 @@ export default function Home() {
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
+
+    if (selectedToolRef.current && text) {
+      const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
+      if (detectedConfig) {
+        setConfigOptions(prevConfig => ({
+          ...prevConfig,
+          ...detectedConfig,
+        }))
+      }
+    }
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
@@ -143,8 +200,14 @@ export default function Home() {
         initialConfig[field.id] = field.default || ''
       })
     }
+
+    const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
+    if (detectedConfig) {
+      Object.assign(initialConfig, detectedConfig)
+    }
+
     setConfigOptions(initialConfig)
-  }, [])
+  }, [inputText])
 
   const handleConfigChange = useCallback((config) => {
     setConfigOptions(config)
@@ -158,8 +221,22 @@ export default function Home() {
 
       const noInputRequiredTools = []
 
-      const requiresInput = !noInputRequiredTools.includes(tool.toolId)
-      if (requiresInput && !inputText && !imagePreview) {
+      let textToUse = inputText
+      const hasImageInput = imagePreview
+
+      if (!textToUse && !hasImageInput) {
+        const example = getToolExample(tool.toolId, config)
+        if (example) {
+          textToUse = example
+        } else {
+          const requiresInput = !noInputRequiredTools.includes(tool.toolId)
+          if (requiresInput) {
+            return
+          }
+        }
+      }
+
+      if (!textToUse && !hasImageInput) {
         return
       }
 
@@ -176,7 +253,7 @@ export default function Home() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               toolId: tool.toolId,
-              inputText,
+              inputText: textToUse,
               inputImage: imagePreview,
               config,
             }),
@@ -207,10 +284,13 @@ export default function Home() {
   }, [selectedTool, configOptions, autoRunTool])
 
   useEffect(() => {
-    if (selectedTool && inputText) {
-      autoRunTool(selectedTool, configOptions)
+    if (selectedTool) {
+      const hasExample = getToolExample(selectedTool.toolId, configOptions)
+      if (inputText || hasExample || imagePreview) {
+        autoRunTool(selectedTool, configOptions)
+      }
     }
-  }, [selectedTool, inputText, configOptions, autoRunTool])
+  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview])
 
 
   return (
@@ -264,6 +344,8 @@ export default function Home() {
                   onInputChange={handleInputChange}
                   onImageChange={handleImageChange}
                   selectedTool={selectedTool}
+                  configOptions={configOptions}
+                  getToolExample={getToolExample}
                 />
               </div>
 
@@ -275,6 +357,7 @@ export default function Home() {
                       onConfigChange={handleConfigChange}
                       loading={toolLoading}
                       onRegenerate={handleRegenerate}
+                      currentConfig={configOptions}
                     />
                     <button
                       className={styles.descriptionToggle}
@@ -310,6 +393,12 @@ export default function Home() {
           isOpen={descriptionSidebarOpen}
           onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
         />
+
+        <footer className={styles.footer}>
+          <div className={styles.footerContent}>
+            <p>© 2024 Pioneer Web Tools. All rights reserved.</p>
+          </div>
+        </footer>
       </div>
 
       {descriptionSidebarOpen && (
