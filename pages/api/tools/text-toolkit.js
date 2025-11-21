@@ -44,27 +44,25 @@ export default async function handler(req, res) {
       },
     }
 
-    // Run all sub-tools in parallel
-    const results = await Promise.all(
-      Object.entries(subTools).map(async ([key, { toolId, config }]) => {
-        try {
-          const toolResult = await runToolLogic(toolId, inputText, config)
-          return {
-            key,
-            toolName: TOOLS[toolId].name,
-            result: toolResult,
-            error: null,
-          }
-        } catch (err) {
-          return {
-            key,
-            toolName: TOOLS[toolId].name,
-            result: null,
-            error: err.message,
-          }
+    // Run all sub-tools
+    const results = Object.entries(subTools).map(([key, { toolId, config }]) => {
+      try {
+        const toolResult = runTool(toolId, inputText, config)
+        return {
+          key,
+          toolName: TOOLS[toolId].name,
+          result: toolResult,
+          error: null,
         }
-      })
-    )
+      } catch (err) {
+        return {
+          key,
+          toolName: TOOLS[toolId].name,
+          result: null,
+          error: err.message,
+        }
+      }
+    })
 
     // Combine all results
     const combinedResults = {}
