@@ -8,13 +8,26 @@
   border-left: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 40;
   overflow: hidden;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
 }
 
 .descriptionSidebar.open {
   right: 0;
+  animation: slideInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    right: -400px;
+    opacity: 0;
+  }
+  to {
+    right: 0;
+    opacity: 1;
+  }
 }
 
 .sidebarHeader {
