@@ -136,6 +136,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         if (result.date) fields.push({ label: 'Input Date', value: result.date })
         return fields.length > 0 ? fields : null
 
+      case 'text-analyzer':
+        return [
+          { label: 'Word Count', value: result.wordCount },
+          { label: 'Character Count', value: result.characterCount },
+          { label: 'Character Count (no spaces)', value: result.characterCountNoSpaces },
+          { label: 'Sentence Count', value: result.sentenceCount },
+          { label: 'Line Count', value: result.lineCount },
+          { label: 'Paragraph Count', value: result.paragraphCount },
+        ].filter(f => f.value !== undefined && f.value !== null)
+
+      case 'word-counter':
+        return [
+          { label: 'Word Count', value: result.wordCount },
+          { label: 'Character Count', value: result.characterCount },
+          { label: 'Character Count (no spaces)', value: result.characterCountNoSpaces },
+          { label: 'Sentence Count', value: result.sentenceCount },
+          { label: 'Line Count', value: result.lineCount },
+          { label: 'Paragraph Count', value: result.paragraphCount },
+        ].filter(f => f.value !== undefined && f.value !== null)
+
       default:
         return null
     }
