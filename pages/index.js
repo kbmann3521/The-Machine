@@ -104,6 +104,14 @@ export default function Home() {
           finalTools.unshift(currentSelected)
         }
 
+        // Only update if the order has changed
+        const newOrder = finalTools.map(t => t.toolId).join(',')
+        const prevOrder = prevTools.map(t => t.toolId).join(',')
+
+        if (newOrder === prevOrder) {
+          return prevTools
+        }
+
         return finalTools
       })
 
