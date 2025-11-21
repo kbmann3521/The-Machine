@@ -208,6 +208,38 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           { label: 'Paragraph Count', value: String(result.paragraphCount || 0) },
         ].filter(f => f.value !== undefined && f.value !== null)
 
+      case 'text-toolkit':
+        const toolkitFields = []
+        if (result.wordCounter) {
+          toolkitFields.push({ label: 'Word Count', value: String(result.wordCounter.wordCount || 0) })
+          toolkitFields.push({ label: 'Character Count', value: String(result.wordCounter.characterCount || 0) })
+          toolkitFields.push({ label: 'Sentence Count', value: String(result.wordCounter.sentenceCount || 0) })
+        }
+        if (result.reverseText) {
+          toolkitFields.push({ label: 'Reversed Text', value: result.reverseText })
+        }
+        if (result.whitespaceVisualizer) {
+          toolkitFields.push({ label: 'Whitespace Visualization', value: result.whitespaceVisualizer })
+        }
+        if (result.caseConverter) {
+          toolkitFields.push({ label: 'Uppercase', value: result.caseConverter })
+        }
+        if (result.textAnalyzer && typeof result.textAnalyzer === 'object') {
+          if (result.textAnalyzer.readability?.readabilityLevel) {
+            toolkitFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
+          }
+          if (result.textAnalyzer.readability?.fleschReadingEase) {
+            toolkitFields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
+          }
+        }
+        if (result.slugGenerator) {
+          toolkitFields.push({ label: 'Slug', value: result.slugGenerator })
+        }
+        if (result.sortLines) {
+          toolkitFields.push({ label: 'Sorted Lines', value: result.sortLines })
+        }
+        return toolkitFields.filter(f => f.value !== undefined && f.value !== null)
+
       default:
         return null
     }
