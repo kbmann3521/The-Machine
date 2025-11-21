@@ -280,6 +280,8 @@ export default function Home() {
                   onInputChange={handleInputChange}
                   onImageChange={handleImageChange}
                   selectedTool={selectedTool}
+                  configOptions={configOptions}
+                  getToolExample={getToolExample}
                 />
               </div>
 
