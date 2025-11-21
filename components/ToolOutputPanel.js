@@ -22,12 +22,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setIsFirstLoad(true)
       setPreviousResult(null)
       setPreviousToolkitSection(null)
-    } else if (toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection) {
-      // Clear previousResult when switching toolkit sections to avoid showing old content
-      setPreviousResult(null)
+    }
+  }, [toolId, previousToolId])
+
+  React.useEffect(() => {
+    if (toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection) {
       setPreviousToolkitSection(activeToolkitSection)
     }
-  }, [toolId, previousToolId, activeToolkitSection, previousToolkitSection])
+  }, [activeToolkitSection, previousToolkitSection, toolId])
 
   const displayResult = (toolId === previousToolId) ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
