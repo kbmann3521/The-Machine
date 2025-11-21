@@ -166,7 +166,7 @@
   color: #ef5350;
   font-size: 12px;
   line-height: 1.4;
-  transition: opacity 0.3s ease;
+  transition: none;
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
