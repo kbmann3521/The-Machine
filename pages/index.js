@@ -63,7 +63,7 @@ export default function Home() {
           toolId,
           name: toolData.name,
           description: toolData.description,
-          similarity: 0.75,
+          similarity: 0.5, // Neutral similarity for unranked tools
           ...toolData,
         }))
 
