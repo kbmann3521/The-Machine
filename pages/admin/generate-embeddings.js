@@ -9,6 +9,8 @@ export default function GenerateEmbeddings() {
   const [results, setResults] = useState(null)
   const [secretKey, setSecretKey] = useState('')
   const [showKeyInput, setShowKeyInput] = useState(true)
+  const [isTesting, setIsTesting] = useState(false)
+  const [testResult, setTestResult] = useState(null)
 
   const handleGenerateEmbeddings = async () => {
     if (!secretKey) {
