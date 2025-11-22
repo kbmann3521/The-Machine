@@ -112,6 +112,21 @@ export default async function handler(req, res) {
     // STEP 5: Vector Search
     let searchResults = await vectorSearchTools(normalizedMeaning, 10)
 
+    // STEP 5.5: Boost writing tools when intent is "writing"
+    if (searchResults && intent.intent === 'writing') {
+      searchResults = searchResults.map((tool) => {
+        const toolData = TOOLS[tool.id]
+        // Boost similarity for writing tools (category === 'writing')
+        if (toolData?.category === 'writing') {
+          const boostAmount = 0.15
+          const distance = tool.distance || 0
+          const boostedDistance = Math.max(0, distance - boostAmount)
+          return { ...tool, distance: boostedDistance }
+        }
+        return tool
+      })
+    }
+
     // STEP 6: Confidence Threshold Filtering
     let predictedTools = []
 
