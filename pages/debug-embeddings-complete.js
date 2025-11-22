@@ -90,6 +90,19 @@ export default function EmbeddingsDebug() {
     }
   }
 
+  const verifySqlFunctionWorks = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/verify-function-works')
+      const data = await response.json()
+      setResults(data)
+    } catch (error) {
+      setResults({ error: error.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const checkEmbeddings = async () => {
     setLoading(true)
     try {
