@@ -146,12 +146,10 @@ export default async function handler(req, res) {
           continue
         }
 
-        // Store as JSON string to ensure proper persistence
-        const embeddingJson = JSON.stringify(embedding)
-
+        // Store embedding directly as array for vector column
         const { error: updateError } = await supabase
           .from('tools')
-          .update({ embedding: embeddingJson })
+          .update({ embedding })
           .eq('id', tool.id)
 
         if (updateError) {
