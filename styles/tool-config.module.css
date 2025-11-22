@@ -349,6 +349,10 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .inlineToggleLabel {
