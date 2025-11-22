@@ -109,9 +109,19 @@ export default async function handler(req, res) {
       .eq('id', 'calculator')
       .single()
 
+    // Parse embedding if it's a string
+    let calcEmbedding = calcData?.embedding
+    if (typeof calcData?.embedding === 'string') {
+      try {
+        calcEmbedding = JSON.parse(calcData.embedding)
+      } catch (e) {
+        // Failed to parse
+      }
+    }
+
     const calcValid =
-      Array.isArray(calcData?.embedding) &&
-      calcData.embedding.length === 1536
+      Array.isArray(calcEmbedding) &&
+      calcEmbedding.length === 1536
 
     console.log(`   Calculator embedding valid: ${calcValid}`)
 
