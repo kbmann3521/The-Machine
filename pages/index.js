@@ -115,8 +115,14 @@ export default function Home() {
           ...toolData,
         }))
 
-        // Filter out tools with show_in_recommendations = false
-        const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+        // Filter out tools with show_in_recommendations = false using the stored visibility map
+        const visibleTools = allTools.filter(tool => {
+          // Use visibility map from API if available, otherwise fall back to TOOLS property
+          if (visibilityMapRef.current && visibilityMapRef.current.hasOwnProperty(tool.toolId)) {
+            return visibilityMapRef.current[tool.toolId] !== false
+          }
+          return tool.show_in_recommendations !== false
+        })
 
         // Only update if the order has changed
         const newOrder = visibleTools.map(t => t.toolId).join(',')
