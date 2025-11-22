@@ -51,16 +51,53 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { inputText } = req.body
+  const { inputText, category, intent } = req.body
 
   if (!inputText) {
     return res.status(400).json({ error: 'No input provided' })
   }
 
   try {
-    // Generate embedding from the original user input (not classification summary)
-    // This ensures semantic relevance to what the user actually provided
-    const embedding = await generateEmbedding(inputText)
+    // Generate embedding based on intent + category context
+    // This ensures the embedding reflects what operations the user wants to perform
+    // rather than analyzing the content itself
+
+    let embeddingText = inputText
+
+    if (category || intent) {
+      // Construct a context-aware embedding text that reflects developer intent
+      const contextParts = []
+
+      if (category) {
+        contextParts.push(`${category}:`)
+      }
+
+      if (intent) {
+        // Add intent operations
+        if (intent.intent === 'url_operations') {
+          contextParts.push('parse, decode, encode, validate, extract components, format')
+        } else if (intent.intent === 'code_formatting') {
+          contextParts.push('beautify, minify, format, validate, parse')
+        } else if (intent.intent === 'data_conversion') {
+          contextParts.push('convert, format, parse, validate')
+        } else if (intent.intent === 'writing') {
+          contextParts.push('analyze, transform, process, count, metrics')
+        } else if (intent.intent === 'text_transformation') {
+          contextParts.push('encode, decode, case conversion, transformation')
+        } else if (intent.intent === 'security_crypto') {
+          contextParts.push('hash, encrypt, encode, checksum, crypto')
+        } else if (intent.intent === 'pattern_matching') {
+          contextParts.push('regex, pattern, validate, match, test')
+        }
+      }
+
+      // Combine context with the actual input
+      if (contextParts.length > 0) {
+        embeddingText = contextParts.join(' ') + ' ' + inputText
+      }
+    }
+
+    const embedding = await generateEmbedding(embeddingText)
 
     // Also detect input category for relevance boosting
     const inputCategory = await classifyInputForCategory(inputText)
