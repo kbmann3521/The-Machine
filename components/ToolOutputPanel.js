@@ -297,18 +297,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             if (result.textAnalyzer.readability.readabilityLevel) {
               fields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
             }
-            if (result.textAnalyzer.readability.fleschReadingEase) {
+            if (result.textAnalyzer.readability.fleschReadingEase !== undefined) {
               fields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
             }
-            if (result.textAnalyzer.readability.fleschKincaidGrade) {
+            if (result.textAnalyzer.readability.fleschKincaidGrade !== undefined) {
               fields.push({ label: 'Flesch-Kincaid Grade', value: result.textAnalyzer.readability.fleschKincaidGrade })
             }
           }
           if (result.textAnalyzer.statistics) {
-            if (result.textAnalyzer.statistics.averageWordLength) {
+            if (result.textAnalyzer.statistics.words !== undefined) {
+              fields.push({ label: 'Words', value: result.textAnalyzer.statistics.words })
+            }
+            if (result.textAnalyzer.statistics.characters !== undefined) {
+              fields.push({ label: 'Characters', value: result.textAnalyzer.statistics.characters })
+            }
+            if (result.textAnalyzer.statistics.sentences !== undefined) {
+              fields.push({ label: 'Sentences', value: result.textAnalyzer.statistics.sentences })
+            }
+            if (result.textAnalyzer.statistics.lines !== undefined) {
+              fields.push({ label: 'Lines', value: result.textAnalyzer.statistics.lines })
+            }
+            if (result.textAnalyzer.statistics.averageWordLength !== undefined) {
               fields.push({ label: 'Avg Word Length', value: result.textAnalyzer.statistics.averageWordLength?.toFixed(2) })
             }
-            if (result.textAnalyzer.statistics.averageWordsPerSentence) {
+            if (result.textAnalyzer.statistics.averageWordsPerSentence !== undefined) {
               fields.push({ label: 'Avg Words per Sentence', value: result.textAnalyzer.statistics.averageWordsPerSentence?.toFixed(2) })
             }
           }
