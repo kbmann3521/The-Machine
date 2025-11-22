@@ -131,7 +131,7 @@ export default async function handler(req, res) {
     // STEP 4: Embedding Generation (done inside vectorSearchTools)
     // STEP 5: Vector Search
     // Pass category and intent to semantic-search for context-aware embedding generation
-    let searchResults = await vectorSearchTools(inputContent, classification.category, intent, 10)
+    let searchResults = await vectorSearchTools(inputContent, classification.category, intent)
 
     // STEP 5.5: Boost tools matching the detected category
     if (searchResults && mappedCategory) {
@@ -148,20 +148,30 @@ export default async function handler(req, res) {
       })
     }
 
-    // STEP 6: Use vector search results directly without threshold filtering
+    // STEP 6: Build complete tool list with similarity scores
     let predictedTools = []
 
     if (searchResults && searchResults.length > 0) {
-      predictedTools = searchResults.map((tool) => ({
-        toolId: tool.toolId || tool.id,
-        name: tool.name,
-        description: tool.description,
-        similarity: tool.similarity || Math.max(0, Math.min(1, 1 - (tool.distance || 0))),
-      }))
-    }
+      // Create a map of tools from vector search
+      const vectorSearchMap = new Map(
+        searchResults.map((tool) => [
+          tool.toolId || tool.id,
+          tool.similarity || Math.max(0, Math.min(1, 1 - (tool.distance || 0))),
+        ])
+      )
 
-    // Fallback: Pattern-based matching if vector search yields no confident results
-    if (predictedTools.length === 0) {
+      // Build full tool list with vector search results + unmatched tools with 0 similarity
+      predictedTools = Object.entries(TOOLS)
+        .filter((t) => visibilityMap[t[0]] !== false)
+        .map(([toolId, toolData]) => ({
+          toolId,
+          name: toolData.name,
+          description: toolData.description,
+          similarity: vectorSearchMap.get(toolId) || 0,
+        }))
+        .sort((a, b) => b.similarity - a.similarity)
+    } else {
+      // Fallback: Pattern-based matching if vector search yields no results
       const patterns = detectInputPatterns(inputContent)
       const patternToTools = {
         urlEncoded: ['url-converter', 'url-parser'],
@@ -180,44 +190,37 @@ export default async function handler(req, res) {
         email: ['email-validator'],
       }
 
-      const toolScores = Object.entries(TOOLS).map(([toolId, toolData]) => {
-        let patternScore = 0
-        let fuzzyScore = 0
+      predictedTools = Object.entries(TOOLS)
+        .filter((t) => visibilityMap[t[0]] !== false)
+        .map(([toolId, toolData]) => {
+          let patternScore = 0
+          let fuzzyScore = 0
 
-        for (const [pattern, matched] of Object.entries(patterns)) {
-          if (matched && patternToTools[pattern]?.includes(toolId)) {
-            patternScore = 0.95
+          for (const [pattern, matched] of Object.entries(patterns)) {
+            if (matched && patternToTools[pattern]?.includes(toolId)) {
+              patternScore = 0.95
+            }
           }
-        }
 
-        const toolPlaceholder = toolData.example || toolData.description
-        fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
+          const toolPlaceholder = toolData.example || toolData.description
+          fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
 
-        let finalScore = (patternScore * 0.5) + (fuzzyScore * 0.5)
+          let finalScore = (patternScore * 0.5) + (fuzzyScore * 0.5)
 
-        // Boost writing tools in fallback when intent is writing
-        if (intent.intent === 'writing' && toolData.category === 'writing') {
-          finalScore = Math.min(1, finalScore + 0.25)
-        }
+          // Boost writing tools in fallback when intent is writing
+          if (intent.intent === 'writing' && toolData.category === 'writing') {
+            finalScore = Math.min(1, finalScore + 0.25)
+          }
 
-        return {
-          toolId,
-          name: toolData.name,
-          description: toolData.description,
-          similarity: Math.max(0, Math.min(1, finalScore)),
-        }
-      })
-
-      predictedTools = toolScores
-        .filter((t) => visibilityMap[t.toolId] !== false && t.similarity >= 0.3)
+          return {
+            toolId,
+            name: toolData.name,
+            description: toolData.description,
+            similarity: Math.max(0, Math.min(1, finalScore)),
+          }
+        })
         .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 10)
     }
-
-    // Filter by visibility
-    predictedTools = predictedTools.filter(
-      (t) => visibilityMap[t.toolId] !== false
-    )
 
     // STEP 7: Special handling for writing category
     // If classified as writing, ensure Text Toolkit is at top
