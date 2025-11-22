@@ -413,6 +413,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </pre>
         )
       }
+
+      // Word Frequency - show JSON only
+      if (activeToolkitSection === 'wordFrequency' && displayResult.wordFrequency) {
+        return (
+          <pre className={styles.jsonOutput}>
+            <code>{JSON.stringify(displayResult.wordFrequency, null, 2)}</code>
+          </pre>
+        )
+      }
     }
 
     if (displayResult?.resizedImage) {
