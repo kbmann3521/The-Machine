@@ -50,10 +50,14 @@ async function regenerateEmbeddings() {
 
         // Build rich embedding text from all available tool metadata
         const detailedDesc = toolData.detailedDescription || {}
+
+        // Boost category signal by repeating it for writing tools
+        const categoryBoost = toolData.category === 'writing' ? `${toolData.category} ${toolData.category} ${toolData.category}` : toolData.category
+
         const embeddingText = [
           tool.name,
           tool.description,
-          toolData.category,
+          categoryBoost,
           detailedDesc.overview,
           detailedDesc.howtouse?.join(' '),
           detailedDesc.features?.join(' '),
