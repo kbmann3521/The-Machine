@@ -12,6 +12,25 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
+// Map classifier categories to actual tool categories
+function mapToToolCategory(classifierCategory) {
+  const mapping = {
+    'writing': 'writing',
+    'text': 'writing',
+    'url': 'developer',
+    'code': 'developer',
+    'json': 'json',
+    'html': 'html',
+    'image': 'image-transform',
+    'crypto': 'crypto',
+    'formatting': 'formatter',
+    'conversion': 'converter',
+    'data': 'converter',
+    'other': null,
+  }
+  return mapping[classifierCategory] || classifierCategory
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
