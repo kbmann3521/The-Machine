@@ -11,11 +11,18 @@ export default async function handler(req, res) {
 
     // Test 1: Does the function exist?
     console.log('1️⃣ Checking if update_tool_embedding function exists...')
-    const { data: functions, error: funcError } = await supabase
-      .rpc('list_functions', {
+    let funcError = null
+    let functions = null
+
+    try {
+      const result = await supabase.rpc('list_functions', {
         schema: 'public',
       })
-      .catch(() => ({ data: null, error: 'RPC not available' }))
+      functions = result.data
+      funcError = result.error
+    } catch (e) {
+      funcError = { message: 'RPC not available' }
+    }
 
     console.log(`   Result: ${JSON.stringify(functions)}`)
     console.log(`   Error: ${funcError?.message || 'none'}`)
