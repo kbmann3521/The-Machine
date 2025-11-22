@@ -137,9 +137,13 @@ export default async function handler(req, res) {
             dimensions: embedding.length,
             expected: 1536,
           })
-
-          // Don't save invalid embeddings
-          throw new Error(`Invalid embedding dimensions: ${embedding.length} (expected 1536)`)
+          results.failed++
+          results.errors.push({
+            toolId: tool.id,
+            error: `Invalid embedding dimensions: ${embedding.length} (expected 1536)`,
+          })
+          // Don't save invalid embeddings - continue to next tool
+          continue
         }
 
         // Store as JSON string to ensure proper persistence
