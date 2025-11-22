@@ -12,6 +12,33 @@ export default function GenerateEmbeddings() {
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState(null)
 
+  const handleTestOpenAI = async () => {
+    setIsTesting(true)
+    setTestResult(null)
+
+    try {
+      const response = await fetch('/api/tools/test-openai', {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      setTestResult({
+        ...data,
+        timestamp: new Date().toLocaleTimeString(),
+      })
+    } catch (error) {
+      setTestResult({
+        success: false,
+        error: 'Connection error',
+        message: error.message,
+        timestamp: new Date().toLocaleTimeString(),
+      })
+    } finally {
+      setIsTesting(false)
+    }
+  }
+
   const handleGenerateEmbeddings = async () => {
     if (!secretKey) {
       setStatus('Please enter the embedding secret key')
