@@ -369,7 +369,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
-                    checked={removeExtrasConfig?.removeLineBreaks || false}
+                    checked={removeExtrasConfig?.removeLineBreaks !== false}
                     onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeLineBreaks: e.target.checked })}
                   />
                   <span className={styles.toggleSlider}></span>
