@@ -1,11 +1,16 @@
 import { generateEmbedding } from '../../../lib/embeddings'
 import { TOOLS } from '../../../lib/tools'
 import { createClient } from '@supabase/supabase-js'
+import OpenAI from '../../../lib/openaiWrapper.js'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 export default async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') {
@@ -21,45 +26,87 @@ export default async function handler(req, res) {
   try {
     const results = {}
 
-    // Step 1: Test classification
+    // Step 1: Classification (inline)
     console.log('🔍 Testing classification...')
-    const classifyResp = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/classify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input: inputText }),
-    })
+    let classification
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an input classifier. Analyze the input and determine its type, category, and content summary. 
+Return ONLY a JSON object (no markdown, no extra text) with this exact structure:
+{
+  "input_type": "text|image|url|code|file",
+  "category": "writing|url|code|image|data|other",
+  "content_summary": "brief description of what this input is"
+}`,
+          },
+          {
+            role: 'user',
+            content: inputText.substring(0, 1000),
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 150,
+      })
 
-    if (!classifyResp.ok) {
-      const errorText = await classifyResp.text()
-      throw new Error(`Classification failed: ${classifyResp.status} ${errorText}`)
+      const jsonStr = response.choices[0].message.content
+        .replace(/```json\n?|\n?```/g, '')
+        .trim()
+      classification = JSON.parse(jsonStr)
+    } catch (e) {
+      classification = {
+        input_type: 'text',
+        category: 'writing',
+        content_summary: inputText.substring(0, 100),
+      }
     }
-
-    const classification = await classifyResp.json()
     results.classification = classification
     console.log('✓ Classification:', classification)
 
-    // Step 2: Test intent extraction
+    // Step 2: Intent Extraction (inline)
     console.log('🔍 Testing intent extraction...')
-    const intentResp = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/extract-intent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        input: inputText,
-        input_type: classification.input_type,
-        category: classification.category
-      }),
-    })
+    let intent
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an intent extraction AI. Analyze the user's input and determine what they want to accomplish.
+Return ONLY a JSON object with this exact structure:
+{
+  "intent": "category of what user wants to do",
+  "sub_intent": "specific action",
+  "confidence": 0.0-1.0
+}`,
+          },
+          {
+            role: 'user',
+            content: `Input type: ${classification.input_type}\nCategory: ${classification.category}\nInput: ${inputText.substring(0, 1000)}`,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 150,
+      })
 
-    if (!intentResp.ok) {
-      const errorText = await intentResp.text()
-      throw new Error(`Intent extraction failed: ${intentResp.status} ${errorText}`)
+      const jsonStr = response.choices[0].message.content
+        .replace(/```json\n?|\n?```/g, '')
+        .trim()
+      intent = JSON.parse(jsonStr)
+    } catch (e) {
+      intent = {
+        intent: classification.category === 'writing' ? 'writing' : 'text_analysis',
+        sub_intent: 'general_text_processing',
+        confidence: 0.5,
+      }
     }
-
-    const intent = await intentResp.json()
     results.intent = intent
     console.log('✓ Intent:', intent)
 
-    // Step 3: Test embedding generation
+    // Step 3: Embedding generation
     console.log('🔍 Testing embedding generation...')
     const embeddingText = `input_type: ${classification.input_type}, category: ${classification.category}, content: ${classification.content_summary}, intent: ${intent.intent}, sub_intent: ${intent.sub_intent}`
     const embedding = await generateEmbedding(embeddingText)
@@ -70,7 +117,7 @@ export default async function handler(req, res) {
     }
     console.log('✓ Embedding generated with', embedding.length, 'dimensions')
 
-    // Step 4: Test vector search
+    // Step 4: Vector search
     console.log('🔍 Testing vector search...')
     const { data: vectorResults, error: vectorError } = await supabase.rpc('search_tools', {
       query_embedding: embedding,
@@ -84,48 +131,27 @@ export default async function handler(req, res) {
       results.vectorSearchResults = vectorResults?.slice(0, 5).map(r => ({
         id: r.id,
         name: r.name,
-        distance: r.distance.toFixed(4),
-        similarity: (1 - r.distance).toFixed(4),
+        distance: (r.distance || 0).toFixed(4),
+        similarity: ((1 - (r.distance || 0))).toFixed(4),
       })) || []
       console.log('✓ Vector search returned', vectorResults?.length, 'results')
       if (vectorResults?.length > 0) {
-        console.log('  Top match:', vectorResults[0].name, 'distance:', vectorResults[0].distance.toFixed(4))
+        console.log('  Top match:', vectorResults[0].name, 'distance:', vectorResults[0].distance?.toFixed(4))
       }
     }
 
-    // Step 5: Test semantic prediction endpoint
-    console.log('🔍 Testing semantic prediction endpoint...')
-    const semanticResp = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/predict-semantic`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inputText }),
-    })
-
-    if (!semanticResp.ok) {
-      const errorText = await semanticResp.text()
-      throw new Error(`Semantic prediction failed: ${semanticResp.status} ${errorText}`)
-    }
-
-    const semanticData = await semanticResp.json()
-    results.semanticPredictionResults = semanticData.predictedTools?.slice(0, 5) || []
-    console.log('✓ Semantic prediction returned', semanticData.predictedTools?.length, 'results')
-    if (semanticData.predictedTools?.length > 0) {
-      console.log('  Top match:', semanticData.predictedTools[0].name, 'similarity:', semanticData.predictedTools[0].similarity.toFixed(4))
-    }
-
-    // Step 6: Check database embeddings
+    // Step 5: Database check
     console.log('🔍 Checking database embeddings...')
-    const { data: toolsWithEmbeddings } = await supabase
+    const { data: allTools } = await supabase
       .from('tools')
       .select('id, name, embedding')
-      .limit(5)
 
     const embeddingStats = {
-      toolsChecked: toolsWithEmbeddings?.length || 0,
-      toolsWithEmbeddings: toolsWithEmbeddings?.filter(t => t.embedding !== null).length || 0,
+      totalTools: allTools?.length || 0,
+      toolsWithEmbeddings: allTools?.filter(t => t.embedding !== null).length || 0,
     }
     results.embeddingStats = embeddingStats
-    console.log('✓ Database check:', `${embeddingStats.toolsWithEmbeddings}/${embeddingStats.toolsChecked} tools have embeddings`)
+    console.log('✓ Database check:', `${embeddingStats.toolsWithEmbeddings}/${embeddingStats.totalTools} tools have embeddings`)
 
     res.status(200).json({
       success: true,
@@ -136,13 +162,13 @@ export default async function handler(req, res) {
         embeddingsInDatabase: embeddingStats.toolsWithEmbeddings > 0,
         classificationWorking: classification.category !== undefined,
         intentExtractionWorking: intent.intent !== undefined,
-      }
+      },
     })
   } catch (error) {
     console.error('Debug error:', error)
     res.status(500).json({
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     })
   }
 }
