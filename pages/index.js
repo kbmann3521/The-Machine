@@ -33,6 +33,11 @@ export default function Home() {
   const [diffConfig, setDiffConfig] = useState({
     text2: '',
   })
+  const [sortLinesConfig, setSortLinesConfig] = useState({
+    order: 'asc',
+    caseSensitive: false,
+    removeDuplicates: false,
+  })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
