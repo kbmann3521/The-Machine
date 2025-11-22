@@ -119,16 +119,24 @@ Return ONLY a JSON object with this exact structure:
 
     // Step 4: Vector search
     console.log('🔍 Testing vector search...')
+    console.log('  Embedding dimensions:', embedding.length)
+    console.log('  Query embedding sample:', embedding.slice(0, 3))
+
     const { data: vectorResults, error: vectorError } = await supabase.rpc('search_tools', {
       query_embedding: embedding,
       match_count: 10,
     })
 
+    results.vectorSearch = {
+      error: vectorError ? vectorError.message : null,
+      resultsCount: vectorResults?.length || 0,
+      results: [],
+    }
+
     if (vectorError) {
-      results.vectorSearchError = vectorError.message
       console.log('✗ Vector search error:', vectorError.message)
     } else {
-      results.vectorSearchResults = vectorResults?.slice(0, 5).map(r => ({
+      results.vectorSearch.results = vectorResults?.slice(0, 5).map(r => ({
         id: r.id,
         name: r.name,
         distance: (r.distance || 0).toFixed(4),
