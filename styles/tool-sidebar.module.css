@@ -232,7 +232,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     gap: 8px;
-    padding: 4px;
+    padding: 4px 4px 8px 4px;
     margin: 0;
   }
 
