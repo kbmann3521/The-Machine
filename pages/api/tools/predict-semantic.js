@@ -7,6 +7,25 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
+// Map classifier categories to actual tool categories
+function mapToToolCategory(classifierCategory) {
+  const mapping = {
+    'writing': 'writing',
+    'text': 'writing',
+    'url': 'developer',
+    'code': 'developer',
+    'json': 'json',
+    'html': 'html',
+    'image': 'image-transform',
+    'crypto': 'crypto',
+    'formatting': 'formatter',
+    'conversion': 'converter',
+    'data': 'converter',
+    'other': null,
+  }
+  return mapping[classifierCategory] || classifierCategory
+}
+
 async function classifyInput(input) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/classify`, {
