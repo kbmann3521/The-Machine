@@ -395,7 +395,7 @@ export default async function handler(req, res) {
               toolBias
             )
 
-            return {
+            const toolResult = {
               toolId: result.toolId,
               name: result.name,
               description: result.description,
@@ -404,6 +404,14 @@ export default async function handler(req, res) {
               semanticScore: result.semanticScore,
               biasApplied: toolBias > 0 ? toolBias : undefined,
             }
+
+            // Add suggested config
+            const suggestedConfig = detectSuggestedConfig(result.toolId, inputContent, inputType)
+            if (suggestedConfig) {
+              toolResult.suggestedConfig = suggestedConfig
+            }
+
+            return toolResult
           })
 
           // Add all other tools with 0 similarity
