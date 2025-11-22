@@ -141,6 +141,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
   const toolkitSections = [
     { id: 'wordCounter', label: 'Word Counter' },
+    { id: 'wordFrequency', label: 'Word Frequency' },
+    { id: 'checksum', label: 'Checksum' },
     { id: 'caseConverter', label: 'Case Converter' },
     { id: 'textAnalyzer', label: 'Text Analyzer' },
     { id: 'slugGenerator', label: 'Slug Generator' },
