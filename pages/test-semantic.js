@@ -85,6 +85,11 @@ export default function TestSemantic() {
             {JSON.stringify(results.results.embeddingGenerated, null, 2)}
           </pre>
 
+          <h3>🔍 Vector Search (RPC)</h3>
+          <pre style={{ background: '#fff', padding: '10px', overflow: 'auto' }}>
+            {JSON.stringify(results.results.vectorSearch, null, 2)}
+          </pre>
+
           <h3>🔍 Semantic Prediction (Top 5)</h3>
           <pre style={{ background: '#fff', padding: '10px', overflow: 'auto' }}>
             {JSON.stringify(results.results.semanticPredictionResults, null, 2)}
