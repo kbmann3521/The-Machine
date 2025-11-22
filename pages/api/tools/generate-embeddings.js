@@ -7,6 +7,63 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
+// Category-to-intent operations mapping
+// Maps tool categories to the operations users want to perform
+const categoryIntentOperations = {
+  writing: ['analyze', 'transform', 'process', 'convert case', 'count', 'clean', 'format', 'find and replace', 'extract', 'generate slug'],
+  encoding: ['encode', 'decode', 'escape', 'unescape', 'convert', 'transform format'],
+  url: ['parse', 'encode', 'decode', 'validate', 'extract components', 'extract path', 'extract query', 'analyze structure'],
+  json: ['beautify', 'minify', 'format', 'validate', 'parse', 'indent', 'compact', 'extract path'],
+  html: ['format', 'beautify', 'minify', 'validate', 'parse', 'convert entities', 'strip tags'],
+  xml: ['format', 'beautify', 'minify', 'validate', 'parse', 'prettify'],
+  developer: ['parse', 'decode', 'validate', 'extract', 'analyze', 'test', 'lookup', 'generate'],
+  crypto: ['encode', 'decode', 'hash', 'encrypt', 'validate', 'generate', 'checksum'],
+  converter: ['convert', 'transform', 'encode', 'decode', 'calculate'],
+  formatter: ['format', 'beautify', 'minify', 'prettify', 'validate', 'parse'],
+  validator: ['validate', 'check', 'verify', 'test', 'analyze'],
+  'image-transform': ['resize', 'scale', 'transform', 'optimize', 'convert'],
+  calculator: ['calculate', 'compute', 'convert', 'analyze'],
+  'text-analyze': ['analyze', 'extract', 'count', 'calculate', 'measure'],
+  'text-transform': ['format', 'convert', 'transform', 'parse'],
+  'text-analyze': ['analyze', 'extract', 'count', 'measure', 'detect'],
+}
+
+// Extract intent keywords from tool data
+function getToolIntentKeywords(tool, toolData) {
+  const keywords = []
+
+  // Get category-based operations
+  const category = toolData.category || 'developer'
+  const categoryOps = categoryIntentOperations[category] || []
+  keywords.push(...categoryOps)
+
+  // Extract from detailed description
+  const detailed = toolData.detailedDescription || {}
+  if (detailed.howtouse) {
+    const actions = detailed.howtouse.join(' ').toLowerCase()
+    // Extract common action verbs
+    const actionVerbs = ['analyze', 'transform', 'convert', 'validate', 'format', 'parse', 'extract', 'generate', 'beautify', 'minify', 'encode', 'decode', 'count', 'check', 'verify']
+    actionVerbs.forEach(verb => {
+      if (actions.includes(verb) && !keywords.includes(verb)) {
+        keywords.push(verb)
+      }
+    })
+  }
+
+  // Add name-based operations
+  const nameLower = tool.name.toLowerCase()
+  if (nameLower.includes('formatter')) keywords.push('format', 'beautify')
+  if (nameLower.includes('converter')) keywords.push('convert', 'transform')
+  if (nameLower.includes('validator')) keywords.push('validate', 'check', 'verify')
+  if (nameLower.includes('parser')) keywords.push('parse', 'extract', 'analyze')
+  if (nameLower.includes('encoder')) keywords.push('encode', 'decode')
+  if (nameLower.includes('generator')) keywords.push('generate', 'create')
+  if (nameLower.includes('analyzer')) keywords.push('analyze', 'extract', 'measure')
+
+  // Remove duplicates
+  return [...new Set(keywords)]
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
