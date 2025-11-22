@@ -88,7 +88,10 @@ Common intent categories for developer tools:
       // Fallback intent based on category
       let fallbackIntent, fallbackSubIntent
 
-      if (category === 'writing') {
+      if (category === 'email' || category === 'validator') {
+        fallbackIntent = 'validation'
+        fallbackSubIntent = 'validate'
+      } else if (category === 'writing') {
         fallbackIntent = 'writing'
         fallbackSubIntent = 'text_processing'
       } else if (category === 'url') {
