@@ -259,9 +259,9 @@ export default async function handler(req, res) {
       // For plain_text: semantic search
       
       if (inputType.type === 'plain_text') {
-        // For plain text: Text Toolkit gets priority (0.95 confidence = green)
-        // No semantic search needed - plain text is the fallback for everything else
-        const matchedToolIds = ['text-toolkit', 'plain-text-stripper']
+        // For plain text: Text Toolkit gets priority (0.98 = green)
+        // Secondary tools get yellow (0.65-0.75), others white (0)
+        const toolsForPlainText = getToolsForInputType('plain_text')
 
         // Separate matched and unmatched tools
         const matchedTools = []
@@ -272,9 +272,9 @@ export default async function handler(req, res) {
 
           let similarity = 0
           if (toolId === 'text-toolkit') {
-            similarity = 0.98 // Text Toolkit is always top for plain text
-          } else if (toolId === 'plain-text-stripper') {
-            similarity = 0.85 // Secondary plain text tool
+            similarity = 0.98 // Primary: green
+          } else if (toolsForPlainText.includes(toolId)) {
+            similarity = 0.70 // Secondary plain-text tools: yellow
           }
 
           const tool = {
