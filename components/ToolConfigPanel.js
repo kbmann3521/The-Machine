@@ -369,17 +369,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
-                    checked={removeExtrasConfig?.removeLineBreaks || false}
-                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeLineBreaks: e.target.checked })}
-                  />
-                  <span className={styles.toggleSlider}></span>
-                  <span>Remove Line Breaks</span>
-                </label>
-
-                <label className={styles.inlineToggleLabel}>
-                  <input
-                    type="checkbox"
-                    className={styles.toggleInput}
                     checked={removeExtrasConfig?.removeBlankLines !== false}
                     onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeBlankLines: e.target.checked })}
                   />
