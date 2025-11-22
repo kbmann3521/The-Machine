@@ -74,7 +74,9 @@ export default async function handler(req, res) {
 
       if (intent) {
         // Add intent operations
-        if (intent.intent === 'url_operations') {
+        if (intent.intent === 'validation') {
+          contextParts.push('validate, check format, verify, test correctness, check syntax')
+        } else if (intent.intent === 'url_operations') {
           contextParts.push('parse, decode, encode, validate, extract components, format')
         } else if (intent.intent === 'code_formatting') {
           contextParts.push('beautify, minify, format, validate, parse')
