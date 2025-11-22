@@ -92,9 +92,6 @@ async function vectorSearchTools(embeddingText, category, intent, limit = 10) {
   }
 }
 
-function applyConfidenceThreshold(tools, threshold = 0.75) {
-  return tools.filter((tool) => tool.similarity >= threshold)
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -151,19 +148,16 @@ export default async function handler(req, res) {
       })
     }
 
-    // STEP 6: Confidence Threshold Filtering
+    // STEP 6: Use vector search results directly without threshold filtering
     let predictedTools = []
 
     if (searchResults && searchResults.length > 0) {
-      predictedTools = applyConfidenceThreshold(
-        searchResults.map((tool) => ({
-          toolId: tool.id,
-          name: tool.name,
-          description: tool.description,
-          similarity: Math.max(0, Math.min(1, 1 - (tool.distance || 0))),
-        })),
-        0.75
-      )
+      predictedTools = searchResults.map((tool) => ({
+        toolId: tool.id,
+        name: tool.name,
+        description: tool.description,
+        similarity: Math.max(0, Math.min(1, 1 - (tool.distance || 0))),
+      }))
     }
 
     // Fallback: Pattern-based matching if vector search yields no confident results
