@@ -121,6 +121,7 @@ export default async function handler(req, res) {
 
     // STEP 1: Classification
     const classification = await classifyInput(inputContent)
+    const mappedCategory = mapToToolCategory(classification.category)
 
     // STEP 2: Intent Extraction
     const intent = await extractIntent(inputContent, classification.input_type, classification.category)
@@ -134,13 +135,13 @@ export default async function handler(req, res) {
     // This ensures the embedding is generated from the actual user input for better semantic relevance
     let searchResults = await vectorSearchTools(inputContent, 10)
 
-    // STEP 5.5: Boost writing tools when intent is "writing"
-    if (searchResults && intent.intent === 'writing') {
+    // STEP 5.5: Boost tools matching the detected category
+    if (searchResults && mappedCategory) {
       searchResults = searchResults.map((tool) => {
         const toolData = TOOLS[tool.id]
-        // Strongly boost writing tools when user input is plain English
-        if (toolData?.category === 'writing') {
-          const boostAmount = 0.35  // Increased from 0.15 - much stronger boost
+        // Boost tools with matching category when input category is clearly detected
+        if (toolData?.category === mappedCategory) {
+          const boostAmount = 0.35  // Strong boost for category matches
           const distance = tool.distance || 0
           const boostedDistance = Math.max(0, distance - boostAmount)
           return { ...tool, distance: boostedDistance }
