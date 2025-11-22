@@ -41,8 +41,8 @@ async function getVisibilityMap() {
 
 async function useSemanticPrediction(inputContent) {
   try {
-    // Try to use the semantic pipeline
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/predict-semantic`, {
+    // Try semantic search directly
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/semantic-search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ inputText: inputContent }),
@@ -50,12 +50,12 @@ async function useSemanticPrediction(inputContent) {
 
     if (response.ok) {
       const data = await response.json()
-      if (data.predictedTools && data.predictedTools.length > 0) {
-        return data.predictedTools
+      if (data.results && data.results.length > 0) {
+        return data.results
       }
     }
   } catch (error) {
-    console.warn('Semantic prediction not available, falling back to pattern matching:', error.message)
+    console.warn('Semantic search not available, falling back to pattern matching:', error.message)
   }
 
   return null
