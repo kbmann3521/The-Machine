@@ -140,24 +140,7 @@
 }
 
 .toolRank {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background-color: var(--color-background-tertiary);
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.toolItem.selected .toolRank {
-  background-color: #0066cc;
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+  display: none;
 }
 
 .toolName {
