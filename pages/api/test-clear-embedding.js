@@ -31,13 +31,19 @@ export default async function handler(req, res) {
     console.log('First read result:')
     console.log('  - Error:', readError1?.message || 'none')
     console.log('  - Embedding type:', typeof readData1?.embedding)
-    console.log('  - Embedding value:', readData1?.embedding)
+    console.log('  - Embedding value:', JSON.stringify(readData1?.embedding))
     console.log('  - Is null:', readData1?.embedding === null)
+    console.log('  - String value:', String(readData1?.embedding))
+    console.log('  - Raw embedding:', readData1?.embedding)
 
     if (Array.isArray(readData1?.embedding)) {
       console.log('  - ⚠️  Got array instead of null!')
       console.log('  - Array length:', readData1.embedding.length)
       console.log('  - Sample values:', readData1.embedding.slice(0, 5))
+    } else if (typeof readData1?.embedding === 'string') {
+      console.log('  - ⚠️  Got string instead of null!')
+      console.log('  - String length:', readData1.embedding.length)
+      console.log('  - String value:', readData1.embedding)
     }
 
     // Test 3: Wait and read again
