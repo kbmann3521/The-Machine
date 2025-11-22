@@ -223,10 +223,29 @@ export default function EmbeddingsDebug() {
                 borderRadius: '4px',
                 cursor: loading || !secretKey ? 'not-allowed' : 'pointer',
                 opacity: loading || !secretKey ? 0.6 : 1,
+                marginRight: '10px',
               }}
             >
               {loading ? 'Regenerating...' : 'Regenerate Embeddings'}
             </button>
+            <button
+              onClick={() => debugRegenerateEmbeddings()}
+              disabled={loading || !secretKey}
+              style={{
+                padding: '10px 20px',
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: loading || !secretKey ? 'not-allowed' : 'pointer',
+                opacity: loading || !secretKey ? 0.6 : 1,
+              }}
+            >
+              {loading ? 'Debugging...' : 'Debug (3 tools)'}
+            </button>
+            <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+              Click "Debug" to test embedding generation on 3 tools. Check browser console for detailed output.
+            </p>
           </div>
 
           {results && (
