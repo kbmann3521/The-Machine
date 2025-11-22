@@ -133,7 +133,7 @@ export default function Home() {
         toolId,
         name: toolData.name,
         description: toolData.description,
-        similarity: 0.5, // Neutral similarity for unranked tools
+        similarity: 0, // No match (white) when no input provided
         ...toolData,
       }))
 
