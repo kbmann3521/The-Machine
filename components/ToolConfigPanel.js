@@ -13,9 +13,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       // Merge with currentConfig (which includes suggestedConfig from API)
       const mergedConfig = { ...initialConfig, ...currentConfig }
       setConfig(mergedConfig)
-      onConfigChange(mergedConfig)
     }
-  }, [tool, currentConfig, onConfigChange])
+  }, [tool, currentConfig])
 
   if (!tool) {
     return (
