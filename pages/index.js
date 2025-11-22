@@ -385,10 +385,22 @@ export default function Home() {
           } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'removeExtras') {
             finalConfig = {
               ...config,
-              trimSpaces: removeExtrasConfig.trimSpaces || true,
-              removeBlankLines: removeExtrasConfig.removeBlankLines || true,
-              removeDuplicateLines: removeExtrasConfig.removeDuplicateLines || false,
-              compressLineBreaks: removeExtrasConfig.compressLineBreaks || false,
+              removePdfGarbage: removeExtrasConfig.removePdfGarbage !== false,
+              removeInvisibleChars: removeExtrasConfig.removeInvisibleChars !== false,
+              stripHtml: removeExtrasConfig.stripHtml !== false,
+              stripMarkdown: removeExtrasConfig.stripMarkdown !== false,
+              normalizeWhitespace: removeExtrasConfig.normalizeWhitespace !== false,
+              smartJoinWords: removeExtrasConfig.smartJoinWords === true,
+              fixPunctuationSpacing: removeExtrasConfig.fixPunctuationSpacing !== false,
+              compressSpaces: removeExtrasConfig.compressSpaces !== false,
+              trimLines: removeExtrasConfig.trimLines !== false,
+              removeLineBreaks: removeExtrasConfig.removeLineBreaks === true,
+              removeBlankLines: removeExtrasConfig.removeBlankLines !== false,
+              compressLineBreaks: removeExtrasConfig.compressLineBreaks !== false,
+              removeTimestamps: removeExtrasConfig.removeTimestamps === true,
+              removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
+              filterCharacters: removeExtrasConfig.filterCharacters || 'none',
+              flattenToSingleLine: removeExtrasConfig.flattenToSingleLine === true,
             }
           }
 
