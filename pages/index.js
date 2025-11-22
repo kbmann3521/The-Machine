@@ -261,20 +261,9 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      // Input Stability Check: Only search if classification meaningfully changed
-      const newClassification = fastLocalClassification(text)
-
-      if (hasClassificationChanged(newClassification)) {
-        // Classification changed - run full semantic search
-        previousClassificationRef.current = newClassification
-        predictTools(text, image, preview)
-      } else {
-        // Classification unchanged - reuse cached results
-        // Clear loading state since we're not making API calls
-        setLoading(false)
-      }
+      predictTools(text, image, preview)
     }, 700)
-  }, [predictTools, fastLocalClassification, hasClassificationChanged])
+  }, [predictTools])
 
   const handleImageChange = useCallback((file, preview) => {
     setInputImage(file)
