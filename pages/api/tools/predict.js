@@ -169,14 +169,16 @@ function calculateFinalScore(heuristicScore, semanticScore, toolBias) {
  */
 async function directToolSelection(inputType, visibilityMap) {
   const toolIds = getToolsForInputType(inputType)
-  
+
   if (toolIds.length === 0) {
     return []
   }
 
-  // Filter visible tools
-  const visibleToolIds = toolIds.filter(id => visibilityMap[id] !== false)
-  
+  // Filter visible tools and ensure they exist in TOOLS
+  const visibleToolIds = toolIds.filter(id =>
+    visibilityMap[id] !== false && TOOLS[id]
+  )
+
   // Return tools in mapped order (first = best match)
   return visibleToolIds.map(toolId => {
     const toolData = TOOLS[toolId]
