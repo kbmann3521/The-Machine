@@ -170,6 +170,14 @@ export default function EmbeddingsDebug() {
     }
   }
 
+  if (!mounted) {
+    return (
+      <Head>
+        <title>Embeddings Debugging - Admin</title>
+      </Head>
+    )
+  }
+
   return (
     <>
       <Head>
