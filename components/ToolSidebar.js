@@ -53,8 +53,13 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
               tabIndex={0}
               aria-pressed={selectedTool?.toolId === tool.toolId}
             >
-              <div className={styles.toolRank}>#{index + 1}</div>
               <h3 className={styles.toolName}>{tool.name}</h3>
+              <span
+                className={styles.toolScore}
+                style={{ color: getScoreColor(tool.similarity) }}
+              >
+                {(tool.similarity * 100).toFixed(0)}%
+              </span>
             </article>
           ))}
         </nav>
