@@ -1,4 +1,4 @@
-import { generateEmbedding } from './lib/embeddings.js'
+import { generateEmbedding, formatEmbeddingForStorage } from './lib/embeddings.js'
 import { createClient } from '@supabase/supabase-js'
 import { TOOLS } from './lib/tools.js'
 
