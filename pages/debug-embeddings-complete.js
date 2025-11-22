@@ -246,9 +246,25 @@ export default function EmbeddingsDebug() {
                 borderRadius: '4px',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
+                marginRight: '10px',
               }}
             >
               {loading ? 'Testing...' : 'Test Supabase Save'}
+            </button>
+            <button
+              onClick={() => testClearEmbedding()}
+              disabled={loading}
+              style={{
+                padding: '10px 20px',
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? 'Testing...' : 'Test Clear'}
             </button>
           </div>
 
