@@ -69,11 +69,20 @@ export default async function handler(req, res) {
 
     // Test 4: Read it back
     console.log('\n4️⃣ Reading word-counter...')
-    const { data: tool, error: readError } = await supabase
-      .from('tools')
-      .select('id, embedding')
-      .eq('id', 'word-counter')
-      .single()
+    let tool = null
+    let readError = null
+
+    try {
+      const result = await supabase
+        .from('tools')
+        .select('id, embedding')
+        .eq('id', 'word-counter')
+        .single()
+      tool = result.data
+      readError = result.error
+    } catch (e) {
+      readError = { message: e.message }
+    }
 
     console.log(`   Type: ${typeof tool?.embedding}`)
     console.log(`   Is Array: ${Array.isArray(tool?.embedding)}`)
