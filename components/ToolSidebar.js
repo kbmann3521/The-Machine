@@ -70,14 +70,13 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                 aria-pressed={isSelected}
                 title={`${tool.name} - ${getScoreLabel(tool.similarity)}`}
               >
-                <h3 className={styles.toolName}>{tool.name}</h3>
-                <span
-                  className={styles.toolScore}
+                <h3
+                  className={styles.toolName}
                   style={{ color: getScoreColor(tool.similarity) }}
                   title={getScoreLabel(tool.similarity)}
                 >
-                  {(tool.similarity * 100).toFixed(0)}%
-                </span>
+                  {tool.name}
+                </h3>
               </article>
             )
           })}
