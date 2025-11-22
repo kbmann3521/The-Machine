@@ -106,12 +106,14 @@ export default async function handler(req, res) {
     // STEP 2: Intent Extraction
     const intent = await extractIntent(inputContent, classification.input_type, classification.category)
 
-    // STEP 3: Meaning Normalization
+    // STEP 3: Meaning Normalization (for display/logging purposes)
     const normalizedMeaning = normalizeMeaning(classification, intent)
 
     // STEP 4: Embedding Generation (done inside vectorSearchTools)
     // STEP 5: Vector Search
-    let searchResults = await vectorSearchTools(normalizedMeaning, 10)
+    // Use the original inputContent for semantic search, not the classification summary
+    // This ensures the embedding is generated from the actual user input for better semantic relevance
+    let searchResults = await vectorSearchTools(inputContent, 10)
 
     // STEP 5.5: Boost writing tools when intent is "writing"
     if (searchResults && intent.intent === 'writing') {
