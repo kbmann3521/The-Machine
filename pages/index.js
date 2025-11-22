@@ -258,7 +258,7 @@ export default function Home() {
       }
       setLoading(false)
     }
-  }, [])
+  }, [fastLocalClassification])
 
   const handleInputChange = useCallback((text, image, preview) => {
     setInputText(text)
