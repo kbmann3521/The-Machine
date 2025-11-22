@@ -19,7 +19,14 @@ async function testSemanticSearch() {
         }
       }),
     })
-    
+
+    if (!response.ok) {
+      console.log('Response status:', response.status)
+      const text = await response.text()
+      console.log('Response body:', text.substring(0, 500))
+      return
+    }
+
     const data = await response.json()
     
     console.log('Semantic Search Results:')
