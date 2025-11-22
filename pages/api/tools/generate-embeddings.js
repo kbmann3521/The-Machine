@@ -10,22 +10,71 @@ const supabase = createClient(
 // Category-to-intent operations mapping
 // Maps tool categories to the operations users want to perform
 const categoryIntentOperations = {
-  writing: ['analyze', 'transform', 'process', 'convert case', 'count', 'clean', 'format', 'find and replace', 'extract', 'generate slug'],
-  encoding: ['encode', 'decode', 'escape', 'unescape', 'convert', 'transform format'],
-  url: ['parse', 'encode', 'decode', 'validate', 'extract components', 'extract path', 'extract query', 'analyze structure'],
-  json: ['beautify', 'minify', 'format', 'validate', 'parse', 'indent', 'compact', 'extract path'],
-  html: ['format', 'beautify', 'minify', 'validate', 'parse', 'convert entities', 'strip tags'],
-  xml: ['format', 'beautify', 'minify', 'validate', 'parse', 'prettify'],
-  developer: ['parse', 'decode', 'validate', 'extract', 'analyze', 'test', 'lookup', 'generate'],
-  crypto: ['encode', 'decode', 'hash', 'encrypt', 'validate', 'generate', 'checksum'],
-  converter: ['convert', 'transform', 'encode', 'decode', 'calculate'],
-  formatter: ['format', 'beautify', 'minify', 'prettify', 'validate', 'parse'],
-  validator: ['validate', 'check', 'verify', 'test', 'analyze'],
-  'image-transform': ['resize', 'scale', 'transform', 'optimize', 'convert'],
-  calculator: ['calculate', 'compute', 'convert', 'analyze'],
-  'text-analyze': ['analyze', 'extract', 'count', 'calculate', 'measure'],
-  'text-transform': ['format', 'convert', 'transform', 'parse'],
-  'text-analyze': ['analyze', 'extract', 'count', 'measure', 'detect'],
+  writing: [
+    'analyze text', 'transform text', 'process text', 'convert case', 'count words',
+    'count characters', 'clean text', 'format text', 'find and replace', 'extract text',
+    'generate slug', 'reverse text', 'sort lines', 'visualize whitespace',
+    'strip formatting', 'unescape text', 'expects text input'
+  ],
+  encoding: [
+    'encode text', 'decode text', 'escape special characters', 'unescape characters',
+    'convert encoding', 'transform format', 'expects text input'
+  ],
+  json: [
+    'beautify JSON', 'minify JSON', 'format JSON', 'validate JSON', 'parse JSON',
+    'indent JSON', 'compact JSON', 'extract JSON path', 'analyze JSON structure',
+    'expects JSON text input'
+  ],
+  html: [
+    'format HTML', 'beautify HTML', 'minify HTML', 'validate HTML', 'parse HTML',
+    'convert HTML entities', 'decode HTML entities', 'strip HTML tags', 'prettify HTML',
+    'expects HTML text input'
+  ],
+  developer: [
+    'parse data', 'decode data', 'validate format', 'extract components', 'analyze structure',
+    'test regex patterns', 'test cron expressions', 'lookup HTTP status codes', 'lookup MIME types',
+    'parse HTTP headers', 'validate UUID format', 'extract JSON paths', 'expects text input'
+  ],
+  crypto: [
+    'encode text', 'decode text', 'hash data', 'encrypt data', 'validate checksums',
+    'calculate checksums', 'calculate CRC32', 'ROT13 cipher', 'Caesar cipher',
+    'decode JWT tokens', 'analyze JSON web tokens', 'expects text input'
+  ],
+  converter: [
+    'convert between formats', 'transform data', 'encode data', 'decode data',
+    'convert colors', 'convert timestamps', 'convert CSV to JSON', 'convert JSON to CSV',
+    'convert Markdown to HTML', 'convert between number bases', 'convert between units',
+    'convert between timezones', 'convert file sizes', 'convert numbers', 'convert IPv4 addresses',
+    'convert ASCII to Unicode', 'expects text or numeric input'
+  ],
+  formatter: [
+    'format code', 'beautify code', 'minify code', 'prettify code', 'validate code syntax',
+    'parse code', 'format CSS', 'format SQL', 'format XML', 'format YAML',
+    'format JavaScript', 'optimize SVG', 'expects code or markup input'
+  ],
+  validator: [
+    'validate format', 'check format correctness', 'verify format', 'test validity',
+    'analyze format structure', 'validate email addresses', 'validate IP addresses',
+    'validate Markdown files', 'validate data structure', 'expects text input'
+  ],
+  'image-transform': [
+    'resize image', 'scale image', 'transform image dimensions', 'optimize image',
+    'convert image format', 'change width and height', 'convert image to Base64',
+    'expects image file input'
+  ],
+  calculator: [
+    'calculate IP ranges', 'calculate subnets', 'calculate CIDR blocks', 'analyze IP boundaries',
+    'compute network ranges', 'expects numeric input'
+  ],
+  'text-analyze': [
+    'analyze text content', 'extract information', 'count word occurrences', 'calculate text metrics',
+    'measure readability scores', 'detect keywords', 'compare text blocks', 'find text differences',
+    'analyze word frequency', 'evaluate math expressions', 'expects text input'
+  ],
+  'text-transform': [
+    'format numbers', 'transform numbers', 'add thousand separators', 'parse number formats',
+    'apply locale formatting', 'expects numeric or text input'
+  ],
 }
 
 // Extract intent keywords from tool data
@@ -42,7 +91,11 @@ function getToolIntentKeywords(tool, toolData) {
   if (detailed.howtouse) {
     const actions = detailed.howtouse.join(' ').toLowerCase()
     // Extract common action verbs
-    const actionVerbs = ['analyze', 'transform', 'convert', 'validate', 'format', 'parse', 'extract', 'generate', 'beautify', 'minify', 'encode', 'decode', 'count', 'check', 'verify']
+    const actionVerbs = [
+      'analyze', 'transform', 'convert', 'validate', 'format', 'parse', 'extract',
+      'generate', 'beautify', 'minify', 'encode', 'decode', 'count', 'check', 'verify',
+      'compare', 'calculate', 'measure', 'optimize', 'resize', 'scale'
+    ]
     actionVerbs.forEach(verb => {
       if (actions.includes(verb) && !keywords.includes(verb)) {
         keywords.push(verb)
@@ -52,16 +105,49 @@ function getToolIntentKeywords(tool, toolData) {
 
   // Add name-based operations
   const nameLower = tool.name.toLowerCase()
-  if (nameLower.includes('formatter')) keywords.push('format', 'beautify')
-  if (nameLower.includes('converter')) keywords.push('convert', 'transform')
-  if (nameLower.includes('validator')) keywords.push('validate', 'check', 'verify')
-  if (nameLower.includes('parser')) keywords.push('parse', 'extract', 'analyze')
-  if (nameLower.includes('encoder')) keywords.push('encode', 'decode')
-  if (nameLower.includes('generator')) keywords.push('generate', 'create')
-  if (nameLower.includes('analyzer')) keywords.push('analyze', 'extract', 'measure')
+  if (nameLower.includes('formatter')) {
+    const ops = ['format', 'beautify', 'minify', 'prettify']
+    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  }
+  if (nameLower.includes('converter')) {
+    const ops = ['convert', 'transform', 'encode', 'decode']
+    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  }
+  if (nameLower.includes('validator')) {
+    const ops = ['validate', 'check', 'verify', 'test']
+    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  }
+  if (nameLower.includes('parser')) {
+    const ops = ['parse', 'extract', 'analyze', 'decode']
+    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  }
+  if (nameLower.includes('encoder')) {
+    const ops = ['encode', 'decode', 'escape']
+    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  }
+  if (nameLower.includes('generator')) {
+    const ops = ['generate', 'create', 'produce']
+    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  }
+  if (nameLower.includes('analyzer')) {
+    const ops = ['analyze', 'extract', 'measure', 'calculate']
+    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  }
 
-  // Remove duplicates
+  // Remove duplicates and sort for consistency
   return [...new Set(keywords)]
+}
+
+// Get expected input types for the embedding context
+function getExpectedInputsText(toolData) {
+  if (!toolData.inputTypes || toolData.inputTypes.length === 0) {
+    return 'text input'
+  }
+  return toolData.inputTypes.map(type => {
+    if (type === 'text') return 'text input'
+    if (type === 'image') return 'image input'
+    return `${type} input`
+  }).join(', ')
 }
 
 export default async function handler(req, res) {
