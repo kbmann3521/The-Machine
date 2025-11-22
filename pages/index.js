@@ -50,11 +50,9 @@ export default function Home() {
     trimLines: true,
     removeLineBreaks: false,
     removeBlankLines: true,
-    compressLineBreaks: true,
     removeTimestamps: false,
     removeDuplicateLines: false,
     filterCharacters: 'none',
-    flattenToSingleLine: false,
   })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
