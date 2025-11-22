@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     console.log('\n🔧 Test 2: Using generateEmbedding function')
 
     // Import the function in a way that works
-    const { generateEmbedding } = await import('../lib/embeddings.js')
+    const { generateEmbedding } = await import('../../lib/embeddings.js')
 
     const funcEmbedding = await generateEmbedding(testText)
 
