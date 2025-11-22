@@ -202,6 +202,28 @@ export default async function handler(req, res) {
       (t) => visibilityMap[t.toolId] !== false
     )
 
+    // STEP 7: Special handling for writing category
+    // If classified as writing, ensure Text Toolkit is at top
+    if (classification.category === 'writing' && intent.intent === 'writing') {
+      const textToolkitIndex = predictedTools.findIndex(t => t.toolId === 'text-toolkit')
+      if (textToolkitIndex > 0) {
+        // Move Text Toolkit to the front
+        const textToolkit = predictedTools[textToolkitIndex]
+        predictedTools = [textToolkit, ...predictedTools.slice(0, textToolkitIndex), ...predictedTools.slice(textToolkitIndex + 1)]
+      } else if (textToolkitIndex === -1) {
+        // Text Toolkit not in results, add it to the front
+        const toolData = TOOLS['text-toolkit']
+        if (toolData) {
+          predictedTools.unshift({
+            toolId: 'text-toolkit',
+            name: toolData.name,
+            description: toolData.description,
+            similarity: 0.98,
+          })
+        }
+      }
+    }
+
     // STEP 8: Return predictions with metadata
     res.status(200).json({
       predictedTools,
@@ -210,6 +232,11 @@ export default async function handler(req, res) {
         intent,
         normalizedMeaning,
         usedVectorSearch: searchResults && searchResults.length > 0,
+        debugInfo: {
+          inputCategory: classification.category,
+          intentType: intent.intent,
+          resultCount: predictedTools.length,
+        },
       },
     })
   } catch (error) {
