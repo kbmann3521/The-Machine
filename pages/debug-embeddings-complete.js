@@ -189,9 +189,9 @@ export default function EmbeddingsDebug() {
           <h1>🧠 Embeddings Debugging Dashboard</h1>
 
           <div style={{ marginBottom: '30px' }}>
-            <h2>Step 1: Test OpenAI API</h2>
+            <h2>Step 0: Test Infrastructure</h2>
             <p>
-              Click below to test if OpenAI API is working correctly and returning 1536-dimensional embeddings.
+              Test if OpenAI API and Supabase are working correctly.
             </p>
             <button
               onClick={testOpenAI}
@@ -204,9 +204,25 @@ export default function EmbeddingsDebug() {
                 borderRadius: '4px',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
+                marginRight: '10px',
               }}
             >
               {loading ? 'Testing...' : 'Test OpenAI API'}
+            </button>
+            <button
+              onClick={() => testSupabaseSave()}
+              disabled={loading}
+              style={{
+                padding: '10px 20px',
+                background: '#17a2b8',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? 'Testing...' : 'Test Supabase Save'}
             </button>
           </div>
 
