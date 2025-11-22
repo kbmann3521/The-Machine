@@ -190,8 +190,10 @@ export default async function handler(req, res) {
 
       if (semanticResults && semanticResults.length > 0) {
         predictedTools = semanticResults
+        console.log('✓ Using semantic prediction for:', inputContent.substring(0, 50))
       } else {
         // Fallback to pattern matching
+        console.warn('⚠ Falling back to pattern matching for:', inputContent.substring(0, 50))
         predictedTools = await usePatternMatching(inputContent, visibilityMap)
       }
     }
@@ -199,6 +201,10 @@ export default async function handler(req, res) {
     res.status(200).json({
       predictedTools,
       inputContent,
+      _debug: {
+        usedSemantic: predictedTools.length > 0 && predictedTools[0].toolId === 'text-toolkit',
+        topMatch: predictedTools[0]?.name,
+      },
     })
   } catch (error) {
     console.error('Prediction error:', error)
