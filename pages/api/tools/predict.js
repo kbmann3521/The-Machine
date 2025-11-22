@@ -200,6 +200,72 @@ async function directToolSelection(inputType, visibilityMap) {
 }
 
 /**
+ * Detect suggested config for a tool based on input
+ */
+function detectSuggestedConfig(toolId, inputText, inputType) {
+  const config = {}
+
+  // Unit Converter: detect unit type
+  if (toolId === 'unit-converter') {
+    const lowerText = inputText.toLowerCase()
+    if (/\b(meter|metres?|km|kilometer|ft|feet|mi|mile|cm|centimeter|mm|millimeter|yd|yard|inch|in|micrometers?|µm|nm|nanometer|nautical|nmi)\b/.test(lowerText)) {
+      config.type = 'length'
+    } else if (/\b(kg|kilogram|lb|lbs|pound|pounds|oz|ounce|gram|g|mg|milligram|ton|tonne|stone|st|t)\b/.test(lowerText)) {
+      config.type = 'weight'
+    } else if (/\b(celsius|°C|fahrenheit|°F|kelvin|K)\b/.test(lowerText)) {
+      config.type = 'temperature'
+    } else if (/\b(m\/s|km\/h|mph|mile\/hour|kilometer\/hour|knot|knots)\b/.test(lowerText)) {
+      config.type = 'speed'
+    } else if (/\b(litre|liter|l|ml|milliliter|gallon|gal|cup|pint|fluid-ounce|fl-oz|floz)\b/.test(lowerText)) {
+      config.type = 'volume'
+    } else if (/\b(bar|psi|pascal|pa|atm|atmosphere|torr)\b/.test(lowerText)) {
+      config.type = 'pressure'
+    } else if (/\b(joule|calorie|btu|kilocalorie|kcal|watt|w|kilowatt|kw|horsepower|hp|ergs?)\b/.test(lowerText)) {
+      config.type = 'energy'
+    } else if (/\b(second|seconds|sec|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)\b/.test(lowerText)) {
+      config.type = 'time'
+    } else if (/\b(byte|bytes|b|B|bit|bits|kb|KB|mb|MB|gb|GB|tb|TB|pb|PB)\b/.test(lowerText)) {
+      config.type = 'data'
+    }
+  }
+
+  // HTML Formatter: detect if minify is needed (single-line HTML vs formatted)
+  if (toolId === 'html-formatter') {
+    const hasNewlines = /\n/.test(inputText)
+    const hasIndentation = /^\s+/.test(inputText)
+    if (hasNewlines || hasIndentation) {
+      config.mode = 'minify'
+    } else {
+      config.mode = 'beautify'
+    }
+  }
+
+  // CSS Formatter: similar logic
+  if (toolId === 'css-formatter') {
+    const hasNewlines = /\n/.test(inputText)
+    const hasIndentation = /^\s+/.test(inputText)
+    if (hasNewlines || hasIndentation) {
+      config.mode = 'minify'
+    } else {
+      config.mode = 'beautify'
+    }
+  }
+
+  // JSON Formatter: similar logic
+  if (toolId === 'json-formatter') {
+    const hasNewlines = /\n/.test(inputText)
+    const hasIndentation = /^\s+/.test(inputText)
+    if (hasNewlines || hasIndentation) {
+      config.mode = 'minify'
+    } else {
+      config.mode = 'beautify'
+    }
+  }
+
+  return Object.keys(config).length > 0 ? config : null
+}
+
+/**
  * Main handler
  */
 export default async function handler(req, res) {
