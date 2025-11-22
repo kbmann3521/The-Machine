@@ -129,12 +129,13 @@ export default function Home() {
       }))
 
       // Always pin the selected tool at the top, with other tools sorted by relevance below
+      const currentSelectedTool = selectedToolRef.current
       let reorderedTools = toolsWithMetadata
-      if (selectedTool) {
+      if (currentSelectedTool) {
         // Remove selected tool from the search results if it exists
-        const otherTools = toolsWithMetadata.filter(tool => tool.toolId !== selectedTool.toolId)
+        const otherTools = toolsWithMetadata.filter(tool => tool.toolId !== currentSelectedTool.toolId)
         // Put selected tool first, then all other tools sorted by similarity
-        reorderedTools = [selectedTool, ...otherTools]
+        reorderedTools = [currentSelectedTool, ...otherTools]
       }
       setPredictedTools(reorderedTools)
     } catch (err) {
