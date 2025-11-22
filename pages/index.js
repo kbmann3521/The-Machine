@@ -510,7 +510,7 @@ export default function Home() {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1>All-in-One Internet Tools</h1>
-            <p>Describe what you need, and we'll suggest the right tools to get the job done</p>
+            <p>Paste anything — we'll auto-detect the perfect tool</p>
           </div>
           <ThemeToggle />
         </div>
