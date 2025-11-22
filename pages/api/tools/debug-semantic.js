@@ -172,7 +172,7 @@ Return ONLY a JSON object with this exact structure:
 
         // Apply category boosting as PRIMARY signal for relevance
         const toolData = TOOLS[tool.id]
-        if (toolData && toolData.category === classification.category) {
+        if (mappedCategory && toolData && toolData.category === mappedCategory) {
           // Category match is the strongest signal when category is clearly detected
           // Add base score + semantic similarity
           // This ensures category-matched tools rank highest
