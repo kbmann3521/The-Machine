@@ -117,9 +117,9 @@ export default async function handler(req, res) {
     if (searchResults && intent.intent === 'writing') {
       searchResults = searchResults.map((tool) => {
         const toolData = TOOLS[tool.id]
-        // Boost similarity for writing tools (category === 'writing')
+        // Strongly boost writing tools when user input is plain English
         if (toolData?.category === 'writing') {
-          const boostAmount = 0.15
+          const boostAmount = 0.35  // Increased from 0.15 - much stronger boost
           const distance = tool.distance || 0
           const boostedDistance = Math.max(0, distance - boostAmount)
           return { ...tool, distance: boostedDistance }
