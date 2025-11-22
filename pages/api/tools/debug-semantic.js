@@ -286,7 +286,29 @@ Common intent categories:
       console.log('  Top match:', toolScores[0].name, 'similarity:', toolScores[0].similarity.toFixed(4))
     }
 
-    // Step 5: Database check
+    // Step 5: Semantic Prediction (get full tool recommendations)
+    console.log('🔍 Testing semantic prediction...')
+    try {
+      const predictResponse = await fetch('http://localhost:3000/api/tools/predict-semantic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputText: inputText }),
+      })
+
+      if (predictResponse.ok) {
+        const predictData = await predictResponse.json()
+        results.semanticPredictionResults = predictData.predictedTools?.slice(0, 5) || []
+        console.log('✓ Semantic prediction returned', results.semanticPredictionResults.length, 'tools')
+      } else {
+        results.semanticPredictionResults = []
+        console.warn('Semantic prediction request failed:', predictResponse.status)
+      }
+    } catch (e) {
+      results.semanticPredictionResults = []
+      console.warn('Semantic prediction error:', e.message)
+    }
+
+    // Step 6: Database check
     console.log('🔍 Checking database embeddings...')
     const { data: allToolsForStats } = await supabase
       .from('tools')
