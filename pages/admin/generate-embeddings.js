@@ -157,6 +157,64 @@ export default function GenerateEmbeddings() {
                 <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
                   Get this key from your environment variables: EMBEDDING_SECRET_KEY
                 </p>
+
+                <div style={{ marginTop: '16px' }}>
+                  <button
+                    onClick={handleTestOpenAI}
+                    disabled={isTesting}
+                    style={{
+                      padding: '10px 16px',
+                      background: isTesting ? 'var(--color-border)' : '#666',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: isTesting ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      opacity: isTesting ? 0.6 : 1,
+                    }}
+                  >
+                    {isTesting ? 'Testing...' : 'Test OpenAI API Key'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {testResult && (
+              <div
+                style={{
+                  padding: '16px',
+                  background: testResult.success ? '#1a472a' : '#472a2a',
+                  border: `1px solid ${testResult.success ? '#2d7a4a' : '#7a3d3d'}`,
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  fontSize: '13px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ fontSize: '18px' }}>
+                    {testResult.success ? '✓' : '✗'}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ display: 'block', marginBottom: '4px' }}>
+                      {testResult.message || testResult.error}
+                    </strong>
+                    {testResult.details && (
+                      <p style={{ margin: '4px 0 0 0', fontSize: '12px', opacity: 0.8 }}>
+                        {testResult.details}
+                      </p>
+                    )}
+                    {testResult.embeddingDimensions && (
+                      <p style={{ margin: '8px 0 0 0', fontSize: '12px', opacity: 0.8 }}>
+                        Embedding dimensions: {testResult.embeddingDimensions}
+                      </p>
+                    )}
+                    <p style={{ margin: '8px 0 0 0', fontSize: '11px', opacity: 0.6 }}>
+                      {testResult.timestamp}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
