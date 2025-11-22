@@ -132,9 +132,8 @@ export default async function handler(req, res) {
 
     // STEP 4: Embedding Generation (done inside vectorSearchTools)
     // STEP 5: Vector Search
-    // Use the original inputContent for semantic search, not the classification summary
-    // This ensures the embedding is generated from the actual user input for better semantic relevance
-    let searchResults = await vectorSearchTools(inputContent, 10)
+    // Pass category and intent to semantic-search for context-aware embedding generation
+    let searchResults = await vectorSearchTools(inputContent, classification.category, intent, 10)
 
     // STEP 5.5: Boost tools matching the detected category
     if (searchResults && mappedCategory) {
