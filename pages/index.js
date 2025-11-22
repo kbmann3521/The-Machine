@@ -46,16 +46,20 @@ export default function Home() {
       similarity: 0.5, // Neutral similarity for unranked tools
       ...toolData,
     }))
-    setPredictedTools(allTools)
 
-    // Set Word Counter as default tool when no input is provided
-    const wordCounterTool = allTools.find(tool => tool.toolId === 'word-counter')
-    if (wordCounterTool) {
-      setSelectedTool(wordCounterTool)
+    // Filter out tools with show_in_recommendations = false
+    const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+
+    setPredictedTools(visibleTools)
+
+    // Set Text Toolkit as default tool when no input is provided
+    const defaultTool = visibleTools.find(tool => tool.toolId === 'text-toolkit') || visibleTools[0]
+    if (defaultTool) {
+      setSelectedTool(defaultTool)
 
       const initialConfig = {}
-      if (wordCounterTool?.configSchema) {
-        wordCounterTool.configSchema.forEach(field => {
+      if (defaultTool?.configSchema) {
+        defaultTool.configSchema.forEach(field => {
           initialConfig[field.id] = field.default || ''
         })
       }
