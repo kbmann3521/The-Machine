@@ -114,6 +114,57 @@ export default function EmbeddingsDebug() {
     }
   }
 
+  const debugRegenerateEmbeddings = async () => {
+    setLoading(true)
+    setResults({ status: 'streaming debug...' })
+
+    try {
+      const response = await fetch('/api/tools/regenerate-embeddings-debug', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        setResults(error)
+        setLoading(false)
+        return
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line)
+              setResults(data)
+              console.log('[DEBUG]', data)
+            } catch (e) {
+              console.error('Failed to parse:', line)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      setResults({ error: error.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <>
       <Head>
