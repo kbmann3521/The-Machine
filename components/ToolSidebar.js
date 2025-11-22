@@ -24,7 +24,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
       <div className={styles.header}>
         <input
           type="text"
-          placeholder="Search tools..."
+          placeholder="Search by tool name or function..."
           className={styles.searchInput}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
