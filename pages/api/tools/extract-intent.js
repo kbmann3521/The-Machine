@@ -1,4 +1,4 @@
-const OpenAI = require('../../../lib/openaiWrapper')
+import OpenAI from '../../../lib/openaiWrapper.js'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { input, input_type } = req.body
+    const { input, input_type, category } = req.body
 
     if (!input) {
       return res.status(400).json({ error: 'No input provided' })
@@ -30,8 +30,9 @@ Return ONLY a JSON object (no markdown, no extra text) with this exact structure
 }
 
 Common intent categories:
+- writing: plain English text analysis, transformation, or processing (essays, paragraphs, articles, general text)
 - text_analysis: counting, measuring, analyzing text
-- text_transformation: changing format, converting case, encoding
+- text_transformation: changing format, converting case, encoding, rewriting
 - text_cleaning: removing content, cleaning up, normalizing
 - data_conversion: converting between formats (JSON, CSV, Base64, URL, HTML, etc.)
 - pattern_matching: finding, validating, testing patterns with regex
@@ -39,11 +40,13 @@ Common intent categories:
 - image_processing: resizing, compressing, converting images
 - developer_tools: debugging, inspecting, decoding (JWT, URL parsing, etc.)
 - content_generation: creating or generating new content
-- security_crypto: hashing, encryption, checksums`,
+- security_crypto: hashing, encryption, checksums
+
+If input is plain English text (category: writing), prefer intent: "writing"`,
         },
         {
           role: 'user',
-          content: `Input type: ${input_type || 'text'}\nInput: ${input.substring(0, 1000)}`,
+          content: `Input type: ${input_type || 'text'}\nCategory: ${category || 'unknown'}\nInput: ${input.substring(0, 1000)}`,
         },
       ],
       temperature: 0.1,
@@ -58,11 +61,18 @@ Common intent categories:
       intent = JSON.parse(jsonStr)
     } catch {
       // Fallback intent
+      const fallbackIntent = category === 'writing' ? 'writing' : 'text_analysis'
       intent = {
-        intent: 'text_analysis',
-        sub_intent: 'general_analysis',
+        intent: fallbackIntent,
+        sub_intent: 'general_text_processing',
         confidence: 0.5,
       }
+    }
+
+    // Boost confidence for writing category
+    if (category === 'writing' && intent.intent !== 'writing') {
+      intent.intent = 'writing'
+      intent.confidence = Math.min(1, intent.confidence + 0.2)
     }
 
     res.status(200).json(intent)
