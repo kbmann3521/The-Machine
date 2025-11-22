@@ -274,7 +274,7 @@ export default async function handler(req, res) {
     predictedTools.sort((a, b) => b.similarity - a.similarity)
 
     res.status(200).json({
-      predictedTools: predictedTools.slice(0, 10), // Top 10
+      predictedTools,
       inputContent,
       _debug: {
         pipelineUsed: '3-layer (hard-detection -> llm -> semantic)',
