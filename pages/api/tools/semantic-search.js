@@ -102,9 +102,6 @@ export default async function handler(req, res) {
 
     const embedding = await generateEmbedding(embeddingText)
 
-    // Also detect input category for relevance boosting
-    const inputCategory = await classifyInputForCategory(inputText)
-
     if (!embedding || embedding.length === 0) {
       return res.status(400).json({ error: 'Failed to generate embedding' })
     }
