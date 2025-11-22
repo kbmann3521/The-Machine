@@ -148,11 +148,18 @@ Return ONLY a JSON object with this exact structure:
 
         let similarity = cosineSimilarity(embedding, toolEmbedding)
 
-        // Apply category boosting for detected input category
+        // Apply aggressive category boosting for detected input category
         const toolData = TOOLS[tool.id]
         if (toolData && toolData.category === classification.category) {
-          // Boost similarity by 20% for category matches
-          similarity = Math.min(1, similarity * 1.2)
+          // For ambiguous/generic inputs, category match is very important
+          // Boost similarity significantly for category matches
+          if (similarity < 0.5) {
+            // Low semantic similarity: boost by 50-100%
+            similarity = Math.min(1, similarity + 0.4)
+          } else {
+            // Higher semantic similarity: boost by 30%
+            similarity = Math.min(1, similarity * 1.3)
+          }
         }
 
         return {
