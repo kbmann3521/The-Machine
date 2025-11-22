@@ -1,16 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    allowedDevOrigins: [
-      'localhost:3000',
-      'localhost:3001',
-      '*.projects.builder.codes',
-      '*.fly.dev',
-      '*.builder.codes',
-      '*.builder.io'
-    ]
-  },
   async headers() {
     return [
       {
