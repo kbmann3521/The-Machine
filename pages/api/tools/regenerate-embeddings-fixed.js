@@ -146,16 +146,14 @@ export default async function handler(req, res) {
           continue
         }
 
-        // Format embedding for pgvector storage: "[x1,x2,x3,...]"
-        const embeddingString = formatEmbeddingForStorage(embedding)
-
+        // Store embedding array directly - Supabase will convert to pgvector
         console.log(`[regenerate] Storing embedding for ${tool.id}:`)
         console.log(`  - Embedding array dimensions: ${embedding?.length}`)
-        console.log(`  - Formatted string: ${embeddingString?.substring(0, 50)}...`)
+        console.log(`  - Sample values: ${embedding?.slice(0, 3)}`)
 
         const { error: updateError, data: updateData } = await supabase
           .from('tools')
-          .update({ embedding: embeddingString })
+          .update({ embedding })
           .eq('id', tool.id)
 
         console.log(`[regenerate] Update result for ${tool.id}:`)
