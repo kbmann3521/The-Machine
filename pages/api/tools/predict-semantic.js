@@ -176,7 +176,13 @@ export default async function handler(req, res) {
         const toolPlaceholder = toolData.example || toolData.description
         fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
 
-        const finalScore = (patternScore * 0.5) + (fuzzyScore * 0.5)
+        let finalScore = (patternScore * 0.5) + (fuzzyScore * 0.5)
+
+        // Boost writing tools in fallback when intent is writing
+        if (intent.intent === 'writing' && toolData.category === 'writing') {
+          finalScore = Math.min(1, finalScore + 0.25)
+        }
+
         return {
           toolId,
           name: toolData.name,
