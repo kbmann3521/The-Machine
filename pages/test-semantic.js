@@ -18,12 +18,12 @@ export default function TestSemantic() {
         body: JSON.stringify({ inputText: input }),
       })
 
-      const data = await response.json()
-
       if (response.ok) {
+        const data = await response.json()
         setResults(data)
       } else {
-        setError(data.error || 'Unknown error')
+        const errorData = await response.json()
+        setError(errorData.error || `Error ${response.status}`)
       }
     } catch (err) {
       setError(err.message)
