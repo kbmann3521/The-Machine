@@ -402,6 +402,14 @@ export default function Home() {
               caseSensitive: sortLinesConfig.caseSensitive || false,
               removeDuplicates: sortLinesConfig.removeDuplicates || false,
             }
+          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'removeExtras') {
+            finalConfig = {
+              ...config,
+              trimSpaces: removeExtrasConfig.trimSpaces || true,
+              removeBlankLines: removeExtrasConfig.removeBlankLines || true,
+              removeDuplicateLines: removeExtrasConfig.removeDuplicateLines || false,
+              compressLineBreaks: removeExtrasConfig.compressLineBreaks || false,
+            }
           }
 
           const response = await fetch('/api/tools/run', {
