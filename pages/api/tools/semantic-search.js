@@ -7,6 +7,25 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
+// Map classifier categories to actual tool categories
+function mapToToolCategory(classifierCategory) {
+  const mapping = {
+    'writing': 'writing',
+    'text': 'writing',
+    'url': 'developer',
+    'code': 'developer',
+    'json': 'json',
+    'html': 'html',
+    'image': 'image-transform',
+    'crypto': 'crypto',
+    'formatting': 'formatter',
+    'conversion': 'converter',
+    'data': 'converter',
+    'other': null,
+  }
+  return mapping[classifierCategory] || classifierCategory
+}
+
 // Classify input to get category for boosting
 async function classifyInputForCategory(inputText) {
   try {
@@ -19,7 +38,7 @@ async function classifyInputForCategory(inputText) {
     if (!response.ok) return null
 
     const data = await response.json()
-    return data.category || null
+    return data.category ? mapToToolCategory(data.category) : null
   } catch (e) {
     console.warn('Classification failed:', e.message)
     return null
