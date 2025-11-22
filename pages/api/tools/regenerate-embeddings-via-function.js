@@ -76,15 +76,22 @@ export default async function handler(req, res) {
 
         // Call the SQL function to update with proper pgvector casting
         console.log(`[${tool.id}] Calling update_tool_embedding function...`)
-        const { error } = await supabase.rpc('update_tool_embedding', {
-          tool_id: tool.id,
-          embedding_array: embedding,
-        })
+        let rpcError = null
 
-        if (error) {
-          console.error(`[${tool.id}] RPC error: ${error.message}`)
+        try {
+          const result = await supabase.rpc('update_tool_embedding', {
+            tool_id: tool.id,
+            embedding_array: embedding,
+          })
+          rpcError = result.error
+        } catch (e) {
+          rpcError = { message: e.message }
+        }
+
+        if (rpcError) {
+          console.error(`[${tool.id}] RPC error: ${rpcError.message}`)
           failed++
-          errors.push({ toolId: tool.id, error: error.message })
+          errors.push({ toolId: tool.id, error: rpcError.message })
         } else {
           console.log(`[${tool.id}] ✅ Updated`)
           processed++
