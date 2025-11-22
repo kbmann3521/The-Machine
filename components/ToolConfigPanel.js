@@ -10,17 +10,12 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       tool.configSchema.forEach(field => {
         initialConfig[field.id] = field.default || ''
       })
-      setConfig(initialConfig)
-      onConfigChange(initialConfig)
+      // Merge with currentConfig (which includes suggestedConfig from API)
+      const mergedConfig = { ...initialConfig, ...currentConfig }
+      setConfig(mergedConfig)
+      onConfigChange(mergedConfig)
     }
-  }, [tool, onConfigChange])
-
-  useEffect(() => {
-    setConfig(prevConfig => ({
-      ...prevConfig,
-      ...currentConfig,
-    }))
-  }, [currentConfig])
+  }, [tool, currentConfig, onConfigChange])
 
   if (!tool) {
     return (
