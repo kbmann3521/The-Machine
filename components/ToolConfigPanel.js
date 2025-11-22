@@ -336,17 +336,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
-                    checked={removeExtrasConfig?.smartJoinWords || false}
-                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, smartJoinWords: e.target.checked })}
-                  />
-                  <span className={styles.toggleSlider}></span>
-                  <span>Smart Join OCR Words</span>
-                </label>
-
-                <label className={styles.inlineToggleLabel}>
-                  <input
-                    type="checkbox"
-                    className={styles.toggleInput}
                     checked={removeExtrasConfig?.fixPunctuationSpacing !== false}
                     onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, fixPunctuationSpacing: e.target.checked })}
                   />
