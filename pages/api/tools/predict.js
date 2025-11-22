@@ -47,6 +47,24 @@ export default async function handler(req, res) {
       'qr-code-generator',
     ]
 
+    // Fetch tools from Supabase to check show_in_recommendations flag
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+
+    const { data: supabaseTools, error: supabaseError } = await supabase
+      .from('tools')
+      .select('id, show_in_recommendations')
+
+    // Create a map of tools to check show_in_recommendations
+    const visibilityMap = {}
+    if (supabaseTools) {
+      supabaseTools.forEach(tool => {
+        visibilityMap[tool.id] = tool.show_in_recommendations !== false
+      })
+    }
+
     // Detect patterns in input
     const patterns = detectInputPatterns(inputContent)
     const detectedPatternKeys = Object.entries(patterns)
@@ -57,7 +75,12 @@ export default async function handler(req, res) {
     const inputEmbedding = await generateEmbedding(inputContent)
 
     // Calculate scores for all tools
-    const toolEntries = Object.entries(TOOLS).filter(([toolId]) => !generatorTools.includes(toolId))
+    const toolEntries = Object.entries(TOOLS).filter(([toolId]) => {
+      // Exclude generator tools
+      if (generatorTools.includes(toolId)) return false
+      // Exclude tools with show_in_recommendations = false (default to true if not in Supabase)
+      return visibilityMap[toolId] !== false
+    })
     
     const toolScores = await Promise.all(
       toolEntries.map(async ([toolId, toolData]) => {
