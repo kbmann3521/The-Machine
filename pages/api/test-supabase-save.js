@@ -23,10 +23,15 @@ export default async function handler(req, res) {
     console.log('  - JSON string length:', embeddingJson.length)
     console.log('  - First 100 chars:', embeddingJson.substring(0, 100))
 
-    // For vector columns, store the array directly, not as JSON string
+    // Format for pgvector: "[x1,x2,x3,...]"
+    const embeddingString = formatEmbeddingForStorage(testEmbedding)
+    console.log('  - Formatted string (pgvector format):')
+    console.log('    - Length:', embeddingString.length)
+    console.log('    - First 100 chars:', embeddingString.substring(0, 100))
+
     const { data: updateData, error: updateError } = await supabase
       .from('tools')
-      .update({ embedding: testEmbedding })
+      .update({ embedding: embeddingString })
       .eq('id', 'word-counter')
 
     console.log('  - Update response:')
