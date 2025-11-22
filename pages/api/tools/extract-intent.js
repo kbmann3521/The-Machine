@@ -39,6 +39,14 @@ URL inputs (category: url):
 - Sub-intent examples: "parse", "encode", "decode", "extract_components", "validate", "format", "convert"
 - DO NOT extract intent as "access website" or "navigate" - focus on technical URL operations
 
+Email inputs (category: email):
+- Intent: "validation"
+- Sub-intent examples: "validate", "check format", "verify"
+
+Validator inputs (category: validator):
+- Intent: "validation"
+- Sub-intent examples: "validate", "check", "verify", "test format"
+
 Writing inputs (category: writing):
 - Intent: "writing"
 - Sub-intent examples: "analyze", "transform", "count_metrics", "process"
@@ -52,6 +60,7 @@ Data inputs (category: data):
 - Sub-intent examples: "format", "parse", "validate", "convert_format"
 
 Common intent categories for developer tools:
+- validation: validating format, checking correctness
 - writing: text analysis, transformation, processing
 - url_operations: parsing, encoding, decoding, validating URLs
 - code_formatting: beautifying, minifying, formatting code
