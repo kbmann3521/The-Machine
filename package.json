@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "regenerate-embeddings": "node --input-type=module regenerate-embeddings-esm.mjs"
+    "regenerate-embeddings": "node regenerate-embeddings-esm.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.84.0",
