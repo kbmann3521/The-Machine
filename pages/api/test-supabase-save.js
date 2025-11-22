@@ -70,9 +70,19 @@ export default async function handler(req, res) {
     console.log('\n✅ Test 3: Parsing and verifying...')
     let parsedEmbedding = readData.embedding
 
+    // pgvector returns as array already in Supabase JS client
     if (typeof parsedEmbedding === 'string') {
-      console.log('  - Embedding is string, parsing...')
-      parsedEmbedding = JSON.parse(parsedEmbedding)
+      console.log('  - Embedding is string (pgvector format), parsing...')
+      try {
+        parsedEmbedding = JSON.parse(parsedEmbedding)
+      } catch (e) {
+        console.log('  - Failed to parse as JSON, trying as pgvector string...')
+        // Remove brackets and parse
+        parsedEmbedding = parsedEmbedding
+          .replace(/^\[|\]$/g, '')
+          .split(',')
+          .map(v => parseFloat(v.trim()))
+      }
     }
 
     console.log('  - Parsed embedding:')
