@@ -428,7 +428,7 @@ export default async function handler(req, res) {
         }
       } else {
         // Direct tool selection for structured inputs
-        predictedTools = await directToolSelection(inputType.type, visibilityMap)
+        predictedTools = await directToolSelection(inputType, inputContent, visibilityMap)
       }
     }
 
