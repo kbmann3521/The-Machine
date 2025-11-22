@@ -386,17 +386,13 @@ export default function Home() {
               stripHtml: removeExtrasConfig.stripHtml !== false,
               stripMarkdown: removeExtrasConfig.stripMarkdown !== false,
               normalizeWhitespace: removeExtrasConfig.normalizeWhitespace !== false,
-              smartJoinWords: removeExtrasConfig.smartJoinWords === true,
               fixPunctuationSpacing: removeExtrasConfig.fixPunctuationSpacing !== false,
               compressSpaces: removeExtrasConfig.compressSpaces !== false,
               trimLines: removeExtrasConfig.trimLines !== false,
               removeLineBreaks: removeExtrasConfig.removeLineBreaks === true,
               removeBlankLines: removeExtrasConfig.removeBlankLines !== false,
-              compressLineBreaks: removeExtrasConfig.compressLineBreaks !== false,
               removeTimestamps: removeExtrasConfig.removeTimestamps === true,
               removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
-              filterCharacters: removeExtrasConfig.filterCharacters || 'none',
-              flattenToSingleLine: removeExtrasConfig.flattenToSingleLine === true,
             }
           }
 
