@@ -22,9 +22,10 @@ export default async function handler(req, res) {
     console.log('  - JSON string length:', embeddingJson.length)
     console.log('  - First 100 chars:', embeddingJson.substring(0, 100))
 
+    // For vector columns, store the array directly, not as JSON string
     const { data: updateData, error: updateError } = await supabase
       .from('tools')
-      .update({ embedding: embeddingJson })
+      .update({ embedding: testEmbedding })
       .eq('id', 'word-counter')
 
     console.log('  - Update response:')
