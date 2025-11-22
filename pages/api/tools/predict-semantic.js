@@ -71,7 +71,7 @@ function normalizeMeaning(classification, intent) {
   return parts.join(', ')
 }
 
-async function vectorSearchTools(embeddingText, category, intent, limit = 10) {
+async function vectorSearchTools(embeddingText, category, intent) {
   try {
     const response = await fetch(`http://localhost:3000/api/tools/semantic-search`, {
       method: 'POST',
@@ -85,7 +85,7 @@ async function vectorSearchTools(embeddingText, category, intent, limit = 10) {
     }
 
     const data = await response.json()
-    return data.results?.slice(0, limit) || []
+    return data.results || []
   } catch (error) {
     console.error('Vector search error:', error)
     return null
