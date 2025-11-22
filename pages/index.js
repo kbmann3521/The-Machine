@@ -221,10 +221,14 @@ export default function Home() {
           })
         }
 
-        // Auto-detect config from input if available
-        const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
-        if (detectedConfig) {
-          Object.assign(initialConfig, detectedConfig)
+        // Use suggested config from API, or fall back to local auto-detection
+        if (topTool?.suggestedConfig) {
+          Object.assign(initialConfig, topTool.suggestedConfig)
+        } else {
+          const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
+          if (detectedConfig) {
+            Object.assign(initialConfig, detectedConfig)
+          }
         }
 
         setConfigOptions(initialConfig)
