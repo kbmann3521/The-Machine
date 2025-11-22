@@ -33,7 +33,7 @@ const tests = [
     name: '5. Basic Punctuation Only',
     input: 'Hello!!! @#$% World??? ***Special***',
     config: { filterCharacters: 'basic-punctuation', compressSpaces: true },
-    expectedIncludes: 'Hello World Special'
+    expectedIncludes: 'Hello! World? Special'  // Keeps basic punctuation, removes special chars
   },
   {
     name: '6. Remove Timestamps (Chat Log)',
