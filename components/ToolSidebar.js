@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from 'react'
 import styles from '../styles/tool-sidebar.module.css'
 
+const getScoreColor = (similarity) => {
+  const hue = similarity * 120
+  return `hsl(${hue}, 70%, 50%)`
+}
+
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
 
