@@ -1,23 +1,49 @@
 // Test the improved smartJoinWords and removeLogTimestamps functions
 
-// Copy the functions from lib/tools.js for testing
 function smartJoinWords(text) {
   // Fix OCR artifacts where words are split with spaces: "Th is tex t" → "This text"
-  // Uses proven deterministic rules that work shockingly well for OCR noise
+  // Uses intelligent detection to only fix actual fragmentation, not normal text
   let result = text
 
-  // Step 1: Join any single-letter isolated by spaces when both are alphabetic
-  // Pattern: letter + space(s) + letter → join them
-  // Run multiple passes until no more matches
-  let prevResult
-  do {
-    prevResult = result
-    result = result.replace(/([A-Za-z])\s+([A-Za-z])/g, '$1$2')
-  } while (result !== prevResult && result.length < text.length * 1.5) // Safety limit
+  // Process line by line to handle multi-line text correctly
+  result = result
+    .split('\n')
+    .map(line => {
+      const segments = line.split(/\s+/).filter(w => w.length > 0)
 
-  // Step 2: Now we need to restore spaces at word boundaries
-  // But we've lost word boundary info, so we collapse multi-spaces first
-  result = result.replace(/\s{2,}/g, ' ')
+      if (segments.length < 2) return line
+
+      // Detect if this looks like fragmented OCR text:
+      // - Most segments are 1-3 characters long
+      // - Average segment length is very short
+      const shortSegments = segments.filter(w => w.length <= 3).length
+      const avgLength = segments.reduce((sum, w) => sum + w.length, 0) / segments.length
+      const fragmentationScore = shortSegments / segments.length
+
+      // Only apply aggressive joining if strong fragmentation indicators are present
+      // Threshold: >60% of segments are short AND average length < 2.5
+      if (fragmentationScore > 0.6 && avgLength < 2.5) {
+        // Aggressive mode: join all single letters
+        let joined = line
+        let prevJoined
+        do {
+          prevJoined = joined
+          joined = joined.replace(/([A-Za-z])\s+([A-Za-z])/g, '$1$2')
+        } while (joined !== prevJoined && joined.length < line.length * 1.5)
+
+        // Collapse any remaining multiple spaces
+        joined = joined.replace(/\s{2,}/g, ' ')
+        return joined.trim()
+      } else if (fragmentationScore > 0.3 && avgLength < 2) {
+        // Moderate mode: only join obvious single-letter pairs
+        let joined = line.replace(/([A-Za-z])\s+([A-Za-z])(?=[a-z])/g, '$1$2')
+        return joined
+      } else {
+        // Normal text - preserve as is
+        return line
+      }
+    })
+    .join('\n')
 
   return result
 }
@@ -54,30 +80,39 @@ console.log('=== Testing smartJoinWords ===\n')
 
 const ocrTests = [
   {
-    input: 'Th is tex t c ame from an O C R scan an d has r a nd om sp a ces.',
-    expected: 'Thistext came from an OCR scan and has random spaces.'
+    input: 'T h i s   t e x t',
+    expected: 'Thistext',
+    note: 'Heavy fragmentation - all single letters'
   },
   {
-    input: 'T h i s   t e x t',
-    expected: 'Thistext'
+    input: 'Th is tex t c ame from an O C R scan',
+    expected: 'Thistext came from an OCR scan',
+    note: 'Mixed fragmentation - some words fragmented, others not'
   },
   {
     input: 'Hello world',
-    expected: 'Hello world'
+    expected: 'Hello world',
+    note: 'Normal text - should not be modified'
+  },
+  {
+    input: 'Normal sentence with proper spacing.',
+    expected: 'Normal sentence with proper spacing.',
+    note: 'Normal text - should not be modified'
   },
   {
     input: 'c ame\na nd\nr a nd om',
-    expected: 'came\nand\nrandom'
+    expected: 'came\nand\nrandom',
+    note: 'Heavily fragmented lines - should join'
   }
 ]
 
 ocrTests.forEach((test, i) => {
   const result = smartJoinWords(test.input)
-  const passed = result.trim() === test.expected.trim()
-  console.log(`Test ${i + 1}: ${passed ? '✓ PASS' : '✗ FAIL'}`)
-  console.log(`  Input:    "${test.input}"`)
-  console.log(`  Expected: "${test.expected}"`)
-  console.log(`  Got:      "${result}"`)
+  const passed = result === test.expected
+  console.log(`Test ${i + 1}: ${passed ? '✓ PASS' : '✗ FAIL'} - ${test.note}`)
+  console.log(`  Input:    "${test.input.replace(/\n/g, '\\n')}"`)
+  console.log(`  Expected: "${test.expected.replace(/\n/g, '\\n')}"`)
+  console.log(`  Got:      "${result.replace(/\n/g, '\\n')}"`)
   console.log()
 })
 
@@ -86,30 +121,35 @@ console.log('\n=== Testing removeLogTimestamps ===\n')
 const timestampTests = [
   {
     input: '[14:03] Kyle: Hello\n\n[14:04] John: test\n\n\n[14:05] Sarah: ok',
-    expected: 'Kyle: Hello\nJohn: test\nSarah: ok'
+    expected: 'Kyle: Hello\nJohn: test\nSarah: ok',
+    note: 'Chat format with extra blank lines'
   },
   {
     input: '[14:03] Kyle: Hello',
-    expected: 'Kyle: Hello'
+    expected: 'Kyle: Hello',
+    note: 'Simple chat message with timestamp'
   },
   {
     input: '2024-01-15T14:30:00Z Some text here',
-    expected: 'Some text here'
+    expected: 'Some text here',
+    note: 'ISO format timestamp'
   },
   {
     input: '2024-01-15 14:30:00 System message',
-    expected: 'System message'
+    expected: 'System message',
+    note: 'Log format timestamp'
   },
   {
     input: '2:30:00 PM User notification',
-    expected: 'User notification'
+    expected: 'User notification',
+    note: '12-hour format timestamp'
   }
 ]
 
 timestampTests.forEach((test, i) => {
   const result = removeLogTimestamps(test.input)
   const passed = result.trim() === test.expected.trim()
-  console.log(`Test ${i + 1}: ${passed ? '✓ PASS' : '✗ FAIL'}`)
+  console.log(`Test ${i + 1}: ${passed ? '✓ PASS' : '✗ FAIL'} - ${test.note}`)
   console.log(`  Input:    "${test.input.replace(/\n/g, '\\n')}"`)
   console.log(`  Expected: "${test.expected.replace(/\n/g, '\\n')}"`)
   console.log(`  Got:      "${result.replace(/\n/g, '\\n')}"`)
