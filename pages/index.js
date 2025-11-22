@@ -296,9 +296,14 @@ export default function Home() {
       })
     }
 
-    const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
-    if (detectedConfig) {
-      Object.assign(initialConfig, detectedConfig)
+    // Priority: Use suggestedConfig from API, then fall back to auto-detection
+    if (tool?.suggestedConfig) {
+      Object.assign(initialConfig, tool.suggestedConfig)
+    } else {
+      const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
+      if (detectedConfig) {
+        Object.assign(initialConfig, detectedConfig)
+      }
     }
 
     setConfigOptions(initialConfig)
