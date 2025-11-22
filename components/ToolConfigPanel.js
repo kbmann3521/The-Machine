@@ -421,7 +421,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         </div>
       )}
 
-      {tool.configSchema && tool.configSchema.length > 0 && (
+      {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
         <div className={styles.fieldsContainer}>
           {tool.configSchema.map(field => (
             <div key={field.id} className={styles.field}>
