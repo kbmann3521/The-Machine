@@ -272,6 +272,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           ].filter(f => f.value !== undefined && f.value !== null)
         }
 
+        // Checksum - show as structured fields
+        if (activeToolkitSection === 'checksum' && result.checksum && typeof result.checksum === 'object') {
+          return [
+            { label: 'Algorithm', value: result.checksum.algorithm || 'Unknown' },
+            { label: 'Checksum', value: String(result.checksum.checksum || '') },
+          ].filter(f => f.value !== undefined && f.value !== null)
+        }
+
         // Case Converter - show as structured fields
         if (activeToolkitSection === 'caseConverter' && result.caseConverter && typeof result.caseConverter === 'object') {
           const fields = []
