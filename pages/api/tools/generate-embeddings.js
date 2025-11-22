@@ -50,9 +50,21 @@ export default async function handler(req, res) {
           continue
         }
 
-        const embeddingText = `${tool.name}. ${tool.description || ''} ${
-          toolData.example || ''
-        }`
+        const detailedDesc = toolData.detailedDescription || {}
+        const embeddingText = [
+          tool.name,
+          tool.description,
+          toolData.category,
+          detailedDesc.overview,
+          detailedDesc.howtouse?.join(' '),
+          detailedDesc.features?.join(' '),
+          detailedDesc.usecases?.join(' '),
+          toolData.example,
+          toolData.inputTypes?.join(' '),
+          toolData.outputType,
+        ]
+          .filter(Boolean)
+          .join(' ')
 
         const embedding = await generateEmbedding(embeddingText)
 
