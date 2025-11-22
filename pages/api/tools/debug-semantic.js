@@ -169,13 +169,13 @@ Return ONLY a JSON object with this exact structure:
 
     // Step 5: Database check
     console.log('🔍 Checking database embeddings...')
-    const { data: allTools } = await supabase
+    const { data: allToolsForStats } = await supabase
       .from('tools')
       .select('id, name, embedding')
 
     const embeddingStats = {
-      totalTools: allTools?.length || 0,
-      toolsWithEmbeddings: allTools?.filter(t => t.embedding !== null).length || 0,
+      totalTools: allToolsForStats?.length || 0,
+      toolsWithEmbeddings: allToolsForStats?.filter(t => t.embedding !== null).length || 0,
     }
     results.embeddingStats = embeddingStats
     console.log('✓ Database check:', `${embeddingStats.toolsWithEmbeddings}/${embeddingStats.totalTools} tools have embeddings`)
