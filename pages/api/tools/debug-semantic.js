@@ -208,22 +208,3 @@ Return ONLY a JSON object with this exact structure:
     })
   }
 }
-
-function cosineSimilarity(a, b) {
-  let dotProduct = 0
-  let normA = 0
-  let normB = 0
-
-  const minLength = Math.min(a.length, b.length)
-  for (let i = 0; i < minLength; i++) {
-    dotProduct += a[i] * b[i]
-    normA += a[i] * a[i]
-    normB += b[i] * b[i]
-  }
-
-  normA = Math.sqrt(normA)
-  normB = Math.sqrt(normB)
-
-  if (normA === 0 || normB === 0) return 0
-  return dotProduct / (normA * normB)
-}
