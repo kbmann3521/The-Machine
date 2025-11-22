@@ -130,31 +130,34 @@ export default async function handler(req, res) {
 
         const detailedDesc = toolData.detailedDescription || {}
 
-        // Get intent-aware keywords for this tool
-        const intentKeywords = getToolIntentKeywords(tool, toolData)
-        const intentPhrase = intentKeywords.join(', ')
+        // Get tool-specific keywords (not generic category operations)
+        const toolKeywords = getToolSpecificKeywords(tool, toolData)
+        const keywordsPhrase = toolKeywords.join(', ')
 
-        // Get expected input types
+        // Get expected input types - HEAVILY EMPHASIZED
         const expectedInputs = getExpectedInputsText(toolData)
 
-        // Boost category signal by repeating it for tools that need it
-        const categoryBoost = toolData.category === 'writing' ? `${toolData.category} ${toolData.category} ${toolData.category}` : toolData.category
-
-        // Build embedding text with intent operations and input expectations
+        // Build completely unique embedding for this tool
+        // Emphasize: name, description, input type, tool-specific keywords, features, use cases
         const embeddingText = [
+          // Tool name and description (most unique and important)
           tool.name,
           tool.description,
-          // Add expected inputs prominently
-          `expects: ${expectedInputs}`,
-          // Add intent operations prominently
-          `operations: ${intentPhrase}`,
-          // Add category boost
-          categoryBoost,
-          // Add detailed context
+
+          // Input type is a PRIMARY differentiator - emphasize heavily by repeating
+          `accepts ${expectedInputs}`,
+          `input: ${expectedInputs}`,
+          `${expectedInputs}`,
+
+          // Tool-specific keywords extracted from this tool's features/use cases
+          keywordsPhrase ? `operations: ${keywordsPhrase}` : '',
+
+          // Detailed information unique to this tool
           detailedDesc.overview,
-          detailedDesc.howtouse?.join(' '),
           detailedDesc.features?.join(' '),
           detailedDesc.usecases?.join(' '),
+
+          // Example (tool-specific)
           toolData.example,
           toolData.outputType,
         ]
