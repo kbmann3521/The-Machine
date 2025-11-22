@@ -19,10 +19,6 @@ function smartJoinWords(text) {
   // But we've lost word boundary info, so we collapse multi-spaces first
   result = result.replace(/\s{2,}/g, ' ')
 
-  // Step 3: For any remaining short fragments (≤3 chars followed by other text),
-  // if context suggests word fragmentation, preserve the space
-  // This is handled naturally by the step 1 process
-
   return result
 }
 
