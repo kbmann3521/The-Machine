@@ -1,5 +1,156 @@
-import { generateEmbedding } from '../../../lib/embeddings'
+import { generateEmbedding, cosineSimilarity, detectInputPatterns, levenshteinDistance } from '../../../lib/embeddings'
 import { TOOLS } from '../../../lib/tools'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+
+// Map input patterns to relevant tool IDs
+const patternToTools = {
+  urlEncoded: ['url-converter', 'url-parser'],
+  url: ['url-parser', 'url-converter'],
+  json: ['json-formatter', 'escape-unescape'],
+  base64: ['base64-converter', 'escape-unescape'],
+  html: ['html-formatter', 'html-entities-converter', 'plain-text-stripper'],
+  xml: ['xml-formatter', 'plain-text-stripper'],
+  csv: ['csv-json-converter'],
+  markdown: ['markdown-html-converter', 'plain-text-stripper'],
+  regex: ['regex-tester', 'find-replace'],
+  yaml: ['yaml-formatter'],
+  timestamp: ['timestamp-converter'],
+  ipAddress: ['ip-validator'],
+  jwt: ['jwt-decoder', 'base64-converter'],
+  email: ['email-validator'],
+}
+
+async function getVisibilityMap() {
+  const { data: supabaseTools } = await supabase
+    .from('tools')
+    .select('id, show_in_recommendations')
+
+  const visibilityMap = {}
+  if (supabaseTools) {
+    supabaseTools.forEach(tool => {
+      visibilityMap[tool.id] = tool.show_in_recommendations !== false
+    })
+  }
+  return visibilityMap
+}
+
+async function useSemanticPrediction(inputContent) {
+  try {
+    // Use the full predict-semantic pipeline which includes classification and intent extraction
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/predict-semantic`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputText: inputContent }),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      if (data.predictedTools && data.predictedTools.length > 0) {
+        return data.predictedTools
+      }
+    }
+  } catch (error) {
+    console.warn('Semantic prediction not available, falling back to pattern matching:', error.message)
+  }
+
+  return null
+}
+
+async function usePatternMatching(inputContent, visibilityMap) {
+  const generatorTools = [
+    'random-string-generator',
+    'variable-name-generator',
+    'function-name-generator',
+    'api-endpoint-generator',
+    'lorem-ipsum-generator',
+    'uuid-generator',
+    'hash-generator',
+    'password-generator',
+    'qr-code-generator',
+  ]
+
+  const patterns = detectInputPatterns(inputContent)
+  const detectedPatternKeys = Object.entries(patterns)
+    .filter(([_, detected]) => detected)
+    .map(([key, _]) => key)
+
+  // Check if input is plain English text (writing)
+  const isPlainEnglish = /[.!?]|[a-z]\s+[a-z]|the\s|and\s|or\s|is\s|a\s|to\s/i.test(inputContent) &&
+                         inputContent.length > 10 &&
+                         detectedPatternKeys.length === 0
+
+  const inputEmbedding = await generateEmbedding(inputContent)
+
+  const toolEntries = Object.entries(TOOLS).filter(([toolId]) => {
+    if (generatorTools.includes(toolId)) return false
+    return visibilityMap[toolId] !== false
+  })
+
+  const toolScores = await Promise.all(
+    toolEntries.map(async ([toolId, toolData]) => {
+      let patternScore = 0
+      let vectorScore = 0
+      let fuzzyScore = 0
+
+      // 1. PATTERN MATCHING (40% weight)
+      for (const pattern of detectedPatternKeys) {
+        if (patternToTools[pattern]?.includes(toolId)) {
+          patternScore = Math.max(patternScore, 0.95)
+        }
+      }
+
+      const toolPlaceholder = toolData.example || toolData.description || toolData.name
+
+      // 2. FUZZY MATCHING (20% weight)
+      fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
+
+      // 3. VECTOR SEMANTIC MATCHING (40% weight)
+      const toolEmbedding = await generateEmbedding(toolPlaceholder)
+      vectorScore = cosineSimilarity(inputEmbedding, toolEmbedding)
+
+      let finalScore = (patternScore * 0.4) + (fuzzyScore * 0.2) + (vectorScore * 0.4)
+
+      // BONUS: Boost writing tools when input is plain English
+      if (isPlainEnglish && toolData.category === 'writing') {
+        finalScore = Math.min(1, finalScore + 0.35)
+      }
+
+      return {
+        toolId,
+        name: toolData.name,
+        description: toolData.description,
+        similarity: Math.max(0, Math.min(1, finalScore)),
+      }
+    })
+  )
+
+  const results = toolScores.sort((a, b) => b.similarity - a.similarity)
+
+  // If plain English detected, ensure Text Toolkit is at the top
+  if (isPlainEnglish) {
+    const textToolkitIndex = results.findIndex(t => t.toolId === 'text-toolkit')
+    if (textToolkitIndex > 0) {
+      const textToolkit = results[textToolkitIndex]
+      results.unshift(textToolkit)
+      results.splice(textToolkitIndex + 1, 1)
+    } else if (textToolkitIndex === -1) {
+      // Add Text Toolkit if missing
+      results.unshift({
+        toolId: 'text-toolkit',
+        name: TOOLS['text-toolkit'].name,
+        description: TOOLS['text-toolkit'].description,
+        similarity: 0.98,
+      })
+    }
+  }
+
+  return results
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,355 +165,46 @@ export default async function handler(req, res) {
     }
 
     let inputContent = inputText || 'image input'
-    const lowerInput = inputContent.toLowerCase()
+    const visibilityMap = await getVisibilityMap()
 
-    // Calculate similarity scores for ALL tools based on keyword matching
-    const toolScores = Object.entries(TOOLS).map(([toolId, toolData]) => {
-      let score = 0.3 // Base score for all tools
+    let predictedTools = []
 
-      // Image-based tools
-      if (inputImage) {
-        if (toolId === 'image-resizer' || toolId === 'image-to-base64') {
-          score = 0.95
-        } else if (toolData.inputTypes?.includes('image')) {
-          score = 0.85
-        }
+    // For image input, prioritize image-capable tools
+    if (inputImage) {
+      const imageTools = Object.entries(TOOLS)
+        .filter(([toolId, toolData]) => {
+          if (toolId === 'image-resizer') return true
+          return toolData.inputTypes?.includes('image')
+        })
+        .map(([toolId, toolData]) => ({
+          toolId,
+          name: toolData.name,
+          description: toolData.description,
+          similarity: toolId === 'image-resizer' ? 0.99 : 0.90,
+        }))
+
+      predictedTools = imageTools.filter(t => visibilityMap[t.toolId] !== false)
+    } else {
+      // Try semantic prediction first
+      const semanticResults = await useSemanticPrediction(inputContent)
+
+      if (semanticResults && semanticResults.length > 0) {
+        predictedTools = semanticResults
+        console.log('✓ Using semantic prediction for:', inputContent.substring(0, 50))
+      } else {
+        // Fallback to pattern matching
+        console.warn('⚠ Falling back to pattern matching for:', inputContent.substring(0, 50))
+        predictedTools = await usePatternMatching(inputContent, visibilityMap)
       }
-
-      // HTML-related
-      if (lowerInput.includes('html') || (lowerInput.includes('<') && lowerInput.includes('>'))) {
-        if (['html-formatter', 'html-entities-converter', 'plain-text-stripper', 'markdown-html-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['word-counter', 'case-converter', 'find-replace', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'json-formatter', 'slug-generator', 'reverse-text'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // JSON-related
-      if (lowerInput.includes('json') || (lowerInput.includes('{') && lowerInput.includes('}'))) {
-        if (['json-formatter', 'json-path-extractor'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'base64-converter', 'url-converter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // URL-related
-      if (lowerInput.includes('http://') || lowerInput.includes('https://') || lowerInput.includes('url') || lowerInput.includes('://')) {
-        if (['url-parser', 'url-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['base64-converter', 'plain-text-stripper', 'word-counter', 'find-replace', 'case-converter', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // Base64
-      if ((lowerInput.match(/^[a-z0-9+/]*={0,2}$/i) && lowerInput.length > 4) || lowerInput.includes('base64') || lowerInput.includes('encode') || lowerInput.includes('decode')) {
-        if (['base64-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['url-converter', 'word-counter', 'case-converter', 'plain-text-stripper', 'find-replace', 'remove-extras', 'text-analyzer', 'json-formatter', 'html-formatter', 'slug-generator', 'reverse-text', 'html-entities-converter'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // Regex-related
-      if (lowerInput.includes('regex') || lowerInput.includes('pattern') || lowerInput.includes('match')) {
-        if (['regex-tester'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['find-replace', 'word-counter', 'text-analyzer', 'plain-text-stripper'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // UUID-related
-      if (lowerInput.includes('uuid') || lowerInput.includes('guid') || lowerInput.includes('identifier')) {
-        if (['uuid-validator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // CSV-related
-      if (lowerInput.includes('csv') || lowerInput.includes('comma')) {
-        if (['csv-json-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['json-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // YAML-related
-      if (lowerInput.includes('yaml') || lowerInput.includes('yml') || lowerInput.includes('config')) {
-        if (['yaml-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['xml-formatter', 'json-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // XML-related
-      if (lowerInput.includes('xml')) {
-        if (['xml-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['html-formatter', 'plain-text-stripper'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // Markdown-related
-      if (lowerInput.includes('markdown') || lowerInput.includes('.md')) {
-        if (['markdown-html-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['html-formatter', 'plain-text-stripper'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // Color-related
-      if (lowerInput.includes('color') || lowerInput.includes('rgb') || lowerInput.includes('hex') || /^#[0-9a-f]{6}/i.test(lowerInput)) {
-        if (['color-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // JWT-related
-      if (lowerInput.includes('jwt') || lowerInput.includes('token')) {
-        if (['jwt-decoder'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['base64-converter'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // Timestamp-related
-      if (lowerInput.includes('timestamp') || lowerInput.includes('unix') || /^\d{10}/.test(lowerInput)) {
-        if (['timestamp-converter', 'timezone-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Hash-related
-      if (lowerInput.includes('hash') || lowerInput.includes('md5') || lowerInput.includes('sha')) {
-        if (['checksum-calculator'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-
-
-      // Case-related
-      if (lowerInput.includes('case') || lowerInput.includes('uppercase') || lowerInput.includes('lowercase')) {
-        if (['case-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['slug-generator'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // Reverse-related
-      if (lowerInput.includes('reverse')) {
-        if (['reverse-text'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-
-      // SQL-related
-      if (lowerInput.includes('sql')) {
-        if (['sql-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // CSS-related
-      if (lowerInput.includes('css')) {
-        if (['css-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // HTTP-related
-      if (lowerInput.includes('http')) {
-        if (['http-status-lookup', 'http-header-parser'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // MIME-related
-      if (lowerInput.includes('mime')) {
-        if (['mime-type-lookup'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Escape-related
-      if (lowerInput.includes('escape') || lowerInput.includes('unescape')) {
-        if (['escape-unescape'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Sort-related
-      if (lowerInput.includes('sort')) {
-        if (['sort-lines'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Diff-related
-      if (lowerInput.includes('diff') || lowerInput.includes('compare')) {
-        if (['text-diff-checker'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Unit conversion-related
-      if (lowerInput.includes('unit') || lowerInput.includes('convert')) {
-        if (['unit-converter', 'number-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Cron-related
-      if (lowerInput.includes('cron')) {
-        if (['cron-tester'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // ASCII/Unicode-related
-      if (lowerInput.includes('ascii') || lowerInput.includes('unicode')) {
-        if (['ascii-unicode-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Binary conversion-related
-      if (lowerInput.includes('binary') || lowerInput.includes('hex') || lowerInput.includes('octal')) {
-        if (['binary-converter', 'base-converter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Cipher-related
-      if (lowerInput.includes('rot13') || lowerInput.includes('cipher') || lowerInput.includes('caesar')) {
-        if (['caesar-cipher'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // SVG-related
-      if (lowerInput.includes('svg')) {
-        if (['svg-optimizer'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Whitespace-related
-      if (lowerInput.includes('whitespace') || lowerInput.includes('space')) {
-        if (['whitespace-visualizer'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        } else if (['remove-extras'].includes(toolId)) {
-          score = Math.max(score, 0.75)
-        }
-      }
-
-      // Math-related
-      if (lowerInput.includes('math') || lowerInput.includes('calculate')) {
-        if (['math-evaluator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Keyword extraction-related
-      if (lowerInput.includes('keyword')) {
-        if (['keyword-extractor'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // JavaScript-related
-      if (lowerInput.includes('javascript') || lowerInput.includes('minify js') || lowerInput.includes('beautify js')) {
-        if (['js-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Minify-related
-      if (lowerInput.includes('minify')) {
-        if (['js-formatter', 'css-formatter', 'json-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // Format/beautify-related
-      if (lowerInput.includes('beautify') || lowerInput.includes('format')) {
-        if (['js-formatter', 'html-formatter', 'json-formatter', 'xml-formatter'].includes(toolId)) {
-          score = Math.max(score, 0.85)
-        }
-      }
-
-      // Email-related
-      if (lowerInput.includes('email')) {
-        if (['email-validator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // IP-related
-      if (lowerInput.includes('ip')) {
-        if (['ip-validator', 'ip-to-integer', 'integer-to-ip', 'ip-range-calculator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // IPv4/IPv6-related
-      if (lowerInput.includes('ipv4') || lowerInput.includes('ipv6')) {
-        if (['ip-validator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-      // CIDR/Subnet-related
-      if (lowerInput.includes('cidr') || lowerInput.includes('subnet')) {
-        if (['ip-range-calculator'].includes(toolId)) {
-          score = Math.max(score, 0.95)
-        }
-      }
-
-
-
-      return { toolId, score }
-    })
-
-    // Generator tools to exclude
-    const generatorTools = [
-      'random-string-generator',
-      'variable-name-generator',
-      'function-name-generator',
-      'api-endpoint-generator',
-      'lorem-ipsum-generator',
-      'uuid-generator',
-      'hash-generator',
-      'password-generator',
-      'qr-code-generator',
-    ]
-
-    // Sort all tools by similarity score in descending order, excluding generator tools
-    const sortedTools = toolScores
-      .filter(({ toolId }) => !generatorTools.includes(toolId))
-      .sort((a, b) => b.score - a.score)
-
-    // Return all non-generator tools with their scores
-    const fallbackTools = sortedTools.map(({ toolId, score }) => ({
-      toolId,
-      name: TOOLS[toolId].name,
-      description: TOOLS[toolId].description,
-      similarity: score,
-    }))
+    }
 
     res.status(200).json({
-      predictedTools: fallbackTools,
+      predictedTools,
       inputContent,
+      _debug: {
+        usedSemantic: predictedTools.length > 0 && predictedTools[0].toolId === 'text-toolkit',
+        topMatch: predictedTools[0]?.name,
+      },
     })
   } catch (error) {
     console.error('Prediction error:', error)

@@ -1,0 +1,2 @@
+-- This is temporary, will be applied via MCP
+-- Generated from lib/tools.js

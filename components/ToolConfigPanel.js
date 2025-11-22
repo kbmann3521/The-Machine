@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {} }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
   const [config, setConfig] = useState({})
 
   useEffect(() => {
@@ -139,12 +139,216 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     }
   }
 
+  const toolkitSections = [
+    { id: 'wordCounter', label: 'Word Counter' },
+    { id: 'wordFrequency', label: 'Word Frequency' },
+    { id: 'caseConverter', label: 'Case Converter' },
+    { id: 'textAnalyzer', label: 'Text Analyzer' },
+    { id: 'slugGenerator', label: 'Slug Generator' },
+    { id: 'reverseText', label: 'Reverse Text' },
+    { id: 'removeExtras', label: 'Clean Text' },
+    { id: 'whitespaceVisualizer', label: 'Whitespace' },
+    { id: 'sortLines', label: 'Sort Lines' },
+    { id: 'findReplace', label: 'Find & Replace' },
+    { id: 'textDiff', label: 'Diff Checker' },
+  ]
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h3>{tool.name}</h3>
         <p className={styles.description}>{tool.description}</p>
       </div>
+
+      {tool.toolId === 'text-toolkit' && (
+        <div className={styles.toolkitFilters}>
+          <div className={styles.filterLabel}>Filter Results:</div>
+          <div className={styles.filterButtonsGrid}>
+            {toolkitSections.map(section => (
+              <button
+                key={section.id}
+                className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
+                onClick={() => onToolkitSectionChange(section.id)}
+              >
+                {section.label}
+              </button>
+            ))}
+          </div>
+
+          {activeToolkitSection === 'findReplace' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.findReplaceInputs}>
+                <div className={styles.field}>
+                  <label className={styles.fieldLabel} htmlFor="findText">
+                    Find
+                  </label>
+                  <input
+                    id="findText"
+                    type="text"
+                    className={styles.input}
+                    placeholder="Enter text or pattern to search for"
+                    value={findReplaceConfig?.findText || ''}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, findText: e.target.value })}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label className={styles.fieldLabel} htmlFor="replaceText">
+                    Replace
+                  </label>
+                  <input
+                    id="replaceText"
+                    type="text"
+                    className={styles.input}
+                    placeholder="Enter replacement text"
+                    value={findReplaceConfig?.replaceText || ''}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, replaceText: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.findReplaceToggles}>
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={findReplaceConfig?.useRegex || false}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, useRegex: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Regex</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={findReplaceConfig?.matchCase || false}
+                    onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, matchCase: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Match Case</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {activeToolkitSection === 'sortLines' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="sortOrder">
+                  Sort Order
+                </label>
+                <select
+                  id="sortOrder"
+                  className={styles.input}
+                  value={sortLinesConfig?.order || 'asc'}
+                  onChange={(e) => onSortLinesConfigChange({ ...sortLinesConfig, order: e.target.value })}
+                >
+                  <option value="asc">Ascending (A-Z)</option>
+                  <option value="desc">Descending (Z-A)</option>
+                  <option value="length-asc">By Length (Short to Long)</option>
+                  <option value="length-desc">By Length (Long to Short)</option>
+                  <option value="numeric">Numeric (0-9)</option>
+                  <option value="reverse">Reverse Order</option>
+                </select>
+              </div>
+
+              <div className={styles.findReplaceToggles}>
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={sortLinesConfig?.caseSensitive || false}
+                    onChange={(e) => onSortLinesConfigChange({ ...sortLinesConfig, caseSensitive: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Case-Sensitive</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={sortLinesConfig?.removeDuplicates || false}
+                    onChange={(e) => onSortLinesConfigChange({ ...sortLinesConfig, removeDuplicates: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Duplicates</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {activeToolkitSection === 'removeExtras' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.findReplaceToggles}>
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.trimSpaces !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, trimSpaces: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Trim Spaces</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.removeBlankLines !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeBlankLines: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Blank Lines</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.removeDuplicateLines || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeDuplicateLines: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Duplicates</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.compressLineBreaks || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, compressLineBreaks: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Compress Line Breaks</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {activeToolkitSection === 'textDiff' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="text2">
+                  Compare With
+                </label>
+                <textarea
+                  id="text2"
+                  className={styles.textarea}
+                  placeholder="Paste the second version to compare with the first"
+                  value={diffConfig?.text2 || ''}
+                  onChange={(e) => onDiffConfigChange({ ...diffConfig, text2: e.target.value })}
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {tool.configSchema && tool.configSchema.length > 0 && (
         <div className={styles.fieldsContainer}>

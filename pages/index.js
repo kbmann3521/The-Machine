@@ -23,37 +23,148 @@ export default function Home() {
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
+  const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
+  const [findReplaceConfig, setFindReplaceConfig] = useState({
+    findText: '',
+    replaceText: '',
+    useRegex: false,
+    matchCase: false,
+  })
+  const [diffConfig, setDiffConfig] = useState({
+    text2: '',
+  })
+  const [sortLinesConfig, setSortLinesConfig] = useState({
+    order: 'asc',
+    caseSensitive: false,
+    removeDuplicates: false,
+  })
+  const [removeExtrasConfig, setRemoveExtrasConfig] = useState({
+    trimSpaces: true,
+    removeBlankLines: true,
+    removeDuplicateLines: false,
+    compressLineBreaks: false,
+  })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
+  const visibilityMapRef = useRef({})
+  const previousClassificationRef = useRef(null)
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
   }, [selectedTool])
 
-  useEffect(() => {
-    const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-      toolId,
-      name: toolData.name,
-      description: toolData.description,
-      similarity: 0.75,
-      ...toolData,
-    }))
-    setPredictedTools(allTools)
+  // Fast local classification using heuristics (no API call)
+  const fastLocalClassification = useCallback((text) => {
+    const lowerText = text.toLowerCase().trim()
 
-    // Set Word Counter as default tool
-    const wordCounterTool = allTools.find(tool => tool.toolId === 'word-counter')
-    if (wordCounterTool) {
-      setSelectedTool(wordCounterTool)
+    let inputType = 'text'
+    let contentSummary = lowerText.substring(0, 100)
+    let intentHint = 'unknown'
 
-      const initialConfig = {}
-      if (wordCounterTool?.configSchema) {
-        wordCounterTool.configSchema.forEach(field => {
-          initialConfig[field.id] = field.default || ''
-        })
-      }
-      setConfigOptions(initialConfig)
+    // Detect input type
+    if (/^https?:\/\/|^www\./.test(lowerText)) {
+      inputType = 'url'
+      intentHint = 'url_processing'
+    } else if (/^data:image/.test(lowerText) || /\.(jpg|jpeg|png|gif|webp)$/i.test(lowerText)) {
+      inputType = 'image'
+      intentHint = 'image_processing'
+    } else if (/^[{}\[\]<>]|function|const|let|var|class|import|export/.test(lowerText)) {
+      inputType = 'code'
+      intentHint = 'code_processing'
     }
+
+    // Detect intent hints from keywords
+    if (/convert|transform|change|switch/.test(lowerText)) {
+      intentHint = 'transformation'
+    } else if (/count|measure|analyze|statistics|metric/.test(lowerText)) {
+      intentHint = 'analysis'
+    } else if (/find|search|match|locate|select/.test(lowerText)) {
+      intentHint = 'search'
+    } else if (/remove|clean|strip|delete|trim|compress|minify/.test(lowerText)) {
+      intentHint = 'cleaning'
+    } else if (/encode|decode|escape|unescape|hash|crypt/.test(lowerText)) {
+      intentHint = 'encoding'
+    } else if (/format|beautify|pretty|indent|organize/.test(lowerText)) {
+      intentHint = 'formatting'
+    }
+
+    return {
+      inputType,
+      contentSummary,
+      intentHint,
+    }
+  }, [])
+
+  // Check if classification has meaningfully changed
+  const hasClassificationChanged = useCallback((newClassification) => {
+    const prev = previousClassificationRef.current
+
+    // First classification always triggers search
+    if (!prev) {
+      return true
+    }
+
+    // Different input type = meaningful change
+    if (prev.inputType !== newClassification.inputType) {
+      return true
+    }
+
+    // Different intent hint = meaningful change
+    if (prev.intentHint !== newClassification.intentHint) {
+      return true
+    }
+
+    // If intent is 'unknown', small text changes might not matter much
+    if (prev.intentHint === 'unknown' && newClassification.intentHint === 'unknown') {
+      // Only re-search if text length changes significantly (e.g., user finished a word)
+      const prevLen = prev.contentSummary.length
+      const newLen = newClassification.contentSummary.length
+      return Math.abs(newLen - prevLen) > 5
+    }
+
+    // Same input type and intent hint = no meaningful change
+    return false
+  }, [])
+
+  useEffect(() => {
+    const initializeTools = async () => {
+      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+        toolId,
+        name: toolData.name,
+        description: toolData.description,
+        similarity: 0.5, // Neutral similarity for unranked tools
+        ...toolData,
+      }))
+
+      // Fetch visibility flags from Supabase
+      try {
+        const response = await fetch('/api/tools/get-visibility')
+        const { visibilityMap } = await response.json()
+
+        // Store visibility map for use in predictTools
+        visibilityMapRef.current = visibilityMap
+
+        // Filter out tools with show_in_recommendations = false
+        const visibleTools = allTools.filter(tool =>
+          visibilityMap[tool.toolId] !== false
+        )
+
+        setPredictedTools(visibleTools)
+
+        // Don't set a default tool - wait for user input to select the best match
+      } catch (error) {
+        console.error('Failed to fetch tool visibility:', error)
+        // Fallback: show all tools if API call fails
+        const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+        visibilityMapRef.current = {}
+        setPredictedTools(visibleTools)
+
+        // Don't set a default tool - wait for user input to select the best match
+      }
+    }
+
+    initializeTools()
   }, [])
 
   const predictTools = useCallback(async (text, image, preview) => {
@@ -63,19 +174,28 @@ export default function Home() {
           toolId,
           name: toolData.name,
           description: toolData.description,
-          similarity: 0.75,
+          similarity: 0.5, // Neutral similarity for unranked tools
           ...toolData,
         }))
 
+        // Filter out tools with show_in_recommendations = false using the stored visibility map
+        const visibleTools = allTools.filter(tool => {
+          // Use visibility map from API if available, otherwise fall back to TOOLS property
+          if (visibilityMapRef.current && visibilityMapRef.current.hasOwnProperty(tool.toolId)) {
+            return visibilityMapRef.current[tool.toolId] !== false
+          }
+          return tool.show_in_recommendations !== false
+        })
+
         // Only update if the order has changed
-        const newOrder = allTools.map(t => t.toolId).join(',')
+        const newOrder = visibleTools.map(t => t.toolId).join(',')
         const prevOrder = prevTools.map(t => t.toolId).join(',')
 
         if (newOrder === prevOrder) {
           return prevTools
         }
 
-        return allTools
+        return visibleTools
       })
       return
     }
@@ -88,12 +208,16 @@ export default function Home() {
       clearTimeout(loadingTimerRef.current)
     }
 
-    // Only show loading if the request takes longer than 300ms
+    // Only show loading if the request takes longer than 500ms
     loadingTimerRef.current = setTimeout(() => {
       setLoading(true)
-    }, 300)
+    }, 500)
 
     try {
+      // Store the classification that triggered this search
+      const triggeringClassification = fastLocalClassification(text)
+      previousClassificationRef.current = triggeringClassification
+
       const response = await fetch('/api/tools/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,34 +238,28 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      setPredictedTools(prevTools => {
-        let finalTools = [...toolsWithMetadata]
-        const currentSelected = selectedToolRef.current
+      // Always auto-select the best match tool from predictions
+      if (toolsWithMetadata.length > 0) {
+        const topTool = toolsWithMetadata[0]
+        setSelectedTool(topTool)
 
-        if (currentSelected) {
-          // Remove the selected tool from the list if it exists
-          finalTools = finalTools.filter(t => t.toolId !== currentSelected.toolId)
-          // Always put the selected tool at the top
-          finalTools.unshift(currentSelected)
+        // Set up initial config for the top tool
+        const initialConfig = {}
+        if (topTool?.configSchema) {
+          topTool.configSchema.forEach(field => {
+            initialConfig[field.id] = field.default || ''
+          })
         }
 
-        // Only update if the order has changed
-        const newOrder = finalTools.map(t => t.toolId).join(',')
-        const prevOrder = prevTools.map(t => t.toolId).join(',')
-
-        if (newOrder === prevOrder) {
-          return prevTools
+        // Auto-detect config from input if available
+        const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
+        if (detectedConfig) {
+          Object.assign(initialConfig, detectedConfig)
         }
 
-        return finalTools
-      })
-
-      setSelectedTool(prevSelected => {
-        if (!prevSelected && toolsWithMetadata.length > 0) {
-          return toolsWithMetadata[0]
-        }
-        return prevSelected
-      })
+        setConfigOptions(initialConfig)
+      }
+      setPredictedTools(toolsWithMetadata)
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
@@ -151,7 +269,7 @@ export default function Home() {
       }
       setLoading(false)
     }
-  }, [])
+  }, [fastLocalClassification])
 
   const handleInputChange = useCallback((text, image, preview) => {
     setInputText(text)
@@ -173,9 +291,20 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      predictTools(text, image, preview)
-    }, 300)
-  }, [predictTools])
+      // Input Stability Check: Only search if classification meaningfully changed
+      const newClassification = fastLocalClassification(text)
+
+      if (hasClassificationChanged(newClassification)) {
+        // Classification changed - run full semantic search
+        previousClassificationRef.current = newClassification
+        predictTools(text, image, preview)
+      } else {
+        // Classification unchanged - reuse cached results
+        // Clear loading state since we're not making API calls
+        setLoading(false)
+      }
+    }, 700)
+  }, [predictTools, fastLocalClassification, hasClassificationChanged])
 
   const handleImageChange = useCallback((file, preview) => {
     setInputImage(file)
@@ -185,6 +314,9 @@ export default function Home() {
       clearTimeout(debounceTimerRef.current)
     }
 
+    // Image input always triggers search (different from text)
+    const imageClassification = { inputType: 'image', contentSummary: 'image', intentHint: 'image_processing' }
+    previousClassificationRef.current = imageClassification
     predictTools(inputText, file, preview)
   }, [inputText, predictTools])
 
@@ -248,6 +380,38 @@ export default function Home() {
           const resizedData = await resizeImage(imagePreview, config)
           setOutputResult(resizedData)
         } else {
+          // For text-toolkit, merge find/replace, diff, or sort lines config if that section is active
+          let finalConfig = config
+          if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
+            finalConfig = {
+              ...config,
+              findText: findReplaceConfig.findText || '',
+              replaceText: findReplaceConfig.replaceText || '',
+              useRegex: findReplaceConfig.useRegex || false,
+              matchCase: findReplaceConfig.matchCase || false,
+            }
+          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'textDiff') {
+            finalConfig = {
+              ...config,
+              text2: diffConfig.text2 || '',
+            }
+          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'sortLines') {
+            finalConfig = {
+              ...config,
+              order: sortLinesConfig.order || 'asc',
+              caseSensitive: sortLinesConfig.caseSensitive || false,
+              removeDuplicates: sortLinesConfig.removeDuplicates || false,
+            }
+          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'removeExtras') {
+            finalConfig = {
+              ...config,
+              trimSpaces: removeExtrasConfig.trimSpaces || true,
+              removeBlankLines: removeExtrasConfig.removeBlankLines || true,
+              removeDuplicateLines: removeExtrasConfig.removeDuplicateLines || false,
+              compressLineBreaks: removeExtrasConfig.compressLineBreaks || false,
+            }
+          }
+
           const response = await fetch('/api/tools/run', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -255,7 +419,7 @@ export default function Home() {
               toolId: tool.toolId,
               inputText: textToUse,
               inputImage: imagePreview,
-              config,
+              config: finalConfig,
             }),
           })
 
@@ -274,7 +438,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -290,7 +454,7 @@ export default function Home() {
         autoRunTool(selectedTool, configOptions)
       }
     }
-  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview])
+  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview, activeToolkitSection])
 
 
   return (
@@ -322,7 +486,7 @@ export default function Home() {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1>All-in-One Internet Tools</h1>
-            <p>Start typing or upload an image to get AI-powered tool suggestions</p>
+            <p>Describe what you need, and we'll suggest the right tools to get the job done</p>
           </div>
           <ThemeToggle />
         </div>
@@ -358,6 +522,16 @@ export default function Home() {
                       loading={toolLoading}
                       onRegenerate={handleRegenerate}
                       currentConfig={configOptions}
+                      activeToolkitSection={activeToolkitSection}
+                      onToolkitSectionChange={setActiveToolkitSection}
+                      findReplaceConfig={findReplaceConfig}
+                      onFindReplaceConfigChange={setFindReplaceConfig}
+                      diffConfig={diffConfig}
+                      onDiffConfigChange={setDiffConfig}
+                      sortLinesConfig={sortLinesConfig}
+                      onSortLinesConfigChange={setSortLinesConfig}
+                      removeExtrasConfig={removeExtrasConfig}
+                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
                     />
                     <button
                       className={styles.descriptionToggle}
@@ -380,6 +554,7 @@ export default function Home() {
                   loading={toolLoading}
                   error={error}
                   toolId={selectedTool?.toolId}
+                  activeToolkitSection={activeToolkitSection}
                 />
               </div>
             </div>

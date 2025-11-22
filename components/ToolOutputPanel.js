@@ -1,12 +1,25 @@
 import React, { useState } from 'react'
 import styles from '../styles/tool-output.module.css'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
   const [previousToolId, setPreviousToolId] = useState(null)
+  const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+
+  const getToolkitSectionKey = (section) => {
+    const keyMap = {
+      'findReplace': 'findReplace',
+      'slugGenerator': 'slugGenerator',
+      'reverseText': 'reverseText',
+      'removeExtras': 'removeExtras',
+      'whitespaceVisualizer': 'whitespaceVisualizer',
+      'sortLines': 'sortLines',
+    }
+    return keyMap[section]
+  }
 
   React.useEffect(() => {
     if (result && !loading) {
@@ -20,13 +33,31 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setPreviousToolId(toolId)
       setIsFirstLoad(true)
       setPreviousResult(null)
+      setPreviousToolkitSection(null)
     }
   }, [toolId, previousToolId])
 
-  const displayResult = (toolId === previousToolId) ? (result || previousResult) : result
+  React.useEffect(() => {
+    if (toolId === 'text-toolkit' && activeToolkitSection !== previousToolkitSection) {
+      // Clear previousResult when switching toolkit sections to prevent showing old content
+      setPreviousResult(null)
+      setPreviousToolkitSection(activeToolkitSection)
+    }
+  }, [activeToolkitSection, previousToolkitSection, toolId])
+
+  // For text-toolkit, only use previousResult if we haven't switched sections
+  const shouldUsePreviousResult = (toolId === previousToolId) &&
+    (toolId !== 'text-toolkit' || activeToolkitSection === previousToolkitSection)
+
+  const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
 
-  if (isEmpty) {
+  // For text-toolkit, check if current section has content
+  const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
+    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
+    !displayResult[getToolkitSectionKey(activeToolkitSection)]
+
+  if (isEmpty || isTextToolkitWithoutContent) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
@@ -39,10 +70,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   const handleCopy = async () => {
     let textToCopy = ''
-    if (typeof displayResult === 'string') {
-      textToCopy = displayResult
-    } else {
-      textToCopy = JSON.stringify(displayResult, null, 2)
+
+    // Special handling for text-toolkit sections that render as full-height text
+    if (toolId === 'text-toolkit' && displayResult) {
+      if (activeToolkitSection === 'findReplace' && displayResult.findReplace) {
+        textToCopy = displayResult.findReplace
+      } else if (activeToolkitSection === 'slugGenerator' && displayResult.slugGenerator) {
+        textToCopy = displayResult.slugGenerator
+      } else if (activeToolkitSection === 'reverseText' && displayResult.reverseText) {
+        textToCopy = displayResult.reverseText
+      } else if (activeToolkitSection === 'removeExtras' && displayResult.removeExtras) {
+        textToCopy = displayResult.removeExtras
+      } else if (activeToolkitSection === 'whitespaceVisualizer' && displayResult.whitespaceVisualizer) {
+        textToCopy = displayResult.whitespaceVisualizer
+      } else if (activeToolkitSection === 'sortLines' && displayResult.sortLines) {
+        textToCopy = displayResult.sortLines
+      }
+    }
+
+    if (!textToCopy) {
+      if (typeof displayResult === 'string') {
+        textToCopy = displayResult
+      } else {
+        textToCopy = JSON.stringify(displayResult, null, 2)
+      }
     }
 
     try {
@@ -208,6 +259,78 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           { label: 'Paragraph Count', value: String(result.paragraphCount || 0) },
         ].filter(f => f.value !== undefined && f.value !== null)
 
+      case 'text-toolkit':
+        // Word Counter - show as structured fields
+        if (activeToolkitSection === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
+          return [
+            { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
+            { label: 'Character Count', value: String(result.wordCounter.characterCount || 0) },
+            { label: 'Character Count (no spaces)', value: String(result.wordCounter.characterCountNoSpaces || 0) },
+            { label: 'Sentence Count', value: String(result.wordCounter.sentenceCount || 0) },
+            { label: 'Line Count', value: String(result.wordCounter.lineCount || 0) },
+            { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
+          ].filter(f => f.value !== undefined && f.value !== null)
+        }
+
+        // Case Converter - show as structured fields
+        if (activeToolkitSection === 'caseConverter' && result.caseConverter && typeof result.caseConverter === 'object') {
+          const fields = []
+          if (result.caseConverter.uppercase) {
+            fields.push({ label: 'UPPERCASE', value: result.caseConverter.uppercase })
+          }
+          if (result.caseConverter.lowercase) {
+            fields.push({ label: 'lowercase', value: result.caseConverter.lowercase })
+          }
+          if (result.caseConverter.titleCase) {
+            fields.push({ label: 'Title Case', value: result.caseConverter.titleCase })
+          }
+          if (result.caseConverter.sentenceCase) {
+            fields.push({ label: 'Sentence case', value: result.caseConverter.sentenceCase })
+          }
+          return fields.filter(f => f.value !== undefined && f.value !== null)
+        }
+
+
+        // Text Analyzer - show as structured fields
+        if (activeToolkitSection === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
+          const fields = []
+          if (result.textAnalyzer.readability) {
+            if (result.textAnalyzer.readability.readabilityLevel) {
+              fields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
+            }
+            if (result.textAnalyzer.readability.fleschReadingEase !== undefined) {
+              fields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
+            }
+            if (result.textAnalyzer.readability.fleschKincaidGrade !== undefined) {
+              fields.push({ label: 'Flesch-Kincaid Grade', value: result.textAnalyzer.readability.fleschKincaidGrade })
+            }
+          }
+          if (result.textAnalyzer.statistics) {
+            if (result.textAnalyzer.statistics.words !== undefined) {
+              fields.push({ label: 'Words', value: result.textAnalyzer.statistics.words })
+            }
+            if (result.textAnalyzer.statistics.characters !== undefined) {
+              fields.push({ label: 'Characters', value: result.textAnalyzer.statistics.characters })
+            }
+            if (result.textAnalyzer.statistics.sentences !== undefined) {
+              fields.push({ label: 'Sentences', value: result.textAnalyzer.statistics.sentences })
+            }
+            if (result.textAnalyzer.statistics.lines !== undefined) {
+              fields.push({ label: 'Lines', value: result.textAnalyzer.statistics.lines })
+            }
+            if (result.textAnalyzer.statistics.averageWordLength !== undefined) {
+              fields.push({ label: 'Avg Word Length', value: result.textAnalyzer.statistics.averageWordLength?.toFixed(2) })
+            }
+            if (result.textAnalyzer.statistics.averageWordsPerSentence !== undefined) {
+              fields.push({ label: 'Avg Words per Sentence', value: result.textAnalyzer.statistics.averageWordsPerSentence?.toFixed(2) })
+            }
+          }
+          return fields.filter(f => f.value !== undefined && f.value !== null)
+        }
+
+        // All other sections render as full-height text, not structured fields
+        return null
+
       default:
         return null
     }
@@ -234,6 +357,65 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return null
     }
 
+    // Special handling for text-toolkit sections that render as full-height text
+    if (toolId === 'text-toolkit' && displayResult) {
+      let textContent = null
+      let hasContentForCurrentSection = false
+
+      if (activeToolkitSection === 'findReplace') {
+        hasContentForCurrentSection = !!displayResult.findReplace
+        textContent = displayResult.findReplace
+      } else if (activeToolkitSection === 'slugGenerator') {
+        hasContentForCurrentSection = !!displayResult.slugGenerator
+        textContent = displayResult.slugGenerator
+      } else if (activeToolkitSection === 'reverseText') {
+        hasContentForCurrentSection = !!displayResult.reverseText
+        textContent = displayResult.reverseText
+      } else if (activeToolkitSection === 'removeExtras') {
+        hasContentForCurrentSection = !!displayResult.removeExtras
+        textContent = displayResult.removeExtras
+      } else if (activeToolkitSection === 'whitespaceVisualizer') {
+        hasContentForCurrentSection = !!displayResult.whitespaceVisualizer
+        textContent = displayResult.whitespaceVisualizer
+      } else if (activeToolkitSection === 'sortLines') {
+        hasContentForCurrentSection = !!displayResult.sortLines
+        textContent = displayResult.sortLines
+      }
+
+      // Only render text content if we have it for the current section
+      if (textContent) {
+        return (
+          <pre className={styles.textOutput}>
+            <code>{textContent}</code>
+          </pre>
+        )
+      }
+
+      // If the current section is a full-height text section but we don't have content for it,
+      // don't render the old structured output - wait for the new result
+      if (!hasContentForCurrentSection && ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)) {
+        return null
+      }
+
+      // Text Diff - show JSON only
+      if (activeToolkitSection === 'textDiff' && displayResult.textDiff) {
+        return (
+          <pre className={styles.jsonOutput}>
+            <code>{JSON.stringify(displayResult.textDiff, null, 2)}</code>
+          </pre>
+        )
+      }
+
+      // Word Frequency - show JSON only
+      if (activeToolkitSection === 'wordFrequency' && displayResult.wordFrequency) {
+        return (
+          <pre className={styles.jsonOutput}>
+            <code>{JSON.stringify(displayResult.wordFrequency, null, 2)}</code>
+          </pre>
+        )
+      }
+    }
+
     if (displayResult?.resizedImage) {
       return (
         <div className={styles.imageOutput}>
@@ -255,24 +437,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (typeof displayResult === 'object') {
-      const structuredView = renderStructuredOutput()
-      if (structuredView) {
-        return (
-          <div>
-            {structuredView}
-            <div className={styles.jsonFallback}>
-              <details>
-                <summary>View full JSON</summary>
-                <pre className={styles.jsonOutput}>
-                  <code>{JSON.stringify(displayResult, null, 2)}</code>
-                </pre>
-              </details>
+      // For text-toolkit with full-height text sections, don't show JSON fallback
+      const isFullHeightTextSection = toolId === 'text-toolkit' &&
+        ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)
+
+      if (!isFullHeightTextSection) {
+        const structuredView = renderStructuredOutput()
+        if (structuredView) {
+          return (
+            <div>
+              {structuredView}
+              <div className={styles.jsonFallback}>
+                <details>
+                  <summary>View full JSON</summary>
+                  <pre className={styles.jsonOutput}>
+                    <code>{JSON.stringify(displayResult, null, 2)}</code>
+                  </pre>
+                </details>
+              </div>
             </div>
-          </div>
-        )
+          )
+        }
       }
 
-      if (outputType === 'json' || typeof displayResult === 'object') {
+      if (outputType === 'json' || (typeof displayResult === 'object' && !isFullHeightTextSection)) {
         return (
           <pre className={styles.jsonOutput}>
             <code>{JSON.stringify(displayResult, null, 2)}</code>
