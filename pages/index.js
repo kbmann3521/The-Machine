@@ -36,6 +36,7 @@ export default function Home() {
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
+  const visibilityMapRef = useRef({})
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
