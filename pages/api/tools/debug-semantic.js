@@ -100,6 +100,12 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ inputText }),
     })
+
+    if (!semanticResp.ok) {
+      const errorText = await semanticResp.text()
+      throw new Error(`Semantic prediction failed: ${semanticResp.status} ${errorText}`)
+    }
+
     const semanticData = await semanticResp.json()
     results.semanticPredictionResults = semanticData.predictedTools?.slice(0, 5) || []
     console.log('✓ Semantic prediction returned', semanticData.predictedTools?.length, 'results')
