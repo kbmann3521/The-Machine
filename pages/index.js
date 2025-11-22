@@ -39,10 +39,22 @@ export default function Home() {
     removeDuplicates: false,
   })
   const [removeExtrasConfig, setRemoveExtrasConfig] = useState({
-    trimSpaces: true,
+    removePdfGarbage: true,
+    removeInvisibleChars: true,
+    stripHtml: true,
+    stripMarkdown: true,
+    normalizeWhitespace: true,
+    smartJoinWords: false,
+    fixPunctuationSpacing: true,
+    compressSpaces: true,
+    trimLines: true,
+    removeLineBreaks: false,
     removeBlankLines: true,
+    compressLineBreaks: true,
+    removeTimestamps: false,
     removeDuplicateLines: false,
-    compressLineBreaks: false,
+    filterCharacters: 'none',
+    flattenToSingleLine: false,
   })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
