@@ -258,8 +258,43 @@ export default async function handler(req, res) {
       // For structured inputs: direct selection
       // For plain_text: semantic search
       
-      if (shouldUseSemanticSearch(inputType.type)) {
-        // LAYER 3: Semantic search for plain_text
+      if (inputType.type === 'plain_text') {
+        // For plain text: Text Toolkit gets priority (0.95 confidence = green)
+        // No semantic search needed - plain text is the fallback for everything else
+        const matchedToolIds = ['text-toolkit', 'plain-text-stripper']
+
+        // Separate matched and unmatched tools
+        const matchedTools = []
+        const unmatchedTools = []
+
+        Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+          if (visibilityMap[toolId] === false) return
+
+          let similarity = 0
+          if (toolId === 'text-toolkit') {
+            similarity = 0.98 // Text Toolkit is always top for plain text
+          } else if (toolId === 'plain-text-stripper') {
+            similarity = 0.85 // Secondary plain text tool
+          }
+
+          const tool = {
+            toolId,
+            name: toolData.name,
+            description: toolData.description,
+            similarity,
+            source: similarity > 0 ? 'plain_text_detection' : 'unmatched',
+          }
+
+          if (similarity > 0) {
+            matchedTools.push(tool)
+          } else {
+            unmatchedTools.push(tool)
+          }
+        })
+
+        predictedTools = [...matchedTools, ...unmatchedTools]
+      } else if (shouldUseSemanticSearch(inputType.type)) {
+        // LAYER 3: Semantic search for ambiguous text
         const semanticResults = await layerSemanticSearch(inputContent, inputType.type, visibilityMap)
 
         if (semanticResults && semanticResults.length > 0) {
@@ -271,9 +306,9 @@ export default async function handler(req, res) {
           // Apply scoring formula with bias to semantic results
           const scoredResults = semanticResults.map(result => {
             const toolBias = getToolBiasWeight(result.toolId, inputType.type)
-            // Use the input type confidence as heuristic score (we already detected plain_text with 0.85)
+            // Use the input type confidence as heuristic score
             const finalScore = calculateFinalScore(
-              inputType.confidence, // Heuristic score from input type detection
+              inputType.confidence,
               result.semanticScore,
               toolBias
             )
