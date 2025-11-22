@@ -20,11 +20,14 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'clear') {
-      // Clear all embeddings - use empty array for vector columns
-      // Since embeddings are stored as pgvector format strings
+      // Clear all embeddings - store an array of zeros (1536 dimensions) instead of null
+      // pgvector columns in Supabase don't handle null well, so we use zero vector
+      // This will be overwritten during regeneration
+      const zeroVector = `[${new Array(1536).fill(0).join(',')}]`
+
       const { data, error } = await supabase
         .from('tools')
-        .update({ embedding: '[]' })
+        .update({ embedding: zeroVector })
         .neq('id', '')
 
       if (error) {
