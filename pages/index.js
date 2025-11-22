@@ -78,15 +78,18 @@ export default function Home() {
           ...toolData,
         }))
 
+        // Filter out tools with show_in_recommendations = false
+        const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+
         // Only update if the order has changed
-        const newOrder = allTools.map(t => t.toolId).join(',')
+        const newOrder = visibleTools.map(t => t.toolId).join(',')
         const prevOrder = prevTools.map(t => t.toolId).join(',')
 
         if (newOrder === prevOrder) {
           return prevTools
         }
 
-        return allTools
+        return visibleTools
       })
       return
     }
