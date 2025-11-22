@@ -186,10 +186,7 @@
 }
 
 .toolScore {
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
-  transition: color 0.3s ease;
+  display: none;
 }
 
 .emptyState {
