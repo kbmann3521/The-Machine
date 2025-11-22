@@ -61,23 +61,35 @@ For things that look like validation patterns (IPs, UUIDs, etc.): use category "
         .trim()
       classification = JSON.parse(jsonStr)
     } catch {
-      // Fallback classification - plain English text defaults to writing
+      // Fallback classification with specific pattern detection
       const inputLower = input.toLowerCase()
+      const inputTrimmed = input.trim()
       let inputType = 'text'
-      let category = 'writing'  // Default everything to writing unless proven otherwise
+      let category = 'writing'  // Default to writing unless proven otherwise
 
-      if (
-        /^(https?:\/\/|www\.)/i.test(input) ||
-        /^data:image/.test(input)
-      ) {
+      // Check for specific patterns first (most specific to least)
+      if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(inputTrimmed)) {
+        // Email address
+        inputType = 'email'
+        category = 'email'
+      } else if (/^(https?:\/\/|www\.)/i.test(inputTrimmed) || /^data:image/.test(inputTrimmed)) {
+        // URL
         inputType = 'url'
         category = 'url'
-      } else if (/[{}\[\]<>]|function|const|let|var|class|import|export/.test(input)) {
+      } else if (/^(\d{1,3}\.){3}\d{1,3}$/.test(inputTrimmed) ||
+                 /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(inputTrimmed) ||
+                 /^[0-9a-f]{32}$/i.test(inputTrimmed)) {
+        // IP address, UUID, or hash - validation patterns
+        inputType = 'validator'
+        category = 'validator'
+      } else if (/[{}\[\]<>]|function|const|let|var|class|import|export/.test(inputTrimmed)) {
+        // Code
         inputType = 'code'
         category = 'code'
-      } else if (/^[{]|^\[|^<\?xml|^name,|^\w+:\s/m.test(input)) {
+      } else if (/^[{]|^\[|^<\?xml|^name,|^\w+:\s/m.test(inputTrimmed)) {
+        // Structured data
         category = 'data'
-      } else if (/[.!?]|[a-z]\s+[a-z]|the\s|and\s|or\s|is\s|a\s|to\s/i.test(input) && input.length > 10) {
+      } else if (/[.!?]|[a-z]\s+[a-z]|the\s|and\s|or\s|is\s|a\s|to\s/i.test(inputTrimmed) && inputTrimmed.length > 10) {
         // Plain English text detection: sentences with punctuation, articles, conjunctions
         category = 'writing'
       }
