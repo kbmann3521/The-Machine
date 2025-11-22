@@ -1,4 +1,4 @@
-const OpenAI = require('../../../lib/openaiWrapper')
+import OpenAI from '../../../lib/openaiWrapper.js'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -21,19 +21,25 @@ export default async function handler(req, res) {
       messages: [
         {
           role: 'system',
-          content: `You are an input classifier. Analyze the input and determine its type and content summary. 
+          content: `You are an input classifier. Analyze the input and determine its type, category, and content summary.
 Return ONLY a JSON object (no markdown, no extra text) with this exact structure:
 {
   "input_type": "text|image|url|code|file",
+  "category": "writing|url|code|image|data|other",
   "content_summary": "brief description of what this input is"
 }
 
 Guidelines:
-- text: plain English or natural language text
-- image: image data, screenshots, visual content (usually base64 or image URLs)
-- url: web URLs, links (http://, https://, www.)
-- code: programming code in any language
-- file: file data, binary content, structured data formats`,
+- input_type determines the data format (text, image, url, code, file)
+- category determines the intent/purpose:
+  - writing: plain English sentences, paragraphs, essays, articles, natural language text
+  - url: web URLs, links, web addresses
+  - code: programming code, markup, configuration
+  - image: visual content, screenshots
+  - data: structured data (JSON, CSV, XML, etc.)
+  - other: anything else
+
+For plain English text (paragraphs, sentences, articles, essays): use category "writing"`,
         },
         {
           role: 'user',
@@ -54,17 +60,24 @@ Guidelines:
       // Fallback classification
       const inputLower = input.toLowerCase()
       let inputType = 'text'
+      let category = 'writing'
+
       if (
         /^(https?:\/\/|www\.)/i.test(input) ||
         /^data:image/.test(input)
       ) {
         inputType = 'url'
-      } else if (/[{}\[\]<>]|function|const|let|var|class/.test(input)) {
+        category = 'url'
+      } else if (/[{}\[\]<>]|function|const|let|var|class|import|export/.test(input)) {
         inputType = 'code'
+        category = 'code'
+      } else if (/^[{]|^\[|^<\?xml|^name,|^\w+:\s/m.test(input)) {
+        category = 'data'
       }
 
       classification = {
         input_type: inputType,
+        category: category,
         content_summary: input.substring(0, 100),
       }
     }
