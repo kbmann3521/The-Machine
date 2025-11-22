@@ -409,23 +409,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   <span>Remove Duplicates</span>
                 </label>
               </div>
-
-              <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor="filterCharacters">
-                  Filter Characters
-                </label>
-                <select
-                  id="filterCharacters"
-                  className={styles.select}
-                  value={removeExtrasConfig?.filterCharacters || 'none'}
-                  onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, filterCharacters: e.target.value })}
-                >
-                  <option value="none">No filtering</option>
-                  <option value="ascii-only">ASCII only (a-zA-Z0-9 + punctuation)</option>
-                  <option value="keep-accents">Keep accented letters (àáé, etc.)</option>
-                  <option value="basic-punctuation">Keep basic punctuation only</option>
-                </select>
-              </div>
             </div>
           )}
 
