@@ -281,11 +281,110 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
-                    checked={removeExtrasConfig?.trimSpaces !== false}
-                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, trimSpaces: e.target.checked })}
+                    checked={removeExtrasConfig?.removePdfGarbage !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removePdfGarbage: e.target.checked })}
                   />
                   <span className={styles.toggleSlider}></span>
-                  <span>Trim Spaces</span>
+                  <span>Remove PDF Garbage</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.removeInvisibleChars !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeInvisibleChars: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Invisible Chars</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.stripHtml !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, stripHtml: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Strip HTML</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.stripMarkdown !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, stripMarkdown: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Strip Markdown</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.normalizeWhitespace !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, normalizeWhitespace: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Normalize Whitespace</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.smartJoinWords || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, smartJoinWords: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Smart Join OCR Words</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.fixPunctuationSpacing !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, fixPunctuationSpacing: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Fix Punctuation Spacing</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.compressSpaces !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, compressSpaces: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Compress Spaces</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.trimLines !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, trimLines: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Trim Lines</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.removeLineBreaks || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeLineBreaks: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Line Breaks</span>
                 </label>
 
                 <label className={styles.inlineToggleLabel}>
@@ -303,23 +402,51 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
-                    checked={removeExtrasConfig?.removeDuplicateLines || false}
-                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeDuplicateLines: e.target.checked })}
+                    checked={removeExtrasConfig?.compressLineBreaks !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, compressLineBreaks: e.target.checked })}
                   />
                   <span className={styles.toggleSlider}></span>
-                  <span>Remove Duplicates</span>
+                  <span>Compress Line Breaks</span>
                 </label>
 
                 <label className={styles.inlineToggleLabel}>
                   <input
                     type="checkbox"
                     className={styles.toggleInput}
-                    checked={removeExtrasConfig?.compressLineBreaks || false}
-                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, compressLineBreaks: e.target.checked })}
+                    checked={removeExtrasConfig?.removeTimestamps || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeTimestamps: e.target.checked })}
                   />
                   <span className={styles.toggleSlider}></span>
-                  <span>Compress Line Breaks</span>
+                  <span>Remove Timestamps</span>
                 </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.removeDuplicateLines || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeDuplicateLines: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Duplicates</span>
+                </label>
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="filterCharacters">
+                  Filter Characters
+                </label>
+                <select
+                  id="filterCharacters"
+                  className={styles.select}
+                  value={removeExtrasConfig?.filterCharacters || 'none'}
+                  onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, filterCharacters: e.target.value })}
+                >
+                  <option value="none">No filtering</option>
+                  <option value="ascii-only">ASCII only (a-zA-Z0-9 + punctuation)</option>
+                  <option value="keep-accents">Keep accented letters (àáé, etc.)</option>
+                  <option value="basic-punctuation">Keep basic punctuation only</option>
+                </select>
               </div>
             </div>
           )}
