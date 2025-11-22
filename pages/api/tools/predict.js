@@ -165,25 +165,37 @@ function calculateFinalScore(heuristicScore, semanticScore, toolBias) {
 
 /**
  * Direct tool selection based on input type
- * Returns all tools, with matched tools having high similarity
+ * Returns all tools, with matched tools first and ordered by relevance
  */
 async function directToolSelection(inputType, visibilityMap) {
   const matchedToolIds = getToolsForInputType(inputType)
-  const matchedSet = new Set(matchedToolIds)
+  const matchedMap = new Map(matchedToolIds.map((id, idx) => [id, 0.95 - (idx * 0.02)]))
 
-  // Return ALL visible tools
-  return Object.entries(TOOLS)
-    .filter(([toolId]) => visibilityMap[toolId] !== false)
-    .map(([toolId, toolData]) => {
-      const isMatched = matchedSet.has(toolId)
-      return {
-        toolId,
-        name: toolData.name,
-        description: toolData.description,
-        similarity: isMatched ? 0.95 : 0, // High for matched, 0 for others
-        source: isMatched ? 'hard_detection' : 'unmatched',
-      }
-    })
+  // Separate matched and unmatched tools
+  const matchedTools = []
+  const unmatchedTools = []
+
+  Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+    if (visibilityMap[toolId] === false) return
+
+    const similarity = matchedMap.get(toolId) || 0
+    const tool = {
+      toolId,
+      name: toolData.name,
+      description: toolData.description,
+      similarity,
+      source: similarity > 0 ? 'hard_detection' : 'unmatched',
+    }
+
+    if (similarity > 0) {
+      matchedTools.push(tool)
+    } else {
+      unmatchedTools.push(tool)
+    }
+  })
+
+  // Return matched tools first (in order from mapping), then unmatched
+  return [...matchedTools, ...unmatchedTools]
 }
 
 /**
