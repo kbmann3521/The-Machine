@@ -170,18 +170,11 @@
 }
 
 .toolDescription {
-  margin: 0;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  word-break: break-word;
-  line-height: 1.4;
+  display: none;
 }
 
 .toolScore {
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  margin-top: 2px;
-  opacity: 0.7;
+  display: none;
 }
 
 .emptyState {
