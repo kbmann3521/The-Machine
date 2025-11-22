@@ -1,6 +1,6 @@
-import { generateEmbedding } from '../../lib/embeddings.js'
+import { generateEmbedding } from '../../../lib/embeddings.js'
 import { createClient } from '@supabase/supabase-js'
-import { TOOLS } from '../../lib/tools.js'
+import { TOOLS } from '../../../lib/tools.js'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
