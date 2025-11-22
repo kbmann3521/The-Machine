@@ -1,6 +1,9 @@
 import { generateEmbedding, cosineSimilarity, detectInputPatterns, levenshteinDistance } from '../../../lib/embeddings'
 import { TOOLS } from '../../../lib/tools'
 import { createClient } from '@supabase/supabase-js'
+import { hardDetect, isLikelyPlainText } from '../../../lib/hardDetection'
+import { classify as llmClassify } from '../../../lib/llmClassifier'
+import { getToolsForInputType, shouldUseSemanticSearch, getToolBiasWeight } from '../../../lib/toolMappings'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
