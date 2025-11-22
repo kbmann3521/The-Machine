@@ -299,6 +299,9 @@ export default function Home() {
       clearTimeout(debounceTimerRef.current)
     }
 
+    // Image input always triggers search (different from text)
+    const imageClassification = { inputType: 'image', contentSummary: 'image', intentHint: 'image_processing' }
+    previousClassificationRef.current = imageClassification
     predictTools(inputText, file, preview)
   }, [inputText, predictTools])
 
