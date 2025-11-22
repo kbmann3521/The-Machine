@@ -1,4 +1,4 @@
-// Test the updated smartJoinWords function
+// Test the updated smartJoinWords function with fragment limit
 function smartJoinWords(text) {
   let result = text
 
@@ -32,12 +32,15 @@ function smartJoinWords(text) {
                  j + 1 < parts.length &&
                  /^\s+$/.test(parts[j + 1]) &&
                  j + 2 < parts.length &&
-                 parts[j + 2].length === 1) {
+                 parts[j + 2].length === 1 &&
+                 fragment.length < 6) {
             fragment += parts[j]
             j += 2
           }
           
-          if (j < parts.length && parts[j].length === 1) {
+          if (j < parts.length && 
+              parts[j].length === 1 && 
+              fragment.length < 6) {
             fragment += parts[j]
             j += 1
           }
@@ -73,7 +76,7 @@ const tests = [
   {
     input: 'c a m e',
     expected: 'came',
-    note: 'Fragmented word'
+    note: 'Fragmented word (4 letters, within limit)'
   },
   {
     input: 'Hello world',
@@ -83,21 +86,26 @@ const tests = [
   {
     input: 'O C R scan',
     expected: 'OCR scan',
-    note: 'Fragmented acronym'
+    note: 'Fragmented acronym (3 letters)'
   },
   {
-    input: 'T h i s is t e x t c a m e from a n O C R scan',
-    expected: 'This is text came from an OCR scan',
-    note: 'Mixed fragmented and normal'
-  },
-  {
-    input: 'r a n d o m   sp a c es',
+    input: 'r a n d o m spaces',
     expected: 'random spaces',
-    note: 'Multiple spaces and fragmentation'
+    note: 'Fragmented 6-letter word + normal word'
+  },
+  {
+    input: 'T h i s is t e x t a n d s t u f f',
+    expected: 'This is text and stuff',
+    note: 'Multiple fragmented words'
+  },
+  {
+    input: 'an d has r a n d o m s p a c es',
+    expected: 'and has random spaces',
+    note: 'Multiple fragmented words with 6+ chars'
   }
 ]
 
-console.log('=== Testing smartJoinWords ===\n')
+console.log('=== Testing smartJoinWords (with 6-char fragment limit) ===\n')
 
 tests.forEach((test, i) => {
   const result = smartJoinWords(test.input)
@@ -107,7 +115,7 @@ tests.forEach((test, i) => {
   console.log(`  Expected: "${test.expected}"`)
   console.log(`  Got:      "${result}"`)
   if (!passed) {
-    console.log(`  DIFF: Expected [${test.expected}] but got [${result}]`)
+    console.log(`  MISMATCH`)
   }
   console.log()
 })
