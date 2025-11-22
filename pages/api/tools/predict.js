@@ -79,6 +79,11 @@ async function usePatternMatching(inputContent, visibilityMap) {
     .filter(([_, detected]) => detected)
     .map(([key, _]) => key)
 
+  // Check if input is plain English text (writing)
+  const isPlainEnglish = /[.!?]|[a-z]\s+[a-z]|the\s|and\s|or\s|is\s|a\s|to\s/i.test(inputContent) &&
+                         inputContent.length > 10 &&
+                         detectedPatternKeys.length === 0
+
   const inputEmbedding = await generateEmbedding(inputContent)
 
   const toolEntries = Object.entries(TOOLS).filter(([toolId]) => {
@@ -108,7 +113,12 @@ async function usePatternMatching(inputContent, visibilityMap) {
       const toolEmbedding = await generateEmbedding(toolPlaceholder)
       vectorScore = cosineSimilarity(inputEmbedding, toolEmbedding)
 
-      const finalScore = (patternScore * 0.4) + (fuzzyScore * 0.2) + (vectorScore * 0.4)
+      let finalScore = (patternScore * 0.4) + (fuzzyScore * 0.2) + (vectorScore * 0.4)
+
+      // BONUS: Boost writing tools when input is plain English
+      if (isPlainEnglish && toolData.category === 'writing') {
+        finalScore = Math.min(1, finalScore + 0.35)
+      }
 
       return {
         toolId,
@@ -119,7 +129,27 @@ async function usePatternMatching(inputContent, visibilityMap) {
     })
   )
 
-  return toolScores.sort((a, b) => b.similarity - a.similarity)
+  const results = toolScores.sort((a, b) => b.similarity - a.similarity)
+
+  // If plain English detected, ensure Text Toolkit is at the top
+  if (isPlainEnglish) {
+    const textToolkitIndex = results.findIndex(t => t.toolId === 'text-toolkit')
+    if (textToolkitIndex > 0) {
+      const textToolkit = results[textToolkitIndex]
+      results.unshift(textToolkit)
+      results.splice(textToolkitIndex + 1, 1)
+    } else if (textToolkitIndex === -1) {
+      // Add Text Toolkit if missing
+      results.unshift({
+        toolId: 'text-toolkit',
+        name: TOOLS['text-toolkit'].name,
+        description: TOOLS['text-toolkit'].description,
+        similarity: 0.98,
+      })
+    }
+  }
+
+  return results
 }
 
 export default async function handler(req, res) {
