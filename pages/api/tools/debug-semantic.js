@@ -208,23 +208,37 @@ Common intent categories:
     }
 
     if (intent.intent) {
-      // Add intent operations for context-aware embedding
-      if (intent.intent === 'validation') {
-        contextParts.push('validate, check format, verify, test correctness, check syntax')
+      // Add INPUT-TYPE-SPECIFIC context (not generic intent operations)
+      // This makes query embeddings unique per input type
+      if (classification.category === 'validator') {
+        // Different context based on the specific validator pattern detected
+        if (inputText.includes('@') && inputText.includes('.')) {
+          // Email pattern
+          contextParts.push('email address validation email format email syntax checker')
+        } else if (/^(\d{1,3}\.){3}\d{1,3}$/.test(inputText.trim())) {
+          // IP address pattern
+          contextParts.push('IP address validation IP format IPv4 validator')
+        } else if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(inputText.trim())) {
+          // UUID pattern
+          contextParts.push('UUID validation GUID format UUID validator')
+        } else {
+          // Generic validator
+          contextParts.push('validate, check format, verify, test correctness')
+        }
       } else if (intent.intent === 'url_operations') {
-        contextParts.push('parse, decode, encode, validate, extract components, format')
+        contextParts.push('URL parsing URL decoding URL encoding components')
       } else if (intent.intent === 'code_formatting') {
-        contextParts.push('beautify, minify, format, validate, parse')
+        contextParts.push('code formatting beautifier minifier syntax')
       } else if (intent.intent === 'data_conversion') {
-        contextParts.push('convert, format, parse, validate')
+        contextParts.push('data format conversion transformation')
       } else if (intent.intent === 'writing') {
-        contextParts.push('analyze, transform, process, count, metrics')
+        contextParts.push('text analysis word count character count metrics')
       } else if (intent.intent === 'text_transformation') {
-        contextParts.push('encode, decode, case conversion, transformation')
+        contextParts.push('case conversion encoding decoding character transformation')
       } else if (intent.intent === 'security_crypto') {
-        contextParts.push('hash, encrypt, encode, checksum, crypto')
+        contextParts.push('hashing encryption encoding checksum cryptography')
       } else if (intent.intent === 'pattern_matching') {
-        contextParts.push('regex, pattern, validate, match, test')
+        contextParts.push('regex pattern matching validation')
       }
     }
 
