@@ -199,13 +199,18 @@ export default async function handler(req, res) {
         const intentKeywords = getToolIntentKeywords(tool, toolData)
         const intentPhrase = intentKeywords.join(', ')
 
+        // Get expected input types
+        const expectedInputs = getExpectedInputsText(toolData)
+
         // Boost category signal by repeating it for tools that need it
         const categoryBoost = toolData.category === 'writing' ? `${toolData.category} ${toolData.category} ${toolData.category}` : toolData.category
 
-        // Build embedding text with intent operations
+        // Build embedding text with intent operations and input expectations
         const embeddingText = [
           tool.name,
           tool.description,
+          // Add expected inputs prominently
+          `expects: ${expectedInputs}`,
           // Add intent operations prominently
           `operations: ${intentPhrase}`,
           // Add category boost
@@ -216,7 +221,6 @@ export default async function handler(req, res) {
           detailedDesc.features?.join(' '),
           detailedDesc.usecases?.join(' '),
           toolData.example,
-          toolData.inputTypes?.join(' '),
           toolData.outputType,
         ]
           .filter(Boolean)
