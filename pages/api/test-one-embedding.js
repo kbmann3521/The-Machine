@@ -27,10 +27,19 @@ export default async function handler(req, res) {
 
     // Step 2: Call the SQL function to update
     console.log('\n2️⃣ Calling update_tool_embedding SQL function...')
-    const { data, error } = await supabase.rpc('update_tool_embedding', {
-      tool_id: 'word-counter',
-      embedding_array: embedding,
-    })
+    let data = null
+    let error = null
+
+    try {
+      const result = await supabase.rpc('update_tool_embedding', {
+        tool_id: 'word-counter',
+        embedding_array: embedding,
+      })
+      data = result.data
+      error = result.error
+    } catch (e) {
+      error = { message: e.message }
+    }
 
     console.log(`   Error: ${error?.message || 'none'}`)
     console.log(`   Data: ${JSON.stringify(data)}`)
