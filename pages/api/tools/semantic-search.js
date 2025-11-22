@@ -22,6 +22,7 @@ function mapToToolCategory(classifierCategory) {
     'formatting': 'formatter',
     'conversion': 'converter',
     'data': 'converter',
+    'validator': 'validator',
     'other': null,
   }
   return mapping[classifierCategory] || classifierCategory
