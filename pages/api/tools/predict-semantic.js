@@ -17,7 +17,7 @@ async function classifyInput(input) {
     return await response.json()
   } catch (error) {
     console.error('Classification error:', error)
-    return { input_type: 'text', content_summary: input.substring(0, 100) }
+    return { input_type: 'text', category: 'writing', content_summary: input.substring(0, 100) }
   }
 }
 
