@@ -131,8 +131,8 @@ export default async function handler(req, res) {
       },
       diagnosis: isValid
         ? '✅ Function is working correctly!'
-        : funcError?.message
-        ? `❌ Function call failed: ${funcError.message}`
+        : functionError?.message
+        ? `❌ Function call failed: ${functionError.message}`
         : '❌ Function succeeded but embedding was not saved',
     })
   } catch (error) {
