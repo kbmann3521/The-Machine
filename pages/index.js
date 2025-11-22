@@ -514,6 +514,8 @@ export default function Home() {
                       onFindReplaceConfigChange={setFindReplaceConfig}
                       diffConfig={diffConfig}
                       onDiffConfigChange={setDiffConfig}
+                      sortLinesConfig={sortLinesConfig}
+                      onSortLinesConfigChange={setSortLinesConfig}
                     />
                     <button
                       className={styles.descriptionToggle}
