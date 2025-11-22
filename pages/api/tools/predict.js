@@ -80,12 +80,13 @@ async function determineInputType(input) {
     return llmResult
   }
 
-  // Default: Plain text
-  console.log('⊘ No layer matched; defaulting to plain_text')
+  // Default: Plain text with high confidence
+  // Since we've ruled out all structured formats, plain text is the correct fallback
+  console.log('⊘ No layer matched; defaulting to plain_text with high confidence')
   return {
     type: 'plain_text',
-    confidence: 0.3,
-    reason: 'Default fallback',
+    confidence: 0.85,
+    reason: 'Default fallback - no structured pattern matched',
   }
 }
 
