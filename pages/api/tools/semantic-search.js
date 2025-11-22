@@ -7,6 +7,25 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
+// Classify input to get category for boosting
+async function classifyInputForCategory(inputText) {
+  try {
+    const response = await fetch('http://localhost:3000/api/tools/classify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input: inputText }),
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    return data.category || null
+  } catch (e) {
+    console.warn('Classification failed:', e.message)
+    return null
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -19,8 +38,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Generate embedding for input
+    // Generate embedding from the original user input (not classification summary)
+    // This ensures semantic relevance to what the user actually provided
     const embedding = await generateEmbedding(inputText)
+
+    // Also detect input category for relevance boosting
+    const inputCategory = await classifyInputForCategory(inputText)
 
     if (!embedding || embedding.length === 0) {
       return res.status(400).json({ error: 'Failed to generate embedding' })
