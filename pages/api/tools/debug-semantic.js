@@ -26,6 +26,7 @@ function mapToToolCategory(classifierCategory) {
     'formatting': 'formatter',
     'conversion': 'converter',
     'data': 'converter',
+    'validator': 'validator',
     'other': null,
   }
   return mapping[classifierCategory] || classifierCategory
@@ -54,13 +55,16 @@ export default async function handler(req, res) {
         messages: [
           {
             role: 'system',
-            content: `You are an input classifier. Analyze the input and determine its type, category, and content summary. 
+            content: `You are an input classifier. Analyze the input and determine its type, category, and content summary.
 Return ONLY a JSON object (no markdown, no extra text) with this exact structure:
 {
   "input_type": "text|image|url|code|file",
-  "category": "writing|url|code|image|data|other",
+  "category": "writing|url|code|image|data|validator|other",
   "content_summary": "brief description of what this input is"
-}`,
+}
+
+For email addresses (name@domain.com format): use category "validator"
+For IP addresses, UUIDs, hashes, domains, and other validation patterns: use category "validator"`,
           },
           {
             role: 'user',
