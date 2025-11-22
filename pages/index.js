@@ -30,6 +30,9 @@ export default function Home() {
     useRegex: false,
     matchCase: false,
   })
+  const [diffConfig, setDiffConfig] = useState({
+    text2: '',
+  })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
