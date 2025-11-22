@@ -245,18 +245,20 @@ export default function Home() {
           setActiveToolkitSection('removeExtras')
 
           // Pre-enable relevant cleaning options based on detected issues
+          const updatedConfig = { ...removeExtrasConfig }
           if (cleanTextIssues.hasExcessiveSpaces) {
-            removeExtrasConfig.compressSpaces = true
+            updatedConfig.compressSpaces = true
           }
           if (cleanTextIssues.hasBlankLines) {
-            removeExtrasConfig.removeBlankLines = true
+            updatedConfig.removeBlankLines = true
           }
           if (cleanTextIssues.hasMixedWhitespace) {
-            removeExtrasConfig.normalizeWhitespace = true
+            updatedConfig.normalizeWhitespace = true
           }
           if (cleanTextIssues.hasExcessiveLineBreaks) {
-            removeExtrasConfig.removeBlankLines = true
+            updatedConfig.removeBlankLines = true
           }
+          setRemoveExtrasConfig(updatedConfig)
         }
 
         // Set up initial config for the top tool
