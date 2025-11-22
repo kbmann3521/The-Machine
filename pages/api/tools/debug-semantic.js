@@ -108,10 +108,11 @@ Return ONLY a JSON object with this exact structure:
 
     // Step 3: Embedding generation
     console.log('🔍 Testing embedding generation...')
-    const embeddingText = `input_type: ${classification.input_type}, category: ${classification.category}, content: ${classification.content_summary}, intent: ${intent.intent}, sub_intent: ${intent.sub_intent}`
-    const embedding = await generateEmbedding(embeddingText)
+    // Use the original input text for embedding generation, not the classification summary
+    // This ensures semantic relevance to what the user actually provided
+    const embedding = await generateEmbedding(inputText)
     results.embeddingGenerated = {
-      text: embeddingText.substring(0, 100) + '...',
+      text: `input_type: ${classification.input_type}, category: ${classification.category}, content: ${classification.content_summary}, intent: ${intent.intent}, sub_intent: ${intent.sub_intent}`,
       dimensions: embedding.length,
       sampleValues: embedding.slice(0, 5),
     }
