@@ -223,8 +223,8 @@
     height: auto;
     border-right: none;
     border-bottom: 1px solid var(--color-border);
-    max-height: 300px;
     flex-shrink: 0;
+    flex-basis: auto;
   }
 
   .toolsList {
