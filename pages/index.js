@@ -129,26 +129,6 @@ export default function Home() {
       }))
 
       setPredictedTools(toolsWithMetadata)
-
-      // Auto-select the tool with the highest similarity match
-      if (toolsWithMetadata.length > 0) {
-        const topTool = toolsWithMetadata[0]
-        setSelectedTool(topTool)
-
-        const initialConfig = {}
-        if (topTool?.configSchema) {
-          topTool.configSchema.forEach(field => {
-            initialConfig[field.id] = field.default || ''
-          })
-        }
-
-        const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
-        if (detectedConfig) {
-          Object.assign(initialConfig, detectedConfig)
-        }
-
-        setConfigOptions(initialConfig)
-      }
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
