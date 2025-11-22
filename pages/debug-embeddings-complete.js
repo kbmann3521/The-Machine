@@ -240,7 +240,7 @@ export default function EmbeddingsDebug() {
           </div>
 
           <div style={{ marginBottom: '30px' }}>
-            <h2>Step 2: Check Current Embeddings</h2>
+            <h2>Step 1: Check Current Embeddings</h2>
             <p>Check the status of embeddings currently in the database.</p>
             <div style={{ marginBottom: '10px' }}>
               <label style={{ display: 'block', marginBottom: '8px' }}>Embedding Secret Key:</label>
