@@ -83,7 +83,10 @@ Return ONLY a JSON object (no markdown, no extra text) with this exact structure
       }
     }
     results.classification = classification
-    console.log('✓ Classification:', classification)
+
+    // Map classifier category to tool category
+    const mappedCategory = mapToToolCategory(classification.category)
+    console.log(`✓ Classification: ${classification.category} → ${mappedCategory}`, classification)
 
     // Step 2: Intent Extraction (inline)
     console.log('🔍 Testing intent extraction...')
