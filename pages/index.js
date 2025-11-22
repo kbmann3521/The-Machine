@@ -237,6 +237,28 @@ export default function Home() {
         const topTool = toolsWithMetadata[0]
         setSelectedTool(topTool)
 
+        // Check for text cleaning issues
+        const cleanTextIssues = detectCleanTextIssues(text)
+
+        // If top tool is Text Toolkit and there are cleaning issues, auto-switch to removeExtras
+        if (topTool.toolId === 'text-toolkit' && cleanTextIssues) {
+          setActiveToolkitSection('removeExtras')
+
+          // Pre-enable relevant cleaning options based on detected issues
+          if (cleanTextIssues.hasExcessiveSpaces) {
+            removeExtrasConfig.compressSpaces = true
+          }
+          if (cleanTextIssues.hasBlankLines) {
+            removeExtrasConfig.removeBlankLines = true
+          }
+          if (cleanTextIssues.hasMixedWhitespace) {
+            removeExtrasConfig.normalizeWhitespace = true
+          }
+          if (cleanTextIssues.hasExcessiveLineBreaks) {
+            removeExtrasConfig.removeBlankLines = true
+          }
+        }
+
         // Set up initial config for the top tool
         const initialConfig = {}
         if (topTool?.configSchema) {
