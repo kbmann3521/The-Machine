@@ -117,37 +117,54 @@ Return ONLY a JSON object with this exact structure:
     }
     console.log('✓ Embedding generated with', embedding.length, 'dimensions')
 
-    // Step 4: Vector search (using semantic-search endpoint)
+    // Step 4: Vector search (inline, no HTTP call)
     console.log('🔍 Testing vector search...')
     console.log('  Embedding dimensions:', embedding.length)
 
-    const semanticSearchResp = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/semantic-search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inputText }),
-    })
+    const { data: allTools } = await supabase
+      .from('tools')
+      .select('id, name, description, embedding')
+
+    // Parse embeddings and calculate similarity
+    const toolScores = allTools
+      .filter(tool => tool.embedding && tool.embedding !== null && tool.embedding !== 'null')
+      .map(tool => {
+        let toolEmbedding
+
+        if (typeof tool.embedding === 'string') {
+          try {
+            toolEmbedding = JSON.parse(tool.embedding)
+          } catch (e) {
+            return null
+          }
+        } else {
+          toolEmbedding = tool.embedding
+        }
+
+        if (!Array.isArray(toolEmbedding) || toolEmbedding.length === 0) {
+          return null
+        }
+
+        const similarity = cosineSimilarity(embedding, toolEmbedding)
+
+        return {
+          id: tool.id,
+          name: tool.name,
+          similarity: Math.max(0, Math.min(1, similarity)),
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.similarity - a.similarity)
 
     results.vectorSearch = {
       error: null,
-      resultsCount: 0,
-      results: [],
+      resultsCount: toolScores.length,
+      results: toolScores.slice(0, 5),
     }
 
-    if (!semanticSearchResp.ok) {
-      results.vectorSearch.error = `HTTP ${semanticSearchResp.status}`
-      console.log('✗ Vector search error:', results.vectorSearch.error)
-    } else {
-      const vectorData = await semanticSearchResp.json()
-      results.vectorSearch.results = vectorData.results?.slice(0, 5).map(r => ({
-        id: r.toolId,
-        name: r.name,
-        similarity: (r.similarity || 0).toFixed(4),
-      })) || []
-      results.vectorSearch.resultsCount = vectorData.results?.length || 0
-      console.log('✓ Vector search returned', vectorData.results?.length, 'results')
-      if (vectorData.results?.length > 0) {
-        console.log('  Top match:', vectorData.results[0].name, 'similarity:', vectorData.results[0].similarity?.toFixed(4))
-      }
+    console.log('✓ Vector search returned', toolScores.length, 'results')
+    if (toolScores.length > 0) {
+      console.log('  Top match:', toolScores[0].name, 'similarity:', toolScores[0].similarity.toFixed(4))
     }
 
     // Step 5: Database check
