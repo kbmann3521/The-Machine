@@ -4,7 +4,7 @@
 The "Clean Text" filter (formerly "Remove Extras") is now an advanced, multi-stage text cleaning tool that handles complex real-world text cleaning challenges. It combines multiple specialized cleaning operations into a single, configurable tool.
 
 ## What It Does
-The filter processes text through 13 different cleaning stages, each addressing specific text quality issues:
+The filter processes text through 16 different cleaning stages, each addressing specific text quality issues:
 
 ### 1. **Remove PDF Garbage Characters**
 Removes corrupted characters from PDF text extraction, including:
