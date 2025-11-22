@@ -54,21 +54,22 @@ Converts all types of whitespace to standard spaces:
 
 **Use Case:** Text from Word documents often uses special whitespace that needs normalization.
 
-### 6. **Fix Punctuation Spacing**
-Corrects spacing around punctuation marks:
-- Removes space before: `,` `.` `!` `?` `;` `:`
-- Ensures space after punctuation: `Hello.World` → `Hello. World`
-- Fixes comma spacing: `Hello,world` → `Hello, world`
+### 6. **Smart Join OCR Words**
+Fixes OCR artifacts where words are split with spaces:
+- `Th is tex t` → intelligently rejoins fragmented text
+- Detects word fragments (very short segments) and rejoins them
+- Uses capital letter patterns to detect word boundaries
 
-**Use Case:** Text with irregular spacing around punctuation needs standardization.
+**Use Case:** OCR output often has random spaces between letters within words.
 
-### 7. **Compress Multiple Spaces**
-Reduces excessive spacing to single spaces:
-- `Hello      world` → `Hello world`
-- `word1   word2   word3` → `word1 word2 word3`
-- Preserves intentional indentation at line starts
+### 7. **Remove Timestamps**
+Strips timestamp information from logs and chat exports:
+- Chat format: `[14:03] Kyle: Hello` → `Hello`
+- ISO format: `2024-01-15T14:30:00Z` → removed
+- 24-hour format: `2024-01-15 14:30:00` → removed
+- 12-hour format: `2:30:00 PM` → removed
 
-**Use Case:** Copy/paste from various sources often creates excessive spacing.
+**Use Case:** Processing chat logs or system logs where timestamps aren't needed.
 
 ### 8. **Trim Lines**
 Removes leading and trailing whitespace from each line:
@@ -78,15 +79,39 @@ Removes leading and trailing whitespace from each line:
 
 **Use Case:** Almost every text cleaning scenario benefits from trimming lines.
 
-### 9. **Remove Blank Lines**
+### 9. **Fix Punctuation Spacing**
+Corrects spacing around punctuation marks:
+- Removes space before: `,` `.` `!` `?` `;` `:`
+- Ensures space after punctuation: `Hello.World` → `Hello. World`
+- Fixes comma spacing: `Hello,world` → `Hello, world`
+
+**Use Case:** Text with irregular spacing around punctuation needs standardization.
+
+### 10. **Compress Multiple Spaces**
+Reduces excessive spacing to single spaces:
+- `Hello      world` → `Hello world`
+- `word1   word2   word3` → `word1 word2 word3`
+- Preserves intentional indentation at line starts
+
+**Use Case:** Copy/paste from various sources often creates excessive spacing.
+
+### 11. **Remove All Line Breaks**
+Converts multiline text to a single line:
+- `Line 1\nLine 2\nLine 3` → `Line 1 Line 2 Line 3`
+- Removes all newlines and joins with spaces
+- Different from "Flatten to Single Line" - removes ALL breaks
+
+**Use Case:** When you need text as a single continuous line (e.g., for API submission, Twitter character limits).
+
+### 12. **Remove Blank Lines**
 Eliminates completely empty lines:
 - Lines with only whitespace are removed
 - Useful for condensing text
-- Preserves intentional line structure
+- Preserves intentional line structure (only removes empty ones)
 
 **Use Case:** Chat logs and system exports often have excessive blank lines.
 
-### 10. **Compress Excessive Line Breaks**
+### 13. **Compress Excessive Line Breaks**
 Reduces multiple consecutive newlines to a maximum of 2:
 - `Line\n\n\n\nAnother` → `Line\n\nAnother`
 - Maintains paragraph structure
@@ -94,16 +119,7 @@ Reduces multiple consecutive newlines to a maximum of 2:
 
 **Use Case:** Documents copied from various sources have inconsistent line breaking.
 
-### 11. **Remove Log Timestamps** (Optional)
-Strips timestamp information from logs and chat exports:
-- Chat format: `[14:03] Kyle: Hello` → `Hello`
-- ISO format: `2024-01-15T14:30:00Z` → removed
-- 24-hour format: `2024-01-15 14:30:00` → removed
-- 12-hour format: `2:30:00 PM` → removed
-
-**Use Case:** Processing chat logs or system logs where timestamps aren't needed.
-
-### 12. **Remove Duplicate Lines** (Optional)
+### 14. **Remove Duplicate Lines**
 Eliminates repeated lines while preserving order:
 - `apple\napple\nbanana` → `apple\nbanana`
 - Preserves first occurrence
@@ -111,13 +127,28 @@ Eliminates repeated lines while preserving order:
 
 **Use Case:** Lists with repeating entries from copy/paste errors.
 
-### 13. **Flatten to Single Line** (Optional)
-Converts multiline text to a single line:
-- `Line 1\nLine 2\nLine 3` → `Line 1 Line 2 Line 3`
-- Removes all newlines
-- Joins lines with spaces
+### 15. **Filter Non-ASCII Characters (3 Levels)**
+Three different character filtering options:
 
-**Use Case:** When you need text as a single continuous line (e.g., for API submission).
+**Option A: ASCII Only** - keeps only a-zA-Z0-9 and basic punctuation
+- `Hello wörld!` → `Hello world!`
+- Removes all accented characters and special Unicode
+
+**Option B: Keep Accented Letters** - keeps ASCII + accented Latin characters
+- `Café` → `Café` (keeps the accented é)
+- `Hello 😀` → `Hello ` (removes emoji)
+
+**Option C: Basic Punctuation Only** - keeps letters, numbers, spaces, and basic punctuation (.,!?;:)
+- `Hello!!! @#$% World???` → `Hello! World?`
+- Removes symbols and special characters
+- Compresses repeated punctuation marks
+
+**Use Case:** Removing non-English characters or non-standard symbols while preserving content.
+
+### 16. **Flatten to Single Line (Legacy)**
+Converts multiline text to a single line (legacy option):
+- Similar to "Remove All Line Breaks" but kept for backward compatibility
+- Use "Remove All Line Breaks" for new projects
 
 ## Configuration Options
 
@@ -130,39 +161,43 @@ Each operation can be toggled independently:
 | Strip HTML Tags | ON | Remove HTML markup |
 | Strip Markdown | ON | Remove Markdown syntax |
 | Normalize Whitespace | ON | Convert tabs/special spaces to regular spaces |
+| Smart Join OCR Words | OFF | Fix OCR word fragmentation |
 | Fix Punctuation Spacing | ON | Correct spacing around punctuation |
 | Compress Spaces | ON | Reduce multiple spaces to single space |
 | Trim Lines | ON | Remove leading/trailing spaces |
+| Remove All Line Breaks | OFF | Flatten to single line |
 | Remove Blank Lines | ON | Eliminate empty lines |
 | Compress Line Breaks | ON | Reduce excessive newlines |
 | Remove Timestamps | OFF | Strip log timestamps (disabled by default) |
 | Remove Duplicates | OFF | Remove duplicate lines |
-| Flatten to Single Line | OFF | Convert to single line (disabled by default) |
+| Filter Characters | None | ASCII only / Keep accents / Basic punctuation |
+| Flatten to Single Line | OFF | Legacy single-line converter |
 
 ## Usage Examples
 
-### Example 1: Messy Copy/Paste
+### Example 1: Remove Line Breaks (Flatten Text)
 **Input:**
 ```
-Hello      world     
-this     is      spaced     weirdly.
+i want
+this
+on
+one line
 ```
-**Config:** Use defaults (all standard options enabled)
+**Config:** Enable "Remove All Line Breaks"
 **Output:**
 ```
-Hello world
-this is spaced weirdly.
+i want this on one line
 ```
 
-### Example 2: PDF Text Extraction
+### Example 2: Fix OCR Spacing
 **Input:**
 ```
-This text contains ï»¿garbage characters from a PDF.
+Th is tex t c ame from an O C R scan
 ```
-**Config:** Remove PDF Garbage enabled
+**Config:** Enable "Smart Join OCR Words" and "Compress Spaces"
 **Output:**
 ```
-This text contains garbage characters from a PDF.
+Thistextcamefroman OCRscan
 ```
 
 ### Example 3: Chat Log Cleaning
@@ -180,32 +215,44 @@ test
 ok
 ```
 
-### Example 4: Flattening Multiline Text
+### Example 4: Remove Special Characters
 **Input:**
 ```
-The quick
-brown fox
-jumped over
-the lazy dog
+Hello wörld! Café with 😀 emojis and @#$% symbols
 ```
-**Config:** Enable "Flatten to Single Line"
+**Config:** Filter Characters → "ASCII Only"
 **Output:**
 ```
-The quick brown fox jumped over the lazy dog
+Hello world! Cafe with emojis and symbols
+```
+
+### Example 5: Keep Accents but Remove Emojis
+**Input:**
+```
+Café résumé 😀 naïve straße
+```
+**Config:** Filter Characters → "Keep Accented Letters"
+**Output:**
+```
+Café résumé naïve straße
 ```
 
 ## Technical Details
 
 ### Function Structure
-- **`cleanText(text, config)`** - Main function with all 13 cleaning stages
+- **`cleanText(text, config)`** - Main function with all 16 cleaning stages
 - **Helper Functions:**
   - `removePdfAndGarbageChars()` - Handles PDF artifacts
   - `removeInvisibleUnicodeChars()` - Removes invisible Unicode
   - `normalizeAllWhitespace()` - Normalizes all whitespace types
   - `stripMarkdownFormatting()` - Removes Markdown syntax
+  - `smartJoinWords()` - Fixes OCR word fragmentation
   - `removeLogTimestamps()` - Strips log timestamps
   - `fixPunctuationSpacing()` - Corrects punctuation spacing
   - `compressExcessiveSpacing()` - Reduces excess whitespace
+  - `filterToAsciiOnly()` - Removes non-ASCII characters
+  - `filterToAsciiWithAccents()` - Keeps accented Latin letters
+  - `filterToBasicPunctuation()` - Removes special characters
 
 ### Performance
 - Processes text in single pass with multiple operations
@@ -227,45 +274,52 @@ Use when:
 - Source is unknown or mixed
 - Want comprehensive cleanup without configuration
 
-### Customize Options
-Use when:
-- Need to preserve specific formatting
-- Want fine-grained control over cleanup
-- Have specific text source quirks to handle
-- Need to preserve timestamps or duplicates
+### For Line Break Removal
+- Use **"Remove All Line Breaks"** to flatten multiline text to single line
+- Use **"Remove Blank Lines"** to just remove empty lines
+- Use **"Compress Line Breaks"** to reduce multiple newlines to 2
 
-### Disable Certain Options
-- Disable "Remove Blank Lines" to preserve paragraph structure
-- Disable "Compress Line Breaks" to keep intentional spacing
-- Disable "Strip HTML" if HTML is intentional
-- Disable "Strip Markdown" if Markdown structure matters
-- Disable "Fix Punctuation" if unusual spacing is intentional
+### For Character Filtering
+- Use **"ASCII Only"** when you need plain English only (no accents, no emojis)
+- Use **"Keep Accented Letters"** when you need to preserve international characters
+- Use **"Basic Punctuation"** when you want to remove special symbols but keep standard punctuation
+
+### For OCR Cleanup
+- Enable **"Smart Join OCR Words"** for text from OCR/image scanning
+- Enable **"Compress Spaces"** for excessive spacing artifacts
+- Combine with other options for comprehensive cleanup
 
 ## Real-World Scenarios
 
-### Scenario: Blog Post from Google Docs
-Enable: PDF Garbage, Invisible Chars, HTML, Markdown, Whitespace, Punctuation, Compression, Trim
-Disable: Remove Timestamps, Duplicates, Flatten
+### Scenario 1: OCR Text from Document Scan
+Enable: Smart Join OCR Words, Compress Spaces, Remove Blank Lines
+Disable: All others are default
 
-**Result:** Clean, well-formatted text preserving paragraph structure.
+**Result:** OCR text with restored word spacing and clean formatting.
 
-### Scenario: Chat Conversation Export
-Enable: All standard options + Remove Timestamps
-Disable: Duplicates (preserve individual messages), Flatten
+### Scenario 2: Chat/Log Export
+Enable: Remove Timestamps, Remove Blank Lines
+Disable: Everything else from defaults
 
-**Result:** Clean messages without timestamps, proper line breaks.
+**Result:** Clean messages without timestamps, proper structure preserved.
 
-### Scenario: Data Import from Mixed Sources
-Enable: All standard options + Remove Duplicates
-Disable: Flatten
+### Scenario 3: International Text Cleanup
+Enable: Filter Characters → "Keep Accented Letters"
+Disable: Everything else from defaults
 
-**Result:** Clean, deduplicated data with preserved line structure.
+**Result:** Clean text preserving accented characters (café, résumé, naïve).
 
-### Scenario: Tweet or SMS Preparation
-Enable: All standard options + Flatten to Single Line
-Disable: Others as needed
+### Scenario 4: Plain ASCII Only
+Enable: Filter Characters → "ASCII Only"
+Disable: Everything else from defaults
 
-**Result:** Single-line text ready for character-limited platforms.
+**Result:** Pure ASCII text, no accents or special characters.
+
+### Scenario 5: Single-Line Text (for APIs/URLs)
+Enable: Remove All Line Breaks, Remove Blank Lines
+Disable: Everything else from defaults
+
+**Result:** Single continuous line ready for character-limited platforms.
 
 ## Implementation Notes
 
@@ -274,6 +328,23 @@ Disable: Others as needed
 - The order of operations is carefully designed to prevent conflicts
 - Each stage builds on the previous cleaned text
 - All operations preserve the core content while removing artifacts
+
+## New Features (Latest Update)
+
+### Smart Join OCR Words
+- Intelligently detects and rejoins OCR-fragmented words
+- Uses capital letter patterns to identify word boundaries
+- Leaves obviously correct spacing intact
+
+### Remove All Line Breaks
+- Complete line break removal (converts to single line)
+- Different from "Flatten" - removes ALL newlines
+- Joins lines with single spaces
+
+### Character Filtering (3 Levels)
+- ASCII Only: Plain English text only
+- Keep Accented: Preserves international characters
+- Basic Punctuation: Removes symbols, keeps standard punctuation
 
 ## Future Enhancements
 
@@ -284,3 +355,4 @@ Potential additions:
 - Character encoding detection
 - Custom whitespace rules
 - Batch processing support
+- Undo/redo for individual operations
