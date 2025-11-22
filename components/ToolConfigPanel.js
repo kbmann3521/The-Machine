@@ -280,6 +280,56 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             </div>
           )}
 
+          {activeToolkitSection === 'removeExtras' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.findReplaceToggles}>
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.trimSpaces !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, trimSpaces: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Trim Spaces</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.removeBlankLines !== false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeBlankLines: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Blank Lines</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.removeDuplicateLines || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, removeDuplicateLines: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Duplicates</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={removeExtrasConfig?.compressLineBreaks || false}
+                    onChange={(e) => onRemoveExtrasConfigChange({ ...removeExtrasConfig, compressLineBreaks: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Compress Line Breaks</span>
+                </label>
+              </div>
+            </div>
+          )}
+
           {activeToolkitSection === 'textDiff' && (
             <div className={styles.findReplaceFields}>
               <div className={styles.field}>
