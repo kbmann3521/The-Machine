@@ -50,27 +50,34 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
 
       {!loading && filteredTools.length > 0 && (
         <nav className={styles.toolsList} aria-label="Available tools">
-          {filteredTools.map((tool, index) => (
-            <article
-              key={tool.toolId}
-              className={`${styles.toolItem} ${
-                selectedTool?.toolId === tool.toolId ? styles.selected : ''
-              }`}
-              onClick={() => onSelectTool(tool)}
-              onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
-              role="button"
-              tabIndex={0}
-              aria-pressed={selectedTool?.toolId === tool.toolId}
-            >
-              <h3 className={styles.toolName}>{tool.name}</h3>
-              <span
-                className={styles.toolScore}
-                style={{ color: getScoreColor(tool.similarity) }}
+          {filteredTools.map((tool, index) => {
+            const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
+            const isSelected = selectedTool?.toolId === tool.toolId
+
+            return (
+              <article
+                key={tool.toolId}
+                className={`${styles.toolItem} ${
+                  isSelected ? styles.selected : ''
+                } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
+                onClick={() => onSelectTool(tool)}
+                onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                title={`${tool.name} - ${getScoreLabel(tool.similarity)}`}
               >
-                {(tool.similarity * 100).toFixed(0)}%
-              </span>
-            </article>
-          ))}
+                <h3 className={styles.toolName}>{tool.name}</h3>
+                <span
+                  className={styles.toolScore}
+                  style={{ color: getScoreColor(tool.similarity) }}
+                  title={getScoreLabel(tool.similarity)}
+                >
+                  {(tool.similarity * 100).toFixed(0)}%
+                </span>
+              </article>
+            )
+          })}
         </nav>
       )}
 
