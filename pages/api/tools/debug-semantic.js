@@ -270,15 +270,6 @@ Common intent categories:
 
         let similarity = cosineSimilarity(embedding, toolEmbedding)
 
-        // Apply category boosting as PRIMARY signal for relevance
-        const toolData = TOOLS[tool.id]
-        if (mappedCategory && toolData && toolData.category === mappedCategory) {
-          // Category match is the strongest signal when category is clearly detected
-          // Add base score + semantic similarity
-          // This ensures category-matched tools rank highest
-          similarity = 0.7 + (similarity * 0.3)  // 0.7 base for category match + 0.3 weight for semantic similarity
-        }
-
         return {
           id: tool.id,
           name: tool.name,

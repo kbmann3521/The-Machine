@@ -146,17 +146,6 @@ export default async function handler(req, res) {
 
         let similarity = cosineSimilarity(embedding, toolEmbedding)
 
-        // Apply category boosting as PRIMARY signal for relevance
-        if (inputCategory) {
-          const toolData = TOOLS[tool.id]
-          if (toolData && toolData.category === inputCategory) {
-            // Category match is the strongest signal when category is clearly detected
-            // Add base score + semantic similarity
-            // This ensures category-matched tools rank highest
-            similarity = 0.7 + (similarity * 0.3)  // 0.7 base for category match + 0.3 weight for semantic similarity
-          }
-        }
-
         return {
           toolId: tool.id,
           name: tool.name,
