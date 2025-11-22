@@ -128,7 +128,14 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      setPredictedTools(toolsWithMetadata)
+      // Keep the currently selected tool at the top of the list
+      if (selectedTool) {
+        const filteredTools = toolsWithMetadata.filter(tool => tool.toolId !== selectedTool.toolId)
+        const reorderedTools = [selectedTool, ...filteredTools]
+        setPredictedTools(reorderedTools)
+      } else {
+        setPredictedTools(toolsWithMetadata)
+      }
     } catch (err) {
       console.error('Prediction error:', err)
     } finally {
