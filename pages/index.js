@@ -424,7 +424,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig]
   )
 
   const handleRegenerate = useCallback(() => {
