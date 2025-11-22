@@ -166,7 +166,8 @@ Return ONLY a JSON object with this exact structure:
       input: inputText,
       results,
       debugInfo: {
-        semanticSearchWorking: !vectorError && vectorResults && vectorResults.length > 0,
+        semanticSearchWorking: !results.vectorSearch.error && results.vectorSearch.resultsCount > 0,
+        vectorSearchError: results.vectorSearch.error,
         embeddingsInDatabase: embeddingStats.toolsWithEmbeddings > 0,
         classificationWorking: classification.category !== undefined,
         intentExtractionWorking: intent.intent !== undefined,
