@@ -86,11 +86,17 @@ export default async function handler(req, res) {
           continue
         }
 
-        // Store embedding array directly - Supabase will convert to pgvector
-        const { error: updateError } = await supabase
-          .from('tools')
-          .update({ embedding })
-          .eq('id', tool.id)
+        // Use SQL function for proper pgvector handling
+        let updateError = null
+        try {
+          const result = await supabase.rpc('update_tool_embedding', {
+            tool_id: tool.id,
+            embedding_array: embedding,
+          })
+          updateError = result.error
+        } catch (e) {
+          updateError = { message: e.message }
+        }
 
         if (updateError) {
           results.failed++
