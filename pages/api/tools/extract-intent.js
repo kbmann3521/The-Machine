@@ -76,19 +76,42 @@ Common intent categories for developer tools:
         .trim()
       intent = JSON.parse(jsonStr)
     } catch {
-      // Fallback intent
-      const fallbackIntent = category === 'writing' ? 'writing' : 'text_analysis'
+      // Fallback intent based on category
+      let fallbackIntent, fallbackSubIntent
+
+      if (category === 'writing') {
+        fallbackIntent = 'writing'
+        fallbackSubIntent = 'text_processing'
+      } else if (category === 'url') {
+        fallbackIntent = 'url_operations'
+        fallbackSubIntent = 'parse'
+      } else if (category === 'code' || category === 'json' || category === 'html') {
+        fallbackIntent = 'code_formatting'
+        fallbackSubIntent = 'format'
+      } else if (category === 'data') {
+        fallbackIntent = 'data_conversion'
+        fallbackSubIntent = 'convert'
+      } else {
+        fallbackIntent = 'text_transformation'
+        fallbackSubIntent = 'process'
+      }
+
       intent = {
         intent: fallbackIntent,
-        sub_intent: 'general_text_processing',
+        sub_intent: fallbackSubIntent,
         confidence: 0.5,
       }
     }
 
-    // Boost confidence for writing category
+    // Ensure category-appropriate intent
     if (category === 'writing' && intent.intent !== 'writing') {
       intent.intent = 'writing'
       intent.confidence = Math.min(1, intent.confidence + 0.2)
+    } else if (category === 'url' && intent.intent === 'access website') {
+      // Override incorrect "access website" intent for URLs
+      intent.intent = 'url_operations'
+      intent.sub_intent = 'parse'
+      intent.confidence = Math.min(1, intent.confidence * 0.8)
     }
 
     res.status(200).json(intent)
