@@ -279,7 +279,7 @@ export default function EmbeddingsDebug() {
           </div>
 
           <div style={{ marginBottom: '30px' }}>
-            <h2>Step 3: Clear Invalid Embeddings</h2>
+            <h2>Step 2: Clear Invalid Embeddings</h2>
             <p>
               If the check shows invalid embeddings (not 1536 dimensions), clear them and regenerate from scratch.
             </p>
@@ -301,7 +301,7 @@ export default function EmbeddingsDebug() {
           </div>
 
           <div style={{ marginBottom: '30px' }}>
-            <h2>Step 4: Regenerate Embeddings</h2>
+            <h2>Step 3: Regenerate Embeddings</h2>
             <p>
               This will regenerate all embeddings using the OpenAI API. It takes about 1-2 minutes for 50+ tools.
             </p>
