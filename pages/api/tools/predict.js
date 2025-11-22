@@ -206,22 +206,34 @@ export default async function handler(req, res) {
 
     let predictedTools = []
 
-    // For image input, prioritize image-capable tools
+    // For image input, prioritize image-capable tools but show all
     if (inputImage) {
-      const imageTools = Object.entries(TOOLS)
-        .filter(([toolId, toolData]) => {
-          if (toolId === 'image-resizer') return true
-          return toolData.inputTypes?.includes('image')
-        })
-        .map(([toolId, toolData]) => ({
-          toolId,
-          name: toolData.name,
-          description: toolData.description,
-          similarity: toolId === 'image-resizer' ? 0.99 : 0.90,
-          source: 'image_detection',
-        }))
+      const imageCapableSet = new Set(
+        Object.entries(TOOLS)
+          .filter(([toolId, toolData]) => {
+            if (toolId === 'image-resizer') return true
+            return toolData.inputTypes?.includes('image')
+          })
+          .map(([toolId]) => toolId)
+      )
 
-      predictedTools = imageTools.filter(t => visibilityMap[t.toolId] !== false)
+      predictedTools = Object.entries(TOOLS)
+        .filter(([toolId]) => visibilityMap[toolId] !== false)
+        .map(([toolId, toolData]) => {
+          let similarity = 0
+          if (toolId === 'image-resizer') {
+            similarity = 0.99
+          } else if (imageCapableSet.has(toolId)) {
+            similarity = 0.90
+          }
+          return {
+            toolId,
+            name: toolData.name,
+            description: toolData.description,
+            similarity,
+            source: similarity > 0 ? 'image_detection' : 'unmatched',
+          }
+        })
     } else {
       // TEXT INPUT: Use 3-layer detection pipeline
       
