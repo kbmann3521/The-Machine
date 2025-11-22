@@ -146,16 +146,16 @@ export default async function handler(req, res) {
           continue
         }
 
-        // Store embedding directly as array for vector column
+        // Format embedding for pgvector storage: "[x1,x2,x3,...]"
+        const embeddingString = formatEmbeddingForStorage(embedding)
+
         console.log(`[regenerate] Storing embedding for ${tool.id}:`)
-        console.log(`  - Embedding type: ${typeof embedding}`)
-        console.log(`  - Is array: ${Array.isArray(embedding)}`)
-        console.log(`  - Dimensions: ${embedding?.length}`)
-        console.log(`  - Sample: ${JSON.stringify(embedding?.slice(0, 3))}`)
+        console.log(`  - Embedding array dimensions: ${embedding?.length}`)
+        console.log(`  - Formatted string: ${embeddingString?.substring(0, 50)}...`)
 
         const { error: updateError, data: updateData } = await supabase
           .from('tools')
-          .update({ embedding })
+          .update({ embedding: embeddingString })
           .eq('id', tool.id)
 
         console.log(`[regenerate] Update result for ${tool.id}:`)
