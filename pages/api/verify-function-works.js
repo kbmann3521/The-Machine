@@ -53,20 +53,31 @@ export default async function handler(req, res) {
     console.log(`   Embedding type: ${typeof toolData?.embedding}`)
     console.log(`   Is array: ${Array.isArray(toolData?.embedding)}`)
 
+    // Parse embedding if it's a string (pgvector returns as string)
+    let parsedEmbedding = toolData?.embedding
+    if (typeof toolData?.embedding === 'string') {
+      try {
+        parsedEmbedding = JSON.parse(toolData.embedding)
+        console.log(`   Parsed from string format`)
+      } catch (e) {
+        console.log(`   Failed to parse: ${e.message}`)
+      }
+    }
+
     const isValid =
-      Array.isArray(toolData?.embedding) &&
-      toolData.embedding.length === 1536
+      Array.isArray(parsedEmbedding) &&
+      parsedEmbedding.length === 1536
 
     if (isValid) {
       console.log(`   ✅ Valid 1536-dimensional embedding!`)
-      console.log(`   First 5 values: [${toolData.embedding
+      console.log(`   First 5 values: [${parsedEmbedding
         .slice(0, 5)
         .map((v) => v.toFixed(4))
         .join(', ')}]`)
 
       // Verify the values match what we sent
       const valuesMatch = testEmbedding.slice(0, 5).every((v, i) => {
-        const diff = Math.abs(v - toolData.embedding[i])
+        const diff = Math.abs(v - parsedEmbedding[i])
         return diff < 0.001 // Allow small floating point differences
       })
 
@@ -75,7 +86,7 @@ export default async function handler(req, res) {
       console.log(`   ❌ Embedding is NULL - function call did not save the data`)
     } else {
       console.log(`   ❌ Invalid embedding`)
-      console.log(`   Dimensions: ${Array.isArray(toolData?.embedding) ? toolData.embedding.length : 'N/A'}`)
+      console.log(`   Dimensions: ${Array.isArray(parsedEmbedding) ? parsedEmbedding.length : 'N/A'}`)
     }
 
     // Step 5: Test with a different tool to ensure function works generally
