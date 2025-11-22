@@ -168,8 +168,8 @@ function calculateFinalScore(heuristicScore, semanticScore, toolBias) {
  * Direct tool selection based on input type
  * Returns all tools, with matched tools first and ordered by relevance
  */
-async function directToolSelection(inputType, visibilityMap) {
-  const matchedToolIds = getToolsForInputType(inputType)
+async function directToolSelection(inputType, inputText, visibilityMap) {
+  const matchedToolIds = getToolsForInputType(inputType.type)
   const matchedMap = new Map(matchedToolIds.map((id, idx) => [id, 0.95 - (idx * 0.02)]))
 
   // Separate matched and unmatched tools
@@ -186,6 +186,14 @@ async function directToolSelection(inputType, visibilityMap) {
       description: toolData.description,
       similarity,
       source: similarity > 0 ? 'hard_detection' : 'unmatched',
+    }
+
+    // Add suggested config for matched tools
+    if (similarity > 0) {
+      const suggestedConfig = detectSuggestedConfig(toolId, inputText, inputType)
+      if (suggestedConfig) {
+        tool.suggestedConfig = suggestedConfig
+      }
     }
 
     if (similarity > 0) {
