@@ -70,12 +70,12 @@ function normalizeMeaning(classification, intent) {
   return parts.join(', ')
 }
 
-async function vectorSearchTools(embeddingText, limit = 10) {
+async function vectorSearchTools(embeddingText, category, intent, limit = 10) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/semantic-search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inputText: embeddingText }),
+      body: JSON.stringify({ inputText: embeddingText, category, intent }),
     })
 
     if (!response.ok) {
