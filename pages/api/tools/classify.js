@@ -57,10 +57,10 @@ For plain English text (paragraphs, sentences, articles, essays): use category "
         .trim()
       classification = JSON.parse(jsonStr)
     } catch {
-      // Fallback classification
+      // Fallback classification - plain English text defaults to writing
       const inputLower = input.toLowerCase()
       let inputType = 'text'
-      let category = 'writing'
+      let category = 'writing'  // Default everything to writing unless proven otherwise
 
       if (
         /^(https?:\/\/|www\.)/i.test(input) ||
@@ -73,6 +73,9 @@ For plain English text (paragraphs, sentences, articles, essays): use category "
         category = 'code'
       } else if (/^[{]|^\[|^<\?xml|^name,|^\w+:\s/m.test(input)) {
         category = 'data'
+      } else if (/[.!?]|[a-z]\s+[a-z]|the\s|and\s|or\s|is\s|a\s|to\s/i.test(input) && input.length > 10) {
+        // Plain English text detection: sentences with punctuation, articles, conjunctions
+        category = 'writing'
       }
 
       classification = {
