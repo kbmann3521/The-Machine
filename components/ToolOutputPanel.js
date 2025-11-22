@@ -397,24 +397,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return null
       }
 
-      // If we have structured output for textDiff, render it
+      // Text Diff - show JSON only
       if (activeToolkitSection === 'textDiff' && displayResult.textDiff) {
-        const structuredView = renderStructuredOutput()
-        if (structuredView) {
-          return (
-            <div>
-              {structuredView}
-              <div className={styles.jsonFallback}>
-                <details>
-                  <summary>View full JSON</summary>
-                  <pre className={styles.jsonOutput}>
-                    <code>{JSON.stringify(displayResult.textDiff, null, 2)}</code>
-                  </pre>
-                </details>
-              </div>
-            </div>
-          )
-        }
+        return (
+          <pre className={styles.jsonOutput}>
+            <code>{JSON.stringify(displayResult.textDiff, null, 2)}</code>
+          </pre>
+        )
       }
     }
 
