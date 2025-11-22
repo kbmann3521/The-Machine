@@ -147,10 +147,20 @@ export default async function handler(req, res) {
         }
 
         // Store embedding directly as array for vector column
-        const { error: updateError } = await supabase
+        console.log(`[regenerate] Storing embedding for ${tool.id}:`)
+        console.log(`  - Embedding type: ${typeof embedding}`)
+        console.log(`  - Is array: ${Array.isArray(embedding)}`)
+        console.log(`  - Dimensions: ${embedding?.length}`)
+        console.log(`  - Sample: ${JSON.stringify(embedding?.slice(0, 3))}`)
+
+        const { error: updateError, data: updateData } = await supabase
           .from('tools')
           .update({ embedding })
           .eq('id', tool.id)
+
+        console.log(`[regenerate] Update result for ${tool.id}:`)
+        console.log(`  - Error: ${updateError?.message || 'none'}`)
+        console.log(`  - Data: ${JSON.stringify(updateData)}`)
 
         if (updateError) {
           results.failed++
