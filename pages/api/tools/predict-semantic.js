@@ -103,7 +103,7 @@ export default async function handler(req, res) {
     const classification = await classifyInput(inputContent)
 
     // STEP 2: Intent Extraction
-    const intent = await extractIntent(inputContent, classification.input_type)
+    const intent = await extractIntent(inputContent, classification.input_type, classification.category)
 
     // STEP 3: Meaning Normalization
     const normalizedMeaning = normalizeMeaning(classification, intent)
