@@ -231,6 +231,24 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               </div>
             </div>
           )}
+
+          {activeToolkitSection === 'textDiff' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="text2">
+                  Compare With
+                </label>
+                <textarea
+                  id="text2"
+                  className={styles.textarea}
+                  placeholder="Paste the second text to compare"
+                  value={diffConfig?.text2 || ''}
+                  onChange={(e) => onDiffConfigChange({ ...diffConfig, text2: e.target.value })}
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 
