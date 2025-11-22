@@ -179,8 +179,12 @@ Common intent categories:
       }
     }
 
-    // Override incorrect "access website" intent for URLs
-    if (classification.category === 'url' && intent.intent === 'access website') {
+    // Override intent based on category
+    if ((classification.category === 'email' || classification.category === 'validator') && intent.intent !== 'validation') {
+      intent.intent = 'validation'
+      intent.sub_intent = 'validate'
+      intent.confidence = Math.min(1, intent.confidence + 0.3)
+    } else if (classification.category === 'url' && intent.intent === 'access website') {
       intent.intent = 'url_operations'
       intent.sub_intent = 'parse'
     }
