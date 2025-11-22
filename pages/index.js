@@ -157,6 +157,26 @@ export default function Home() {
         const otherTools = toolsWithMetadata.filter(tool => tool.toolId !== currentSelectedTool.toolId)
         // Put selected tool first, then all other tools sorted by similarity
         reorderedTools = [currentSelectedTool, ...otherTools]
+      } else if (toolsWithMetadata.length > 0) {
+        // Auto-select the highest match tool if no tool is currently selected
+        const topTool = toolsWithMetadata[0]
+        setSelectedTool(topTool)
+
+        // Set up initial config for the top tool
+        const initialConfig = {}
+        if (topTool?.configSchema) {
+          topTool.configSchema.forEach(field => {
+            initialConfig[field.id] = field.default || ''
+          })
+        }
+
+        // Auto-detect config from input if available
+        const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
+        if (detectedConfig) {
+          Object.assign(initialConfig, detectedConfig)
+        }
+
+        setConfigOptions(initialConfig)
       }
       setPredictedTools(reorderedTools)
     } catch (err) {
