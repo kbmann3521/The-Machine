@@ -374,7 +374,7 @@ export default function Home() {
           const resizedData = await resizeImage(imagePreview, config)
           setOutputResult(resizedData)
         } else {
-          // For text-toolkit, merge find/replace or diff config if that section is active
+          // For text-toolkit, merge find/replace, diff, or sort lines config if that section is active
           let finalConfig = config
           if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
             finalConfig = {
@@ -388,6 +388,13 @@ export default function Home() {
             finalConfig = {
               ...config,
               text2: diffConfig.text2 || '',
+            }
+          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'sortLines') {
+            finalConfig = {
+              ...config,
+              order: sortLinesConfig.order || 'asc',
+              caseSensitive: sortLinesConfig.caseSensitive || false,
+              removeDuplicates: sortLinesConfig.removeDuplicates || false,
             }
           }
 
