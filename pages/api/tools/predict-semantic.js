@@ -52,19 +52,19 @@ function normalizeMeaning(classification, intent) {
 
 async function vectorSearchTools(embeddingText, limit = 10) {
   try {
-    const embedding = await generateEmbedding(embeddingText)
-
-    const { data: results, error } = await supabase.rpc('search_tools', {
-      query_embedding: embedding,
-      match_count: limit,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/semantic-search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputText: embeddingText }),
     })
 
-    if (error) {
-      console.warn('Vector search not available, using pattern matching:', error)
+    if (!response.ok) {
+      console.warn('Vector search not available:', response.status)
       return null
     }
 
-    return results || []
+    const data = await response.json()
+    return data.results?.slice(0, limit) || []
   } catch (error) {
     console.error('Vector search error:', error)
     return null
