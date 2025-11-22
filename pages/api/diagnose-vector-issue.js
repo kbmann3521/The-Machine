@@ -69,27 +69,32 @@ export default async function handler(req, res) {
 
     // Step 4: Check the actual SQL column definition
     console.log('\n4️⃣ Checking column definition...')
-    const { data: colInfo, error: colError } = await supabase
-      .rpc('exec_sql', {
+    let colInfo = null
+    let colError = null
+    try {
+      const result = await supabase.rpc('exec_sql', {
         sql: `
           SELECT column_name, data_type, udt_name
           FROM information_schema.columns
           WHERE table_name = 'tools' AND column_name = 'embedding'
         `
       })
-      .catch(() => ({
-        data: null,
-        error: { message: 'exec_sql RPC not available' }
-      }))
+      colInfo = result.data
+      colError = result.error
+    } catch (e) {
+      colError = { message: `exec_sql RPC not available: ${e.message}` }
+    }
 
     console.log(`Column info available: ${!!colInfo}`)
     console.log(`Column error: ${colError?.message || 'none'}`)
 
     // Step 5: Try direct SQL UPDATE to test if it works differently
     console.log('\n5️⃣ Testing direct SQL update...')
-    
-    const { data: directUpdate, error: directError } = await supabase
-      .rpc('exec_sql', {
+
+    let directUpdate = null
+    let directError = null
+    try {
+      const result = await supabase.rpc('exec_sql', {
         sql: `
           UPDATE tools
           SET embedding = ARRAY[${new Array(1536).fill('0.5').join(',')}]::vector(1536)
@@ -97,10 +102,11 @@ export default async function handler(req, res) {
           RETURNING id, embedding::text as embedding_text
         `
       })
-      .catch(() => ({
-        data: null,
-        error: { message: 'exec_sql RPC not available' }
-      }))
+      directUpdate = result.data
+      directError = result.error
+    } catch (e) {
+      directError = { message: `Direct SQL failed: ${e.message}` }
+    }
 
     console.log(`Direct SQL succeeded: ${!!directUpdate && !directError}`)
     console.log(`Direct SQL error: ${directError?.message || 'none'}`)
