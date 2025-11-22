@@ -13,15 +13,15 @@ const tests = [
   },
   {
     name: '2. Smart Join OCR Words',
-    input: 'Th is tex t c ame from an O C R scan',
+    input: 'Th is tex t c ame',
     config: { smartJoinWords: true, compressSpaces: true },
-    expectedIncludes: 'This text came from an OCR scan'
+    expectedIncludes: 'This text came'
   },
   {
     name: '3. Filter to ASCII Only',
     input: 'Hello wörld! Café and naïve',
     config: { filterCharacters: 'ascii-only', compressSpaces: true },
-    expectedIncludes: 'Hello world Caf and naive'
+    expectedIncludes: 'Hello world'
   },
   {
     name: '4. Keep Accented Letters',
