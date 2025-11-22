@@ -1,5 +1,6 @@
 import { generateEmbedding, cosineSimilarity, detectInputPatterns, levenshteinDistance } from '../../../lib/embeddings'
 import { TOOLS } from '../../../lib/tools'
+import { createClient } from '@supabase/supabase-js'
 
 // Map input patterns to relevant tool IDs
 const patternToTools = {
