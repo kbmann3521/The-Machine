@@ -75,9 +75,17 @@ async function regenerateEmbeddings() {
           throw new Error('Empty embedding returned')
         }
 
+        // Verify we got a real embedding (1536 dimensions) not a fallback
+        if (embedding.length !== 1536) {
+          console.warn(`⚠️  Warning: Tool ${tool.id} got ${embedding.length}-dimensional embedding (expected 1536)`)
+        }
+
+        // Store as JSON string to ensure proper persistence
+        const embeddingJson = JSON.stringify(embedding)
+
         const { error: updateError } = await supabase
           .from('tools')
-          .update({ embedding })
+          .update({ embedding: embeddingJson })
           .eq('id', tool.id)
 
         if (updateError) {
