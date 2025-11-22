@@ -39,13 +39,41 @@ const testCases = [
   {
     name: '6. Unicode Zero-Width Characters',
     input: 'Hello\u00A0World\u200BThis\u2009Text\uFEFFIs\u2028Strange',
-    config: { removeInvisibleChars: true, normalizeWhitespace: true },
+    config: {
+      removeInvisibleChars: true,
+      normalizeWhitespace: true,
+      removePdfGarbage: false,
+      stripHtml: false,
+      stripMarkdown: false,
+      fixPunctuationSpacing: false,
+      compressSpaces: false,
+      removeBlankLines: false,
+      compressLineBreaks: false,
+      removeTimestamps: false,
+      removeDuplicateLines: false,
+      flattenToSingleLine: false,
+      trimLines: false
+    },
     expected: 'Hello World This Text Is\nStrange'
   },
   {
     name: '7. Duplicated Newlines',
     input: 'Hello world\n\n\nThis has a lot of blank lines.\n\n\n\nPlease strip them.',
-    config: { removeBlankLines: true, compressLineBreaks: true },
+    config: {
+      removeBlankLines: true,
+      compressLineBreaks: true,
+      removePdfGarbage: false,
+      removeInvisibleChars: false,
+      stripHtml: false,
+      stripMarkdown: false,
+      normalizeWhitespace: false,
+      fixPunctuationSpacing: false,
+      compressSpaces: false,
+      removeTimestamps: false,
+      removeDuplicateLines: false,
+      flattenToSingleLine: false,
+      trimLines: false
+    },
     expected: 'Hello world\nThis has a lot of blank lines.\nPlease strip them.'
   },
   {
