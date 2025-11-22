@@ -109,13 +109,22 @@ export default async function handler(req, res) {
 
         const detailedDesc = toolData.detailedDescription || {}
 
-        // Boost category signal by repeating it for writing tools
+        // Get intent-aware keywords for this tool
+        const intentKeywords = getToolIntentKeywords(tool, toolData)
+        const intentPhrase = intentKeywords.join(', ')
+
+        // Boost category signal by repeating it for tools that need it
         const categoryBoost = toolData.category === 'writing' ? `${toolData.category} ${toolData.category} ${toolData.category}` : toolData.category
 
+        // Build embedding text with intent operations
         const embeddingText = [
           tool.name,
           tool.description,
+          // Add intent operations prominently
+          `operations: ${intentPhrase}`,
+          // Add category boost
           categoryBoost,
+          // Add detailed context
           detailedDesc.overview,
           detailedDesc.howtouse?.join(' '),
           detailedDesc.features?.join(' '),
