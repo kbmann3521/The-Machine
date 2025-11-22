@@ -1,4 +1,4 @@
-import { generateEmbedding } from '../../../lib/embeddings'
+import { generateEmbedding, cosineSimilarity } from '../../../lib/embeddings'
 import { TOOLS } from '../../../lib/tools'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from '../../../lib/openaiWrapper.js'
