@@ -44,7 +44,6 @@ export default function Home() {
     stripHtml: true,
     stripMarkdown: true,
     normalizeWhitespace: true,
-    smartJoinWords: false,
     fixPunctuationSpacing: true,
     compressSpaces: true,
     trimLines: true,
@@ -52,7 +51,6 @@ export default function Home() {
     removeBlankLines: true,
     removeTimestamps: false,
     removeDuplicateLines: false,
-    filterCharacters: 'none',
   })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
