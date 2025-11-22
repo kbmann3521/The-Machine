@@ -86,12 +86,10 @@ export default async function handler(req, res) {
           continue
         }
 
-        // Format embedding for pgvector storage: "[x1,x2,x3,...]"
-        const embeddingString = formatEmbeddingForStorage(embedding)
-
+        // Store embedding array directly - Supabase will convert to pgvector
         const { error: updateError } = await supabase
           .from('tools')
-          .update({ embedding: embeddingString })
+          .update({ embedding })
           .eq('id', tool.id)
 
         if (updateError) {
