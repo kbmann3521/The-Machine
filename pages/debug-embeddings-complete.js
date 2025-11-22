@@ -113,7 +113,7 @@ export default function EmbeddingsDebug() {
     setResults({ status: 'streaming...' })
 
     try {
-      const response = await fetch('/api/tools/regenerate-embeddings-fixed', {
+      const response = await fetch('/api/tools/regenerate-embeddings-via-function', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${secretKey}`,
