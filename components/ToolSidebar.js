@@ -49,13 +49,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
               aria-pressed={selectedTool?.toolId === tool.toolId}
             >
               <div className={styles.toolRank}>#{index + 1}</div>
-              <section className={styles.toolContent}>
-                <h3 className={styles.toolName}>{tool.name}</h3>
-                <p className={styles.toolDescription}>{tool.description}</p>
-                <div className={styles.toolScore}>
-                  Match: {(tool.similarity * 100).toFixed(0)}%
-                </div>
-              </section>
+              <h3 className={styles.toolName}>{tool.name}</h3>
             </article>
           ))}
         </nav>
