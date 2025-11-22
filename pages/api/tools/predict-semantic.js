@@ -153,10 +153,10 @@ export default async function handler(req, res) {
 
     if (searchResults && searchResults.length > 0) {
       predictedTools = searchResults.map((tool) => ({
-        toolId: tool.id,
+        toolId: tool.toolId || tool.id,
         name: tool.name,
         description: tool.description,
-        similarity: Math.max(0, Math.min(1, 1 - (tool.distance || 0))),
+        similarity: tool.similarity || Math.max(0, Math.min(1, 1 - (tool.distance || 0))),
       }))
     }
 
