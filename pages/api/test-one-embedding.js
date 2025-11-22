@@ -54,11 +54,20 @@ export default async function handler(req, res) {
 
     // Step 3: Immediately read it back
     console.log('\n3️⃣ Reading back from database...')
-    const { data: tool, error: readError } = await supabase
-      .from('tools')
-      .select('id, embedding')
-      .eq('id', 'word-counter')
-      .single()
+    let tool = null
+    let readError = null
+
+    try {
+      const result = await supabase
+        .from('tools')
+        .select('id, embedding')
+        .eq('id', 'word-counter')
+        .single()
+      tool = result.data
+      readError = result.error
+    } catch (e) {
+      readError = { message: e.message }
+    }
 
     console.log(`   Read error: ${readError?.message || 'none'}`)
     console.log(`   Embedding type: ${typeof tool?.embedding}`)
