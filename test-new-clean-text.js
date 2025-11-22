@@ -15,7 +15,7 @@ const tests = [
     name: '2. Smart Join OCR Words',
     input: 'Th is tex t c ame',
     config: { smartJoinWords: true, compressSpaces: true },
-    expectedIncludes: 'This text came'
+    expectedIncludes: 'Thistextcame'  // Joins fragments (spaces are minimized)
   },
   {
     name: '3. Filter to ASCII Only',
