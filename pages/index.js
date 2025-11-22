@@ -47,7 +47,7 @@ export default function Home() {
     fixPunctuationSpacing: true,
     compressSpaces: true,
     trimLines: true,
-    removeLineBreaks: false,
+    removeLineBreaks: true,
     removeBlankLines: true,
     removeTimestamps: false,
     removeDuplicateLines: false,
