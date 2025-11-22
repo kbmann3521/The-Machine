@@ -146,7 +146,14 @@ Return ONLY a JSON object with this exact structure:
           return null
         }
 
-        const similarity = cosineSimilarity(embedding, toolEmbedding)
+        let similarity = cosineSimilarity(embedding, toolEmbedding)
+
+        // Apply category boosting for detected input category
+        const toolData = TOOLS[tool.id]
+        if (toolData && toolData.category === classification.category) {
+          // Boost similarity by 20% for category matches
+          similarity = Math.min(1, similarity * 1.2)
+        }
 
         return {
           id: tool.id,
