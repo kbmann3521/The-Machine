@@ -10,13 +10,10 @@ const supabase = createClient(
 // Category-to-intent operations mapping
 // Maps tool categories to the operations users want to perform
 const categoryIntentOperations = {
-  email: [
-    'validate email', 'check email format', 'verify email syntax', 'validate email address',
-    'check format correctness', 'expects email input'
-  ],
   validator: [
     'validate format', 'check format', 'verify format', 'test validity', 'validate syntax',
     'check IP address', 'validate UUID', 'validate structure', 'verify correctness',
+    'validate email addresses', 'validate email format', 'check email validity',
     'expects text input to validate'
   ],
   writing: [
