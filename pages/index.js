@@ -130,9 +130,19 @@ export default function Home() {
 
       // Keep the currently selected tool at the top of the list
       if (selectedTool) {
-        const filteredTools = toolsWithMetadata.filter(tool => tool.toolId !== selectedTool.toolId)
-        const reorderedTools = [selectedTool, ...filteredTools]
-        setPredictedTools(reorderedTools)
+        // Find the selected tool in the results (may have updated similarity)
+        const selectedToolInResults = toolsWithMetadata.find(tool => tool.toolId === selectedTool.toolId)
+
+        if (selectedToolInResults) {
+          // Selected tool is in results, keep it at top and remove from its original position
+          const otherTools = toolsWithMetadata.filter(tool => tool.toolId !== selectedTool.toolId)
+          const reorderedTools = [selectedToolInResults, ...otherTools]
+          setPredictedTools(reorderedTools)
+        } else {
+          // Selected tool not in results, keep current selection at top
+          const reorderedTools = [selectedTool, ...toolsWithMetadata]
+          setPredictedTools(reorderedTools)
+        }
       } else {
         setPredictedTools(toolsWithMetadata)
       }
