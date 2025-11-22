@@ -276,7 +276,7 @@ export default function Home() {
           const resizedData = await resizeImage(imagePreview, config)
           setOutputResult(resizedData)
         } else {
-          // For text-toolkit, merge find/replace config if that section is active
+          // For text-toolkit, merge find/replace or diff config if that section is active
           let finalConfig = config
           if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
             finalConfig = {
@@ -285,6 +285,11 @@ export default function Home() {
               replaceText: findReplaceConfig.replaceText || '',
               useRegex: findReplaceConfig.useRegex || false,
               matchCase: findReplaceConfig.matchCase || false,
+            }
+          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'textDiff') {
+            finalConfig = {
+              ...config,
+              text2: diffConfig.text2 || '',
             }
           }
 
