@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import styles from '../styles/hub.module.css'
 
@@ -6,6 +6,11 @@ export default function EmbeddingsDebug() {
   const [secretKey, setSecretKey] = useState('')
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const testOpenAI = async () => {
     setLoading(true)
