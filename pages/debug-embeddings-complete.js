@@ -116,6 +116,19 @@ export default function EmbeddingsDebug() {
     }
   }
 
+  const finalEmbeddingTest = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/final-embedding-test')
+      const data = await response.json()
+      setResults(data)
+    } catch (error) {
+      setResults({ error: error.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const checkEmbeddings = async () => {
     setLoading(true)
     try {
