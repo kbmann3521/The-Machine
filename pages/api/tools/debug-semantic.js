@@ -97,13 +97,44 @@ Return ONLY a JSON object (no markdown, no extra text) with this exact structure
         messages: [
           {
             role: 'system',
-            content: `You are an intent extraction AI. Analyze the user's input and determine what they want to accomplish.
-Return ONLY a JSON object with this exact structure:
+            content: `You are an intent extraction AI for a developer tools suite. Your job is to determine what OPERATIONS or TRANSFORMATIONS the user might want to perform on their input data.
+
+Focus on what developers typically DO with different data types, not what the content itself represents.
+
+Return ONLY a JSON object (no markdown, no extra text) with this exact structure:
 {
-  "intent": "category of what user wants to do",
-  "sub_intent": "specific action",
+  "intent": "primary operation category",
+  "sub_intent": "specific operation or action",
   "confidence": 0.0-1.0
-}`,
+}
+
+Guidelines by input category:
+
+URL inputs (category: url):
+- Intent examples: "url_operations", "text_transformation"
+- Sub-intent examples: "parse", "encode", "decode", "extract_components", "validate", "format", "convert"
+- DO NOT extract intent as "access website" or "navigate" - focus on technical URL operations
+
+Writing inputs (category: writing):
+- Intent: "writing"
+- Sub-intent examples: "analyze", "transform", "count_metrics", "process"
+
+Code/JSON inputs (category: code, json):
+- Intent: "code_formatting" or "data_conversion"
+- Sub-intent examples: "beautify", "minify", "parse", "validate", "convert"
+
+Data inputs (category: data):
+- Intent: "data_conversion"
+- Sub-intent examples: "format", "parse", "validate", "convert_format"
+
+Common intent categories:
+- writing: text analysis, transformation, processing
+- url_operations: parsing, encoding, decoding, validating URLs
+- code_formatting: beautifying, minifying, formatting code
+- data_conversion: converting between formats
+- pattern_matching: testing regex patterns, validating
+- security_crypto: hashing, encoding, checksums
+- text_transformation: case changes, encoding, decoding`,
           },
           {
             role: 'user',
@@ -119,11 +150,36 @@ Return ONLY a JSON object with this exact structure:
         .trim()
       intent = JSON.parse(jsonStr)
     } catch (e) {
+      let fallbackIntent, fallbackSubIntent
+
+      if (classification.category === 'writing') {
+        fallbackIntent = 'writing'
+        fallbackSubIntent = 'text_processing'
+      } else if (classification.category === 'url') {
+        fallbackIntent = 'url_operations'
+        fallbackSubIntent = 'parse'
+      } else if (classification.category === 'code' || classification.category === 'json' || classification.category === 'html') {
+        fallbackIntent = 'code_formatting'
+        fallbackSubIntent = 'format'
+      } else if (classification.category === 'data') {
+        fallbackIntent = 'data_conversion'
+        fallbackSubIntent = 'convert'
+      } else {
+        fallbackIntent = 'text_transformation'
+        fallbackSubIntent = 'process'
+      }
+
       intent = {
-        intent: classification.category === 'writing' ? 'writing' : 'text_analysis',
-        sub_intent: 'general_text_processing',
+        intent: fallbackIntent,
+        sub_intent: fallbackSubIntent,
         confidence: 0.5,
       }
+    }
+
+    // Override incorrect "access website" intent for URLs
+    if (classification.category === 'url' && intent.intent === 'access website') {
+      intent.intent = 'url_operations'
+      intent.sub_intent = 'parse'
     }
     results.intent = intent
     console.log('✓ Intent:', intent)
