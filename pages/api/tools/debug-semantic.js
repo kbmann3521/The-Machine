@@ -152,7 +152,10 @@ Common intent categories:
     } catch (e) {
       let fallbackIntent, fallbackSubIntent
 
-      if (classification.category === 'writing') {
+      if (classification.category === 'email' || classification.category === 'validator') {
+        fallbackIntent = 'validation'
+        fallbackSubIntent = 'validate'
+      } else if (classification.category === 'writing') {
         fallbackIntent = 'writing'
         fallbackSubIntent = 'text_processing'
       } else if (classification.category === 'url') {
