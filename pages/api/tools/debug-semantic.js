@@ -186,11 +186,42 @@ Common intent categories:
 
     // Step 3: Embedding generation
     console.log('🔍 Testing embedding generation...')
-    // Use the original input text for embedding generation, not the classification summary
-    // This ensures semantic relevance to what the user actually provided
-    const embedding = await generateEmbedding(inputText)
+    // Generate embedding based on intent + category context
+    // This ensures the embedding reflects what operations the user wants to perform
+
+    let embeddingText = inputText
+    const contextParts = []
+
+    if (classification.category) {
+      contextParts.push(`${classification.category}:`)
+    }
+
+    if (intent.intent) {
+      // Add intent operations for context-aware embedding
+      if (intent.intent === 'url_operations') {
+        contextParts.push('parse, decode, encode, validate, extract components, format')
+      } else if (intent.intent === 'code_formatting') {
+        contextParts.push('beautify, minify, format, validate, parse')
+      } else if (intent.intent === 'data_conversion') {
+        contextParts.push('convert, format, parse, validate')
+      } else if (intent.intent === 'writing') {
+        contextParts.push('analyze, transform, process, count, metrics')
+      } else if (intent.intent === 'text_transformation') {
+        contextParts.push('encode, decode, case conversion, transformation')
+      } else if (intent.intent === 'security_crypto') {
+        contextParts.push('hash, encrypt, encode, checksum, crypto')
+      } else if (intent.intent === 'pattern_matching') {
+        contextParts.push('regex, pattern, validate, match, test')
+      }
+    }
+
+    if (contextParts.length > 0) {
+      embeddingText = contextParts.join(' ') + ' ' + inputText
+    }
+
+    const embedding = await generateEmbedding(embeddingText)
     results.embeddingGenerated = {
-      text: `input_type: ${classification.input_type}, category: ${classification.category}, content: ${classification.content_summary}, intent: ${intent.intent}, sub_intent: ${intent.sub_intent}`,
+      text: embeddingText,
       dimensions: embedding.length,
       sampleValues: embedding.slice(0, 5),
     }
