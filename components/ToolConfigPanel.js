@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
   const [config, setConfig] = useState({})
 
   useEffect(() => {
