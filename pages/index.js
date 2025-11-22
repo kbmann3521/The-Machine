@@ -319,7 +319,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig]
   )
 
   const handleRegenerate = useCallback(() => {
