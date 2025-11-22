@@ -530,6 +530,8 @@ export default function Home() {
                       onDiffConfigChange={setDiffConfig}
                       sortLinesConfig={sortLinesConfig}
                       onSortLinesConfigChange={setSortLinesConfig}
+                      removeExtrasConfig={removeExtrasConfig}
+                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
                     />
                     <button
                       className={styles.descriptionToggle}
