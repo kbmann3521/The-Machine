@@ -42,6 +42,7 @@ async function extractIntent(input, inputType, category) {
 function normalizeMeaning(classification, intent) {
   const parts = [
     `input_type: ${classification.input_type}`,
+    `category: ${classification.category || 'unknown'}`,
     `content: ${classification.content_summary}`,
     `intent: ${intent.intent}`,
     `sub_intent: ${intent.sub_intent}`,
