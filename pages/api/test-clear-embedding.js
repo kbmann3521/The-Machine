@@ -77,6 +77,8 @@ export default async function handler(req, res) {
         firstReadArrayLength: Array.isArray(readData1?.embedding)
           ? readData1.embedding.length
           : null,
+        firstReadType: typeof readData1?.embedding,
+        firstReadValue: JSON.stringify(readData1?.embedding),
         secondReadNull: readData2?.embedding === null,
         secondReadArray: Array.isArray(readData2?.embedding),
         secondReadArrayLength: Array.isArray(readData2?.embedding)
@@ -85,12 +87,12 @@ export default async function handler(req, res) {
       },
       diagnosis:
         readData1?.embedding === null
-          ? '✅ Clear works - embedding is null'
-          : '❌ Clear failed or trigger is converting null to array automatically',
+          ? '��� Clear works - embedding is null'
+          : `❌ Embedding is now: ${typeof readData1?.embedding} = ${JSON.stringify(readData1?.embedding).substring(0, 100)}`,
       recommendation:
         Array.isArray(readData1?.embedding) && readData1.embedding.length === 16
           ? 'There is likely a Postgres trigger auto-generating 16-dim embeddings. Need to check database triggers.'
-          : 'Unknown issue',
+          : 'See firstReadValue and firstReadType in test object',
     })
   } catch (error) {
     console.error('Error:', error)
