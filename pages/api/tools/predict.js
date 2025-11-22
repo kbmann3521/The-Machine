@@ -248,17 +248,22 @@ export default async function handler(req, res) {
       if (shouldUseSemanticSearch(inputType.type)) {
         // LAYER 3: Semantic search for plain_text
         const semanticResults = await layerSemanticSearch(inputContent, inputType.type, visibilityMap)
-        
+
         if (semanticResults && semanticResults.length > 0) {
-          // Apply scoring formula with bias
-          predictedTools = semanticResults.map(result => {
+          // Create a map of semantic results
+          const semanticMap = new Map(
+            semanticResults.map(result => [result.toolId, result])
+          )
+
+          // Apply scoring formula with bias to semantic results
+          const scoredResults = semanticResults.map(result => {
             const toolBias = getToolBiasWeight(result.toolId, inputType.type)
             const finalScore = calculateFinalScore(
               0.6, // Heuristic score placeholder (for semantic search, this is low)
               result.semanticScore,
               toolBias
             )
-            
+
             return {
               toolId: result.toolId,
               name: result.name,
@@ -269,6 +274,34 @@ export default async function handler(req, res) {
               biasApplied: toolBias > 0 ? toolBias : undefined,
             }
           })
+
+          // Add all other tools with 0 similarity
+          const allToolIds = Object.keys(TOOLS)
+          const otherTools = allToolIds
+            .filter(toolId => !semanticMap.has(toolId) && visibilityMap[toolId] !== false)
+            .map(toolId => {
+              const toolData = TOOLS[toolId]
+              return {
+                toolId,
+                name: toolData.name,
+                description: toolData.description,
+                similarity: 0,
+                source: 'unmatched',
+              }
+            })
+
+          predictedTools = [...scoredResults, ...otherTools]
+        } else {
+          // No semantic results, return all tools with 0 similarity
+          predictedTools = Object.entries(TOOLS)
+            .filter(([toolId]) => visibilityMap[toolId] !== false)
+            .map(([toolId, toolData]) => ({
+              toolId,
+              name: toolData.name,
+              description: toolData.description,
+              similarity: 0,
+              source: 'unmatched',
+            }))
         }
       } else {
         // Direct tool selection for structured inputs
