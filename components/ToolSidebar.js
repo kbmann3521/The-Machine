@@ -2,8 +2,11 @@ import React, { useState, useMemo } from 'react'
 import styles from '../styles/tool-sidebar.module.css'
 
 const getScoreColor = (similarity) => {
-  const hue = similarity * 120
-  return `hsl(${hue}, 70%, 50%)`
+  // Create gradient from green (high similarity) to white (low similarity)
+  const hue = similarity * 120 // 0 = red, 120 = green
+  const saturation = similarity * 70 // 0% to 70% saturation
+  const lightness = 50 + (1 - similarity) * 25 // 50% to 75% lightness (fade to white)
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`
 }
 
 const getScoreLabel = (similarity) => {
