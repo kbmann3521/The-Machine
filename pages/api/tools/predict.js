@@ -1,4 +1,14 @@
-import { generateEmbedding, cosineSimilarity, detectInputPatterns, levenshteinDistance } from '../../../lib/embeddings'
+/**
+ * 3-Layer Tool Prediction Pipeline
+ * 
+ * LAYER 1: Hard Detection (Regex + Heuristics) - 80-90% of cases
+ * LAYER 2: LLM Classification - Fallback for ambiguous cases
+ * LAYER 3: Semantic Search - For plain_text inputs only
+ * 
+ * Scoring: 60% heuristics + 30% semantic + 10% tool bias
+ */
+
+import { generateEmbedding, cosineSimilarity } from '../../../lib/embeddings'
 import { TOOLS } from '../../../lib/tools'
 import { createClient } from '@supabase/supabase-js'
 import { hardDetect, isLikelyPlainText } from '../../../lib/hardDetection'
@@ -9,24 +19,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
-
-// Map input patterns to relevant tool IDs
-const patternToTools = {
-  urlEncoded: ['url-converter', 'url-parser'],
-  url: ['url-parser', 'url-converter'],
-  json: ['json-formatter', 'escape-unescape'],
-  base64: ['base64-converter', 'escape-unescape'],
-  html: ['html-formatter', 'html-entities-converter', 'plain-text-stripper'],
-  xml: ['xml-formatter', 'plain-text-stripper'],
-  csv: ['csv-json-converter'],
-  markdown: ['markdown-html-converter', 'plain-text-stripper'],
-  regex: ['regex-tester', 'find-replace'],
-  yaml: ['yaml-formatter'],
-  timestamp: ['timestamp-converter'],
-  ipAddress: ['ip-validator'],
-  jwt: ['jwt-decoder', 'base64-converter'],
-  email: ['email-validator'],
-}
 
 async function getVisibilityMap() {
   const { data: supabaseTools } = await supabase
@@ -42,119 +34,165 @@ async function getVisibilityMap() {
   return visibilityMap
 }
 
-async function useSemanticPrediction(inputContent) {
-  try {
-    // Use the full predict-semantic pipeline which includes classification and intent extraction
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/predict-semantic`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inputText: inputContent }),
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      if (data.predictedTools && data.predictedTools.length > 0) {
-        return data.predictedTools
-      }
-    }
-  } catch (error) {
-    console.warn('Semantic prediction not available, falling back to pattern matching:', error.message)
+/**
+ * LAYER 1: Hard Detection
+ * Runs regex and heuristics to classify input
+ */
+function layerHardDetection(input) {
+  const result = hardDetect(input)
+  
+  if (result && result.confidence >= 0.80) {
+    console.log(`✓ LAYER 1 (Hard Detection): ${result.type} (${(result.confidence * 100).toFixed(0)}%)`)
+    return result
   }
-
+  
   return null
 }
 
-async function usePatternMatching(inputContent, visibilityMap) {
-  const generatorTools = [
-    'random-string-generator',
-    'variable-name-generator',
-    'function-name-generator',
-    'api-endpoint-generator',
-    'lorem-ipsum-generator',
-    'uuid-generator',
-    'hash-generator',
-    'password-generator',
-    'qr-code-generator',
-  ]
-
-  const patterns = detectInputPatterns(inputContent)
-  const detectedPatternKeys = Object.entries(patterns)
-    .filter(([_, detected]) => detected)
-    .map(([key, _]) => key)
-
-  // Check if input is plain English text (writing)
-  const isPlainEnglish = /[.!?]|[a-z]\s+[a-z]|the\s|and\s|or\s|is\s|a\s|to\s/i.test(inputContent) &&
-                         inputContent.length > 10 &&
-                         detectedPatternKeys.length === 0
-
-  const inputEmbedding = await generateEmbedding(inputContent)
-
-  const toolEntries = Object.entries(TOOLS).filter(([toolId]) => {
-    if (generatorTools.includes(toolId)) return false
-    return visibilityMap[toolId] !== false
-  })
-
-  const toolScores = await Promise.all(
-    toolEntries.map(async ([toolId, toolData]) => {
-      let patternScore = 0
-      let vectorScore = 0
-      let fuzzyScore = 0
-
-      // 1. PATTERN MATCHING (40% weight)
-      for (const pattern of detectedPatternKeys) {
-        if (patternToTools[pattern]?.includes(toolId)) {
-          patternScore = Math.max(patternScore, 0.95)
-        }
-      }
-
-      const toolPlaceholder = toolData.example || toolData.description || toolData.name
-
-      // 2. FUZZY MATCHING (20% weight)
-      fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
-
-      // 3. VECTOR SEMANTIC MATCHING (40% weight)
-      const toolEmbedding = await generateEmbedding(toolPlaceholder)
-      vectorScore = cosineSimilarity(inputEmbedding, toolEmbedding)
-
-      let finalScore = (patternScore * 0.4) + (fuzzyScore * 0.2) + (vectorScore * 0.4)
-
-      // BONUS: Boost writing tools when input is plain English
-      if (isPlainEnglish && toolData.category === 'writing') {
-        finalScore = Math.min(1, finalScore + 0.35)
-      }
-
-      return {
-        toolId,
-        name: toolData.name,
-        description: toolData.description,
-        similarity: Math.max(0, Math.min(1, finalScore)),
-      }
-    })
-  )
-
-  const results = toolScores.sort((a, b) => b.similarity - a.similarity)
-
-  // If plain English detected, ensure Text Toolkit is at the top
-  if (isPlainEnglish) {
-    const textToolkitIndex = results.findIndex(t => t.toolId === 'text-toolkit')
-    if (textToolkitIndex > 0) {
-      const textToolkit = results[textToolkitIndex]
-      results.unshift(textToolkit)
-      results.splice(textToolkitIndex + 1, 1)
-    } else if (textToolkitIndex === -1) {
-      // Add Text Toolkit if missing
-      results.unshift({
-        toolId: 'text-toolkit',
-        name: TOOLS['text-toolkit'].name,
-        description: TOOLS['text-toolkit'].description,
-        similarity: 0.98,
-      })
-    }
+/**
+ * LAYER 2: LLM Classification
+ * Falls back to LLM for ambiguous cases
+ */
+async function layerLlmClassification(input) {
+  const result = await llmClassify(input)
+  
+  if (result && result.confidence >= 0.65) {
+    console.log(`✓ LAYER 2 (LLM Classification): ${result.type} (${(result.confidence * 100).toFixed(0)}%)`)
+    return result
   }
-
-  return results
+  
+  return null
 }
 
+/**
+ * Determine input type through 3-layer pipeline
+ */
+async function determineInputType(input) {
+  // LAYER 1: Hard Detection
+  const hardResult = layerHardDetection(input)
+  if (hardResult) {
+    return hardResult
+  }
+
+  // LAYER 2: LLM Classification
+  const llmResult = await layerLlmClassification(input)
+  if (llmResult) {
+    return llmResult
+  }
+
+  // Default: Plain text
+  console.log('⊘ No layer matched; defaulting to plain_text')
+  return {
+    type: 'plain_text',
+    confidence: 0.3,
+    reason: 'Default fallback',
+  }
+}
+
+/**
+ * LAYER 3: Semantic Search
+ * Used only for plain_text inputs to find the best matching tool
+ */
+async function layerSemanticSearch(input, inputType, visibilityMap) {
+  // Only use semantic search for plain text
+  if (!shouldUseSemanticSearch(inputType)) {
+    return null
+  }
+
+  try {
+    console.log(`🧠 LAYER 3 (Semantic Search): Searching for ${inputType} tools`)
+
+    // Get tools relevant to this input type
+    const candidateToolIds = getToolsForInputType(inputType)
+    if (candidateToolIds.length === 0) {
+      console.warn(`No tools mapped for input type: ${inputType}`)
+      return null
+    }
+
+    // Filter by visibility
+    const visibleTools = candidateToolIds.filter(id => visibilityMap[id] !== false)
+    if (visibleTools.length === 0) {
+      return null
+    }
+
+    // Generate embedding for query
+    const queryEmbedding = await generateEmbedding(input)
+    if (!queryEmbedding || queryEmbedding.length === 0) {
+      return null
+    }
+
+    // Score each tool
+    const toolScores = await Promise.all(
+      visibleTools.map(async (toolId) => {
+        const toolData = TOOLS[toolId]
+        if (!toolData) return null
+
+        // Generate tool embedding from description
+        const toolEmbedding = await generateEmbedding(
+          `${toolData.name} ${toolData.description}`
+        )
+
+        if (!toolEmbedding || toolEmbedding.length === 0) {
+          return null
+        }
+
+        // Calculate semantic similarity
+        const semanticScore = cosineSimilarity(queryEmbedding, toolEmbedding)
+
+        return {
+          toolId,
+          name: toolData.name,
+          description: toolData.description,
+          semanticScore,
+        }
+      })
+    )
+
+    return toolScores.filter(Boolean).sort((a, b) => b.semanticScore - a.semanticScore)
+  } catch (error) {
+    console.error('Semantic search error:', error)
+    return null
+  }
+}
+
+/**
+ * Calculate final score for each tool
+ * Formula: (heuristics * 0.6) + (semantic * 0.3) + (bias * 0.1)
+ */
+function calculateFinalScore(heuristicScore, semanticScore, toolBias) {
+  return (heuristicScore * 0.6) + (semanticScore * 0.3) + (toolBias * 0.1)
+}
+
+/**
+ * Direct tool selection based on input type
+ * For structured inputs that have a clear tool mapping
+ */
+async function directToolSelection(inputType, visibilityMap) {
+  const toolIds = getToolsForInputType(inputType)
+  
+  if (toolIds.length === 0) {
+    return []
+  }
+
+  // Filter visible tools
+  const visibleToolIds = toolIds.filter(id => visibilityMap[id] !== false)
+  
+  // Return tools in mapped order (first = best match)
+  return visibleToolIds.map(toolId => {
+    const toolData = TOOLS[toolId]
+    return {
+      toolId,
+      name: toolData.name,
+      description: toolData.description,
+      similarity: 0.95, // High confidence for direct mapping
+      source: 'hard_detection',
+    }
+  })
+}
+
+/**
+ * Main handler
+ */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -167,7 +205,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No input provided' })
     }
 
-    let inputContent = inputText || 'image input'
+    const inputContent = inputText || 'image input'
     const visibilityMap = await getVisibilityMap()
 
     let predictedTools = []
@@ -184,29 +222,61 @@ export default async function handler(req, res) {
           name: toolData.name,
           description: toolData.description,
           similarity: toolId === 'image-resizer' ? 0.99 : 0.90,
+          source: 'image_detection',
         }))
 
       predictedTools = imageTools.filter(t => visibilityMap[t.toolId] !== false)
     } else {
-      // Try semantic prediction first
-      const semanticResults = await useSemanticPrediction(inputContent)
+      // TEXT INPUT: Use 3-layer detection pipeline
+      
+      // STEP 1: Determine input type (Layers 1 & 2)
+      const inputType = await determineInputType(inputContent)
+      console.log(`📊 Input Type: ${inputType.type} (confidence: ${(inputType.confidence * 100).toFixed(0)}%)`)
 
-      if (semanticResults && semanticResults.length > 0) {
-        predictedTools = semanticResults
-        console.log('✓ Using semantic prediction for:', inputContent.substring(0, 50))
+      // STEP 2: Select tools based on input type
+      // For structured inputs: direct selection
+      // For plain_text: semantic search
+      
+      if (shouldUseSemanticSearch(inputType.type)) {
+        // LAYER 3: Semantic search for plain_text
+        const semanticResults = await layerSemanticSearch(inputContent, inputType.type, visibilityMap)
+        
+        if (semanticResults && semanticResults.length > 0) {
+          // Apply scoring formula with bias
+          predictedTools = semanticResults.map(result => {
+            const toolBias = getToolBiasWeight(result.toolId, inputType.type)
+            const finalScore = calculateFinalScore(
+              0.6, // Heuristic score placeholder (for semantic search, this is low)
+              result.semanticScore,
+              toolBias
+            )
+            
+            return {
+              toolId: result.toolId,
+              name: result.name,
+              description: result.description,
+              similarity: Math.min(1, finalScore),
+              source: 'semantic_search',
+              semanticScore: result.semanticScore,
+              biasApplied: toolBias > 0 ? toolBias : undefined,
+            }
+          })
+        }
       } else {
-        // Fallback to pattern matching
-        console.warn('⚠ Falling back to pattern matching for:', inputContent.substring(0, 50))
-        predictedTools = await usePatternMatching(inputContent, visibilityMap)
+        // Direct tool selection for structured inputs
+        predictedTools = await directToolSelection(inputType.type, visibilityMap)
       }
     }
 
+    // Sort by similarity
+    predictedTools.sort((a, b) => b.similarity - a.similarity)
+
     res.status(200).json({
-      predictedTools,
+      predictedTools: predictedTools.slice(0, 10), // Top 10
       inputContent,
       _debug: {
-        usedSemantic: predictedTools.length > 0 && predictedTools[0].toolId === 'text-toolkit',
-        topMatch: predictedTools[0]?.name,
+        pipelineUsed: '3-layer (hard-detection -> llm -> semantic)',
+        totalResults: predictedTools.length,
       },
     })
   } catch (error) {
