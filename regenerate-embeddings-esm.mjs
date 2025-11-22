@@ -85,12 +85,11 @@ async function regenerateEmbeddings() {
           continue
         }
 
-        // Store as JSON string to ensure proper persistence
-        const embeddingJson = JSON.stringify(embedding)
-
+        // Store embedding directly as array for vector column
+        // Supabase vector type expects the array directly, not as JSON string
         const { error: updateError } = await supabase
           .from('tools')
-          .update({ embedding: embeddingJson })
+          .update({ embedding })
           .eq('id', tool.id)
 
         if (updateError) {
