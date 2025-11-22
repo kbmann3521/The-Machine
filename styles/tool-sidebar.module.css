@@ -225,13 +225,16 @@
 
   .toolItem {
     flex-direction: column;
-    min-width: 180px;
+    align-items: center;
+    min-width: 140px;
     width: auto;
+    gap: 8px;
+    padding: 12px 8px;
   }
 
   .toolRank {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     font-size: 11px;
   }
 }
