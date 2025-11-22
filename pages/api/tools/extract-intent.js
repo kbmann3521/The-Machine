@@ -116,7 +116,11 @@ Common intent categories for developer tools:
     }
 
     // Ensure category-appropriate intent
-    if (category === 'writing' && intent.intent !== 'writing') {
+    if ((category === 'email' || category === 'validator') && intent.intent !== 'validation') {
+      intent.intent = 'validation'
+      intent.sub_intent = 'validate'
+      intent.confidence = Math.min(1, intent.confidence + 0.3)
+    } else if (category === 'writing' && intent.intent !== 'writing') {
       intent.intent = 'writing'
       intent.confidence = Math.min(1, intent.confidence + 0.2)
     } else if (category === 'url' && intent.intent === 'access website') {
