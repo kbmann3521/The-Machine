@@ -378,7 +378,7 @@ export default function Home() {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <h1>All-in-One Internet Tools</h1>
-            <p>Start typing or upload an image to get AI-powered tool suggestions</p>
+            <p>Describe what you need, and we'll suggest the right tools to get the job done</p>
           </div>
           <ThemeToggle />
         </div>
