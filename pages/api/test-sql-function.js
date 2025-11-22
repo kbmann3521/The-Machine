@@ -31,13 +31,18 @@ export default async function handler(req, res) {
     console.log('\n2️⃣ Testing function with simple 5-element array...')
     const testArray = [0.1, 0.2, 0.3, 0.4, 0.5]
 
-    const { data: rpcData, error: rpcError } = await supabase.rpc(
-      'update_tool_embedding',
-      {
+    let rpcData = null
+    let rpcError = null
+    try {
+      const result = await supabase.rpc('update_tool_embedding', {
         tool_id: 'test-tool-123',
         embedding_array: testArray,
-      }
-    )
+      })
+      rpcData = result.data
+      rpcError = result.error
+    } catch (e) {
+      rpcError = { message: e.message }
+    }
 
     console.log(`   RPC Data: ${JSON.stringify(rpcData)}`)
     console.log(`   RPC Error: ${rpcError?.message || 'none'}`)
@@ -46,13 +51,18 @@ export default async function handler(req, res) {
     console.log('\n3️⃣ Testing function with 1536-element array...')
     const largeArray = new Array(1536).fill(0.123)
 
-    const { data: rpcData2, error: rpcError2 } = await supabase.rpc(
-      'update_tool_embedding',
-      {
+    let rpcData2 = null
+    let rpcError2 = null
+    try {
+      const result = await supabase.rpc('update_tool_embedding', {
         tool_id: 'word-counter',
         embedding_array: largeArray,
-      }
-    )
+      })
+      rpcData2 = result.data
+      rpcError2 = result.error
+    } catch (e) {
+      rpcError2 = { message: e.message }
+    }
 
     console.log(`   RPC Data: ${JSON.stringify(rpcData2)}`)
     console.log(`   RPC Error: ${rpcError2?.message || 'none'}`)
