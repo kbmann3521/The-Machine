@@ -12,6 +12,7 @@ function mapToToolCategory(classifierCategory) {
   const mapping = {
     'writing': 'writing',
     'text': 'writing',
+    'text-analyze': 'writing',
     'url': 'developer',
     'code': 'developer',
     'json': 'json',
