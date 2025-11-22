@@ -78,7 +78,12 @@ export default async function handler(req, res) {
 
         // Verify we got a real embedding (1536 dimensions) not a fallback
         if (embedding.length !== 1536) {
-          console.warn(`⚠️  Warning: Tool ${tool.id} got ${embedding.length}-dimensional embedding (expected 1536)`)
+          results.failed++
+          results.errors.push({
+            toolId: tool.id,
+            error: `Invalid embedding dimensions: ${embedding.length} (expected 1536)`,
+          })
+          continue
         }
 
         // Store as JSON string to ensure proper persistence
