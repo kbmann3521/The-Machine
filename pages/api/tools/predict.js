@@ -2,6 +2,11 @@ import { generateEmbedding, cosineSimilarity, detectInputPatterns, levenshteinDi
 import { TOOLS } from '../../../lib/tools'
 import { createClient } from '@supabase/supabase-js'
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+
 // Map input patterns to relevant tool IDs
 const patternToTools = {
   urlEncoded: ['url-converter', 'url-parser'],
@@ -20,6 +25,103 @@ const patternToTools = {
   email: ['email-validator'],
 }
 
+async function getVisibilityMap() {
+  const { data: supabaseTools } = await supabase
+    .from('tools')
+    .select('id, show_in_recommendations')
+
+  const visibilityMap = {}
+  if (supabaseTools) {
+    supabaseTools.forEach(tool => {
+      visibilityMap[tool.id] = tool.show_in_recommendations !== false
+    })
+  }
+  return visibilityMap
+}
+
+async function useSemanticPrediction(inputContent) {
+  try {
+    // Try to use the semantic pipeline
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/predict-semantic`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputText: inputContent }),
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      if (data.predictedTools && data.predictedTools.length > 0) {
+        return data.predictedTools
+      }
+    }
+  } catch (error) {
+    console.warn('Semantic prediction not available, falling back to pattern matching:', error.message)
+  }
+
+  return null
+}
+
+async function usePatternMatching(inputContent, visibilityMap) {
+  const generatorTools = [
+    'random-string-generator',
+    'variable-name-generator',
+    'function-name-generator',
+    'api-endpoint-generator',
+    'lorem-ipsum-generator',
+    'uuid-generator',
+    'hash-generator',
+    'password-generator',
+    'qr-code-generator',
+  ]
+
+  const patterns = detectInputPatterns(inputContent)
+  const detectedPatternKeys = Object.entries(patterns)
+    .filter(([_, detected]) => detected)
+    .map(([key, _]) => key)
+
+  const inputEmbedding = await generateEmbedding(inputContent)
+
+  const toolEntries = Object.entries(TOOLS).filter(([toolId]) => {
+    if (generatorTools.includes(toolId)) return false
+    return visibilityMap[toolId] !== false
+  })
+
+  const toolScores = await Promise.all(
+    toolEntries.map(async ([toolId, toolData]) => {
+      let patternScore = 0
+      let vectorScore = 0
+      let fuzzyScore = 0
+
+      // 1. PATTERN MATCHING (40% weight)
+      for (const pattern of detectedPatternKeys) {
+        if (patternToTools[pattern]?.includes(toolId)) {
+          patternScore = Math.max(patternScore, 0.95)
+        }
+      }
+
+      const toolPlaceholder = toolData.example || toolData.description || toolData.name
+
+      // 2. FUZZY MATCHING (20% weight)
+      fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
+
+      // 3. VECTOR SEMANTIC MATCHING (40% weight)
+      const toolEmbedding = await generateEmbedding(toolPlaceholder)
+      vectorScore = cosineSimilarity(inputEmbedding, toolEmbedding)
+
+      const finalScore = (patternScore * 0.4) + (fuzzyScore * 0.2) + (vectorScore * 0.4)
+
+      return {
+        toolId,
+        name: toolData.name,
+        description: toolData.description,
+        similarity: Math.max(0, Math.min(1, finalScore)),
+      }
+    })
+  )
+
+  return toolScores.sort((a, b) => b.similarity - a.similarity)
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -33,110 +135,39 @@ export default async function handler(req, res) {
     }
 
     let inputContent = inputText || 'image input'
+    const visibilityMap = await getVisibilityMap()
 
-    // Generator tools to exclude
-    const generatorTools = [
-      'random-string-generator',
-      'variable-name-generator',
-      'function-name-generator',
-      'api-endpoint-generator',
-      'lorem-ipsum-generator',
-      'uuid-generator',
-      'hash-generator',
-      'password-generator',
-      'qr-code-generator',
-    ]
+    let predictedTools = []
 
-    // Fetch tools from Supabase to check show_in_recommendations flag
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    )
-
-    const { data: supabaseTools, error: supabaseError } = await supabase
-      .from('tools')
-      .select('id, show_in_recommendations')
-
-    // Create a map of tools to check show_in_recommendations
-    const visibilityMap = {}
-    if (supabaseTools) {
-      supabaseTools.forEach(tool => {
-        visibilityMap[tool.id] = tool.show_in_recommendations !== false
-      })
-    }
-
-    // Detect patterns in input
-    const patterns = detectInputPatterns(inputContent)
-    const detectedPatternKeys = Object.entries(patterns)
-      .filter(([_, detected]) => detected)
-      .map(([key, _]) => key)
-
-    // Generate embedding for user input
-    const inputEmbedding = await generateEmbedding(inputContent)
-
-    // Calculate scores for all tools
-    const toolEntries = Object.entries(TOOLS).filter(([toolId]) => {
-      // Exclude generator tools
-      if (generatorTools.includes(toolId)) return false
-      // Exclude tools with show_in_recommendations = false (default to true if not in Supabase)
-      return visibilityMap[toolId] !== false
-    })
-    
-    const toolScores = await Promise.all(
-      toolEntries.map(async ([toolId, toolData]) => {
-        let patternScore = 0
-        let vectorScore = 0
-        let fuzzyScore = 0
-        let finalScore = 0
-
-        // For image input, prioritize image-capable tools
-        if (inputImage) {
-          if (toolId === 'image-resizer') {
-            finalScore = 0.99
-          } else if (toolData.inputTypes?.includes('image')) {
-            finalScore = 0.90
-          } else {
-            finalScore = 0.1
-          }
-        } else {
-          // 1. PATTERN MATCHING (40% weight)
-          // Check if tool matches detected input patterns
-          for (const pattern of detectedPatternKeys) {
-            if (patternToTools[pattern]?.includes(toolId)) {
-              patternScore = Math.max(patternScore, 0.95)
-            }
-          }
-
-          // Get tool's placeholder/example text
-          const toolPlaceholder = toolData.example || toolData.description || toolData.name
-
-          // 2. FUZZY MATCHING (20% weight)
-          // Fuzzy match input against tool's placeholder/example text
-          fuzzyScore = levenshteinDistance(inputContent, toolPlaceholder)
-
-          // 3. VECTOR SEMANTIC MATCHING (40% weight)
-          // Compare embeddings of input and tool placeholder/example
-          const toolEmbedding = await generateEmbedding(toolPlaceholder)
-          vectorScore = cosineSimilarity(inputEmbedding, toolEmbedding)
-
-          // Combine scores with weights
-          finalScore = (patternScore * 0.4) + (fuzzyScore * 0.2) + (vectorScore * 0.4)
-        }
-
-        return {
+    // For image input, prioritize image-capable tools
+    if (inputImage) {
+      const imageTools = Object.entries(TOOLS)
+        .filter(([toolId, toolData]) => {
+          if (toolId === 'image-resizer') return true
+          return toolData.inputTypes?.includes('image')
+        })
+        .map(([toolId, toolData]) => ({
           toolId,
           name: toolData.name,
           description: toolData.description,
-          similarity: Math.max(0, Math.min(1, finalScore)), // Clamp to 0-1 range
-        }
-      })
-    )
+          similarity: toolId === 'image-resizer' ? 0.99 : 0.90,
+        }))
 
-    // Sort tools by similarity in descending order
-    const sortedTools = toolScores.sort((a, b) => b.similarity - a.similarity)
+      predictedTools = imageTools.filter(t => visibilityMap[t.toolId] !== false)
+    } else {
+      // Try semantic prediction first
+      const semanticResults = await useSemanticPrediction(inputContent)
+
+      if (semanticResults && semanticResults.length > 0) {
+        predictedTools = semanticResults
+      } else {
+        // Fallback to pattern matching
+        predictedTools = await usePatternMatching(inputContent, visibilityMap)
+      }
+    }
 
     res.status(200).json({
-      predictedTools: sortedTools,
+      predictedTools,
       inputContent,
     })
   } catch (error) {
