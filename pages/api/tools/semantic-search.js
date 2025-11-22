@@ -66,7 +66,7 @@ export default async function handler(req, res) {
       })
       .map(tool => {
         let toolEmbedding
-        
+
         // Parse embedding if it's a string
         if (typeof tool.embedding === 'string') {
           try {
@@ -84,7 +84,16 @@ export default async function handler(req, res) {
           return null
         }
 
-        const similarity = cosineSimilarity(embedding, toolEmbedding)
+        let similarity = cosineSimilarity(embedding, toolEmbedding)
+
+        // Apply category boosting if input category detected
+        if (inputCategory) {
+          const toolData = TOOLS[tool.id]
+          if (toolData && toolData.category === inputCategory) {
+            // Boost similarity by 20% for category matches
+            similarity = Math.min(1, similarity * 1.2)
+          }
+        }
 
         return {
           toolId: tool.id,
