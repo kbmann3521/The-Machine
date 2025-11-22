@@ -290,32 +290,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           return fields.filter(f => f.value !== undefined && f.value !== null)
         }
 
-        // Text Diff - show as structured fields
-        if (activeToolkitSection === 'textDiff' && result.textDiff && typeof result.textDiff === 'object') {
-          const fields = []
-          if (result.textDiff.identical !== undefined) {
-            fields.push({ label: 'Status', value: result.textDiff.identical ? 'Identical' : 'Differences Found' })
-          }
-          if (result.textDiff.text1Lines !== undefined) {
-            fields.push({ label: 'Text 1 Lines', value: result.textDiff.text1Lines })
-          }
-          if (result.textDiff.text2Lines !== undefined) {
-            fields.push({ label: 'Text 2 Lines', value: result.textDiff.text2Lines })
-          }
-          if (result.textDiff.differences && Array.isArray(result.textDiff.differences)) {
-            const diffCount = result.textDiff.differences.length
-            fields.push({ label: 'Differences Found', value: diffCount })
-
-            // Show detailed differences
-            if (diffCount > 0) {
-              const diffDetails = result.textDiff.differences.map((diff, idx) => (
-                `Line ${diff.line}:\n  Text 1: ${diff.text1}\n  Text 2: ${diff.text2}`
-              )).join('\n\n')
-              fields.push({ label: 'Detailed Differences', value: diffDetails })
-            }
-          }
-          return fields.filter(f => f.value !== undefined && f.value !== null)
-        }
 
         // Text Analyzer - show as structured fields
         if (activeToolkitSection === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
