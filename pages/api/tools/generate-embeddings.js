@@ -58,11 +58,6 @@ const categoryIntentOperations = {
     'parse code', 'format CSS', 'format SQL', 'format XML', 'format YAML',
     'format JavaScript', 'optimize SVG', 'expects code or markup input'
   ],
-  validator: [
-    'validate format', 'check format correctness', 'verify format', 'test validity',
-    'analyze format structure', 'validate email addresses', 'validate IP addresses',
-    'validate Markdown files', 'validate data structure', 'expects text input'
-  ],
   'image-transform': [
     'resize image', 'scale image', 'transform image dimensions', 'optimize image',
     'convert image format', 'change width and height', 'convert image to Base64',
