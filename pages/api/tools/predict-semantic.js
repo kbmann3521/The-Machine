@@ -73,7 +73,7 @@ function normalizeMeaning(classification, intent) {
 
 async function vectorSearchTools(embeddingText, category, intent, limit = 10) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/semantic-search`, {
+    const response = await fetch(`http://localhost:3000/api/tools/semantic-search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ inputText: embeddingText, category, intent }),
