@@ -43,6 +43,79 @@ export default function Home() {
     selectedToolRef.current = selectedTool
   }, [selectedTool])
 
+  // Fast local classification using heuristics (no API call)
+  const fastLocalClassification = useCallback((text) => {
+    const lowerText = text.toLowerCase().trim()
+
+    let inputType = 'text'
+    let contentSummary = lowerText.substring(0, 100)
+    let intentHint = 'unknown'
+
+    // Detect input type
+    if (/^https?:\/\/|^www\./.test(lowerText)) {
+      inputType = 'url'
+      intentHint = 'url_processing'
+    } else if (/^data:image/.test(lowerText) || /\.(jpg|jpeg|png|gif|webp)$/i.test(lowerText)) {
+      inputType = 'image'
+      intentHint = 'image_processing'
+    } else if (/^[{}\[\]<>]|function|const|let|var|class|import|export/.test(lowerText)) {
+      inputType = 'code'
+      intentHint = 'code_processing'
+    }
+
+    // Detect intent hints from keywords
+    if (/convert|transform|change|switch/.test(lowerText)) {
+      intentHint = 'transformation'
+    } else if (/count|measure|analyze|statistics|metric/.test(lowerText)) {
+      intentHint = 'analysis'
+    } else if (/find|search|match|locate|select/.test(lowerText)) {
+      intentHint = 'search'
+    } else if (/remove|clean|strip|delete|trim|compress|minify/.test(lowerText)) {
+      intentHint = 'cleaning'
+    } else if (/encode|decode|escape|unescape|hash|crypt/.test(lowerText)) {
+      intentHint = 'encoding'
+    } else if (/format|beautify|pretty|indent|organize/.test(lowerText)) {
+      intentHint = 'formatting'
+    }
+
+    return {
+      inputType,
+      contentSummary,
+      intentHint,
+    }
+  }, [])
+
+  // Check if classification has meaningfully changed
+  const hasClassificationChanged = useCallback((newClassification) => {
+    const prev = previousClassificationRef.current
+
+    // First classification always triggers search
+    if (!prev) {
+      return true
+    }
+
+    // Different input type = meaningful change
+    if (prev.inputType !== newClassification.inputType) {
+      return true
+    }
+
+    // Different intent hint = meaningful change
+    if (prev.intentHint !== newClassification.intentHint) {
+      return true
+    }
+
+    // If intent is 'unknown', small text changes might not matter much
+    if (prev.intentHint === 'unknown' && newClassification.intentHint === 'unknown') {
+      // Only re-search if text length changes significantly (e.g., user finished a word)
+      const prevLen = prev.contentSummary.length
+      const newLen = newClassification.contentSummary.length
+      return Math.abs(newLen - prevLen) > 5
+    }
+
+    // Same input type and intent hint = no meaningful change
+    return false
+  }, [])
+
   useEffect(() => {
     const initializeTools = async () => {
       const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
