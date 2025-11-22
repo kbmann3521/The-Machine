@@ -271,8 +271,9 @@ export default async function handler(req, res) {
           // Apply scoring formula with bias to semantic results
           const scoredResults = semanticResults.map(result => {
             const toolBias = getToolBiasWeight(result.toolId, inputType.type)
+            // Use the input type confidence as heuristic score (we already detected plain_text with 0.85)
             const finalScore = calculateFinalScore(
-              0.6, // Heuristic score placeholder (for semantic search, this is low)
+              inputType.confidence, // Heuristic score from input type detection
               result.semanticScore,
               toolBias
             )
