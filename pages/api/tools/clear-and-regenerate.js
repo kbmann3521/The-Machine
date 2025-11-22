@@ -20,10 +20,11 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'clear') {
-      // Clear all embeddings
+      // Clear all embeddings - use empty string instead of null for vector columns
+      // pgvector doesn't handle null well in Supabase
       const { data, error } = await supabase
         .from('tools')
-        .update({ embedding: null })
+        .update({ embedding: '' })
         .neq('id', '')
 
       if (error) {
