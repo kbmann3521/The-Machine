@@ -21,12 +21,12 @@ async function classifyInput(input) {
   }
 }
 
-async function extractIntent(input, inputType) {
+async function extractIntent(input, inputType, category) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/extract-intent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ input, input_type: inputType }),
+      body: JSON.stringify({ input, input_type: inputType, category }),
     })
     return await response.json()
   } catch (error) {
