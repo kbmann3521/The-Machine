@@ -231,16 +231,21 @@
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
-    gap: 10px;
-    padding: 10px;
+    gap: 8px;
+    padding: 8px;
   }
 
   .toolItem {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    min-width: 120px;
     width: auto;
-    gap: 6px;
-    padding: 10px 8px;
+    min-width: auto;
+    gap: 8px;
+    padding: 8px 12px;
+    flex-shrink: 0;
+  }
+
+  .toolName {
+    white-space: nowrap;
   }
 }
