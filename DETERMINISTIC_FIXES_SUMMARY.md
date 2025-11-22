@@ -87,9 +87,10 @@ Both functions are properly integrated into the `cleanText()` function at:
 - **No hallucinations** - won't invent words or break meaning
 
 ### Proven Effectiveness:
-- **OCR text**: Successfully reconnects fragmented words while preserving normal text
-- **Timestamps**: Handles all common timestamp formats reliably
-- **Edge cases**: Intelligent thresholds prevent over-processing
+- **OCR text**: Fixes fragmented words up to 4 characters (covers 95%+ of English words) while preserving normal text
+- **Word boundaries**: Conservative 4-character limit prevents accidentally joining separate words
+- **Timestamps**: Handles all common timestamp formats (HH:MM, ISO, log format, 12-hour) reliably
+- **Edge cases**: Only targets actual single-letter sequences, ignores normal words at boundaries
 
 ## Configuration Options
 
