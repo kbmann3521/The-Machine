@@ -67,19 +67,7 @@ export default function Home() {
 
         setPredictedTools(visibleTools)
 
-        // Set Text Toolkit as default tool when no input is provided
-        const defaultTool = visibleTools.find(tool => tool.toolId === 'text-toolkit') || visibleTools[0]
-        if (defaultTool) {
-          setSelectedTool(defaultTool)
-
-          const initialConfig = {}
-          if (defaultTool?.configSchema) {
-            defaultTool.configSchema.forEach(field => {
-              initialConfig[field.id] = field.default || ''
-            })
-          }
-          setConfigOptions(initialConfig)
-        }
+        // Don't set a default tool - wait for user input to select the best match
       } catch (error) {
         console.error('Failed to fetch tool visibility:', error)
         // Fallback: show all tools if API call fails
@@ -87,17 +75,7 @@ export default function Home() {
         visibilityMapRef.current = {}
         setPredictedTools(visibleTools)
 
-        const defaultTool = visibleTools.find(tool => tool.toolId === 'text-toolkit') || visibleTools[0]
-        if (defaultTool) {
-          setSelectedTool(defaultTool)
-          const initialConfig = {}
-          if (defaultTool?.configSchema) {
-            defaultTool.configSchema.forEach(field => {
-              initialConfig[field.id] = field.default || ''
-            })
-          }
-          setConfigOptions(initialConfig)
-        }
+        // Don't set a default tool - wait for user input to select the best match
       }
     }
 
@@ -145,10 +123,10 @@ export default function Home() {
       clearTimeout(loadingTimerRef.current)
     }
 
-    // Only show loading if the request takes longer than 300ms
+    // Only show loading if the request takes longer than 500ms
     loadingTimerRef.current = setTimeout(() => {
       setLoading(true)
-    }, 300)
+    }, 500)
 
     try {
       const response = await fetch('/api/tools/predict', {
@@ -213,7 +191,7 @@ export default function Home() {
 
     debounceTimerRef.current = setTimeout(() => {
       predictTools(text, image, preview)
-    }, 300)
+    }, 700)
   }, [predictTools])
 
   const handleImageChange = useCallback((file, preview) => {
