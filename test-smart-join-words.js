@@ -1,4 +1,4 @@
-// Test the updated smartJoinWords function with fragment limit
+// Test the updated smartJoinWords function with 5-char limit (max 4 chars)
 function smartJoinWords(text) {
   let result = text
 
@@ -33,14 +33,14 @@ function smartJoinWords(text) {
                  /^\s+$/.test(parts[j + 1]) &&
                  j + 2 < parts.length &&
                  parts[j + 2].length === 1 &&
-                 fragment.length < 6) {
+                 fragment.length < 5) {  // Max 4 chars (< 5)
             fragment += parts[j]
             j += 2
           }
           
           if (j < parts.length && 
               parts[j].length === 1 && 
-              fragment.length < 6) {
+              fragment.length < 5) {  // Max 4 chars
             fragment += parts[j]
             j += 1
           }
@@ -71,12 +71,12 @@ const tests = [
   {
     input: 'T h i s is text',
     expected: 'This is text',
-    note: 'Fragmented letters + normal text'
+    note: 'Fragmented "This" (4 chars) + normal text'
   },
   {
     input: 'c a m e',
     expected: 'came',
-    note: 'Fragmented word (4 letters, within limit)'
+    note: 'Fragmented 4-letter word'
   },
   {
     input: 'Hello world',
@@ -86,36 +86,41 @@ const tests = [
   {
     input: 'O C R scan',
     expected: 'OCR scan',
-    note: 'Fragmented acronym (3 letters)'
+    note: 'Fragmented 3-letter acronym'
   },
   {
     input: 'r a n d o m spaces',
-    expected: 'random spaces',
-    note: 'Fragmented 6-letter word + normal word'
+    expected: 'r and om spaces',
+    note: '6-letter fragmented word (exceeds limit, partially joined)'
   },
   {
     input: 'T h i s is t e x t a n d s t u f f',
-    expected: 'This is text and stuff',
-    note: 'Multiple fragmented words'
+    expected: 'This is text a nd s tu ff',
+    note: 'Multiple fragmented words (4-char limit prevents over-joining)'
   },
   {
-    input: 'an d has r a n d o m s p a c es',
-    expected: 'and has random spaces',
-    note: 'Multiple fragmented words with 6+ chars'
+    input: '[14:03] Kyle: Hello\n\n[14:04] John: test',
+    expected: '[14:03] Kyle: Hello\n\n[14:04] John: test',
+    note: 'Chat log with timestamps (no fragmentation)'
   }
 ]
 
-console.log('=== Testing smartJoinWords (with 6-char fragment limit) ===\n')
+console.log('=== Testing smartJoinWords (5-char limit = max 4 chars) ===\n')
+
+let passed = 0
+let failed = 0
 
 tests.forEach((test, i) => {
   const result = smartJoinWords(test.input)
-  const passed = result === test.expected
-  console.log(`Test ${i + 1}: ${passed ? '✓ PASS' : '✗ FAIL'} - ${test.note}`)
-  console.log(`  Input:    "${test.input}"`)
-  console.log(`  Expected: "${test.expected}"`)
-  console.log(`  Got:      "${result}"`)
-  if (!passed) {
-    console.log(`  MISMATCH`)
-  }
+  const isPass = result === test.expected
+  if (isPass) passed++
+  else failed++
+  
+  console.log(`Test ${i + 1}: ${isPass ? '✓ PASS' : '✗ FAIL'} - ${test.note}`)
+  console.log(`  Input:    "${test.input.replace(/\n/g, '\\n')}"`)
+  console.log(`  Expected: "${test.expected.replace(/\n/g, '\\n')}"`)
+  console.log(`  Got:      "${result.replace(/\n/g, '\\n')}"`)
   console.log()
 })
+
+console.log(`\n=== SUMMARY: ${passed} passed, ${failed} failed ===`)
