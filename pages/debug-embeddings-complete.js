@@ -103,6 +103,19 @@ export default function EmbeddingsDebug() {
     }
   }
 
+  const testFullPipeline = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/test-full-embedding-pipeline')
+      const data = await response.json()
+      setResults(data)
+    } catch (error) {
+      setResults({ error: error.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const checkEmbeddings = async () => {
     setLoading(true)
     try {
