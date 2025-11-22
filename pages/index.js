@@ -38,6 +38,12 @@ export default function Home() {
     caseSensitive: false,
     removeDuplicates: false,
   })
+  const [removeExtrasConfig, setRemoveExtrasConfig] = useState({
+    trimSpaces: true,
+    removeBlankLines: true,
+    removeDuplicateLines: false,
+    compressLineBreaks: false,
+  })
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
