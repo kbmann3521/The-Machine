@@ -30,7 +30,7 @@ function mapToToolCategory(classifierCategory) {
 
 async function classifyInput(input) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/classify`, {
+    const response = await fetch(`http://localhost:3000/api/tools/classify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ input }),
