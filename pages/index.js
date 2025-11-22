@@ -57,6 +57,9 @@ export default function Home() {
         const response = await fetch('/api/tools/get-visibility')
         const { visibilityMap } = await response.json()
 
+        // Store visibility map for use in predictTools
+        visibilityMapRef.current = visibilityMap
+
         // Filter out tools with show_in_recommendations = false
         const visibleTools = allTools.filter(tool =>
           visibilityMap[tool.toolId] !== false
@@ -81,6 +84,7 @@ export default function Home() {
         console.error('Failed to fetch tool visibility:', error)
         // Fallback: show all tools if API call fails
         const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+        visibilityMapRef.current = {}
         setPredictedTools(visibleTools)
 
         const defaultTool = visibleTools.find(tool => tool.toolId === 'text-toolkit') || visibleTools[0]
