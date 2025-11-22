@@ -7,136 +7,70 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-// Category-to-intent operations mapping
-// Maps tool categories to the operations users want to perform
-const categoryIntentOperations = {
-  validator: [
-    'validate format', 'check format', 'verify format', 'test validity', 'validate syntax',
-    'check IP address', 'validate UUID', 'validate structure', 'verify correctness',
-    'validate email addresses', 'validate email format', 'check email validity',
-    'expects text input to validate'
-  ],
-  writing: [
-    'analyze text', 'transform text', 'process text', 'convert case', 'count words',
-    'count characters', 'clean text', 'format text', 'find and replace', 'extract text',
-    'generate slug', 'reverse text', 'sort lines', 'visualize whitespace',
-    'strip formatting', 'unescape text', 'expects text input'
-  ],
-  encoding: [
-    'encode text', 'decode text', 'escape special characters', 'unescape characters',
-    'convert encoding', 'transform format', 'expects text input'
-  ],
-  json: [
-    'beautify JSON', 'minify JSON', 'format JSON', 'validate JSON', 'parse JSON',
-    'indent JSON', 'compact JSON', 'extract JSON path', 'analyze JSON structure',
-    'expects JSON text input'
-  ],
-  html: [
-    'format HTML', 'beautify HTML', 'minify HTML', 'validate HTML', 'parse HTML',
-    'convert HTML entities', 'decode HTML entities', 'strip HTML tags', 'prettify HTML',
-    'expects HTML text input'
-  ],
-  developer: [
-    'parse data', 'decode data', 'validate format', 'extract components', 'analyze structure',
-    'test regex patterns', 'test cron expressions', 'lookup HTTP status codes', 'lookup MIME types',
-    'parse HTTP headers', 'validate UUID format', 'extract JSON paths', 'expects text input'
-  ],
-  crypto: [
-    'encode text', 'decode text', 'hash data', 'encrypt data', 'validate checksums',
-    'calculate checksums', 'calculate CRC32', 'ROT13 cipher', 'Caesar cipher',
-    'decode JWT tokens', 'analyze JSON web tokens', 'expects text input'
-  ],
-  converter: [
-    'convert between formats', 'transform data', 'encode data', 'decode data',
-    'convert colors', 'convert timestamps', 'convert CSV to JSON', 'convert JSON to CSV',
-    'convert Markdown to HTML', 'convert between number bases', 'convert between units',
-    'convert between timezones', 'convert file sizes', 'convert numbers', 'convert IPv4 addresses',
-    'convert ASCII to Unicode', 'expects text or numeric input'
-  ],
-  formatter: [
-    'format code', 'beautify code', 'minify code', 'prettify code', 'validate code syntax',
-    'parse code', 'format CSS', 'format SQL', 'format XML', 'format YAML',
-    'format JavaScript', 'optimize SVG', 'expects code or markup input'
-  ],
-  'image-transform': [
-    'resize image', 'scale image', 'transform image dimensions', 'optimize image',
-    'convert image format', 'change width and height', 'convert image to Base64',
-    'expects image file input'
-  ],
-  calculator: [
-    'calculate IP ranges', 'calculate subnets', 'calculate CIDR blocks', 'analyze IP boundaries',
-    'compute network ranges', 'expects numeric input'
-  ],
-  'text-analyze': [
-    'analyze text content', 'extract information', 'count word occurrences', 'calculate text metrics',
-    'measure readability scores', 'detect keywords', 'compare text blocks', 'find text differences',
-    'analyze word frequency', 'evaluate math expressions', 'expects text input'
-  ],
-  'text-transform': [
-    'format numbers', 'transform numbers', 'add thousand separators', 'parse number formats',
-    'apply locale formatting', 'expects numeric or text input'
-  ],
-}
+// Extract tool-specific keywords from actual tool data
+function getToolSpecificKeywords(tool, toolData) {
+  const keywords = new Set()
 
-// Extract intent keywords from tool data
-function getToolIntentKeywords(tool, toolData) {
-  const keywords = []
+  // Extract from description (most important - unique to this tool)
+  const desc = (tool.description || '').toLowerCase()
+  const nameLower = tool.name.toLowerCase()
 
-  // Get category-based operations
-  const category = toolData.category || 'developer'
-  const categoryOps = categoryIntentOperations[category] || []
-  keywords.push(...categoryOps)
+  // Extract specific action verbs from description
+  const actionVerbs = [
+    'analyze', 'transform', 'convert', 'validate', 'format', 'parse', 'extract',
+    'generate', 'beautify', 'minify', 'encode', 'decode', 'count', 'check', 'verify',
+    'compare', 'calculate', 'measure', 'optimize', 'resize', 'scale', 'hash',
+    'encrypt', 'decrypt', 'compress', 'decompress', 'escape', 'unescape', 'strip',
+    'replace', 'find', 'detect', 'analyze', 'evaluate', 'execute'
+  ]
 
-  // Extract from detailed description
+  actionVerbs.forEach(verb => {
+    if (desc.includes(verb) || nameLower.includes(verb)) {
+      keywords.add(verb)
+    }
+  })
+
+  // Extract from features (tool-specific)
   const detailed = toolData.detailedDescription || {}
-  if (detailed.howtouse) {
-    const actions = detailed.howtouse.join(' ').toLowerCase()
-    // Extract common action verbs
-    const actionVerbs = [
-      'analyze', 'transform', 'convert', 'validate', 'format', 'parse', 'extract',
-      'generate', 'beautify', 'minify', 'encode', 'decode', 'count', 'check', 'verify',
-      'compare', 'calculate', 'measure', 'optimize', 'resize', 'scale'
-    ]
-    actionVerbs.forEach(verb => {
-      if (actions.includes(verb) && !keywords.includes(verb)) {
-        keywords.push(verb)
-      }
+  if (detailed.features && Array.isArray(detailed.features)) {
+    detailed.features.forEach(feature => {
+      const featureLower = (feature || '').toLowerCase()
+      // Extract keywords from each feature
+      const featureWords = featureLower.split(/[\s,\-\.]+/).filter(w => w.length > 3)
+      featureWords.forEach(word => {
+        if (word.length > 3 && !['the', 'and', 'for', 'with', 'from', 'to'].includes(word)) {
+          keywords.add(word)
+        }
+      })
     })
   }
 
-  // Add name-based operations
-  const nameLower = tool.name.toLowerCase()
-  if (nameLower.includes('formatter')) {
-    const ops = ['format', 'beautify', 'minify', 'prettify']
-    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
-  }
-  if (nameLower.includes('converter')) {
-    const ops = ['convert', 'transform', 'encode', 'decode']
-    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
-  }
-  if (nameLower.includes('validator')) {
-    const ops = ['validate', 'check', 'verify', 'test']
-    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
-  }
-  if (nameLower.includes('parser')) {
-    const ops = ['parse', 'extract', 'analyze', 'decode']
-    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
-  }
-  if (nameLower.includes('encoder')) {
-    const ops = ['encode', 'decode', 'escape']
-    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
-  }
-  if (nameLower.includes('generator')) {
-    const ops = ['generate', 'create', 'produce']
-    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
-  }
-  if (nameLower.includes('analyzer')) {
-    const ops = ['analyze', 'extract', 'measure', 'calculate']
-    ops.forEach(op => !keywords.includes(op) && keywords.push(op))
+  // Extract from use cases (tool-specific)
+  if (detailed.usecases && Array.isArray(detailed.usecases)) {
+    detailed.usecases.forEach(usecase => {
+      const usecaseLower = (usecase || '').toLowerCase()
+      const caseWords = usecaseLower.split(/[\s,\-\.]+/).filter(w => w.length > 3)
+      caseWords.forEach(word => {
+        if (word.length > 3 && !['the', 'and', 'for', 'with', 'from', 'to'].includes(word)) {
+          keywords.add(word)
+        }
+      })
+    })
   }
 
-  // Remove duplicates and sort for consistency
-  return [...new Set(keywords)]
+  // Extract from how-to-use (tool-specific)
+  if (detailed.howtouse && Array.isArray(detailed.howtouse)) {
+    detailed.howtouse.forEach(step => {
+      const stepLower = (step || '').toLowerCase()
+      actionVerbs.forEach(verb => {
+        if (stepLower.includes(verb)) {
+          keywords.add(verb)
+        }
+      })
+    })
+  }
+
+  return Array.from(keywords)
 }
 
 // Get expected input types for the embedding context
