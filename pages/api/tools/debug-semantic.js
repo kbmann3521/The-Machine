@@ -28,6 +28,12 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ input: inputText }),
     })
+
+    if (!classifyResp.ok) {
+      const errorText = await classifyResp.text()
+      throw new Error(`Classification failed: ${classifyResp.status} ${errorText}`)
+    }
+
     const classification = await classifyResp.json()
     results.classification = classification
     console.log('✓ Classification:', classification)
@@ -37,12 +43,18 @@ export default async function handler(req, res) {
     const intentResp = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/extract-intent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        input: inputText, 
+      body: JSON.stringify({
+        input: inputText,
         input_type: classification.input_type,
         category: classification.category
       }),
     })
+
+    if (!intentResp.ok) {
+      const errorText = await intentResp.text()
+      throw new Error(`Intent extraction failed: ${intentResp.status} ${errorText}`)
+    }
+
     const intent = await intentResp.json()
     results.intent = intent
     console.log('✓ Intent:', intent)
