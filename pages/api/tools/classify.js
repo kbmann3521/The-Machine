@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 Return ONLY a JSON object (no markdown, no extra text) with this exact structure:
 {
   "input_type": "text|image|url|code|file",
-  "category": "writing|url|code|image|data|other",
+  "category": "writing|url|code|image|data|email|validator|other",
   "content_summary": "brief description of what this input is"
 }
 
@@ -37,9 +37,13 @@ Guidelines:
   - code: programming code, markup, configuration
   - image: visual content, screenshots
   - data: structured data (JSON, CSV, XML, etc.)
+  - email: email addresses (name@domain.com format)
+  - validator: IP addresses, UUIDs, domain names, format patterns to validate
   - other: anything else
 
-For plain English text (paragraphs, sentences, articles, essays): use category "writing"`,
+For plain English text (paragraphs, sentences, articles, essays): use category "writing"
+For email addresses: use category "email"
+For things that look like validation patterns (IPs, UUIDs, etc.): use category "validator"`,
         },
         {
           role: 'user',
