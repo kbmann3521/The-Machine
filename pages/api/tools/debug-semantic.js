@@ -117,34 +117,36 @@ Return ONLY a JSON object with this exact structure:
     }
     console.log('✓ Embedding generated with', embedding.length, 'dimensions')
 
-    // Step 4: Vector search
+    // Step 4: Vector search (using semantic-search endpoint)
     console.log('🔍 Testing vector search...')
     console.log('  Embedding dimensions:', embedding.length)
-    console.log('  Query embedding sample:', embedding.slice(0, 3))
 
-    const { data: vectorResults, error: vectorError } = await supabase.rpc('search_tools', {
-      query_embedding: embedding,
-      match_count: 10,
+    const semanticSearchResp = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/tools/semantic-search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputText }),
     })
 
     results.vectorSearch = {
-      error: vectorError ? vectorError.message : null,
-      resultsCount: vectorResults?.length || 0,
+      error: null,
+      resultsCount: 0,
       results: [],
     }
 
-    if (vectorError) {
-      console.log('✗ Vector search error:', vectorError.message)
+    if (!semanticSearchResp.ok) {
+      results.vectorSearch.error = `HTTP ${semanticSearchResp.status}`
+      console.log('✗ Vector search error:', results.vectorSearch.error)
     } else {
-      results.vectorSearch.results = vectorResults?.slice(0, 5).map(r => ({
-        id: r.id,
+      const vectorData = await semanticSearchResp.json()
+      results.vectorSearch.results = vectorData.results?.slice(0, 5).map(r => ({
+        id: r.toolId,
         name: r.name,
-        distance: (r.distance || 0).toFixed(4),
-        similarity: ((1 - (r.distance || 0))).toFixed(4),
+        similarity: (r.similarity || 0).toFixed(4),
       })) || []
-      console.log('✓ Vector search returned', vectorResults?.length, 'results')
-      if (vectorResults?.length > 0) {
-        console.log('  Top match:', vectorResults[0].name, 'distance:', vectorResults[0].distance?.toFixed(4))
+      results.vectorSearch.resultsCount = vectorData.results?.length || 0
+      console.log('✓ Vector search returned', vectorData.results?.length, 'results')
+      if (vectorData.results?.length > 0) {
+        console.log('  Top match:', vectorData.results[0].name, 'similarity:', vectorData.results[0].similarity?.toFixed(4))
       }
     }
 
