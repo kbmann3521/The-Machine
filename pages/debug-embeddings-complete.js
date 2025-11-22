@@ -420,9 +420,25 @@ export default function EmbeddingsDebug() {
                 borderRadius: '4px',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 opacity: loading ? 0.6 : 1,
+                marginRight: '10px',
               }}
             >
               {loading ? 'Testing...' : 'Test Full Pipeline'}
+            </button>
+            <button
+              onClick={() => finalEmbeddingTest()}
+              disabled={loading}
+              style={{
+                padding: '10px 20px',
+                background: '#0d6efd',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? 'Testing...' : 'Final Test'}
             </button>
           </div>
 
