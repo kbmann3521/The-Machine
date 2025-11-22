@@ -6,6 +6,13 @@ const getScoreColor = (similarity) => {
   return `hsl(${hue}, 70%, 50%)`
 }
 
+const getScoreLabel = (similarity) => {
+  if (similarity >= 0.85) return 'Excellent match'
+  if (similarity >= 0.75) return 'Good match'
+  if (similarity >= 0.6) return 'Possible match'
+  return 'Available'
+}
+
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -18,6 +25,8 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
       tool.description.toLowerCase().includes(query)
     )
   }, [predictedTools, searchQuery])
+
+  const topMatch = filteredTools[0]
 
   return (
     <aside className={styles.sidebar}>
