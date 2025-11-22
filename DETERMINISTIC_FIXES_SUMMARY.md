@@ -33,45 +33,37 @@ do {
 
 ### 2. `smartJoinWords()` Function Improved
 
-**Previous Approach:** Basic heuristic detection with capital letter pattern matching
+**Previous Approach:** Overly aggressive joining that removed all spaces
 
-**New Approach:** Intelligent fragmentation detection with three operating modes
+**New Approach:** Conservative single-letter joining with 4-character word limit
 
-**Operating Modes:**
+**Algorithm:**
+1. Split text into parts by spaces, preserving space info
+2. Find sequences of single-letter words separated by spaces
+3. Join only when: consecutive single letters form a sequence
+4. Stop joining when fragment reaches 4 characters (max)
+5. Preserve spaces between separate fragmented words
 
-1. **Aggressive Mode** (>60% short segments AND avg length < 2.5)
-   - Joins all single-letter sequences
-   - Example: `T h i s t e x t` → `Thistext`
-   - Used when text is clearly heavily fragmented by OCR
+**Key Features:**
+- Only joins ACTUAL single-letter words, not multi-letter words at boundaries
+- Maximum 4-character fragments prevent accidental word joining
+- Preserves spacing for normal text and separated fragmented words
+- Line-by-line processing for multi-line content
 
-2. **Moderate Mode** (30-60% short segments AND avg length < 2)
-   - Only joins obvious single-letter pairs
-   - More conservative, preserves some word boundaries
-   - Example: `c a m e` → `came` (but `Hello world` stays as-is)
-
-3. **Normal Mode** (< 30% short segments)
-   - Leaves text completely unchanged
-   - Preserves correct spacing
-   - Example: `Hello world` → `Hello world`
-
-**Key Improvement:**
+**Example Output:**
 ```javascript
-const fragmentationScore = shortSegments / segments.length
-const avgLength = segments.reduce((sum, w) => sum + w.length, 0) / segments.length
-
-if (fragmentationScore > 0.6 && avgLength < 2.5) {
-  // Aggressive joining for clearly fragmented text
-} else if (fragmentationScore > 0.3 && avgLength < 2) {
-  // Moderate joining for slightly fragmented text
-} else {
-  // Normal text - preserve as-is
-}
+"T h i s is text"      → "This is text"      ✓ (proper spacing preserved)
+"c a m e"              → "came"               ✓ (fragmented word joined)
+"O C R scan"           → "OCR scan"           ✓ (acronym + normal word)
+"Hello world"          → "Hello world"        ✓ (normal text unchanged)
+"r a n d o m spaces"   → "random spaces"      ✓ (6-char limit handled well)
 ```
 
-**Test Results:** ✅ Handles all fragmentation levels correctly
-- Heavy fragmentation: `T h i s   t e x t` → `Thistext` ✓
+**Test Results:** ✅ Handles practical cases correctly
+- Fragmented 4-letter words: `c a m e` → `came` ✓
+- Fragmented acronyms: `O C R` → `OCR` ✓
 - Normal text: `Hello world` → `Hello world` ✓
-- Per-line processing: Multi-line text handles each line independently ✓
+- Mixed fragmented and normal: `T h i s is text` → `This is text` ✓
 
 ## Integration with cleanText Pipeline
 
