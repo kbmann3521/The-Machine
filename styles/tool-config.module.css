@@ -271,4 +271,113 @@
   .fieldsContainer {
     gap: 12px;
   }
+
+  .findReplaceInputs {
+    grid-template-columns: 1fr;
+  }
+
+  .findReplaceToggles {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.toolkitFilters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.filterLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+
+.filterButtonsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filterButton {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  text-align: center;
+  flex: 0 1 auto;
+}
+
+.filterButton:hover {
+  color: #0066cc;
+  border-color: #0066cc;
+  background-color: var(--color-background-secondary);
+}
+
+.filterButtonActive {
+  color: #ffffff;
+  background-color: #0066cc;
+  border-color: #0066cc;
+  font-weight: 600;
+}
+
+.findReplaceFields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.findReplaceInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.findReplaceToggles {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.inlineToggleLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.inlineToggleLabel .toggleSlider {
+  width: 32px;
+  height: 16px;
+}
+
+.inlineToggleLabel .toggleSlider::after {
+  width: 12px;
+  height: 12px;
+  top: 2px;
+  left: 2px;
+}
+
+.inlineToggleLabel .toggleInput:checked + .toggleSlider::after {
+  left: 18px;
 }

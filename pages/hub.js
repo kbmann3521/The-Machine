@@ -17,6 +17,13 @@ export default function Hub() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
+  const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
+  const [findReplaceConfig, setFindReplaceConfig] = useState({
+    findText: '',
+    replaceText: '',
+    useRegex: false,
+    matchCase: false,
+  })
 
   const handleInputChange = useCallback((text) => {
     setInputText(text)
@@ -87,13 +94,25 @@ export default function Hub() {
     setOutputResult(null)
 
     try {
+      // For text-toolkit, merge find/replace config if that section is active
+      let finalConfig = config
+      if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
+        finalConfig = {
+          ...config,
+          findText: findReplaceConfig.findText || '',
+          replaceText: findReplaceConfig.replaceText || '',
+          useRegex: findReplaceConfig.useRegex || false,
+          matchCase: findReplaceConfig.matchCase || false,
+        }
+      }
+
       const response = await fetch('/api/tools/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           toolId: tool.toolId,
           inputText,
-          config,
+          config: finalConfig,
         }),
       })
 
@@ -109,7 +128,7 @@ export default function Hub() {
     } finally {
       setToolLoading(false)
     }
-  }, [inputText])
+  }, [inputText, activeToolkitSection, findReplaceConfig])
 
   return (
     <div className={styles.layout}>
@@ -141,6 +160,10 @@ export default function Hub() {
                 onRun={handleRunTool}
                 onConfigChange={handleConfigChange}
                 loading={toolLoading}
+                activeToolkitSection={activeToolkitSection}
+                onToolkitSectionChange={setActiveToolkitSection}
+                findReplaceConfig={findReplaceConfig}
+                onFindReplaceConfigChange={setFindReplaceConfig}
               />
             </div>
           )}
@@ -151,6 +174,8 @@ export default function Hub() {
               outputType={selectedTool?.outputType}
               loading={toolLoading}
               error={error}
+              toolId={selectedTool?.toolId}
+              activeToolkitSection={activeToolkitSection}
             />
           </div>
         </div>

@@ -1,0 +1,23 @@
+const tools = require('./lib/tools.js').TOOLS;
+
+const toolIds = ['case-converter', 'email-validator', 'find-replace', 'html-minifier', 'integer-to-ip', 'ip-range-calculator', 'ip-to-integer', 'ip-validator', 'js-beautifier', 'js-minifier', 'markdown-linter', 'remove-extras', 'reverse-text', 'slug-generator', 'sort-lines', 'text-analyzer', 'whitespace-visualizer', 'word-counter'];
+
+const sqlStatements = [];
+
+toolIds.forEach(id => {
+  const tool = tools[id];
+  if (tool) {
+    const inputTypes = tool.inputTypes || ['text'];
+    const configSchema = tool.configSchema || [];
+    const outputType = tool.outputType || 'text';
+    
+    const schemaJson = JSON.stringify(configSchema).replace(/'/g, "''");
+    const inputTypesArray = inputTypes.map(t => `'${t}'`).join(',');
+    
+    const stmt = `UPDATE tools SET input_types = ARRAY[${inputTypesArray}], config_schema = '${schemaJson}'::jsonb, output_type = '${outputType}' WHERE id = '${id}';`;
+    sqlStatements.push(stmt);
+  }
+});
+
+const completeSql = sqlStatements.join('\n');
+console.log(completeSql);
