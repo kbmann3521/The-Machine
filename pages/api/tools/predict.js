@@ -359,6 +359,14 @@ export default async function handler(req, res) {
             source: similarity > 0 ? 'plain_text_detection' : 'unmatched',
           }
 
+          // Add suggested config for plain text tools
+          if (similarity > 0) {
+            const suggestedConfig = detectSuggestedConfig(toolId, inputContent, inputType)
+            if (suggestedConfig) {
+              tool.suggestedConfig = suggestedConfig
+            }
+          }
+
           if (similarity > 0) {
             matchedTools.push(tool)
           } else {
