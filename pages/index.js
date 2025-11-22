@@ -39,32 +39,61 @@ export default function Home() {
   }, [selectedTool])
 
   useEffect(() => {
-    const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-      toolId,
-      name: toolData.name,
-      description: toolData.description,
-      similarity: 0.5, // Neutral similarity for unranked tools
-      ...toolData,
-    }))
+    const initializeTools = async () => {
+      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+        toolId,
+        name: toolData.name,
+        description: toolData.description,
+        similarity: 0.5, // Neutral similarity for unranked tools
+        ...toolData,
+      }))
 
-    // Filter out tools with show_in_recommendations = false
-    const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+      // Fetch visibility flags from Supabase
+      try {
+        const response = await fetch('/api/tools/get-visibility')
+        const { visibilityMap } = await response.json()
 
-    setPredictedTools(visibleTools)
+        // Filter out tools with show_in_recommendations = false
+        const visibleTools = allTools.filter(tool =>
+          visibilityMap[tool.toolId] !== false
+        )
 
-    // Set Text Toolkit as default tool when no input is provided
-    const defaultTool = visibleTools.find(tool => tool.toolId === 'text-toolkit') || visibleTools[0]
-    if (defaultTool) {
-      setSelectedTool(defaultTool)
+        setPredictedTools(visibleTools)
 
-      const initialConfig = {}
-      if (defaultTool?.configSchema) {
-        defaultTool.configSchema.forEach(field => {
-          initialConfig[field.id] = field.default || ''
-        })
+        // Set Text Toolkit as default tool when no input is provided
+        const defaultTool = visibleTools.find(tool => tool.toolId === 'text-toolkit') || visibleTools[0]
+        if (defaultTool) {
+          setSelectedTool(defaultTool)
+
+          const initialConfig = {}
+          if (defaultTool?.configSchema) {
+            defaultTool.configSchema.forEach(field => {
+              initialConfig[field.id] = field.default || ''
+            })
+          }
+          setConfigOptions(initialConfig)
+        }
+      } catch (error) {
+        console.error('Failed to fetch tool visibility:', error)
+        // Fallback: show all tools if API call fails
+        const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+        setPredictedTools(visibleTools)
+
+        const defaultTool = visibleTools.find(tool => tool.toolId === 'text-toolkit') || visibleTools[0]
+        if (defaultTool) {
+          setSelectedTool(defaultTool)
+          const initialConfig = {}
+          if (defaultTool?.configSchema) {
+            defaultTool.configSchema.forEach(field => {
+              initialConfig[field.id] = field.default || ''
+            })
+          }
+          setConfigOptions(initialConfig)
+        }
       }
-      setConfigOptions(initialConfig)
     }
+
+    initializeTools()
   }, [])
 
   const predictTools = useCallback(async (text, image, preview) => {
