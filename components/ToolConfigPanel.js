@@ -233,6 +233,53 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             </div>
           )}
 
+          {activeToolkitSection === 'sortLines' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="sortOrder">
+                  Sort Order
+                </label>
+                <select
+                  id="sortOrder"
+                  className={styles.input}
+                  value={sortLinesConfig?.order || 'asc'}
+                  onChange={(e) => onSortLinesConfigChange({ ...sortLinesConfig, order: e.target.value })}
+                >
+                  <option value="asc">Ascending (A-Z)</option>
+                  <option value="desc">Descending (Z-A)</option>
+                  <option value="length-asc">By Length (Short to Long)</option>
+                  <option value="length-desc">By Length (Long to Short)</option>
+                  <option value="numeric">Numeric (0-9)</option>
+                  <option value="reverse">Reverse Order</option>
+                </select>
+              </div>
+
+              <div className={styles.findReplaceToggles}>
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={sortLinesConfig?.caseSensitive || false}
+                    onChange={(e) => onSortLinesConfigChange({ ...sortLinesConfig, caseSensitive: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Case-Sensitive</span>
+                </label>
+
+                <label className={styles.inlineToggleLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.toggleInput}
+                    checked={sortLinesConfig?.removeDuplicates || false}
+                    onChange={(e) => onSortLinesConfigChange({ ...sortLinesConfig, removeDuplicates: e.target.checked })}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                  <span>Remove Duplicates</span>
+                </label>
+              </div>
+            </div>
+          )}
+
           {activeToolkitSection === 'textDiff' && (
             <div className={styles.findReplaceFields}>
               <div className={styles.field}>
