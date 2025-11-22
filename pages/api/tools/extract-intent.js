@@ -21,28 +21,44 @@ export default async function handler(req, res) {
       messages: [
         {
           role: 'system',
-          content: `You are an intent extraction AI. Analyze the user's input and determine what they want to accomplish.
+          content: `You are an intent extraction AI for a developer tools suite. Your job is to determine what OPERATIONS or TRANSFORMATIONS the user might want to perform on their input data.
+
+Focus on what developers typically DO with different data types, not what the content itself represents.
+
 Return ONLY a JSON object (no markdown, no extra text) with this exact structure:
 {
-  "intent": "category of what user wants to do",
-  "sub_intent": "specific action or transformation",
+  "intent": "primary operation category",
+  "sub_intent": "specific operation or action",
   "confidence": 0.0-1.0
 }
 
-Common intent categories:
-- writing: plain English text analysis, transformation, or processing (essays, paragraphs, articles, general text)
-- text_analysis: counting, measuring, analyzing text
-- text_transformation: changing format, converting case, encoding, rewriting
-- text_cleaning: removing content, cleaning up, normalizing
-- data_conversion: converting between formats (JSON, CSV, Base64, URL, HTML, etc.)
-- pattern_matching: finding, validating, testing patterns with regex
-- code_formatting: beautifying or minifying code (HTML, JSON, XML, etc.)
-- image_processing: resizing, compressing, converting images
-- developer_tools: debugging, inspecting, decoding (JWT, URL parsing, etc.)
-- content_generation: creating or generating new content
-- security_crypto: hashing, encryption, checksums
+Guidelines by input category:
 
-If input is plain English text (category: writing), prefer intent: "writing"`,
+URL inputs (category: url):
+- Intent examples: "url_operations", "text_transformation"
+- Sub-intent examples: "parse", "encode", "decode", "extract_components", "validate", "format", "convert"
+- DO NOT extract intent as "access website" or "navigate" - focus on technical URL operations
+
+Writing inputs (category: writing):
+- Intent: "writing"
+- Sub-intent examples: "analyze", "transform", "count_metrics", "process"
+
+Code/JSON inputs (category: code, json):
+- Intent: "code_formatting" or "data_conversion"
+- Sub-intent examples: "beautify", "minify", "parse", "validate", "convert"
+
+Data inputs (category: data):
+- Intent: "data_conversion"
+- Sub-intent examples: "format", "parse", "validate", "convert_format"
+
+Common intent categories for developer tools:
+- writing: text analysis, transformation, processing
+- url_operations: parsing, encoding, decoding, validating URLs
+- code_formatting: beautifying, minifying, formatting code
+- data_conversion: converting between formats
+- pattern_matching: testing regex patterns, validating
+- security_crypto: hashing, encoding, checksums
+- text_transformation: case changes, encoding, decoding`,
         },
         {
           role: 'user',
