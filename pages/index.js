@@ -203,6 +203,10 @@ export default function Home() {
     }, 500)
 
     try {
+      // Store the classification that triggered this search
+      const triggeringClassification = fastLocalClassification(text)
+      previousClassificationRef.current = triggeringClassification
+
       const response = await fetch('/api/tools/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
