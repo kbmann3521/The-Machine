@@ -96,36 +96,6 @@ export default function Home() {
     }
   }, [])
 
-  // Check if classification has meaningfully changed
-  const hasClassificationChanged = useCallback((newClassification) => {
-    const prev = previousClassificationRef.current
-
-    // First classification always triggers search
-    if (!prev) {
-      return true
-    }
-
-    // Different input type = meaningful change
-    if (prev.inputType !== newClassification.inputType) {
-      return true
-    }
-
-    // Different intent hint = meaningful change
-    if (prev.intentHint !== newClassification.intentHint) {
-      return true
-    }
-
-    // If intent is 'unknown', small text changes might not matter much
-    if (prev.intentHint === 'unknown' && newClassification.intentHint === 'unknown') {
-      // Only re-search if text length changes significantly (e.g., user finished a word)
-      const prevLen = prev.contentSummary.length
-      const newLen = newClassification.contentSummary.length
-      return Math.abs(newLen - prevLen) > 5
-    }
-
-    // Same input type and intent hint = no meaningful change
-    return false
-  }, [])
 
   useEffect(() => {
     const initializeTools = async () => {
