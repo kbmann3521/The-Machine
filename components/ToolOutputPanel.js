@@ -579,7 +579,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               onClick={handleCopy}
               title="Copy to clipboard"
             >
-              {copied ? '✓ Copied' : 'Copy'}
+              {copied ? '✓ Copied' : '📎 Copy'}
             </button>
           )}
         </div>
