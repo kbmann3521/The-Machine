@@ -132,10 +132,10 @@
 }
 
 .toggleSlider {
-  width: 44px;
-  height: 24px;
+  width: 40px;
+  height: 20px;
   background-color: var(--color-border);
-  border-radius: 12px;
+  border-radius: 10px;
   display: inline-block;
   position: relative;
   transition: background-color 0.3s;
