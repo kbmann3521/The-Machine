@@ -114,6 +114,11 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                 aria-pressed={isSelected}
                 title={`${tool.name} - ${getScoreLabel(tool.similarity)}`}
               >
+                {toolIcons[tool.toolId] && (
+                  <div className={styles.toolIcon}>
+                    {React.createElement(toolIcons[tool.toolId])}
+                  </div>
+                )}
                 <h3
                   className={styles.toolName}
                   style={{ color: getScoreColor(tool.similarity) }}
