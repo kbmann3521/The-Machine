@@ -124,8 +124,9 @@
   margin: 0 !important;
   padding: 0;
   font-size: 12px;
-  line-height: 1;
+  line-height: 1.2;
   white-space: nowrap;
+  height: 100%;
 }
 
 .toggleInput {
