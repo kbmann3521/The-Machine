@@ -408,38 +408,7 @@
   margin-bottom: 6px;
 }
 
-/* Unit converter and card styles now use global .copy-card class from globals.css */
-
-.unitConverterContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 12px 0;
-  animation: none;
-}
-
-.conversionSection {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sectionTitle {
-  margin: 0;
-  padding: 8px 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid var(--color-border);
-}
-
-.cardsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 8px;
-}
+/* Unit converter now uses same structured output grid as other tools */
 
 @media (max-width: 1024px) {
   .structuredOutput {
