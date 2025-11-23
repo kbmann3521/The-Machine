@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaRegex, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaYaml, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaUnicode, FaBinary, FaLock, FaQuestion, FaMagic, FaTerminal } from 'react-icons/fa6'
+import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaRegex, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaYaml, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaUnicode, FaBinary, FaLock, FaQuestion, FaMagic, FaTerminal, FaHeading, FaCalculator, FaGaugeHigh, FaDatabase, FaNetworkWired, FaStream, FaRuler, FaJava, FaEnvelope, FaBroadcast } from 'react-icons/fa6'
 import styles from '../styles/tool-sidebar.module.css'
 
 // Map tool IDs to react-icons
@@ -24,6 +24,7 @@ const toolIcons = {
   'csv-json-converter': FaFileExcel,
   'markdown-html-converter': FaMarkdown,
   'markdown-html-formatter': FaMarkdown,
+  'markdown-linter': FaMarkdown,
   'xml-formatter': FaCode,
   'yaml-formatter': FaYaml,
   'url-parser': FaGlobe,
@@ -42,7 +43,24 @@ const toolIcons = {
   'sql-formatter': FaTerminal,
   'http-status-lookup': FaQuestion,
   'mime-type-lookup': FaMagic,
+  'http-header-parser': FaBroadcast,
+  'uuid-validator': FaCheckCircle,
+  'json-path-extractor': FaSearch,
+  'image-to-base64': FaImage,
+  'svg-optimizer': FaImage,
   'unit-converter': FaArrowsAltH,
+  'number-formatter': FaHashtag,
+  'timezone-converter': FaClock,
+  'base-converter': FaCode,
+  'math-evaluator': FaCalculator,
+  'keyword-extractor': FaSearch,
+  'cron-tester': FaClock,
+  'file-size-converter': FaRuler,
+  'js-formatter': FaCode,
+  'email-validator': FaEnvelope,
+  'ip-validator': FaNetworkWired,
+  'ip-integer-converter': FaNetworkWired,
+  'ip-range-calculator': FaNetworkWired,
 }
 
 const getScoreColor = (similarity) => {
