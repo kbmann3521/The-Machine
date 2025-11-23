@@ -1,5 +1,49 @@
 import React, { useState, useMemo } from 'react'
+import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaRegex, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaYaml, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaUnicode, FaBinary, FaLock, FaQuestion, FaMagic, FaTerminal } from 'react-icons/fa6'
 import styles from '../styles/tool-sidebar.module.css'
+
+// Map tool IDs to react-icons
+const toolIcons = {
+  'text-toolkit': FaFont,
+  'image-resizer': FaImage,
+  'word-counter': FaHashtag,
+  'case-converter': FaLettercase,
+  'find-replace': FaSearch,
+  'remove-extras': FaCopy,
+  'text-analyzer': FaBarChart,
+  'base64-converter': FaCode,
+  'url-converter': FaLink,
+  'html-entities-converter': FaTag,
+  'html-formatter': FaCode,
+  'plain-text-stripper': FaCopy,
+  'json-formatter': FaCode,
+  'reverse-text': FaRotateRight,
+  'slug-generator': FaSlug,
+  'regex-tester': FaRegex,
+  'timestamp-converter': FaClock,
+  'csv-json-converter': FaFileExcel,
+  'markdown-html-converter': FaMarkdown,
+  'markdown-html-formatter': FaMarkdown,
+  'xml-formatter': FaCode,
+  'yaml-formatter': FaYaml,
+  'url-parser': FaGlobe,
+  'jwt-decoder': FaTicket,
+  'text-diff-checker': FaExchangeAlt,
+  'color-converter': FaPalette,
+  'checksum-calculator': FaCheckCircle,
+  'escape-unescape': FaQuoteLeft,
+  'sort-lines': FaArrowsAltH,
+  'whitespace-visualizer': FaEye,
+  'ascii-unicode-converter': FaUnicode,
+  'binary-converter': FaBinary,
+  'rot13-cipher': FaLock,
+  'caesar-cipher': FaLock,
+  'css-formatter': FaCode,
+  'sql-formatter': FaTerminal,
+  'http-status-lookup': FaQuestion,
+  'mime-type-lookup': FaMagic,
+  'unit-converter': FaArrowsAltH,
+}
 
 const getScoreColor = (similarity) => {
   // Create gradient from green (high similarity) to white (low similarity)
