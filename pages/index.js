@@ -304,22 +304,8 @@ export default function Home() {
     setImagePreview(preview)
 
     if (selectedToolRef.current && text) {
-      // For JSON formatter, only auto-detect if input has meaningfully changed
-      // (not continuously on every keystroke to prevent mode flip-flopping)
-      if (selectedToolRef.current.toolId === 'json-formatter') {
-        // Only auto-detect if the input is different from what we last auto-detected
-        if (lastAutoDetectInputRef.current !== text) {
-          const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
-          if (detectedConfig) {
-            lastAutoDetectInputRef.current = text
-            setConfigOptions(prevConfig => ({
-              ...prevConfig,
-              ...detectedConfig,
-            }))
-          }
-        }
-      } else {
-        // For other tools, auto-detect normally
+      // Skip auto-detection for JSON formatter - beautify is always the default
+      if (selectedToolRef.current.toolId !== 'json-formatter') {
         const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
         if (detectedConfig) {
           setConfigOptions(prevConfig => ({
