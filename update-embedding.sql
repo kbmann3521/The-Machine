@@ -1,0 +1,22 @@
+-- This query will update the embedding for the markdown-html-formatter tool
+-- Run this in your Supabase SQL Editor with admin access
+--
+-- Step 1: Generate the embedding using the API (already done)
+-- Step 2: This file shows where the embedding should go
+--
+-- The embedding array should be stored in the 'embedding' column (pgvector type)
+-- Dimensions: 1536 (OpenAI embedding size)
+--
+-- Since the embedding was successfully generated but the RLS policy prevents
+-- updating via the anon key, you'll need to either:
+--
+-- Option 1: Update via Supabase dashboard SQL editor (admin access)
+-- Option 2: Use an Admin API key to call the update endpoint
+-- Option 3: Disable/modify RLS policy for the tools table temporarily
+--
+-- The tool metadata is already in the database:
+SELECT * FROM tools WHERE id = 'markdown-html-formatter';
+
+-- If you can run SQL as admin, you can fetch the embedding from our API
+-- and insert it here. The embedding has been generated successfully
+-- and is ready to be stored.
