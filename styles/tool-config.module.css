@@ -58,6 +58,15 @@
   display: none;
 }
 
+.field:has(.toggleContainer) {
+  padding: 0;
+  margin: 0;
+}
+
+.field:has(.toggleContainer) .fieldLabel {
+  display: none;
+}
+
 .fieldLabel {
   font-size: 11px;
   font-weight: 600;
