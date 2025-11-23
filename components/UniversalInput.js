@@ -135,13 +135,14 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const handlePaste = (e) => {
+    e.preventDefault() // Prevent default paste behavior immediately
+
     const items = e.clipboardData?.items
     let hasImage = false
 
     if (items) {
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.startsWith('image/')) {
-          e.preventDefault()
           const file = items[i].getAsFile()
           if (file) {
             handleImageFile(file)
