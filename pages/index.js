@@ -238,7 +238,9 @@ export default function Home() {
         // Only auto-select if:
         // 1. No tool is currently selected AND
         // 2. Input came from a paste event
+        console.log('predictTools - isPaste:', isPaste, 'selectedTool:', selectedTool?.toolId)
         if (!selectedTool && isPaste) {
+          console.log('Auto-selecting:', topTool.name)
           setSelectedTool(topTool)
         }
 
