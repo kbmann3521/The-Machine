@@ -145,6 +145,59 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const renderUnitConverterCards = () => {
+    if (!displayResult || !displayResult.results || !displayResult.type) return null
+
+    const results = displayResult.results
+    const sections = {}
+
+    for (const [fromUnit, conversions] of Object.entries(results)) {
+      if (!sections[fromUnit]) {
+        sections[fromUnit] = []
+      }
+      for (const [toUnit, value] of Object.entries(conversions)) {
+        const roundedValue = Number.isFinite(value)
+          ? value > 0 && value < 0.001 || value > 999999
+            ? value.toExponential(6)
+            : parseFloat(value.toFixed(6))
+          : value
+        sections[fromUnit].push({
+          toUnit,
+          value: roundedValue
+        })
+      }
+    }
+
+    return (
+      <div className={styles.unitConverterContainer}>
+        {Object.entries(sections).map(([fromUnit, conversions]) => (
+          <div key={fromUnit} className={styles.conversionSection}>
+            <h4 className={styles.sectionTitle}>{fromUnit.toUpperCase()}</h4>
+            <div className={styles.cardsGrid}>
+              {conversions.map((conversion, idx) => (
+                <button
+                  key={idx}
+                  className={styles.conversionCard}
+                  onClick={() => handleCopyField(
+                    `${conversion.value} ${conversion.toUnit}`,
+                    `${conversion.value} ${conversion.toUnit}`
+                  )}
+                  title={`Copy ${conversion.value} ${conversion.toUnit}`}
+                >
+                  <div className={styles.conversionValue}>{conversion.value}</div>
+                  <div className={styles.conversionUnit}>{conversion.toUnit}</div>
+                  {copiedField === `${conversion.value} ${conversion.toUnit}` && (
+                    <div className={styles.copiedIndicator}>✓</div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   const renderStructuredOutput = () => {
     const fieldsToShow = getDisplayFields(toolId, displayResult)
     if (!fieldsToShow || fieldsToShow.length === 0) return null
@@ -177,6 +230,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   const getDisplayFields = (toolId, result) => {
     if (!result || typeof result !== 'object') return null
+
+    if (toolId === 'unit-converter') return null
 
     switch (toolId) {
       case 'color-converter':
@@ -437,6 +492,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (typeof displayResult === 'object') {
+      // Special handling for unit-converter
+      if (toolId === 'unit-converter') {
+        const unitCards = renderUnitConverterCards()
+        if (unitCards) {
+          return unitCards
+        }
+      }
+
       // For text-toolkit with full-height text sections, don't show JSON fallback
       const isFullHeightTextSection = toolId === 'text-toolkit' &&
         ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)
