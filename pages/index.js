@@ -301,7 +301,7 @@ export default function Home() {
     }
   }, [fastLocalClassification])
 
-  const handleInputChange = useCallback((text, image, preview) => {
+  const handleInputChange = useCallback((text, image, preview, isPaste = false) => {
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
@@ -324,7 +324,7 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      predictTools(text, image, preview)
+      predictTools(text, image, preview, isPaste)
     }, 700)
   }, [predictTools])
 
