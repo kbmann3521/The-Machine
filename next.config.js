@@ -1,6 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Mark server-only packages as external to prevent bundling warnings
+      config.externals = [
+        ...(typeof config.externals === 'function' ? [] : config.externals || []),
+        'marked',
+        'turndown',
+        'js-beautify',
+        'html-minifier-terser',
+      ]
+    }
+    return config
+  },
   async headers() {
     return [
       {
