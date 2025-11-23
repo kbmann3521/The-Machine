@@ -19,6 +19,7 @@
     "js-beautify": "^1.15.4",
     "json-diff": "^1.0.6",
     "json2csv": "^5.0.7",
+    "xmlbuilder2": "^3.0.1",
     "marked": "^17.0.1",
     "next": "^14.0.0",
     "openai": "^6.9.1",
