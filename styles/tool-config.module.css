@@ -61,10 +61,7 @@
 .field:has(.toggleContainer) {
   padding: 0;
   margin: 0;
-}
-
-.field:has(.toggleContainer) .fieldLabel {
-  display: none;
+  display: contents;
 }
 
 .fieldLabel {
