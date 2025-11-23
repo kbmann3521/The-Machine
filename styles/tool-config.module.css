@@ -167,6 +167,7 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-primary);
+  line-height: 1;
 }
 
 .sliderContainer {
