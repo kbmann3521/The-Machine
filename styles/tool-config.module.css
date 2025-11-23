@@ -72,10 +72,8 @@
   margin: 0;
 }
 
-.field:has(.toggleContainer) .fieldLabel,
-.field:has(select) .fieldLabel {
+.field:has(.toggleContainer) .fieldLabel {
   visibility: hidden;
-  height: 14px;
 }
 
 
