@@ -571,7 +571,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         <div className={`${styles.buttonContainer} ${(displayResult && !loading && !error) ? styles.visible : styles.hidden}`}>
           {displayResult?.resizedImage ? (
             <button
-              className={styles.copyButton}
+              className="copy-action"
               onClick={handleDownloadImage}
               title="Download resized image"
             >
@@ -579,7 +579,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             </button>
           ) : (
             <button
-              className={styles.copyButton}
+              className="copy-action"
               onClick={handleCopy}
               title="Copy to clipboard"
             >
