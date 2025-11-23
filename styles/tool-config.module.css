@@ -388,8 +388,9 @@
 .inlineToggleLabel .toggleSlider::after {
   width: 12px;
   height: 12px;
-  top: 2px;
+  top: 50%;
   left: 2px;
+  transform: translateY(-50%);
 }
 
 .inlineToggleLabel .toggleInput:checked + .toggleSlider::after {
