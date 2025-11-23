@@ -180,7 +180,8 @@
 @media (min-width: 769px) {
   .descriptionSidebar {
     position: fixed;
-    bottom: auto;
+    bottom: 0;
+    height: auto;
     max-height: calc(100vh - 100px);
   }
 
