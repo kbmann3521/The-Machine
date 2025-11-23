@@ -101,10 +101,10 @@ async function layerSemanticSearch(input, inputType, visibilityMap) {
   }
 
   try {
-    console.log(`🧠 LAYER 3 (Semantic Search): Searching for ${inputType} tools`)
+    console.log(`🧠 LAYER 3 (Semantic Search): Searching for ${inputType.type} tools`)
 
     // Get tools relevant to this input type
-    const candidateToolIds = getToolsForInputType(inputType)
+    const candidateToolIds = getToolsForInputType(inputType.type)
     if (candidateToolIds.length === 0) {
       console.warn(`No tools mapped for input type: ${inputType}`)
       return null
