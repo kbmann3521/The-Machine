@@ -140,7 +140,7 @@ input[type="file"] {
 
 /* Standard form input height: 34px (8px padding + 12px text + 8px padding + 2px borders) */
 :root {
-  --form-input-height: 304px;
+  --form-input-height: 36px;
   --form-input-padding: 8px 10px;
   --form-input-font-size: 12px;
   --form-input-border-radius: 5px;
