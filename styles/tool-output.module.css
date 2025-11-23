@@ -434,11 +434,6 @@
   .fieldValue {
     font-size: 11px;
   }
-
-  .cardsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
-    gap: 7px;
-  }
 }
 
 @media (max-width: 640px) {
