@@ -272,6 +272,10 @@ export default function Home() {
         // Use suggested config from API, or fall back to local auto-detection
         if (topTool?.suggestedConfig) {
           Object.assign(initialConfig, topTool.suggestedConfig)
+          // Apply activeToolkitSection if specified for text-toolkit
+          if (topTool.toolId === 'text-toolkit' && topTool.suggestedConfig.activeToolkitSection) {
+            setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
+          }
         } else {
           const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
           if (detectedConfig) {
