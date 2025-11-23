@@ -97,6 +97,8 @@
   resize: vertical;
 }
 
+/* Toggle Switch Styling (module version - see globals.css for global toggle classes) */
+/* These classes match the global .toggle-* classes for consistency across all tools */
 .toggleContainer {
   display: flex;
   flex-direction: row;
