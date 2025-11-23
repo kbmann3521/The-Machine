@@ -177,17 +177,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               {conversions.map((conversion, idx) => (
                 <button
                   key={idx}
-                  className={styles.conversionCard}
+                  className="copy-card"
                   onClick={() => handleCopyField(
                     `${conversion.value} ${conversion.toUnit}`,
                     `${conversion.value} ${conversion.toUnit}`
                   )}
                   title={`Copy ${conversion.value} ${conversion.toUnit}`}
                 >
-                  <div className={styles.conversionValue}>{conversion.value}</div>
-                  <div className={styles.conversionUnit}>{conversion.toUnit}</div>
+                  <div className="copy-card__value">{conversion.value}</div>
+                  <div className="copy-card__label">{conversion.toUnit}</div>
                   {copiedField === `${conversion.value} ${conversion.toUnit}` && (
-                    <div className={styles.copiedIndicator}>✓</div>
+                    <div className="copy-card__indicator">✓</div>
                   )}
                 </button>
               ))}
