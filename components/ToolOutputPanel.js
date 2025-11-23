@@ -169,14 +169,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     return (
-      <div className={styles.unitConverterContainer}>
-        {Object.entries(sections).map(([fromUnit, conversions]) => (
-          <div key={fromUnit} className={styles.conversionSection}>
-            <h4 className={styles.sectionTitle}>{fromUnit.toUpperCase()}</h4>
-            <div className={styles.cardsGrid}>
-              {conversions.map((conversion, idx) => (
+      <div className={styles.structuredOutput}>
+        {Object.entries(sections).map(([fromUnit, conversions]) =>
+          conversions.map((conversion, idx) => (
+            <div key={`${fromUnit}-${idx}`} className={styles.outputField}>
+              <div className={styles.fieldHeader}>
+                <span className={styles.fieldLabel}>{conversion.toUnit}:</span>
                 <button
-                  key={idx}
                   className="copy-action"
                   onClick={() => handleCopyField(
                     `${conversion.value} ${conversion.toUnit}`,
@@ -184,13 +183,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   )}
                   title={`Copy ${conversion.value} ${conversion.toUnit}`}
                 >
-                  <span>{conversion.value}</span>
-                  <span>{conversion.toUnit}</span>
+                  📋
                 </button>
-              ))}
+              </div>
+              <div className={styles.fieldValue}>{conversion.value}</div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     )
   }
