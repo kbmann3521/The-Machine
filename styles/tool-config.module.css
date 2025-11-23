@@ -95,13 +95,15 @@
 
 .toggleContainer {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  background-color: var(--color-background-tertiary);
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  background-color: var(--color-background-secondary);
   border: 1px solid var(--color-border);
-  border-radius: 6px;
-  align-items: flex-start;
+  border-radius: 5px;
+  height: auto;
+  box-sizing: border-box;
 }
 
 .toggleLabel {
@@ -109,8 +111,9 @@
   align-items: center;
   cursor: pointer;
   position: relative;
-  width: 100%;
-  gap: 10px;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
 }
 
 .toggleInput {
