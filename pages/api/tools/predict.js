@@ -270,6 +270,13 @@ function detectSuggestedConfig(toolId, inputText, inputType) {
     }
   }
 
+  // Text Toolkit: suggest clean text filter for markdown_clean or messy text
+  if (toolId === 'text-toolkit') {
+    if (inputType.type === 'markdown_clean') {
+      config.activeToolkitSection = 'removeExtras'
+    }
+  }
+
   return Object.keys(config).length > 0 ? config : null
 }
 
