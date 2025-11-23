@@ -183,8 +183,6 @@
     bottom: 0;
     height: auto;
     max-height: calc(100vh - 100px);
-    overflow-y: auto;
-    overflow-x: hidden;
   }
 
   .closeButton {
