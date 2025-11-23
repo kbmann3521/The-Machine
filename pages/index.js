@@ -301,7 +301,7 @@ export default function Home() {
       }
       setLoading(false)
     }
-  }, [fastLocalClassification])
+  }, [fastLocalClassification, selectedTool])
 
   const handleInputChange = useCallback((text, image, preview, isPaste = false) => {
     setInputText(text)
