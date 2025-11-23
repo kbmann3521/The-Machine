@@ -275,6 +275,7 @@ function detectSuggestedConfig(toolId, inputText, inputType) {
   if (toolId === 'text-toolkit') {
     if (inputType.type === 'markdown_clean' || inputType.type === 'markdown_html' || inputType.type === 'markdown') {
       config.activeToolkitSection = 'removeExtras'
+      console.log(`✅ detectSuggestedConfig: text-toolkit with markdown (${inputType.type}) → activeToolkitSection: removeExtras`)
     }
   }
 
