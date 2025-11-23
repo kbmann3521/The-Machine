@@ -1,3 +1,20 @@
+/*
+  Tool Config Panel Styles
+
+  This module uses global CSS variables defined in styles/globals.css:
+  - --form-input-height: 34px (consistent across all form inputs)
+  - --form-input-padding: 8px 10px
+  - --form-input-font-size: 12px
+  - --form-input-border-radius: 5px
+  - --form-input-bg: var(--color-background-secondary)
+  - --form-input-border: 1px solid var(--color-border)
+  - --form-input-text: var(--color-text-primary)
+
+  All form inputs (selects, toggles, inputs) use these variables for easy
+  future restyling across all tools. Update globals.css to change styling
+  everywhere at once.
+*/
+
 .container {
   width: 100%;
   padding: 0;
