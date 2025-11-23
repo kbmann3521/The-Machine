@@ -16,7 +16,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
 
     const staticPlaceholders = {
       'image-resizer': 'Upload an image (PNG, JPG, etc.) to resize for web or social media',
-      'text-toolkit': 'Paste your text with extra spaces or line breaks - we\'ll analyze and clean it up',
+      'text-toolkit': 'Paste your article, blog post, or essay for complete text analysis',
       'word-counter': 'Paste your essay, article, or document to count words and characters',
       'case-converter': 'Paste text to convert between uppercase, lowercase, title case, etc.',
       'find-replace': 'Paste text and configure search patterns to find and replace',
