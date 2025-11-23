@@ -112,6 +112,28 @@ export default function ToolDescriptionSidebar({ tool, isOpen, onToggle }) {
             )}
           </section>
         )}
+
+        {description.warnings && description.warnings.length > 0 && (
+          <section className={styles.warningSection}>
+            <button
+              className={`${styles.sectionHeader} ${styles.warningHeader} ${expandedSection === 'warnings' ? styles.expanded : ''}`}
+              onClick={() => toggleSection('warnings')}
+            >
+              <span className={styles.warningIcon}>⚠</span>
+              <span className={styles.sectionTitle}>Warnings</span>
+              <span className={styles.toggleIcon}>›</span>
+            </button>
+            {expandedSection === 'warnings' && (
+              <div className={`${styles.sectionContent} ${styles.warningContent}`}>
+                <ul className={styles.warningsList}>
+                  {description.warnings.map((warning, idx) => (
+                    <li key={idx}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </aside>
   )
