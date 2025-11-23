@@ -473,13 +473,4 @@
   .fieldValue {
     font-size: 11px;
   }
-
-  .conversionSection {
-    gap: 8px;
-  }
-
-  .cardsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 6px;
-  }
 }
