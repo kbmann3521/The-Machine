@@ -213,7 +213,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   onClick={() => handleCopyField(displayValue, field.label)}
                   title={`Copy ${field.label}`}
                 >
-                  {copiedField === field.label ? '✓' : '📋'}
+                  {copiedField === field.label ? '✓' : '📎'}
                 </button>
               </div>
               <div className={styles.fieldValue}>{displayValue}</div>
