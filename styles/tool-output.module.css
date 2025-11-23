@@ -471,29 +471,9 @@
     font-size: 11px;
   }
 
-  .fieldCopyButton {
-    width: 18px;
-    height: 18px;
-    font-size: 9px;
-  }
-
   .cardsGrid {
     grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
     gap: 7px;
-  }
-
-  .conversionCard {
-    padding: 10px 8px;
-    min-height: 65px;
-    gap: 3px;
-  }
-
-  .conversionValue {
-    font-size: 12px;
-  }
-
-  .conversionUnit {
-    font-size: 9px;
   }
 }
 
