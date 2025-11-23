@@ -270,9 +270,10 @@ function detectSuggestedConfig(toolId, inputText, inputType) {
     }
   }
 
-  // Text Toolkit: suggest clean text filter for markdown_clean or messy text
+  // Text Toolkit: suggest clean text filter for any markdown input
+  // So when user clicks Text Toolkit from markdown input, it defaults to clean filter
   if (toolId === 'text-toolkit') {
-    if (inputType.type === 'markdown_clean') {
+    if (inputType.type === 'markdown_clean' || inputType.type === 'markdown_html' || inputType.type === 'markdown') {
       config.activeToolkitSection = 'removeExtras'
     }
   }
