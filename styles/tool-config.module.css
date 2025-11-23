@@ -138,7 +138,7 @@
   box-sizing: border-box;
 }
 
-/* Toggle label matches form input font sizes for consistency */
+/* Toggle label matches form input font sizes for consistency, with condensed font for readability */
 .toggleLabel {
   display: flex;
   align-items: center;
@@ -149,6 +149,8 @@
   padding: 0;
   font-size: var(--form-input-font-size, 12px);
   font-weight: 500;
+  font-stretch: condensed;
+  letter-spacing: -0.3px;
   line-height: 1;
   white-space: nowrap;
   height: 100%;
