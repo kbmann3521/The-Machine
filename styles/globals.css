@@ -134,3 +134,101 @@ input[type="file"] {
     padding: 1rem;
   }
 }
+
+/* Global Toggle Switch Styles */
+/* Applied to all checkbox-based toggle switches across all tools for consistency */
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 36px;
+  height: 18px;
+  background-color: var(--color-border);
+  border-radius: 9px;
+  display: inline-block;
+  position: relative;
+  transition: background-color 0.3s ease;
+  vertical-align: middle;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background-color: #0066cc;
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background-color: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+  transition: left 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-input:checked + .toggle-slider::after {
+  left: 20px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.toggle-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 6px 10px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.toggle-inline {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+/* Inline toggle slider sizing (for use in dense layouts like filter results) */
+.toggle-inline .toggle-slider {
+  width: 36px;
+  height: 18px;
+}
+
+.toggle-inline .toggle-slider::after {
+  width: 14px;
+  height: 14px;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+}
+
+.toggle-inline .toggle-input:checked + .toggle-slider::after {
+  left: 20px;
+}
