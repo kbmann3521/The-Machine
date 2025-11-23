@@ -303,12 +303,16 @@ export default function Home() {
     setImagePreview(preview)
 
     if (selectedToolRef.current && text) {
-      const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
-      if (detectedConfig) {
-        setConfigOptions(prevConfig => ({
-          ...prevConfig,
-          ...detectedConfig,
-        }))
+      // Skip auto-detection for JSON formatter to prevent mode flip-flopping
+      // Only auto-detect when tool is first selected (handled in handleSelectTool)
+      if (selectedToolRef.current.toolId !== 'json-formatter') {
+        const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
+        if (detectedConfig) {
+          setConfigOptions(prevConfig => ({
+            ...prevConfig,
+            ...detectedConfig,
+          }))
+        }
       }
     }
 
