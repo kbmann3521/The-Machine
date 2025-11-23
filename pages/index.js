@@ -347,6 +347,10 @@ export default function Home() {
     // Priority: Use suggestedConfig from API, then fall back to auto-detection
     if (tool?.suggestedConfig) {
       Object.assign(initialConfig, tool.suggestedConfig)
+      // Apply activeToolkitSection if specified for text-toolkit
+      if (tool.toolId === 'text-toolkit' && tool.suggestedConfig.activeToolkitSection) {
+        setActiveToolkitSection(tool.suggestedConfig.activeToolkitSection)
+      }
     } else {
       const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
       if (detectedConfig) {
