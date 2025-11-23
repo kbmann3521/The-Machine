@@ -378,14 +378,15 @@
   padding-right: 4px;
 }
 
+/* Inline toggles use global form input styling for consistency */
 .inlineToggleLabel {
   display: flex;
   align-items: center;
   cursor: pointer;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--form-input-font-size, 12px);
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--form-input-text, var(--color-text-primary));
   white-space: nowrap;
 }
 
