@@ -172,6 +172,27 @@
   display: none;
 }
 
+.toolIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolItem:hover .toolIcon {
+  color: #0066cc;
+  transform: scale(1.1);
+}
+
+.toolItem.selected .toolIcon {
+  color: #0066cc;
+}
+
 .toolName {
   margin: 0;
   font-size: 14px;
