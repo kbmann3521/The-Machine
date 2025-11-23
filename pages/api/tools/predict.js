@@ -259,15 +259,9 @@ function detectSuggestedConfig(toolId, inputText, inputType) {
     }
   }
 
-  // JSON Formatter: similar logic
+  // JSON Formatter: always default to beautify, no auto-detection
   if (toolId === 'json-formatter') {
-    const hasNewlines = /\n/.test(inputText)
-    const hasIndentation = /^\s+/.test(inputText)
-    if (hasNewlines || hasIndentation) {
-      config.mode = 'minify'
-    } else {
-      config.mode = 'beautify'
-    }
+    config.mode = 'beautify'
   }
 
   // Text Toolkit: suggest clean text filter for any markdown input
