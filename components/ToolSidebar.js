@@ -33,7 +33,7 @@ const toolIcons = {
   'jwt-decoder': FaTicket,
   'text-diff-checker': FaExchangeAlt,
   'color-converter': FaPalette,
-  'checksum-calculator': FaCheckCircle,
+  'checksum-calculator': ImCalculator,
   'escape-unescape': FaQuoteLeft,
   'sort-lines': FaArrowsAltH,
   'whitespace-visualizer': FaEye,
