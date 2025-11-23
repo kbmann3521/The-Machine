@@ -232,11 +232,13 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      // Auto-select the best match tool only if it's different from current selection
+      // Auto-select the best match tool ONLY on paste with no current selection
       if (toolsWithMetadata.length > 0) {
         const topTool = toolsWithMetadata[0]
-        // Only change tool if it's different from the current selection
-        if (!selectedTool || selectedTool.toolId !== topTool.toolId) {
+        // Only auto-select if:
+        // 1. No tool is currently selected AND
+        // 2. Input came from a paste event
+        if (!selectedTool && isPaste) {
           setSelectedTool(topTool)
         }
 
