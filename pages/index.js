@@ -161,7 +161,7 @@ export default function Home() {
     initializeTools()
   }, [])
 
-  const predictTools = useCallback(async (text, image, preview) => {
+  const predictTools = useCallback(async (text, image, preview, isPaste = false) => {
     if (!text && !image) {
       setPredictedTools(prevTools => {
         const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
