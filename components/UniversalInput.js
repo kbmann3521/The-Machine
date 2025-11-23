@@ -136,6 +136,8 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
 
   const handlePaste = (e) => {
     const items = e.clipboardData?.items
+    let hasImage = false
+
     if (items) {
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.startsWith('image/')) {
@@ -143,9 +145,21 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           const file = items[i].getAsFile()
           if (file) {
             handleImageFile(file)
+            hasImage = true
           }
           break
         }
+      }
+    }
+
+    // For text paste, notify parent with isPaste flag
+    if (!hasImage) {
+      const text = e.clipboardData?.getData('text') || ''
+      if (text) {
+        setInputText(text)
+        setCharCount(text.length)
+        // Pass isPaste=true to parent
+        onInputChange(text, inputImage, imagePreview, true)
       }
     }
   }
