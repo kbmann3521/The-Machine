@@ -277,7 +277,8 @@ export default function Home() {
           if (topTool.toolId === 'text-toolkit' && topTool.suggestedConfig.activeToolkitSection) {
             setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
           }
-        } else {
+        } else if (topTool.toolId !== 'json-formatter') {
+          // Skip auto-detection for JSON formatter - beautify is always the default
           const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
           if (detectedConfig) {
             Object.assign(initialConfig, detectedConfig)
