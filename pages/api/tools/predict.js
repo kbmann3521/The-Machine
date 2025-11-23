@@ -335,7 +335,7 @@ export default async function handler(req, res) {
       
       // STEP 1: Determine input type (Layers 1 & 2)
       const inputType = await determineInputType(inputContent)
-      console.log(`📊 Input Type: ${inputType.type} (confidence: ${(inputType.confidence * 100).toFixed(0)}%) - Full: `, JSON.stringify(inputType))
+      console.log(`📊 Input Type: ${inputType.type} (confidence: ${(inputType.confidence * 100).toFixed(0)}%)`)
 
       // STEP 2: Select tools based on input type
       // For structured inputs: direct selection
