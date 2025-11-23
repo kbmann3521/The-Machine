@@ -232,10 +232,13 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      // Always auto-select the best match tool from predictions
+      // Auto-select the best match tool only if it's different from current selection
       if (toolsWithMetadata.length > 0) {
         const topTool = toolsWithMetadata[0]
-        setSelectedTool(topTool)
+        // Only change tool if it's different from the current selection
+        if (!selectedTool || selectedTool.toolId !== topTool.toolId) {
+          setSelectedTool(topTool)
+        }
 
         // Check for text cleaning issues
         const cleanTextIssues = detectCleanTextIssues(text)
