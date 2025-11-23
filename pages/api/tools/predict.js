@@ -459,12 +459,6 @@ export default async function handler(req, res) {
     // Sort by similarity
     predictedTools.sort((a, b) => b.similarity - a.similarity)
 
-    // Debug: Log if any tools have suggestedConfig
-    const toolsWithConfig = predictedTools.filter(t => t.suggestedConfig)
-    if (toolsWithConfig.length > 0) {
-      console.log(`📋 Tools with suggestedConfig:`, toolsWithConfig.map(t => ({ toolId: t.toolId, config: t.suggestedConfig })))
-    }
-
     res.status(200).json({
       predictedTools,
       inputContent,
