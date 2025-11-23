@@ -26,7 +26,7 @@ const toolIcons = {
   'markdown-html-formatter': FaMarkdown,
   'markdown-linter': FaMarkdown,
   'xml-formatter': FaCode,
-  'yaml-formatter': FaCode,
+  'yaml-formatter': FaYaml,
   'url-parser': FaGlobe,
   'jwt-decoder': FaTicket,
   'text-diff-checker': FaExchangeAlt,
