@@ -360,7 +360,8 @@ export default function Home() {
       if (tool.toolId === 'text-toolkit' && tool.suggestedConfig.activeToolkitSection) {
         setActiveToolkitSection(tool.suggestedConfig.activeToolkitSection)
       }
-    } else {
+    } else if (tool.toolId !== 'json-formatter') {
+      // Skip auto-detection for JSON formatter - beautify is always the default
       const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
       if (detectedConfig) {
         Object.assign(initialConfig, detectedConfig)
