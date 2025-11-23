@@ -91,12 +91,14 @@
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+  border-color: var(--form-input-focus-border, #0066cc);
+  box-shadow: var(--form-input-focus-shadow, 0 0 0 2px rgba(0, 102, 204, 0.1));
 }
 
 .textarea {
+  height: auto;
   resize: vertical;
+  min-height: 100px;
 }
 
 /* Toggle Switch Styling (module version - see globals.css for global toggle classes) */
