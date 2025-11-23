@@ -300,7 +300,7 @@ input[type="file"] {
   font-weight: 500;
   color: #0066cc;
   background-color: transparent;
-  border: 1px solid #0066cc;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
