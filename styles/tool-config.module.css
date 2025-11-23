@@ -374,25 +374,25 @@
   align-items: center;
   cursor: pointer;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;
 }
 
 .inlineToggleLabel .toggleSlider {
-  width: 32px;
-  height: 16px;
+  width: 36px;
+  height: 18px;
 }
 
 .inlineToggleLabel .toggleSlider::after {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   top: 50%;
   left: 2px;
   transform: translateY(-50%);
 }
 
 .inlineToggleLabel .toggleInput:checked + .toggleSlider::after {
-  left: 18px;
+  left: 20px;
 }
