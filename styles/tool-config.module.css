@@ -130,10 +130,10 @@
 }
 
 .toggleSlider {
-  width: 40px;
-  height: 20px;
+  width: 36px;
+  height: 18px;
   background-color: var(--color-border);
-  border-radius: 10px;
+  border-radius: 9px;
   display: inline-block;
   position: relative;
   transition: background-color 0.3s;
@@ -148,8 +148,8 @@
 .toggleSlider::after {
   content: '';
   position: absolute;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background-color: white;
   border-radius: 50%;
   top: 50%;
@@ -160,7 +160,7 @@
 }
 
 .toggleInput:checked + .toggleSlider::after {
-  left: 22px;
+  left: 20px;
 }
 
 .toggleLabel span {
