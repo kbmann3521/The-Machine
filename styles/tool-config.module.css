@@ -55,8 +55,9 @@
   margin: 0;
 }
 
-.field:has(input[type="checkbox"]) .fieldLabel {
-  display: none;
+.field:has(.toggleContainer) .fieldLabel {
+  visibility: hidden;
+  height: 14px;
 }
 
 .field:has(.toggleContainer) {
