@@ -69,17 +69,19 @@
   letter-spacing: 0.3px;
 }
 
+/* Form inputs use global CSS variables for consistent height across all tools */
 .input,
 .textarea,
 .select {
-  padding: 8px 10px;
+  height: var(--form-input-height, 34px);
+  padding: var(--form-input-padding, 8px 10px);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--form-input-font-size, 12px);
   line-height: 1;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  background-color: var(--color-background-secondary);
-  color: var(--color-text-primary);
+  border: var(--form-input-border, 1px solid var(--color-border));
+  border-radius: var(--form-input-border-radius, 5px);
+  background-color: var(--form-input-bg, var(--color-background-secondary));
+  color: var(--form-input-text, var(--color-text-primary));
   transition: border-color 0.2s;
   width: 100%;
   box-sizing: border-box;
