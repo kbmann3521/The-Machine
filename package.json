@@ -10,9 +10,13 @@
     "regenerate-embeddings": "node regenerate-embeddings-esm.mjs"
   },
   "dependencies": {
+    "@iarna/toml": "^2.2.5",
     "@supabase/supabase-js": "^2.84.0",
+    "ajv": "^8.12.0",
+    "deepmerge": "^4.3.1",
     "html-minifier-terser": "^7.2.0",
     "js-beautify": "^1.15.4",
+    "json-diff": "^1.0.6",
     "marked": "^17.0.1",
     "next": "^14.0.0",
     "openai": "^6.9.1",
@@ -22,7 +26,8 @@
     "remark-lint": "^10.0.1",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
-    "turndown": "^7.2.2"
+    "turndown": "^7.2.2",
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
     "eslint": "^8",
