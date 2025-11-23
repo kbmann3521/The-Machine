@@ -515,12 +515,6 @@
     font-size: 11px;
   }
 
-  .fieldCopyButton {
-    width: 18px;
-    height: 18px;
-    font-size: 9px;
-  }
-
   .conversionSection {
     gap: 8px;
   }
@@ -528,19 +522,5 @@
   .cardsGrid {
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
     gap: 6px;
-  }
-
-  .conversionCard {
-    padding: 10px 8px;
-    min-height: 60px;
-    gap: 2px;
-  }
-
-  .conversionValue {
-    font-size: 11px;
-  }
-
-  .conversionUnit {
-    font-size: 8px;
   }
 }
