@@ -263,6 +263,8 @@ input[type="file"] {
   gap: 6px;
   font-size: 12px;
   font-weight: 500;
+  font-stretch: condensed;
+  letter-spacing: -0.3px;
   color: var(--color-text-primary);
   white-space: nowrap;
 }
