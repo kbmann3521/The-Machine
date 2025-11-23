@@ -102,18 +102,19 @@
 }
 
 /* Toggle Switch Styling (module version - see globals.css for global toggle classes) */
-/* These classes match the global .toggle-* classes for consistency across all tools */
+/* These classes use the same height and styling as form inputs for consistency */
 .toggleContainer {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  padding: 6px 10px;
+  height: var(--form-input-height, 34px);
+  padding: var(--form-input-padding, 8px 10px);
   margin: 0;
-  background-color: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
+  background-color: var(--form-input-bg, var(--color-background-secondary));
+  border: var(--form-input-border, 1px solid var(--color-border));
+  border-radius: var(--form-input-border-radius, 5px);
   box-sizing: border-box;
 }
 
