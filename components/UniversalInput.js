@@ -90,7 +90,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     const text = e.target.value
     setInputText(text)
     setCharCount(text.length)
-    onInputChange(text, inputImage, imagePreview)
+    onInputChange(text)
   }
 
   const handleImageFile = (file) => {
