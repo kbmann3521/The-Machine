@@ -469,43 +469,6 @@ export default function TestDetection() {
         </div>
       </div>
 
-      {singleTestResult && (
-        <div className={styles.singleResultSection}>
-          <h2>Test Result</h2>
-          <div className={`${styles.singleResult} ${singleTestResult.passed ? styles.resultPassed : styles.resultFailed}`}>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Input:</span>
-              <code className={styles.resultValue}>{truncateString(singleTestResult.input, 100)}</code>
-            </div>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Expected:</span>
-              <code className={styles.resultValue}>{singleTestResult.expected}</code>
-            </div>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Detected:</span>
-              <code className={styles.resultValue}>{singleTestResult.detected}</code>
-            </div>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Confidence:</span>
-              <span className={styles.resultValue}>{(singleTestResult.confidence * 100).toFixed(1)}%</span>
-            </div>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Result:</span>
-              <span className={styles.resultValue}>
-                {singleTestResult.passed ? (
-                  <span className={styles.checkmark}>✓ PASS</span>
-                ) : (
-                  <span className={styles.cross}>✗ FAIL</span>
-                )}
-              </span>
-            </div>
-          </div>
-          <button className={styles.closeResultButton} onClick={() => setSingleTestResult(null)}>
-            Close
-          </button>
-        </div>
-      )}
-
       {showAddForm && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
