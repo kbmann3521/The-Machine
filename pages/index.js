@@ -308,10 +308,13 @@ export default function Home() {
     }
   }, [fastLocalClassification, selectedTool])
 
-  const handleInputChange = useCallback((text, image, preview, isPaste = false) => {
+  const handleInputChange = useCallback((text, image, preview) => {
+    const isAddition = text.length > previousInputLength
+
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
+    setPreviousInputLength(text.length)
 
     if (selectedToolRef.current && text) {
       // Skip auto-detection for JSON formatter - beautify is always the default
@@ -331,9 +334,9 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      predictTools(text, image, preview, isPaste)
+      predictTools(text, image, preview, isAddition)
     }, 700)
-  }, [predictTools])
+  }, [predictTools, previousInputLength])
 
   const handleImageChange = useCallback((file, preview) => {
     setInputImage(file)
