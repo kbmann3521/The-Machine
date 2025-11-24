@@ -357,32 +357,60 @@ export default function TestDetection() {
       // If cases exist, delete them first
       if (testCases.length > 0) {
         for (const testCase of testCases) {
-          await fetch('/api/test-detection/cases', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: testCase.id }),
-          })
+          if (testCase.id) {
+            try {
+              const controller = new AbortController()
+              const timeoutId = setTimeout(() => controller.abort(), 3000)
+
+              await fetch('/api/test-detection/cases', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: testCase.id }),
+                signal: controller.signal,
+              })
+
+              clearTimeout(timeoutId)
+            } catch (err) {
+              console.debug('Failed to delete case during seeding:', err?.message)
+              // Continue with next case
+            }
+          }
         }
       }
 
       // Add each default case
       for (const defaultCase of DEFAULT_TEST_CASES) {
-        await fetch('/api/test-detection/cases', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            input: defaultCase.input,
-            expected: defaultCase.expected,
-          }),
-        })
+        try {
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 3000)
+
+          const response = await fetch('/api/test-detection/cases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              input: defaultCase.input,
+              expected: defaultCase.expected,
+            }),
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (!response || !response.ok) {
+            console.debug('Failed to add default case:', defaultCase.input)
+          }
+        } catch (err) {
+          console.debug('Error adding default case:', err?.message)
+          // Continue with next case
+        }
       }
 
       // Reload cases
       await loadTestCases()
       alert('Default test cases loaded successfully!')
     } catch (error) {
-      console.error('Error seeding defaults:', error)
-      alert('Failed to load default cases')
+      console.debug('Error seeding defaults:', error?.message)
+      alert('Failed to load default cases. Please try again.')
     } finally {
       setLoadingCases(false)
     }
