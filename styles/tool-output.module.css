@@ -328,8 +328,65 @@
   animation: none;
 }
 
-/* Old outputField, fieldHeader, fieldLabel, fieldValue styles removed */
-/* Now using global .copy-card classes from globals.css */
+/* ===== Copy Card Styles (Local) ===== */
+/* Same as globals but in module for proper specificity in grid context */
+
+.copyCard {
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transition: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  gap: 4px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.copyCard:hover {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.copyCardHeader {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 0 !important;
+}
+
+.copyCardLabel {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: var(--color-text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  line-height: 1 !important;
+}
+
+.copyCardValue {
+  font-family: 'Courier New', monospace !important;
+  font-size: 11px !important;
+  color: var(--color-text-primary) !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 6px 8px !important;
+  background-color: var(--color-background-primary) !important;
+  border-radius: 3px !important;
+  line-height: 1.4 !important;
+  border: 1px solid var(--color-border) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-height: 40px !important;
+  transition: none !important;
+}
 
 .jsonFallback {
   margin-top: 6px;
