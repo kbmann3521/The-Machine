@@ -124,14 +124,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         />
       </div>
 
-      {loading && (
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Finding best tool...</p>
-        </div>
-      )}
-
-      {!loading && filteredTools.length > 0 && (
+      {filteredTools.length > 0 && (
         <nav className={styles.toolsList} aria-label="Available tools">
           {filteredTools.map((tool, index) => {
             const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
@@ -168,13 +161,13 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         </nav>
       )}
 
-      {!loading && predictedTools.length > 0 && filteredTools.length === 0 && (
+      {predictedTools.length > 0 && filteredTools.length === 0 && (
         <div className={styles.emptyState}>
           <p>No tools match your search. Try a different query.</p>
         </div>
       )}
 
-      {!loading && predictedTools.length === 0 && (
+      {predictedTools.length === 0 && (
         <div className={styles.emptyState}>
           <p>No tools available. Enter text or upload an image to get started.</p>
         </div>
