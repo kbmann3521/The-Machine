@@ -261,13 +261,28 @@ export default function TestDetection() {
       setSingleTestResult(null)
       setTestResultIndex(index)
 
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
       const response = await fetch('/api/tools/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputText: testCase.input }),
+        signal: controller.signal,
       })
 
-      if (!response.ok) throw new Error('Prediction failed')
+      clearTimeout(timeoutId)
+
+      if (!response || !response.ok) {
+        setSingleTestResult({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: 'error',
+          passed: false,
+          error: 'Prediction service unavailable',
+        })
+        return
+      }
 
       const { predictedTools } = await response.json()
       const bestMatch = predictedTools[0]
@@ -281,13 +296,13 @@ export default function TestDetection() {
         confidence: bestMatch?.similarity || 0,
       })
     } catch (error) {
-      console.error('Error testing single case:', error)
+      console.debug('Single test error:', error?.message)
       setSingleTestResult({
         input: testCase.input,
         expected: testCase.expected,
         detected: 'error',
         passed: false,
-        error: error.message,
+        error: 'Test failed',
       })
     } finally {
       setSingleTestLoading(false)
