@@ -395,7 +395,7 @@ export default function TestDetection() {
               <tbody>
                 {testCases.map((testCase, idx) => (
                   <>
-                    <tr>
+                    <tr key={`case-${testCase.id || idx}`}>
                       <td className={styles.indexCol}>{idx + 1}</td>
                       <td className={styles.inputCol}>
                         <code>{truncateString(testCase.input, 50)}</code>
