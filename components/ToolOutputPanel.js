@@ -238,9 +238,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         </div>
         <div className={styles.structuredOutput}>
           {conversions.map((conversion, idx) => (
-            <div key={idx} className={styles.outputField}>
-              <div className={styles.fieldHeader}>
-                <span className={styles.fieldLabel}>{conversion.toUnitFullPluralized}:</span>
+            <div key={idx} className="copy-card">
+              <div className="copy-card-header">
+                <span className="copy-card-label">{conversion.toUnit}</span>
                 <button
                   className="copy-action"
                   onClick={() => handleCopyField(
@@ -252,7 +252,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   {copiedField === `${conversion.value} ${conversion.toUnitFullPluralized}` ? '✓' : <FaCopy />}
                 </button>
               </div>
-              <div className={styles.fieldValue}>{conversion.value}</div>
+              <div className="copy-card-value">{conversion.value}</div>
             </div>
           ))}
         </div>
