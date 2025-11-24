@@ -1,6 +1,6 @@
 /**
  * Tool Prediction Pipeline
- * 
+ *
  * Uses only hard detection (regex/heuristics) + tool bias weighting
  * No LLM or embeddings - fast and deterministic
  */
@@ -30,7 +30,8 @@ async function getVisibilityMap() {
     const visibilityMap = {}
     if (tools && Array.isArray(tools)) {
       tools.forEach(tool => {
-        visibilityMap[tool.id] = tool.show_in_recommendations !== false
+        visibilityMap[tool.id] =
+          tool.show_in_recommendations !== false
       })
     }
     return visibilityMap
@@ -49,13 +50,15 @@ export default async function handler(req, res) {
     const { inputText, inputImage } = req.body || {}
 
     if (!inputText && !inputImage) {
-      return res.status(400).json({ error: 'No input provided' })
+      return res
+        .status(400)
+        .json({ error: 'No input provided' })
     }
 
     const visibilityMap = await getVisibilityMap()
     let predictedTools = []
 
-    // IMAGE path
+    // ========== IMAGE PATH ==========
     if (inputImage && !inputText) {
       const imageCapableSet = new Set(
         Object.entries(TOOLS)
@@ -95,9 +98,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ predictedTools })
     }
 
-    // TEXT path: hard detection + bias weighting
+    // ========== TEXT PATH: hard detection + bias weighting ==========
+
     const rawInput = inputText || ''
     const hardResult = hardDetectMatrix(rawInput)
+
     const inputType = hardResult?.best || {
       type: 'plain_text',
       confidence: 0.5,
@@ -106,7 +111,11 @@ export default async function handler(req, res) {
 
     const inputTypeLabel = inputType.type
 
-    console.log(`Detected: ${inputTypeLabel} (${(inputType.confidence * 100).toFixed(0)}%)`)
+    console.log(
+      `Detected: ${inputTypeLabel} (${(
+        inputType.confidence * 100
+      ).toFixed(0)}%)`
+    )
 
     // Build full scored list of tools
     const toolsWithScores = []
@@ -118,7 +127,11 @@ export default async function handler(req, res) {
       let base = getToolBaseWeight(toolId, inputTypeLabel)
 
       // Apply bias
-      const bias = getToolBiasWeight(toolId, inputTypeLabel, rawInput)
+      const bias = getToolBiasWeight(
+        toolId,
+        inputTypeLabel,
+        rawInput
+      )
       let similarity = base + bias
 
       // Clamp to [0, 1]
@@ -146,6 +159,7 @@ export default async function handler(req, res) {
         pipelineUsed: 'hard-detection + bias-weighting',
         detectedType: inputTypeLabel,
         totalTools: predictedTools.length,
+        hardCandidates: hardResult?.candidates || [],
       },
     })
   } catch (error) {
