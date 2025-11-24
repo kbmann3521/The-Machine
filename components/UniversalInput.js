@@ -153,11 +153,33 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
 
     if (!hasImage) {
-      const text = e.clipboardData?.getData('text') || ''
-      if (text) {
-        setInputText(text)
-        setCharCount(text.length)
-        onInputChange(text)
+      const pastedText = e.clipboardData?.getData('text') || ''
+      if (pastedText) {
+        const textarea = textareaRef.current
+        if (textarea) {
+          // Get current text and cursor position
+          const currentText = textarea.value
+          const cursorStart = textarea.selectionStart
+          const cursorEnd = textarea.selectionEnd
+
+          // Insert pasted text at cursor position (replace selection if text is selected)
+          const newText = currentText.slice(0, cursorStart) + pastedText + currentText.slice(cursorEnd)
+
+          setInputText(newText)
+          setCharCount(newText.length)
+          onInputChange(newText)
+
+          // Move cursor to after the pasted text
+          setTimeout(() => {
+            textarea.selectionStart = textarea.selectionEnd = cursorStart + pastedText.length
+            textarea.focus()
+          }, 0)
+        } else {
+          // Fallback if ref is not available
+          setInputText(pastedText)
+          setCharCount(pastedText.length)
+          onInputChange(pastedText)
+        }
       }
     }
   }
