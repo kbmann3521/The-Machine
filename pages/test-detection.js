@@ -394,7 +394,8 @@ export default function TestDetection() {
               </thead>
               <tbody>
                 {testCases.map((testCase, idx) => (
-                  <React.Fragment key={idx}>
+                  <>
+                    {/* Row */}
                     <tr>
                       <td className={styles.indexCol}>{idx + 1}</td>
                       <td className={styles.inputCol}>
@@ -461,7 +462,7 @@ export default function TestDetection() {
                         </td>
                       </tr>
                     )}
-                  </React.Fragment>
+                  </>
                 ))}
               </tbody>
             </table>
