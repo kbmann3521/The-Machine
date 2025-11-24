@@ -321,8 +321,10 @@ export default function Home() {
       }
       setPredictedTools(toolsWithMetadata)
     } catch (err) {
-      console.error('Prediction error:', err?.message || err)
-      setError(`Failed to predict tools: ${err?.message || 'Unknown error'}`)
+      // Silently fail - the app will continue with the existing tool list
+      // This prevents network errors from blocking the user
+      console.debug('Prediction unavailable:', err?.message || err)
+      // Don't set error - let user continue with whatever tools are already displayed
     } finally {
       // Clear the loading timer and disable loading
       if (loadingTimerRef.current) {
