@@ -484,28 +484,20 @@
   font-size: 1rem;
 }
 
-.singleResultSection {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-}
-
-.singleResultSection h2 {
-  margin: 0 0 1.5rem 0;
-  font-size: 1.5rem;
-  color: #1a1a1a;
-  border-bottom: 2px solid #f0f2f5;
-  padding-bottom: 1rem;
+.resultRow {
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
 }
 
 .singleResult {
   background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
   border-left: 4px solid #007bff;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  align-items: center;
 }
 
 .singleResult.resultPassed {
@@ -518,49 +510,42 @@
   background: #fef5f5;
 }
 
-.resultRow {
+.resultInlineRow {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  align-items: flex-start;
-}
-
-.resultRow:last-child {
-  margin-bottom: 0;
-}
-
-.resultLabel {
-  font-weight: 600;
-  color: #1a1a1a;
-  min-width: 100px;
-}
-
-.resultValue {
-  flex: 1;
-  background: white;
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-  font-size: 0.9rem;
-  word-break: break-all;
-  display: flex;
+  gap: 0.5rem;
   align-items: center;
 }
 
-.closeResultButton {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-size: 0.95rem;
+.resultInlineLabel {
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
+  color: #1a1a1a;
+  min-width: 90px;
+  font-size: 0.9rem;
 }
 
-.closeResultButton:hover {
-  background: #5a6268;
+.resultInlineValue {
+  background: white;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 0.85rem;
+  word-break: break-word;
+  flex: 1;
+}
+
+.closeInlineResultButton {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+  margin-left: auto;
+  transition: color 0.2s;
+}
+
+.closeInlineResultButton:hover {
+  color: #dc3545;
 }
 
 .noResults {
