@@ -182,9 +182,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
           <div className={styles.structuredOutput}>
             {conversions.map((conversion, idx) => (
-              <div key={idx} className="copy-card">
-                <div className="copy-card-header">
-                  <span className="copy-card-label">{conversion.unit}</span>
+              <div key={idx} className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>{conversion.unit}</span>
                   <button
                     className="copy-action"
                     onClick={() => handleCopyField(
@@ -196,7 +196,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                     {copiedField === `conversion-${idx}` ? '✓' : <FaCopy />}
                   </button>
                 </div>
-                <div className="copy-card-value">{conversion.value}</div>
+                <div className={styles.copyCardValue}>{conversion.value}</div>
               </div>
             ))}
           </div>
