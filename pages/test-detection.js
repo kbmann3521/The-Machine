@@ -132,19 +132,32 @@ export default function TestDetection() {
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i]
       try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-        const response = await fetch('/api/tools/predict', {
+        const fetchPromise = fetch('/api/tools/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ inputText: testCase.input }),
-          signal: controller.signal,
         })
 
-        clearTimeout(timeoutId)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 8000)
+        )
 
-        if (!response || !response.ok) {
+        let response
+        try {
+          response = await Promise.race([fetchPromise, timeoutPromise])
+        } catch (err) {
+          // Fetch failed or timed out
+          testResults.push({
+            input: testCase.input,
+            expected: testCase.expected,
+            detected: 'error',
+            passed: false,
+          })
+          setProgress(((i + 1) / testCases.length) * 100)
+          continue
+        }
+
+        if (!response?.ok) {
           testResults.push({
             input: testCase.input,
             expected: testCase.expected,
@@ -152,16 +165,25 @@ export default function TestDetection() {
             passed: false,
           })
         } else {
-          const data = await response.json()
-          const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
-          const passed = detectedTool === testCase.expected
+          try {
+            const data = await response.json()
+            const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
+            const passed = detectedTool === testCase.expected
 
-          testResults.push({
-            input: testCase.input,
-            expected: testCase.expected,
-            detected: detectedTool,
-            passed,
-          })
+            testResults.push({
+              input: testCase.input,
+              expected: testCase.expected,
+              detected: detectedTool,
+              passed,
+            })
+          } catch (jsonErr) {
+            testResults.push({
+              input: testCase.input,
+              expected: testCase.expected,
+              detected: 'error',
+              passed: false,
+            })
+          }
         }
       } catch (error) {
         testResults.push({
@@ -469,7 +491,7 @@ export default function TestDetection() {
         <div className={styles.controlsLeft}>
           {!loading ? (
             <button className={styles.startButton} onClick={runTests} disabled={loadingCases}>
-              ▶ Start Tests
+              �� Start Tests
             </button>
           ) : (
             <button className={styles.startButton} disabled>
