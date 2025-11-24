@@ -171,6 +171,39 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderUnitConverterCards = () => {
+    // Handle new format from unitConverterTool
+    if (displayResult?.status === 'ok' && displayResult?.conversions && displayResult?.normalizedInput) {
+      const { normalizedInput, conversions } = displayResult
+
+      return (
+        <div className={styles.unitConverterSection}>
+          <div className={styles.unitConverterHeader}>
+            <h4>{normalizedInput.human} equals:</h4>
+          </div>
+          <div className={styles.structuredOutput}>
+            {conversions.map((conversion, idx) => (
+              <div key={idx} className={styles.outputField}>
+                <div className={styles.fieldHeader}>
+                  <span className={styles.fieldLabel}>{conversion.human}:</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(
+                      conversion.human,
+                      `conversion-${idx}`
+                    )}
+                    title={`Copy ${conversion.human}`}
+                  >
+                    {copiedField === `conversion-${idx}` ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // Handle old format for backward compatibility
     if (!displayResult || !displayResult.results || !displayResult.inputUnit) return null
 
     const results = displayResult.results
