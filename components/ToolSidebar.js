@@ -82,6 +82,8 @@ const getScoreLabel = (similarity) => {
 
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const itemRefs = useRef({})
+  const prevPositionsRef = useRef({})
 
   const filteredTools = useMemo(() => {
     let tools = predictedTools
@@ -110,6 +112,67 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
   }, [predictedTools, searchQuery, selectedTool])
 
   const topMatch = filteredTools[0]
+
+  // FLIP animation on desktop
+  useEffect(() => {
+    // Only animate on desktop
+    if (typeof window !== 'undefined' && window.innerWidth <= 991) {
+      return
+    }
+
+    // Store current positions before render
+    const currentPositions = {}
+    filteredTools.forEach((tool) => {
+      const el = itemRefs.current[tool.toolId]
+      if (el) {
+        const rect = el.getBoundingClientRect()
+        currentPositions[tool.toolId] = {
+          top: rect.top,
+          left: rect.left,
+          height: rect.height,
+        }
+      }
+    })
+
+    // Calculate deltas and apply transforms
+    setTimeout(() => {
+      filteredTools.forEach((tool) => {
+        const el = itemRefs.current[tool.toolId]
+        if (!el) return
+
+        const newRect = el.getBoundingClientRect()
+        const oldPos = prevPositionsRef.current[tool.toolId]
+
+        if (oldPos) {
+          const deltaY = oldPos.top - newRect.top
+          const deltaX = oldPos.left - newRect.left
+
+          if (Math.abs(deltaY) > 0 || Math.abs(deltaX) > 0) {
+            // Reset any previous transforms
+            el.style.transition = 'none'
+            el.style.transform = `translate(${deltaX}px, ${deltaY}px)`
+
+            // Force reflow to apply the transform
+            el.offsetHeight
+
+            // Animate to final position
+            el.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+            el.style.transform = 'translate(0, 0)'
+          }
+        }
+      })
+
+      prevPositionsRef.current = currentPositions
+    }, 0)
+  }, [filteredTools])
+
+  const setItemRef = (toolId, el) => {
+    if (el) {
+      itemRefs.current[toolId] = el
+    } else {
+      delete itemRefs.current[toolId]
+    }
+  }
 
   return (
     <aside className={styles.sidebar}>
