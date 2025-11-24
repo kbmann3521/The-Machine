@@ -24,10 +24,26 @@ export default function Hub() {
     useRegex: false,
     matchCase: false,
   })
+  const [advancedMode, setAdvancedMode] = useState(false)
+  const [previousInputLength, setPreviousInputLength] = useState(0)
 
   const handleInputChange = useCallback((text) => {
+    const isAddition = text.length > previousInputLength
     setInputText(text)
-  }, [])
+    setPreviousInputLength(text.length)
+
+    if (text.length === 0) {
+      setPredictedTools([])
+      setSelectedTool(null)
+      setOutputResult(null)
+    } else if (isAddition && !advancedMode) {
+      handlePredict(text, inputImage, imagePreview)
+    } else if (isAddition && advancedMode) {
+      handlePredict(text, inputImage, imagePreview, true)
+    } else {
+      handlePredict(text, inputImage, imagePreview, true)
+    }
+  }, [previousInputLength, advancedMode, inputImage, imagePreview])
 
   const handleImageChange = useCallback((file, preview) => {
     setInputImage(file)
