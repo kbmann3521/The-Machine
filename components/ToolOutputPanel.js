@@ -844,6 +844,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderSqlFormatterOutput()
     }
 
+    // Special handling for JavaScript Formatter
+    if (toolId === 'js-formatter' && (displayResult.formatted || displayResult.minified || displayResult.obfuscated || displayResult.errors || displayResult.linting || displayResult.analysis || displayResult.security)) {
+      return renderJsFormatterOutput()
+    }
+
     // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
