@@ -268,18 +268,21 @@ function detectSuggestedConfig(toolId, inputText, inputType) {
       config.type = 'data'
     } else {
       const tokens = lowerText.split(/[\s\/\-]+/).filter(t => t.length > 0)
+      let bestMatch = { type: null, distance: 3 }
+
       for (const token of tokens) {
         for (const [type, units] of Object.entries(unitsByType)) {
           for (const unit of units) {
             const distance = levenshteinDistance(token, unit)
-            if (distance <= 2 && distance > 0) {
-              config.type = type
-              break
+            if (distance <= 2 && distance > 0 && distance < bestMatch.distance) {
+              bestMatch = { type, distance }
             }
           }
-          if (config.type) break
         }
-        if (config.type) break
+      }
+
+      if (bestMatch.type) {
+        config.type = bestMatch.type
       }
     }
   }
