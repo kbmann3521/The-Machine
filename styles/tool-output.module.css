@@ -401,18 +401,6 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-
-  .outputField {
-    padding: 7px 8px;
-  }
-
-  .fieldLabel {
-    font-size: 9px;
-  }
-
-  .fieldValue {
-    font-size: 11px;
-  }
 }
 
 @media (max-width: 640px) {
