@@ -491,4 +491,18 @@
   .modalContent {
     width: 95%;
   }
+
+  .testCasesSection {
+    padding: 1rem;
+  }
+
+  .testCasesSection h2 {
+    font-size: 1.25rem;
+  }
+
+  .testCasesList :global(th),
+  .testCasesList :global(td) {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
 }
