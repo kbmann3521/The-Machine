@@ -104,7 +104,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       setImagePreview(e.target.result)
       setInputImage(file)
       onImageChange(file, e.target.result)
-      onInputChange(inputText, file, e.target.result)
     }
     reader.readAsDataURL(file)
   }
