@@ -166,7 +166,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     setImagePreview(null)
     setInputImage(null)
     onImageChange(null, null)
-    onInputChange(inputText, null, null)
   }
 
   const openFileDialog = () => {
