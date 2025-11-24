@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from '../styles/test-detection.module.css'
 
 const DEFAULT_TEST_CASES = [
