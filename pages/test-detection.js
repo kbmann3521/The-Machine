@@ -456,17 +456,17 @@ export default function TestDetection() {
         for (const testCase of testCases) {
           if (testCase.id) {
             try {
-              const controller = new AbortController()
-              const timeoutId = setTimeout(() => controller.abort(), 3000)
-
-              await fetch('/api/test-detection/cases', {
+              const fetchPromise = fetch('/api/test-detection/cases', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: testCase.id }),
-                signal: controller.signal,
               })
 
-              clearTimeout(timeoutId)
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Timeout')), 3000)
+              )
+
+              await Promise.race([fetchPromise, timeoutPromise])
             } catch (err) {
               console.debug('Failed to delete case during seeding:', err?.message)
               // Continue with next case
@@ -478,22 +478,22 @@ export default function TestDetection() {
       // Add each default case
       for (const defaultCase of DEFAULT_TEST_CASES) {
         try {
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 3000)
-
-          const response = await fetch('/api/test-detection/cases', {
+          const fetchPromise = fetch('/api/test-detection/cases', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               input: defaultCase.input,
               expected: defaultCase.expected,
             }),
-            signal: controller.signal,
           })
 
-          clearTimeout(timeoutId)
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+          )
 
-          if (!response || !response.ok) {
+          const response = await Promise.race([fetchPromise, timeoutPromise])
+
+          if (!response?.ok) {
             console.debug('Failed to add default case:', defaultCase.input)
           }
         } catch (err) {
