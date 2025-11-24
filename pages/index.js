@@ -356,6 +356,7 @@ export default function Home() {
     setOutputResult(null)
     setError(null)
     setDescriptionSidebarOpen(false)
+    setAdvancedMode(true)
 
     const initialConfig = {}
     if (tool?.configSchema) {
