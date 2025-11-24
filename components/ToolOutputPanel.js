@@ -146,6 +146,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const pluralizeUnitName = (unitName, value) => {
+    const irregularPlurals = {
+      'feet': 'feet',
+      'metric ton': 'metric tons',
+      'stone': 'stones',
+      'ounce': 'ounces',
+      'fluid ounce': 'fluid ounces',
+    }
+
+    if (value === 1 || value === 1.0) {
+      return unitName
+    }
+
+    if (irregularPlurals[unitName]) {
+      return irregularPlurals[unitName]
+    }
+
+    if (unitName.endsWith('y')) {
+      return unitName.slice(0, -1) + 'ies'
+    }
+
+    return unitName + 's'
+  }
+
   const renderUnitConverterCards = () => {
     if (!displayResult || !displayResult.results || !displayResult.inputUnit) return null
 
@@ -155,7 +179,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const inputUnitFull = displayResult.inputUnitFull
     const inputUnitFullPluralized = displayResult.inputUnitFullPluralized
     const abbrvToFullName = displayResult.abbrvToFullName || {}
-    const pluralizeUnitName = displayResult.pluralizeUnitName || ((name) => name + 's')
 
     const conversions = []
     for (const [toUnit, value] of Object.entries(results)) {
