@@ -58,8 +58,16 @@ export default function Hub() {
         ...TOOLS[tool.toolId],
       }))
 
+      console.log('Predict results:', {
+        toolCount: toolsWithMetadata.length,
+        noAutoSelect,
+        shouldSelect: toolsWithMetadata.length > 0 && !noAutoSelect,
+        topTool: toolsWithMetadata[0]?.toolId
+      })
+
       setPredictedTools(toolsWithMetadata)
       if (toolsWithMetadata.length > 0 && !noAutoSelect) {
+        console.log('Setting selected tool to:', toolsWithMetadata[0].toolId)
         setSelectedTool(toolsWithMetadata[0])
       }
     } catch (err) {
