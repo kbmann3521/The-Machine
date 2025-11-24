@@ -135,34 +135,38 @@ export default function Home() {
       }))
 
       // Fetch visibility flags from Supabase
+      let visibilityMap = {}
       try {
-        const response = await fetch('/api/tools/get-visibility')
-        if (!response.ok) {
-          throw new Error(`API returned status ${response.status}`)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+        const response = await fetch('/api/tools/get-visibility', {
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
+
+        if (response.ok) {
+          const data = await response.json()
+          visibilityMap = data?.visibilityMap || {}
+        } else {
+          console.warn('Failed to fetch tool visibility, API returned status:', response.status)
         }
-        const data = await response.json()
-        const visibilityMap = data?.visibilityMap || {}
-
-        // Store visibility map for use in predictTools
-        visibilityMapRef.current = visibilityMap
-
-        // Filter out tools with show_in_recommendations = false
-        const visibleTools = allTools.filter(tool =>
-          visibilityMap[tool.toolId] !== false
-        )
-
-        setPredictedTools(visibleTools)
-
-        // Don't set a default tool - wait for user input to select the best match
       } catch (error) {
-        console.error('Failed to fetch tool visibility:', error)
-        // Fallback: show all tools if API call fails
-        const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
-        visibilityMapRef.current = {}
-        setPredictedTools(visibleTools)
-
-        // Don't set a default tool - wait for user input to select the best match
+        console.warn('Failed to fetch tool visibility, using fallback:', error.message)
+        // visibilityMap remains empty, which is a safe fallback
       }
+
+      // Store visibility map for use in predictTools
+      visibilityMapRef.current = visibilityMap
+
+      // Filter out tools with show_in_recommendations = false
+      const visibleTools = allTools.filter(tool =>
+        visibilityMap[tool.toolId] !== false
+      )
+
+      setPredictedTools(visibleTools)
+
+      // Don't set a default tool - wait for user input to select the best match
     }
 
     initializeTools()
