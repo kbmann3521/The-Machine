@@ -219,6 +219,7 @@ export default function TestDetection() {
   const handleCancel = () => {
     setFormData({ input: '', expected: '' })
     setEditingIndex(null)
+    setEditingId(null)
     setShowAddForm(false)
   }
 
