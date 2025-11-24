@@ -153,7 +153,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const inputUnit = displayResult.inputUnit
     const inputValue = displayResult.input
     const inputUnitFull = displayResult.inputUnitFull
+    const inputUnitFullPluralized = displayResult.inputUnitFullPluralized
     const abbrvToFullName = displayResult.abbrvToFullName || {}
+    const pluralizeUnitName = displayResult.pluralizeUnitName || ((name) => name + 's')
 
     const conversions = []
     for (const [toUnit, value] of Object.entries(results)) {
@@ -162,9 +164,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           ? value.toExponential(6)
           : parseFloat(value.toFixed(6))
         : value
+      const fullName = abbrvToFullName[toUnit] || toUnit
+      const pluralizedName = pluralizeUnitName(fullName, roundedValue)
       conversions.push({
         toUnit,
-        toUnitFull: abbrvToFullName[toUnit] || toUnit,
+        toUnitFull: fullName,
+        toUnitFullPluralized: pluralizedName,
         value: roundedValue
       })
     }
@@ -172,22 +177,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return (
       <div className={styles.unitConverterSection}>
         <div className={styles.unitConverterHeader}>
-          <h4>{inputValue} {inputUnitFull} equals:</h4>
+          <h4>{inputValue} {inputUnitFullPluralized} equals:</h4>
         </div>
         <div className={styles.structuredOutput}>
           {conversions.map((conversion, idx) => (
             <div key={idx} className={styles.outputField}>
               <div className={styles.fieldHeader}>
-                <span className={styles.fieldLabel}>{conversion.toUnitFull}:</span>
+                <span className={styles.fieldLabel}>{conversion.toUnitFullPluralized}:</span>
                 <button
                   className="copy-action"
                   onClick={() => handleCopyField(
-                    `${conversion.value} ${conversion.toUnitFull}`,
-                    `${conversion.value} ${conversion.toUnitFull}`
+                    `${conversion.value} ${conversion.toUnitFullPluralized}`,
+                    `${conversion.value} ${conversion.toUnitFullPluralized}`
                   )}
-                  title={`Copy ${conversion.value} ${conversion.toUnitFull}`}
+                  title={`Copy ${conversion.value} ${conversion.toUnitFullPluralized}`}
                 >
-                  {copiedField === `${conversion.value} ${conversion.toUnitFull}` ? '✓' : <FaCopy />}
+                  {copiedField === `${conversion.value} ${conversion.toUnitFullPluralized}` ? '✓' : <FaCopy />}
                 </button>
               </div>
               <div className={styles.fieldValue}>{conversion.value}</div>
