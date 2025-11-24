@@ -81,17 +81,17 @@
   overflow: hidden;
 }
 
-table {
+.resultsTable :global(table) {
   width: 100%;
   border-collapse: collapse;
 }
 
-thead {
+.resultsTable :global(thead) {
   background: #f0f2f5;
   border-bottom: 2px solid #e9ecef;
 }
 
-th {
+.resultsTable :global(th) {
   padding: 1rem;
   text-align: left;
   font-weight: 600;
@@ -99,12 +99,12 @@ th {
   font-size: 0.95rem;
 }
 
-td {
+.resultsTable :global(td) {
   padding: 1rem;
   border-bottom: 1px solid #e9ecef;
 }
 
-tbody tr:hover {
+.resultsTable :global(tbody tr:hover) {
   background: #f8f9fa;
 }
 
@@ -154,7 +154,7 @@ tbody tr:hover {
   width: 200px;
 }
 
-code {
+.resultsTable :global(code) {
   background: #f5f5f5;
   padding: 0.25rem 0.5rem;
   border-radius: 3px;
