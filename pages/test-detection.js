@@ -198,6 +198,55 @@ export default function TestDetection() {
         </div>
       )}
 
+      <div className={styles.testCasesSection}>
+        <h2>Test Cases</h2>
+        <div className={styles.testCasesList}>
+          {testCases.length === 0 ? (
+            <p className={styles.emptyMessage}>No test cases. Click "Add Test Case" to get started.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th className={styles.indexCol}>#</th>
+                  <th className={styles.inputCol}>Input</th>
+                  <th className={styles.expectedCol}>Expected Tool</th>
+                  <th className={styles.actionsCol}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {testCases.map((testCase, idx) => (
+                  <tr key={idx}>
+                    <td className={styles.indexCol}>{idx + 1}</td>
+                    <td className={styles.inputCol}>
+                      <code>{truncateString(testCase.input, 50)}</code>
+                    </td>
+                    <td className={styles.expectedCol}>
+                      <code>{testCase.expected}</code>
+                    </td>
+                    <td className={styles.actionsCol}>
+                      <button
+                        className={styles.editIcon}
+                        onClick={() => handleEdit(idx)}
+                        title="Edit"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        className={styles.deleteIcon}
+                        onClick={() => handleDelete(idx)}
+                        title="Delete"
+                      >
+                        ✕
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
       {showAddForm && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
