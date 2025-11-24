@@ -280,10 +280,14 @@ export default function TestDetection() {
         )}
       </div>
 
+      {loadingCases && (
+        <div className={styles.loadingMessage}>Loading test cases...</div>
+      )}
+
       <div className={styles.controls}>
         <div className={styles.controlsLeft}>
           {!loading ? (
-            <button className={styles.startButton} onClick={runTests}>
+            <button className={styles.startButton} onClick={runTests} disabled={loadingCases}>
               ▶ Start Tests
             </button>
           ) : (
@@ -293,9 +297,16 @@ export default function TestDetection() {
           )}
           <span className={styles.caseCount}>{testCases.length} test cases</span>
         </div>
-        <button className={styles.addButton} onClick={() => setShowAddForm(true)} disabled={loading}>
-          + Add Test Case
-        </button>
+        <div className={styles.controlsRight}>
+          {testCases.length === 0 && (
+            <button className={styles.seedButton} onClick={seedDefaultCases} disabled={loadingCases}>
+              📋 Seed Defaults
+            </button>
+          )}
+          <button className={styles.addButton} onClick={() => setShowAddForm(true)} disabled={loading || loadingCases}>
+            + Add Test Case
+          </button>
+        </div>
       </div>
 
       {loading && (
