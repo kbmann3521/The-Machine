@@ -216,7 +216,9 @@ export default function Home() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to predict tools')
+        const errorText = await response.text()
+        console.error('API response error:', response.status, errorText)
+        throw new Error(`Failed to predict tools: ${response.status} ${errorText}`)
       }
 
       const data = await response.json()
