@@ -241,11 +241,6 @@ export default async function handler(req, res) {
         source: useSemantic ? 'semantic+heuristic' : 'heuristic',
       }
 
-      const suggestedConfig = detectSuggestedConfig(toolId, rawInput, inputType)
-      if (suggestedConfig) {
-        tool.suggestedConfig = suggestedConfig
-      }
-
       toolsWithScores.push(tool)
     }
 
