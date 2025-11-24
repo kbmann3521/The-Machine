@@ -136,23 +136,57 @@ export default function TestDetection() {
     setLoading(false)
   }
 
-  const handleAddOrUpdate = () => {
+  const handleAddOrUpdate = async () => {
     if (!formData.input.trim() || !formData.expected.trim()) {
       alert('Please fill in both fields')
       return
     }
 
-    if (editingIndex !== null) {
-      const updated = [...testCases]
-      updated[editingIndex] = formData
-      setTestCases(updated)
-      setEditingIndex(null)
-    } else {
-      setTestCases([...testCases, formData])
-    }
+    try {
+      if (editingId !== null) {
+        // Update existing case
+        const response = await fetch('/api/test-detection/cases', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingId,
+            input: formData.input,
+            expected: formData.expected,
+          }),
+        })
 
-    setFormData({ input: '', expected: '' })
-    setShowAddForm(false)
+        if (!response.ok) throw new Error('Failed to update case')
+
+        const { case: updatedCase } = await response.json()
+        const updated = testCases.map(c =>
+          c.id === editingId ? updatedCase : c
+        )
+        setTestCases(updated)
+        setEditingIndex(null)
+        setEditingId(null)
+      } else {
+        // Add new case
+        const response = await fetch('/api/test-detection/cases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: formData.input,
+            expected: formData.expected,
+          }),
+        })
+
+        if (!response.ok) throw new Error('Failed to add case')
+
+        const { case: newCase } = await response.json()
+        setTestCases([...testCases, newCase])
+      }
+
+      setFormData({ input: '', expected: '' })
+      setShowAddForm(false)
+    } catch (error) {
+      console.error('Error saving test case:', error)
+      alert('Failed to save test case')
+    }
   }
 
   const handleEdit = (index) => {
