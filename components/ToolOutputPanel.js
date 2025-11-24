@@ -152,6 +152,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const results = displayResult.results
     const inputUnit = displayResult.inputUnit
     const inputValue = displayResult.input
+    const inputUnitFull = displayResult.inputUnitFull
+    const abbrvToFullName = displayResult.abbrvToFullName || {}
 
     const conversions = []
     for (const [toUnit, value] of Object.entries(results)) {
@@ -162,6 +164,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         : value
       conversions.push({
         toUnit,
+        toUnitFull: abbrvToFullName[toUnit] || toUnit,
         value: roundedValue
       })
     }
@@ -169,22 +172,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return (
       <div className={styles.unitConverterSection}>
         <div className={styles.unitConverterHeader}>
-          <h4>{inputValue} {inputUnit} equals:</h4>
+          <h4>{inputValue} {inputUnitFull} equals:</h4>
         </div>
         <div className={styles.structuredOutput}>
           {conversions.map((conversion, idx) => (
             <div key={idx} className={styles.outputField}>
               <div className={styles.fieldHeader}>
-                <span className={styles.fieldLabel}>{conversion.toUnit}:</span>
+                <span className={styles.fieldLabel}>{conversion.toUnitFull}:</span>
                 <button
                   className="copy-action"
                   onClick={() => handleCopyField(
-                    `${conversion.value} ${conversion.toUnit}`,
-                    `${conversion.value} ${conversion.toUnit}`
+                    `${conversion.value} ${conversion.toUnitFull}`,
+                    `${conversion.value} ${conversion.toUnitFull}`
                   )}
-                  title={`Copy ${conversion.value} ${conversion.toUnit}`}
+                  title={`Copy ${conversion.value} ${conversion.toUnitFull}`}
                 >
-                  {copiedField === `${conversion.value} ${conversion.toUnit}` ? '✓' : <FaCopy />}
+                  {copiedField === `${conversion.value} ${conversion.toUnitFull}` ? '✓' : <FaCopy />}
                 </button>
               </div>
               <div className={styles.fieldValue}>{conversion.value}</div>
