@@ -135,7 +135,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const handlePaste = (e) => {
-    e.preventDefault() // Prevent default paste behavior immediately
+    e.preventDefault()
 
     const items = e.clipboardData?.items
     let hasImage = false
@@ -153,14 +153,12 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       }
     }
 
-    // For text paste, notify parent with isPaste flag
     if (!hasImage) {
       const text = e.clipboardData?.getData('text') || ''
       if (text) {
         setInputText(text)
         setCharCount(text.length)
-        // Pass isPaste=true to parent
-        onInputChange(text, inputImage, imagePreview, true)
+        onInputChange(text)
       }
     }
   }
