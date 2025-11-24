@@ -1,11 +1,8 @@
 /**
- * Unified Tool Prediction Pipeline
+ * Tool Prediction Pipeline
  * 
- * LAYER 1: Hard Detection Matrix (Regex + Heuristics) - 80-90% of cases
- * LAYER 2: LLM Classification - Fallback for ambiguous cases
- * LAYER 3: Semantic Search - For plain_text inputs only
- * 
- * Scoring: base weight + semantic + bias (all clamped to [0,1])
+ * Uses only hard detection (regex/heuristics) + tool bias weighting
+ * No LLM or embeddings - fast and deterministic
  */
 
 import { TOOLS } from '../../../lib/tools'
@@ -13,16 +10,8 @@ import { hardDetectMatrix } from '../../../lib/hardDetection'
 import {
   getToolBaseWeight,
   getToolBiasWeight,
-  shouldUseSemanticSearch,
 } from '../../../lib/toolMappings'
-import {
-  generateEmbedding,
-  cosineSimilarity,
-} from '../../../lib/embeddings'
-import llmClassifierModule from '../../../lib/llmClassifier'
 import { createClient } from '@supabase/supabase-js'
-
-const llmClassify = llmClassifierModule.classify
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -51,92 +40,6 @@ async function getVisibilityMap() {
   }
 }
 
-/**
- * Determine input type using detection matrix + LLM refinement.
- */
-async function determineInputTypeWithMatrix(input) {
-  const hardResult = hardDetectMatrix(input)
-  const hardBest = hardResult?.best || null
-
-  // If hard detection is strong and not plain_text, just use it
-  if (hardBest && hardBest.type !== 'plain_text' && hardBest.confidence >= 0.9) {
-    console.log(
-      `✓ LAYER 1 (hard): ${hardBest.type} (${(hardBest.confidence * 100).toFixed(
-        0,
-      )}%)`
-    )
-    return hardBest
-  }
-
-  // Ask LLM for ambiguous cases
-  try {
-    const llmResult = await llmClassify(input)
-    if (llmResult) {
-      console.log(
-        `LAYER 2 (LLM): ${llmResult.type} (${(llmResult.confidence * 100).toFixed(
-          0,
-        )}%)`
-      )
-
-      // If LLM is significantly more confident, let it override
-      if (
-        !hardBest ||
-        llmResult.confidence >= (hardBest.confidence || 0) + 0.15
-      ) {
-        console.log(`✓ LAYER 2 overrides hard detection → ${llmResult.type}`)
-        return llmResult
-      }
-
-      // Otherwise keep hard detection
-      return hardBest
-    }
-  } catch (error) {
-    console.error('LLM classification error:', error)
-  }
-
-  // Fallback: treat as plain_text if nothing else
-  return {
-    type: 'plain_text',
-    confidence: 0.5,
-    reason: 'Fallback to plain_text',
-    source: 'fallback',
-  }
-}
-
-/**
- * Semantic search layer: only used for plain_text / ambiguous_text.
- * Returns map of { toolId => semanticScore }
- */
-async function layerSemanticSearch(input, visibilityMap) {
-  try {
-    const queryEmbedding = await generateEmbedding(input)
-    if (!queryEmbedding || queryEmbedding.length === 0) {
-      return {}
-    }
-
-    const semanticMap = {}
-    const entries = Object.entries(TOOLS)
-
-    for (const [toolId, toolData] of entries) {
-      if (visibilityMap[toolId] === false) continue
-
-      const toolEmbedding = await generateEmbedding(
-        `${toolData.name}. ${toolData.description} ${toolData.example || ''}`
-      )
-
-      if (!toolEmbedding || toolEmbedding.length === 0) continue
-
-      const semanticScore = cosineSimilarity(queryEmbedding, toolEmbedding)
-      semanticMap[toolId] = semanticScore
-    }
-
-    return semanticMap
-  } catch (error) {
-    console.error('Semantic search error:', error)
-    return {}
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -152,7 +55,7 @@ export default async function handler(req, res) {
     const visibilityMap = await getVisibilityMap()
     let predictedTools = []
 
-    // IMAGE path remains simple
+    // IMAGE path
     if (inputImage && !inputText) {
       const imageCapableSet = new Set(
         Object.entries(TOOLS)
@@ -192,28 +95,18 @@ export default async function handler(req, res) {
       return res.status(200).json({ predictedTools })
     }
 
-    // TEXT path: full detection + scoring
+    // TEXT path: hard detection + bias weighting
     const rawInput = inputText || ''
-    const inputType = await determineInputTypeWithMatrix(rawInput)
+    const hardResult = hardDetectMatrix(rawInput)
+    const inputType = hardResult?.best || {
+      type: 'plain_text',
+      confidence: 0.5,
+      reason: 'Fallback to plain_text',
+    }
+
     const inputTypeLabel = inputType.type
 
-    console.log(
-      'Final inputType:',
-      inputTypeLabel,
-      'from',
-      inputType.source || 'unknown'
-    )
-
-    // Skip semantic search for now - relies on hard detection + bias weighting
-    // Semantic search adds 6-13 seconds per request (too slow for UX)
-    // TODO: Implement caching or batch embeddings for production
-    const useSemantic = false
-    let semanticMap = {}
-
-    // if (useSemantic) {
-    //   console.log('Using semantic search for:', inputTypeLabel)
-    //   semanticMap = await layerSemanticSearch(rawInput, visibilityMap)
-    // }
+    console.log(`Detected: ${inputTypeLabel} (${(inputType.confidence * 100).toFixed(0)}%)`)
 
     // Build full scored list of tools
     const toolsWithScores = []
@@ -223,13 +116,6 @@ export default async function handler(req, res) {
 
       // Base heuristic from inputType→tool relevance matrix
       let base = getToolBaseWeight(toolId, inputTypeLabel)
-
-      // Add semantic for plain_text / ambiguous_text
-      const semanticScore = useSemantic ? semanticMap[toolId] || 0 : 0
-      if (useSemantic && semanticScore > 0) {
-        // 60% heuristic, 30% semantic
-        base = 0.6 * base + 0.3 * semanticScore
-      }
 
       // Apply bias
       const bias = getToolBiasWeight(toolId, inputTypeLabel, rawInput)
@@ -243,7 +129,7 @@ export default async function handler(req, res) {
         name: toolData.name,
         description: toolData.description,
         similarity,
-        source: useSemantic ? 'semantic+heuristic' : 'heuristic',
+        source: 'heuristic',
       }
 
       toolsWithScores.push(tool)
@@ -257,8 +143,8 @@ export default async function handler(req, res) {
       predictedTools,
       inputContent: rawInput,
       _debug: {
-        pipelineUsed: '3-layer (hard-detection -> llm -> semantic)',
-        semanticEnabled: useSemantic,
+        pipelineUsed: 'hard-detection + bias-weighting',
+        detectedType: inputTypeLabel,
         totalTools: predictedTools.length,
       },
     })
