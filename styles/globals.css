@@ -353,18 +353,18 @@ input[type="file"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
   gap: 6px;
 }
 
 .copy-card-label {
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   flex: 1;
   min-width: 0;
+  line-height: 1;
 }
 
 .copy-card-value {
