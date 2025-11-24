@@ -27,33 +27,14 @@ export default function Hub() {
   const [advancedMode, setAdvancedMode] = useState(false)
   const [previousInputLength, setPreviousInputLength] = useState(0)
 
-  const handleInputChange = useCallback((text) => {
-    const isAddition = text.length > previousInputLength
-    setInputText(text)
-    setPreviousInputLength(text.length)
-
-    if (text.length === 0) {
-      setPredictedTools([])
-      setSelectedTool(null)
-      setOutputResult(null)
-    } else if (isAddition && !advancedMode) {
-      handlePredict(text, inputImage, imagePreview)
-    } else if (isAddition && advancedMode) {
-      handlePredict(text, inputImage, imagePreview, true)
-    } else {
-      handlePredict(text, inputImage, imagePreview, true)
-    }
-  }, [previousInputLength, advancedMode, inputImage, imagePreview])
-
   const handleImageChange = useCallback((file, preview) => {
     setInputImage(file)
     setImagePreview(preview)
   }, [])
 
-  const handlePredict = useCallback(async (text, image, preview) => {
+  const handlePredict = useCallback(async (text, image, preview, noAutoSelect = false) => {
     setLoading(true)
     setError(null)
-    setSelectedTool(null)
     setOutputResult(null)
 
     try {
@@ -71,14 +52,14 @@ export default function Hub() {
       }
 
       const data = await response.json()
-      
+
       const toolsWithMetadata = data.predictedTools.map(tool => ({
         ...tool,
         ...TOOLS[tool.toolId],
       }))
 
       setPredictedTools(toolsWithMetadata)
-      if (toolsWithMetadata.length > 0) {
+      if (toolsWithMetadata.length > 0 && !noAutoSelect) {
         setSelectedTool(toolsWithMetadata[0])
       }
     } catch (err) {
@@ -89,10 +70,27 @@ export default function Hub() {
     }
   }, [])
 
+  const handleInputChange = useCallback((text) => {
+    const isAddition = text.length > previousInputLength
+    setInputText(text)
+    setPreviousInputLength(text.length)
+
+    if (text.length === 0) {
+      setPredictedTools([])
+      setSelectedTool(null)
+      setOutputResult(null)
+    } else if (isAddition) {
+      handlePredict(text, inputImage, imagePreview, advancedMode)
+    } else {
+      handlePredict(text, inputImage, imagePreview, true)
+    }
+  }, [previousInputLength, advancedMode, inputImage, imagePreview, handlePredict])
+
   const handleSelectTool = useCallback((tool) => {
     setSelectedTool(tool)
     setOutputResult(null)
     setError(null)
+    setAdvancedMode(true)
   }, [])
 
   const handleConfigChange = useCallback((config) => {
