@@ -117,26 +117,25 @@ export default function Home() {
         ...toolData,
       }))
 
-      // Fetch visibility flags from Supabase
+      // Fetch visibility flags from Supabase - with improved error handling
       let visibilityMap = {}
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
 
         const response = await fetch('/api/tools/get-visibility', {
           signal: controller.signal,
+          headers: { 'Content-Type': 'application/json' },
         })
         clearTimeout(timeoutId)
 
         if (response.ok) {
           const data = await response.json()
           visibilityMap = data?.visibilityMap || {}
-        } else {
-          console.warn('Failed to fetch tool visibility, API returned status:', response.status)
         }
       } catch (error) {
-        console.warn('Failed to fetch tool visibility, using fallback:', error.message)
-        // visibilityMap remains empty, which is a safe fallback
+        // Silently fail - use fallback
+        console.debug('Visibility map fetch failed, using local fallback')
       }
 
       // Store visibility map for use in predictTools
