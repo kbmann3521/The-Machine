@@ -211,9 +211,9 @@ export default function Home() {
       const triggeringClassification = fastLocalClassification(text)
       previousClassificationRef.current = triggeringClassification
 
-      // Fetch with 30 second timeout
+      // Fetch with 20 second timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000)
+      const timeoutId = setTimeout(() => controller.abort(), 20000)
 
       let response
       try {
@@ -226,14 +226,20 @@ export default function Home() {
           }),
           signal: controller.signal,
         })
-      } finally {
+      } catch (fetchError) {
         clearTimeout(timeoutId)
+        // Handle fetch errors gracefully
+        console.debug('Predict API fetch failed:', fetchError.message)
+        // Fall through to use local prediction
+        throw new Error('Prediction service unavailable')
       }
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('API response error:', response.status, errorText)
-        throw new Error(`Failed to predict tools: ${response.status}`)
+      clearTimeout(timeoutId)
+
+      if (!response || !response.ok) {
+        const errorText = response ? await response.text() : 'No response'
+        console.debug('Predict API error:', response?.status, errorText)
+        throw new Error('Prediction service unavailable')
       }
 
       const data = await response.json()
