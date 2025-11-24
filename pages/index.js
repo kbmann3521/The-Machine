@@ -305,7 +305,7 @@ export default function Home() {
       }
       setLoading(false)
     }
-  }, [fastLocalClassification, selectedTool])
+  }, [fastLocalClassification, selectedTool, advancedMode])
 
   const handleInputChange = useCallback((text, image, preview) => {
     const isAddition = text.length > previousInputLength
