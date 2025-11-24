@@ -241,7 +241,7 @@ export default function Home() {
         // Only auto-select if:
         // 1. Input was added (not deleted) AND
         // 2. Not in advanced mode (user hasn't manually selected a tool)
-        if (isPaste && !advancedMode) {
+        if (isAddition && !advancedMode) {
           console.log('Auto-selecting:', topTool.name)
           setSelectedTool(topTool)
         }
