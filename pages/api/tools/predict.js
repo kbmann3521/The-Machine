@@ -204,13 +204,16 @@ export default async function handler(req, res) {
       inputType.source || 'unknown'
     )
 
-    const useSemantic = shouldUseSemanticSearch(inputTypeLabel)
+    // Skip semantic search for now - relies on hard detection + bias weighting
+    // Semantic search adds 6-13 seconds per request (too slow for UX)
+    // TODO: Implement caching or batch embeddings for production
+    const useSemantic = false
     let semanticMap = {}
 
-    if (useSemantic) {
-      console.log('Using semantic search for:', inputTypeLabel)
-      semanticMap = await layerSemanticSearch(rawInput, visibilityMap)
-    }
+    // if (useSemantic) {
+    //   console.log('Using semantic search for:', inputTypeLabel)
+    //   semanticMap = await layerSemanticSearch(rawInput, visibilityMap)
+    // }
 
     // Build full scored list of tools
     const toolsWithScores = []
