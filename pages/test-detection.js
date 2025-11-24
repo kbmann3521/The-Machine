@@ -57,7 +57,37 @@ export default function TestDetection() {
   const [stats, setStats] = useState({ total: 0, passed: 0, failed: 0 })
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingIndex, setEditingIndex] = useState(null)
+  const [editingId, setEditingId] = useState(null)
   const [formData, setFormData] = useState({ input: '', expected: '' })
+  const [loadingCases, setLoadingCases] = useState(true)
+
+  // Load test cases from database on mount
+  useEffect(() => {
+    loadTestCases()
+  }, [])
+
+  const loadTestCases = async () => {
+    try {
+      setLoadingCases(true)
+      const response = await fetch('/api/test-detection/cases')
+      const data = await response.json()
+
+      if (data.cases && data.cases.length > 0) {
+        // Convert database cases (with id field) to local format
+        const formattedCases = data.cases.map(c => ({
+          id: c.id,
+          input: c.input,
+          expected: c.expected,
+        }))
+        setTestCases(formattedCases)
+      }
+    } catch (error) {
+      console.error('Error loading test cases:', error)
+      // Fallback to default cases
+    } finally {
+      setLoadingCases(false)
+    }
+  }
 
   const runTests = async () => {
     setLoading(true)
