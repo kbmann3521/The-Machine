@@ -72,7 +72,21 @@ export default function TestDetection() {
   const loadTestCases = async () => {
     try {
       setLoadingCases(true)
-      const response = await fetch('/api/test-detection/cases')
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 3000)
+
+      const response = await fetch('/api/test-detection/cases', {
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      if (!response || !response.ok) {
+        // Silently fail - use defaults
+        console.debug('Failed to load test cases from database')
+        return
+      }
+
       const data = await response.json()
 
       if (data.cases && data.cases.length > 0) {
@@ -85,8 +99,8 @@ export default function TestDetection() {
         setTestCases(formattedCases)
       }
     } catch (error) {
-      console.error('Error loading test cases:', error)
-      // Fallback to default cases
+      // Silently fail - app will use DEFAULT_TEST_CASES
+      console.debug('Test cases fetch failed, using defaults:', error?.message)
     } finally {
       setLoadingCases(false)
     }
