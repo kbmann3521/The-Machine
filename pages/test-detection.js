@@ -197,8 +197,23 @@ export default function TestDetection() {
     setShowAddForm(true)
   }
 
-  const handleDelete = (index) => {
-    setTestCases(testCases.filter((_, i) => i !== index))
+  const handleDelete = async (index) => {
+    const testCaseId = testCases[index].id
+
+    try {
+      const response = await fetch('/api/test-detection/cases', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: testCaseId }),
+      })
+
+      if (!response.ok) throw new Error('Failed to delete case')
+
+      setTestCases(testCases.filter((_, i) => i !== index))
+    } catch (error) {
+      console.error('Error deleting test case:', error)
+      alert('Failed to delete test case')
+    }
   }
 
   const handleCancel = () => {
