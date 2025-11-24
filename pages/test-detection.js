@@ -72,10 +72,40 @@ export default function TestDetection() {
   const loadTestCases = async () => {
     try {
       setLoadingCases(true)
-      const response = await fetch('/api/test-detection/cases')
-      const data = await response.json()
 
-      if (data.cases && data.cases.length > 0) {
+      // Use Promise.race for timeout instead of AbortController to be more reliable
+      const fetchPromise = fetch('/api/test-detection/cases')
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Fetch timeout')), 2000)
+      )
+
+      let response
+      try {
+        response = await Promise.race([fetchPromise, timeoutPromise])
+      } catch (fetchErr) {
+        // Fetch failed or timed out - silently use defaults
+        console.debug('Test cases fetch unavailable:', fetchErr?.message)
+        setLoadingCases(false)
+        return
+      }
+
+      if (!response?.ok) {
+        // Bad response - silently use defaults
+        console.debug('Test cases API returned error:', response?.status)
+        setLoadingCases(false)
+        return
+      }
+
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonErr) {
+        console.debug('Failed to parse test cases response')
+        setLoadingCases(false)
+        return
+      }
+
+      if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
         // Convert database cases (with id field) to local format
         const formattedCases = data.cases.map(c => ({
           id: c.id,
@@ -84,10 +114,11 @@ export default function TestDetection() {
         }))
         setTestCases(formattedCases)
       }
+
+      setLoadingCases(false)
     } catch (error) {
-      console.error('Error loading test cases:', error)
-      // Fallback to default cases
-    } finally {
+      // Last resort fallback - silently fail
+      console.debug('Unexpected error in loadTestCases:', error?.message)
       setLoadingCases(false)
     }
   }
@@ -101,22 +132,59 @@ export default function TestDetection() {
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i]
       try {
-        const response = await fetch('/api/tools/predict', {
+        const fetchPromise = fetch('/api/tools/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ inputText: testCase.input }),
         })
 
-        const data = await response.json()
-        const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
-        const passed = detectedTool === testCase.expected
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 8000)
+        )
 
-        testResults.push({
-          input: testCase.input,
-          expected: testCase.expected,
-          detected: detectedTool,
-          passed,
-        })
+        let response
+        try {
+          response = await Promise.race([fetchPromise, timeoutPromise])
+        } catch (err) {
+          // Fetch failed or timed out
+          testResults.push({
+            input: testCase.input,
+            expected: testCase.expected,
+            detected: 'error',
+            passed: false,
+          })
+          setProgress(((i + 1) / testCases.length) * 100)
+          continue
+        }
+
+        if (!response?.ok) {
+          testResults.push({
+            input: testCase.input,
+            expected: testCase.expected,
+            detected: 'error',
+            passed: false,
+          })
+        } else {
+          try {
+            const data = await response.json()
+            const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
+            const passed = detectedTool === testCase.expected
+
+            testResults.push({
+              input: testCase.input,
+              expected: testCase.expected,
+              detected: detectedTool,
+              passed,
+            })
+          } catch (jsonErr) {
+            testResults.push({
+              input: testCase.input,
+              expected: testCase.expected,
+              detected: 'error',
+              passed: false,
+            })
+          }
+        }
       } catch (error) {
         testResults.push({
           input: testCase.input,
@@ -148,7 +216,7 @@ export default function TestDetection() {
     try {
       if (editingId !== null) {
         // Update existing case
-        const response = await fetch('/api/test-detection/cases', {
+        const fetchPromise = fetch('/api/test-detection/cases', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -158,18 +226,39 @@ export default function TestDetection() {
           }),
         })
 
-        if (!response.ok) throw new Error('Failed to update case')
-
-        const { case: updatedCase } = await response.json()
-        const updated = testCases.map(c =>
-          c.id === editingId ? updatedCase : c
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 5000)
         )
-        setTestCases(updated)
+
+        let response
+        try {
+          response = await Promise.race([fetchPromise, timeoutPromise])
+        } catch (err) {
+          alert('Failed to update case. Database may be temporarily unavailable.')
+          return
+        }
+
+        if (!response?.ok) {
+          alert('Failed to update case. Database may be temporarily unavailable.')
+          return
+        }
+
+        try {
+          const { case: updatedCase } = await response.json()
+          const updated = testCases.map(c =>
+            c.id === editingId ? updatedCase : c
+          )
+          setTestCases(updated)
+        } catch (jsonErr) {
+          alert('Failed to process update. Please try again.')
+          return
+        }
+
         setEditingIndex(null)
         setEditingId(null)
       } else {
         // Add new case
-        const response = await fetch('/api/test-detection/cases', {
+        const fetchPromise = fetch('/api/test-detection/cases', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -178,17 +267,37 @@ export default function TestDetection() {
           }),
         })
 
-        if (!response.ok) throw new Error('Failed to add case')
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        )
 
-        const { case: newCase } = await response.json()
-        setTestCases([...testCases, newCase])
+        let response
+        try {
+          response = await Promise.race([fetchPromise, timeoutPromise])
+        } catch (err) {
+          alert('Failed to add case. Database may be temporarily unavailable.')
+          return
+        }
+
+        if (!response?.ok) {
+          alert('Failed to add case. Database may be temporarily unavailable.')
+          return
+        }
+
+        try {
+          const { case: newCase } = await response.json()
+          setTestCases([...testCases, newCase])
+        } catch (jsonErr) {
+          alert('Failed to process response. Please try again.')
+          return
+        }
       }
 
       setFormData({ input: '', expected: '' })
       setShowAddForm(false)
     } catch (error) {
-      console.error('Error saving test case:', error)
-      alert('Failed to save test case')
+      console.debug('Error saving test case:', error?.message)
+      alert('Failed to save test case. Please try again.')
     }
   }
 
@@ -203,19 +312,40 @@ export default function TestDetection() {
   const handleDelete = async (index) => {
     const testCaseId = testCases[index].id
 
+    if (!testCaseId) {
+      // Local-only test case, just remove it
+      setTestCases(testCases.filter((_, i) => i !== index))
+      return
+    }
+
     try {
-      const response = await fetch('/api/test-detection/cases', {
+      const fetchPromise = fetch('/api/test-detection/cases', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: testCaseId }),
       })
 
-      if (!response.ok) throw new Error('Failed to delete case')
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      )
+
+      let response
+      try {
+        response = await Promise.race([fetchPromise, timeoutPromise])
+      } catch (err) {
+        alert('Failed to delete case. Database may be temporarily unavailable.')
+        return
+      }
+
+      if (!response?.ok) {
+        alert('Failed to delete case. Database may be temporarily unavailable.')
+        return
+      }
 
       setTestCases(testCases.filter((_, i) => i !== index))
     } catch (error) {
-      console.error('Error deleting test case:', error)
-      alert('Failed to delete test case')
+      console.debug('Error deleting test case:', error?.message)
+      alert('Failed to delete test case. Please try again.')
     }
   }
 
@@ -232,16 +362,60 @@ export default function TestDetection() {
       setSingleTestResult(null)
       setTestResultIndex(index)
 
-      const response = await fetch('/api/tools/predict', {
+      const fetchPromise = fetch('/api/tools/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputText: testCase.input }),
       })
 
-      if (!response.ok) throw new Error('Prediction failed')
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 8000)
+      )
 
-      const { predictedTools } = await response.json()
-      const bestMatch = predictedTools[0]
+      let response
+      try {
+        response = await Promise.race([fetchPromise, timeoutPromise])
+      } catch (fetchErr) {
+        setSingleTestResult({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: 'error',
+          passed: false,
+          error: 'Service unavailable',
+        })
+        setSingleTestLoading(false)
+        return
+      }
+
+      if (!response?.ok) {
+        setSingleTestResult({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: 'error',
+          passed: false,
+          error: 'Prediction failed',
+        })
+        setSingleTestLoading(false)
+        return
+      }
+
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonErr) {
+        setSingleTestResult({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: 'error',
+          passed: false,
+          error: 'Invalid response',
+        })
+        setSingleTestLoading(false)
+        return
+      }
+
+      const { predictedTools } = data
+      const bestMatch = predictedTools?.[0]
 
       const passed = bestMatch?.toolId === testCase.expected
       setSingleTestResult({
@@ -251,16 +425,16 @@ export default function TestDetection() {
         passed,
         confidence: bestMatch?.similarity || 0,
       })
+      setSingleTestLoading(false)
     } catch (error) {
-      console.error('Error testing single case:', error)
+      console.debug('Single test error:', error?.message)
       setSingleTestResult({
         input: testCase.input,
         expected: testCase.expected,
         detected: 'error',
         passed: false,
-        error: error.message,
+        error: 'Test failed',
       })
-    } finally {
       setSingleTestLoading(false)
     }
   }
@@ -280,32 +454,60 @@ export default function TestDetection() {
       // If cases exist, delete them first
       if (testCases.length > 0) {
         for (const testCase of testCases) {
-          await fetch('/api/test-detection/cases', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: testCase.id }),
-          })
+          if (testCase.id) {
+            try {
+              const fetchPromise = fetch('/api/test-detection/cases', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: testCase.id }),
+              })
+
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Timeout')), 3000)
+              )
+
+              await Promise.race([fetchPromise, timeoutPromise])
+            } catch (err) {
+              console.debug('Failed to delete case during seeding:', err?.message)
+              // Continue with next case
+            }
+          }
         }
       }
 
       // Add each default case
       for (const defaultCase of DEFAULT_TEST_CASES) {
-        await fetch('/api/test-detection/cases', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            input: defaultCase.input,
-            expected: defaultCase.expected,
-          }),
-        })
+        try {
+          const fetchPromise = fetch('/api/test-detection/cases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              input: defaultCase.input,
+              expected: defaultCase.expected,
+            }),
+          })
+
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 3000)
+          )
+
+          const response = await Promise.race([fetchPromise, timeoutPromise])
+
+          if (!response?.ok) {
+            console.debug('Failed to add default case:', defaultCase.input)
+          }
+        } catch (err) {
+          console.debug('Error adding default case:', err?.message)
+          // Continue with next case
+        }
       }
 
       // Reload cases
       await loadTestCases()
       alert('Default test cases loaded successfully!')
     } catch (error) {
-      console.error('Error seeding defaults:', error)
-      alert('Failed to load default cases')
+      console.debug('Error seeding defaults:', error?.message)
+      alert('Failed to load default cases. Please try again.')
     } finally {
       setLoadingCases(false)
     }

@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
+import sqlStyles from '../styles/sql-formatter.module.css'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
+  const [expandedSection, setExpandedSection] = useState('formatted')
   const [previousResult, setPreviousResult] = useState(null)
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
@@ -144,6 +146,142 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setCopiedField(fieldName)
       setTimeout(() => setCopiedField(null), 2000)
     }
+  }
+
+  const renderSqlFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
+    return (
+      <div className={sqlStyles.sqlFormatterContainer}>
+        {/* Formatted SQL Section */}
+        <div className={sqlStyles.sqlSection}>
+          <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'formatted' ? null : 'formatted')}>
+            <span className={sqlStyles.sectionTitle}>Formatted SQL</span>
+            <span className={sqlStyles.sectionToggle}>{expandedSection === 'formatted' ? '▼' : '▶'}</span>
+          </div>
+          {expandedSection === 'formatted' && (
+            <div className={sqlStyles.sectionContent}>
+              <pre className={sqlStyles.sqlCode}>
+                <code>{displayResult.formatted || ''}</code>
+              </pre>
+              <button
+                className={sqlStyles.copyButton}
+                onClick={() => handleCopyField(displayResult.formatted, 'formatted-sql')}
+                title="Copy formatted SQL"
+              >
+                {copiedField === 'formatted-sql' ? '✓ Copied' : <><FaCopy /> Copy</>}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Lint Warnings Section */}
+        {displayResult.lint && (
+          <div className={sqlStyles.sqlSection}>
+            <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'lint' ? null : 'lint')}>
+              <span className={sqlStyles.sectionTitle}>
+                Lint Warnings ({displayResult.lint.total})
+              </span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'lint' && (
+              <div className={sqlStyles.sectionContent}>
+                {displayResult.lint.warnings && displayResult.lint.warnings.length > 0 ? (
+                  <div className={sqlStyles.warningsList}>
+                    {displayResult.lint.warnings.map((warning, idx) => (
+                      <div key={idx} className={`${sqlStyles.warning} ${sqlStyles[warning.level || 'info']}`}>
+                        <div className={sqlStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
+                        <div className={sqlStyles.warningMessage}>{warning.message}</div>
+                        {warning.suggestion && (
+                          <div className={sqlStyles.warningSuggestion}>💡 {warning.suggestion}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={sqlStyles.success}>✓ No lint warnings found!</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Query Analysis Section */}
+        {displayResult.analysis && (
+          <div className={sqlStyles.sqlSection}>
+            <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'analysis' ? null : 'analysis')}>
+              <span className={sqlStyles.sectionTitle}>Query Analysis</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'analysis' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'analysis' && (
+              <div className={sqlStyles.sectionContent}>
+                <div className={sqlStyles.analysisGrid}>
+                  <div className={sqlStyles.analysisItem}>
+                    <span className={sqlStyles.analysisLabel}>Query Type:</span>
+                    <span className={sqlStyles.analysisValue}>{displayResult.analysis.queryType || 'UNKNOWN'}</span>
+                  </div>
+                  <div className={sqlStyles.analysisItem}>
+                    <span className={sqlStyles.analysisLabel}>Has Joins:</span>
+                    <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasJoin ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className={sqlStyles.analysisItem}>
+                    <span className={sqlStyles.analysisLabel}>Has Subqueries:</span>
+                    <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasSubquery ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className={sqlStyles.analysisItem}>
+                    <span className={sqlStyles.analysisLabel}>Has Aggregation:</span>
+                    <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasAggregation ? 'Yes' : 'No'}</span>
+                  </div>
+                </div>
+
+                {displayResult.analysis.tables && displayResult.analysis.tables.length > 0 && (
+                  <div className={sqlStyles.analysisSubsection}>
+                    <h4>Tables Used:</h4>
+                    <div className={sqlStyles.tagList}>
+                      {displayResult.analysis.tables.map((table, idx) => (
+                        <span key={idx} className={sqlStyles.tag}>{table}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {displayResult.analysis.columns && displayResult.analysis.columns.length > 0 && (
+                  <div className={sqlStyles.analysisSubsection}>
+                    <h4>Columns Used:</h4>
+                    <div className={sqlStyles.tagList}>
+                      {displayResult.analysis.columns.map((column, idx) => (
+                        <span key={idx} className={sqlStyles.tag}>{column}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Parse Tree Section */}
+        {displayResult.parseTree && (
+          <div className={sqlStyles.sqlSection}>
+            <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'parseTree' ? null : 'parseTree')}>
+              <span className={sqlStyles.sectionTitle}>Parse Tree</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'parseTree' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'parseTree' && (
+              <div className={sqlStyles.sectionContent}>
+                {displayResult.parseTree.error ? (
+                  <div className={styles.error}>{displayResult.parseTree.error}</div>
+                ) : (
+                  <pre className={sqlStyles.jsonCode}>
+                    <code>{displayResult.parseTree.structure || JSON.stringify(displayResult.parseTree, null, 2)}</code>
+                  </pre>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
   }
 
   const pluralizeUnitName = (unitName, value) => {
@@ -472,6 +610,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (!displayResult) {
       return null
+    }
+
+    // Special handling for SQL Formatter
+    if (toolId === 'sql-formatter' && displayResult.formatted) {
+      return renderSqlFormatterOutput()
     }
 
     // Special handling for text-toolkit sections that render as full-height text
