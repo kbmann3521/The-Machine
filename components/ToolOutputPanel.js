@@ -271,9 +271,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             ? field.value
             : JSON.stringify(field.value)
           return (
-            <div key={idx} className="copy-card">
-              <div className="copy-card-header">
-                <span className="copy-card-label">{field.label}</span>
+            <div key={idx} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{field.label}</span>
                 <button
                   className="copy-action"
                   onClick={() => handleCopyField(displayValue, field.label)}
@@ -282,7 +282,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   {copiedField === field.label ? '✓' : <FaCopy />}
                 </button>
               </div>
-              <div className="copy-card-value">{displayValue}</div>
+              <div className={styles.copyCardValue}>{displayValue}</div>
             </div>
           )
         })}
