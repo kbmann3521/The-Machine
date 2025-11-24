@@ -196,6 +196,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
             return (
               <article
                 key={tool.toolId}
+                ref={(el) => setItemRef(tool.toolId, el)}
                 className={`${styles.toolItem} ${
                   isSelected ? styles.selected : ''
                 } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
