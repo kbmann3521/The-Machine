@@ -36,6 +36,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'markdown-html-converter': 'Paste Markdown or HTML content to convert between formats',
       'xml-formatter': 'Paste XML data or configuration to format and validate',
       'yaml-formatter': 'Paste YAML config file to format and check syntax',
+      'url-toolkit': 'Paste a URL to parse, validate, normalize, or manipulate',
       'url-parser': 'Paste a URL to extract and analyze components',
       'jwt-decoder': 'Paste a JWT token from your app to decode and inspect claims',
       'text-diff-checker': 'Paste your original text in the main field to compare versions',
