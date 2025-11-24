@@ -66,45 +66,28 @@ export default function Home() {
   }, [selectedTool])
 
   // Fast local classification using heuristics (no API call)
+  // Only detects strong signals; backend handles nuanced detection
   const fastLocalClassification = useCallback((text) => {
     const lowerText = text.toLowerCase().trim()
-
     let inputType = 'text'
     let contentSummary = lowerText.substring(0, 100)
     let intentHint = 'unknown'
 
-    // Detect input type
+    if (!lowerText) {
+      return { inputType, contentSummary, intentHint }
+    }
+
+    // Strong indicators only — URLs, data URIs, etc.
     if (/^https?:\/\/|^www\./.test(lowerText)) {
       inputType = 'url'
       intentHint = 'url_processing'
-    } else if (/^data:image/.test(lowerText) || /\.(jpg|jpeg|png|gif|webp)$/i.test(lowerText)) {
+    } else if (/^data:image/.test(lowerText)) {
       inputType = 'image'
       intentHint = 'image_processing'
-    } else if (/^[{}\[\]<>]|function|const|let|var|class|import|export/.test(lowerText)) {
-      inputType = 'code'
-      intentHint = 'code_processing'
     }
 
-    // Detect intent hints from keywords
-    if (/convert|transform|change|switch/.test(lowerText)) {
-      intentHint = 'transformation'
-    } else if (/count|measure|analyze|statistics|metric/.test(lowerText)) {
-      intentHint = 'analysis'
-    } else if (/find|search|match|locate|select/.test(lowerText)) {
-      intentHint = 'search'
-    } else if (/remove|clean|strip|delete|trim|compress|minify/.test(lowerText)) {
-      intentHint = 'cleaning'
-    } else if (/encode|decode|escape|unescape|hash|crypt/.test(lowerText)) {
-      intentHint = 'encoding'
-    } else if (/format|beautify|pretty|indent|organize/.test(lowerText)) {
-      intentHint = 'formatting'
-    }
-
-    return {
-      inputType,
-      contentSummary,
-      intentHint,
-    }
+    // Let the backend detection matrix handle numeric/unit/plain text nuance
+    return { inputType, contentSummary, intentHint }
   }, [])
 
   // Detect text cleaning issues in the input
