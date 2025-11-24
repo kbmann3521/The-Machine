@@ -402,6 +402,14 @@ export default function TestDetection() {
                     </td>
                     <td className={styles.actionsCol}>
                       <button
+                        className={styles.testIcon}
+                        onClick={() => testSingleCase(testCase)}
+                        disabled={singleTestLoading}
+                        title="Test this case"
+                      >
+                        ▶
+                      </button>
+                      <button
                         className={styles.editIcon}
                         onClick={() => handleEdit(idx)}
                         title="Edit"
