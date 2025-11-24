@@ -137,7 +137,11 @@ export default function Home() {
       // Fetch visibility flags from Supabase
       try {
         const response = await fetch('/api/tools/get-visibility')
-        const { visibilityMap } = await response.json()
+        if (!response.ok) {
+          throw new Error(`API returned status ${response.status}`)
+        }
+        const data = await response.json()
+        const visibilityMap = data?.visibilityMap || {}
 
         // Store visibility map for use in predictTools
         visibilityMapRef.current = visibilityMap
