@@ -201,6 +201,13 @@
   color: #0066cc;
 }
 
+.toolNameContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
 .toolName {
   margin: 0;
   font-size: 14px;
@@ -208,6 +215,17 @@
   color: var(--color-text-primary);
   word-break: break-word;
   flex: 1;
+}
+
+.scoreLabel {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  font-family: 'Courier New', monospace;
 }
 
 .toolDescription {
