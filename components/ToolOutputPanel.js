@@ -152,7 +152,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
 
     return (
-      <div className={styles.sqlFormatterContainer}>
+      <div className={sqlStyles.sqlFormatterContainer}>
         {/* Formatted SQL Section */}
         <div className={styles.sqlSection}>
           <div className={styles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'formatted' ? null : 'formatted')}>
