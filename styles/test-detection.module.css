@@ -376,6 +376,67 @@
   word-break: break-all;
 }
 
+.testCasesSection {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.testCasesSection h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  color: #1a1a1a;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 1rem;
+}
+
+.testCasesList {
+  overflow-x: auto;
+}
+
+.testCasesList :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.testCasesList :global(thead) {
+  background: #f0f2f5;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.testCasesList :global(th) {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+.testCasesList :global(td) {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.testCasesList :global(tbody tr:hover) {
+  background: #f8f9fa;
+}
+
+.indexCol {
+  width: 50px;
+  text-align: center;
+  color: #999;
+  font-weight: 500;
+}
+
+.emptyMessage {
+  text-align: center;
+  color: #999;
+  padding: 2rem;
+  font-size: 1rem;
+}
+
 .noResults {
   background: white;
   padding: 3rem;
