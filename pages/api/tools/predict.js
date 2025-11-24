@@ -248,23 +248,23 @@ function detectSuggestedConfig(toolId, inputText, inputType) {
       data: ['byte', 'bytes', 'kilobyte', 'kilobytes', 'megabyte', 'megabytes', 'gigabyte', 'gigabytes', 'terabyte', 'terabytes', 'petabyte', 'petabytes', 'bit', 'bits', 'b', 'kb', 'mb', 'gb', 'tb', 'pb', 'kib', 'mib', 'gib', 'tib']
     }
 
-    if (/(celsius|fahrenheit|kelvin|centigrade|°C|°F|°K|°|^\s*c\b|^\s*f\b|^\s*k\b)/i.test(lowerText)) {
+    if (/(celsius|fahrenheit|kelvin|centigrade|°C|°F|°K|°)/i.test(lowerText)) {
       config.type = 'temperature'
     } else if (/(meters?\s*per\s*second|kilometres?\s*per\s*hour|miles?\s*per\s*hour|kilometers?\s*per\s*hour|knots?|m\/s|m\s*\/\s*s|km\/h|km\s*\/\s*h|kmh|mph|m\/hr|kph|knot|knots|ms)/i.test(lowerText)) {
       config.type = 'speed'
-    } else if (/(meter|metres?|kilometer|kilometres?|centimeter|centimetres?|millimeter|millimetres?|micrometers?|nanometers?|nautical\s+mile|km|cm|mm|µm|nm|ft|feet|foot|mi|mile|miles|yd|yard|yards|in|inch|inches|nmi|kilometers?|metres?|feet|miles|yards|inches)\s*per\b/i.test(lowerText)) {
-      config.type = 'length'
-    } else if (/(kilogram|kilograms|milligram|milligrams|gram|grams|pound|pounds|ounce|ounces|ton|tonnes?|stone|carat|grain|grains|kg|g|mg|lb|lbs|oz|st|t|pounds?|ounces?|kilograms?)\s*per\b/i.test(lowerText)) {
+    } else if (/(kilogram|kilograms?|milligram|milligrams?|gram|grams?|pound|pounds?|ounce|ounces?|ton|tonnes?|stone|carat|grain|grains?|kg|g|mg|lb|lbs|oz|st|t)\b/i.test(lowerText)) {
       config.type = 'weight'
-    } else if (/(litre|litres?|liter|liters?|milliliter|millilitres?|gallon|gallons?|cup|cups|pint|pints?|fluid\s*ounce|fluid\s*ounces?|fl\.?\s*oz|floz|l|ml|gal)/i.test(lowerText)) {
+    } else if (/(meter|metres?|kilometer|kilometres?|centimeter|centimetres?|millimeter|millimetres?|micrometer|micrometers?|nanometer|nanometers?|nautical\s+mile|km|cm|mm|µm|nm|ft|feet|foot|mi|mile|miles|yd|yard|yards|in|inch|inches|nmi)\b/i.test(lowerText)) {
+      config.type = 'length'
+    } else if (/(litre|litres?|liter|liters?|milliliter|millilitres?|gallon|gallons?|cup|cups?|pint|pints?|fluid\s*ounce|fluid\s*ounces?|fl\.?\s*oz|floz|l|ml|gal)\b/i.test(lowerText)) {
       config.type = 'volume'
-    } else if (/(pascal|pascals?|bar|bars|pound\s+per\s+square\s+inch|atmospheres?|torr|mmhg|millibar|millibars|psi|pa|atm|mbar)/i.test(lowerText)) {
+    } else if (/(pascal|pascals?|bar|bars?|pound\s+per\s+square\s+inch|atmosphere|atmospheres?|torr|mmhg|millibar|millibars?|psi|pa|atm|mbar)\b/i.test(lowerText)) {
       config.type = 'pressure'
-    } else if (/(joule|joules?|calorie|calories?|kilocalorie|kilocalories?|british\s+thermal\s+unit|watt|watts?|kilowatt|kilowatts?|horsepower|erg|ergs?|btu|btus|kcal|kw|kj|kwh|wh|hp|j|cal)/i.test(lowerText)) {
+    } else if (/(joule|joules?|calorie|calories?|kilocalorie|kilocalories?|british\s+thermal\s+unit|watt|watts?|kilowatt|kilowatts?|horsepower|erg|ergs?|btu|btus?|kcal|kw|kj|kwh|wh|hp|j|cal)\b/i.test(lowerText)) {
       config.type = 'energy'
     } else if (/(second|seconds?|minute|minutes?|hour|hours?|day|days?|week|weeks?|month|months?|year|years?|sec|min|hr|h)\b/i.test(lowerText)) {
       config.type = 'time'
-    } else if (/(byte|bytes?|kilobyte|kilobytes?|megabyte|megabytes?|gigabyte|gigabytes?|terabyte|terabytes?|petabyte|petabytes?|bit|bits?|b|kb|mb|gb|tb|pb|kib|mib|gib|tib)/i.test(lowerText)) {
+    } else if (/(byte|bytes?|kilobyte|kilobytes?|megabyte|megabytes?|gigabyte|gigabytes?|terabyte|terabytes?|petabyte|petabytes?|bit|bits?|b|kb|mb|gb|tb|pb|kib|mib|gib|tib)\b/i.test(lowerText)) {
       config.type = 'data'
     } else {
       const tokens = lowerText.split(/[\s\/\-]+/).filter(t => t.length > 0)
