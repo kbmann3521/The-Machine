@@ -62,6 +62,7 @@ export default function TestDetection() {
   const [loadingCases, setLoadingCases] = useState(true)
   const [singleTestResult, setSingleTestResult] = useState(null)
   const [singleTestLoading, setSingleTestLoading] = useState(false)
+  const [testResultIndex, setTestResultIndex] = useState(null)
 
   // Load test cases from database on mount
   useEffect(() => {
