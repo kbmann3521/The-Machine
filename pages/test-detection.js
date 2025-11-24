@@ -250,19 +250,34 @@ export default function TestDetection() {
   const handleDelete = async (index) => {
     const testCaseId = testCases[index].id
 
+    if (!testCaseId) {
+      // Local-only test case, just remove it
+      setTestCases(testCases.filter((_, i) => i !== index))
+      return
+    }
+
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
       const response = await fetch('/api/test-detection/cases', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: testCaseId }),
+        signal: controller.signal,
       })
 
-      if (!response.ok) throw new Error('Failed to delete case')
+      clearTimeout(timeoutId)
+
+      if (!response || !response.ok) {
+        alert('Failed to delete case. Database may be temporarily unavailable.')
+        return
+      }
 
       setTestCases(testCases.filter((_, i) => i !== index))
     } catch (error) {
-      console.error('Error deleting test case:', error)
-      alert('Failed to delete test case')
+      console.debug('Error deleting test case:', error?.message)
+      alert('Failed to delete test case. Please try again.')
     }
   }
 
