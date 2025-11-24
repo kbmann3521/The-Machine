@@ -242,7 +242,17 @@ export default function Home() {
         throw new Error('Prediction service unavailable')
       }
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.debug('Failed to parse prediction response')
+        throw new Error('Invalid response from prediction service')
+      }
+
+      if (!data || !Array.isArray(data.predictedTools)) {
+        throw new Error('Invalid prediction data')
+      }
 
       const toolsWithMetadata = data.predictedTools.map(tool => ({
         ...tool,
