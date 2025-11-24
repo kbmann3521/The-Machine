@@ -224,12 +224,28 @@ export default function TestDetection() {
   }
 
   const seedDefaultCases = async () => {
-    if (!window.confirm('This will add all default test cases to your database. Continue?')) {
+    const message = testCases.length > 0
+      ? 'This will replace all test cases with the default 42 test cases. Continue?'
+      : 'This will add all 42 default test cases. Continue?'
+
+    if (!window.confirm(message)) {
       return
     }
 
     try {
       setLoadingCases(true)
+
+      // If cases exist, delete them first
+      if (testCases.length > 0) {
+        for (const testCase of testCases) {
+          await fetch('/api/test-detection/cases', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: testCase.id }),
+          })
+        }
+      }
+
       // Add each default case
       for (const defaultCase of DEFAULT_TEST_CASES) {
         await fetch('/api/test-detection/cases', {
@@ -241,12 +257,13 @@ export default function TestDetection() {
           }),
         })
       }
+
       // Reload cases
       await loadTestCases()
-      alert('Default test cases added successfully!')
+      alert('Default test cases loaded successfully!')
     } catch (error) {
       console.error('Error seeding defaults:', error)
-      alert('Failed to seed default cases')
+      alert('Failed to load default cases')
     } finally {
       setLoadingCases(false)
     }
