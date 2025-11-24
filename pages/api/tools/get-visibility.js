@@ -1,9 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 import { TOOLS } from '../../../lib/tools'
 
+// Cache visibility map with TTL
+let cachedVisibilityMap = null
+let cacheTimestamp = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // Return cached result if available and not expired
+  if (cachedVisibilityMap && Date.now() - cacheTimestamp < CACHE_TTL) {
+    return res.status(200).json({ visibilityMap: cachedVisibilityMap })
   }
 
   try {
@@ -22,9 +32,16 @@ export default async function handler(req, res) {
           }
         )
 
-        const { data: tools, error } = await supabase
+        // Set a timeout for the Supabase request
+        const supabasePromise = supabase
           .from('tools')
           .select('id, show_in_recommendations')
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Supabase query timeout')), 2000)
+        )
+
+        const { data: tools, error } = await Promise.race([supabasePromise, timeoutPromise])
 
         if (!error && tools && Array.isArray(tools)) {
           // Successfully fetched from Supabase - use this data
@@ -33,13 +50,9 @@ export default async function handler(req, res) {
               visibilityMap[tool.id] = tool.show_in_recommendations !== false
             }
           })
-        } else if (error) {
-          console.warn('Supabase fetch failed, falling back to local config:', error?.message)
-          // Fall through to use local config
         }
       } catch (err) {
-        console.warn('Supabase connection failed, falling back to local config:', err?.message)
-        // Fall through to use local config
+        // Silently continue - we'll use local fallback
       }
     }
 
@@ -50,12 +63,24 @@ export default async function handler(req, res) {
       })
     }
 
+    // Cache the result
+    cachedVisibilityMap = visibilityMap
+    cacheTimestamp = Date.now()
+
     res.status(200).json({
       visibilityMap,
     })
   } catch (error) {
-    console.error('Unexpected error in get-visibility:', error?.message)
-    // Return empty visibility map on error instead of 500 - allows app to function with fallback
-    res.status(200).json({ visibilityMap: {} })
+    // Build fallback from local TOOLS config
+    const fallbackMap = {}
+    Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+      fallbackMap[toolId] = toolData.show_in_recommendations !== false
+    })
+
+    // Cache and return fallback
+    cachedVisibilityMap = fallbackMap
+    cacheTimestamp = Date.now()
+
+    res.status(200).json({ visibilityMap: fallbackMap })
   }
 }
