@@ -369,7 +369,7 @@ input[type="file"] {
 
 .copy-card-value {
   font-family: 'Courier New', monospace;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-primary);
   word-wrap: break-word;
   word-break: break-word;
@@ -380,6 +380,6 @@ input[type="file"] {
   border: 1px solid var(--color-border);
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 50px;
+  max-height: 40px;
   transition: none;
 }
