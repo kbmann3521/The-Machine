@@ -331,24 +331,22 @@ input[type="file"] {
 /* Structure: .copy-card > .copy-card-header + .copy-card-value */
 
 .copy-card {
-  padding: 8px 10px;
-  background-color: rgba(0, 102, 204, 0.03);
-  border: 1px solid rgba(0, 102, 204, 0.15);
-  border-radius: 5px;
-  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  transition: none;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  gap: 4px;
 }
 
 .copy-card:hover {
-  border-color: #0066cc;
-  background-color: rgba(0, 102, 204, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.15);
-  transform: translateY(-1px);
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+  transform: none;
 }
 
 .copy-card-header {
