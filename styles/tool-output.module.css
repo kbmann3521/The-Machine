@@ -432,12 +432,4 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-
-  .outputField {
-    padding: 7px 8px;
-  }
-
-  .fieldValue {
-    font-size: 11px;
-  }
 }
