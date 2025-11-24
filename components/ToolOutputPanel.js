@@ -555,6 +555,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (typeof displayResult === 'object') {
       // Special handling for unit-converter
       if (toolId === 'unit-converter') {
+        // Show hint for incomplete input states
+        if (displayResult?.status && displayResult.status !== 'ok') {
+          const hints = {
+            'empty': 'Enter a value with a unit, like "100 pounds" or "250 cm"',
+            'incomplete-number-or-unit': 'Keep typing... enter something like "100 pounds"',
+            'unknown-unit': 'Unit not recognized. Try "100 pounds", "250 cm", "5 ft", or "72 F"',
+            'parse-failed': 'Could not parse the input. Try "100 pounds" or "250 cm"'
+          }
+          return (
+            <div className={styles.hint}>
+              {hints[displayResult.status] || 'Keep typing...'}
+            </div>
+          )
+        }
+
         const unitCards = renderUnitConverterCards()
         if (unitCards) {
           return unitCards
