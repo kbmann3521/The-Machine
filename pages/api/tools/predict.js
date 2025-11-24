@@ -268,21 +268,43 @@ function detectSuggestedConfig(toolId, inputText, inputType) {
       config.type = 'data'
     } else {
       const tokens = lowerText.split(/[\s\/\-]+/).filter(t => t.length > 0)
-      let bestMatch = { type: null, distance: 3 }
 
+      let exactMatch = null
       for (const token of tokens) {
         for (const [type, units] of Object.entries(unitsByType)) {
-          for (const unit of units) {
-            const distance = levenshteinDistance(token, unit)
-            if (distance <= 2 && distance > 0 && distance < bestMatch.distance) {
-              bestMatch = { type, distance }
+          if (units.includes(token)) {
+            exactMatch = type
+            break
+          }
+        }
+        if (exactMatch) break
+      }
+
+      if (exactMatch) {
+        config.type = exactMatch
+      } else {
+        let bestMatch = { type: null, distance: 3 }
+
+        for (const token of tokens) {
+          if (token.length < 3) continue
+          for (const [type, units] of Object.entries(unitsByType)) {
+            for (const unit of units) {
+              if (unit.length < 2) continue
+              const distance = levenshteinDistance(token, unit)
+              if (distance <= 2 && distance > 0) {
+                const lenDiff = Math.abs(token.length - unit.length)
+                const score = distance + (lenDiff * 0.2)
+                if (score < bestMatch.distance) {
+                  bestMatch = { type, distance: score }
+                }
+              }
             }
           }
         }
-      }
 
-      if (bestMatch.type) {
-        config.type = bestMatch.type
+        if (bestMatch.type) {
+          config.type = bestMatch.type
+        }
       }
     }
   }
