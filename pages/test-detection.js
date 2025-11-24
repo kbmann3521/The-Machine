@@ -60,6 +60,8 @@ export default function TestDetection() {
   const [editingId, setEditingId] = useState(null)
   const [formData, setFormData] = useState({ input: '', expected: '' })
   const [loadingCases, setLoadingCases] = useState(true)
+  const [singleTestResult, setSingleTestResult] = useState(null)
+  const [singleTestLoading, setSingleTestLoading] = useState(false)
 
   // Load test cases from database on mount
   useEffect(() => {
