@@ -298,11 +298,9 @@ export default function TestDetection() {
           <span className={styles.caseCount}>{testCases.length} test cases</span>
         </div>
         <div className={styles.controlsRight}>
-          {testCases.length === 0 && (
-            <button className={styles.seedButton} onClick={seedDefaultCases} disabled={loadingCases}>
-              📋 Seed Defaults
-            </button>
-          )}
+          <button className={styles.seedButton} onClick={seedDefaultCases} disabled={loadingCases}>
+            📋 Reset to Defaults
+          </button>
           <button className={styles.addButton} onClick={() => setShowAddForm(true)} disabled={loading || loadingCases}>
             + Add Test Case
           </button>
