@@ -328,60 +328,8 @@
   animation: none;
 }
 
-.outputField {
-  padding: 8px 10px;
-  background-color: var(--color-background-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.outputField:hover {
-  border-color: #0066cc;
-  background-color: var(--color-background-secondary);
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
-  transform: translateY(-2px);
-}
-
-.fieldHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-  gap: 4px;
-}
-
-.fieldLabel {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  flex: 1;
-  min-width: 0;
-}
-
-/* Field copy buttons now use global .copy-action class from globals.css */
-
-.fieldValue {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: var(--color-text-primary);
-  word-wrap: break-word;
-  word-break: break-word;
-  padding: 4px;
-  background-color: var(--color-background-primary);
-  border-radius: 3px;
-  line-height: 1.4;
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 40px;
-  transition: none;
-}
+/* Old outputField, fieldHeader, fieldLabel, fieldValue styles removed */
+/* Now using global .copy-card classes from globals.css */
 
 .jsonFallback {
   margin-top: 6px;
