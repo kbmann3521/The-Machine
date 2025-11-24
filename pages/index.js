@@ -290,7 +290,8 @@ export default function Home() {
       }
       setPredictedTools(toolsWithMetadata)
     } catch (err) {
-      console.error('Prediction error:', err)
+      console.error('Prediction error:', err?.message || err)
+      setError(`Failed to predict tools: ${err?.message || 'Unknown error'}`)
     } finally {
       // Clear the loading timer and disable loading
       if (loadingTimerRef.current) {
