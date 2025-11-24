@@ -65,7 +65,34 @@ const testCases = [
   
   // Unit Value
   { input: '10kg', expected: 'unit_value', topTool: 'Unit Converter' },
-  
+
+  // Speed Units - Various Formats
+  { input: '50 m/s', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '50 ms', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '50 kmh', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '50 km/h', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '50 mph', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '50 miles per hour', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '100 kilometers per hour', expected: 'unit_value', topTool: 'Unit Converter' },
+
+  // Weight Units
+  { input: '5.5 kg', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '150 pounds', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '2.5 kg', expected: 'unit_value', topTool: 'Unit Converter' },
+
+  // Length Units
+  { input: '10 meters', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '5 miles', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '2.5 km', expected: 'unit_value', topTool: 'Unit Converter' },
+
+  // Temperature
+  { input: '25 celsius', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '98.6 fahrenheit', expected: 'unit_value', topTool: 'Unit Converter' },
+
+  // Volume
+  { input: '500 ml', expected: 'unit_value', topTool: 'Unit Converter' },
+  { input: '2 liters', expected: 'unit_value', topTool: 'Unit Converter' },
+
   // File Size
   { input: '50mb', expected: 'file_size', topTool: 'File Size Converter' },
   
