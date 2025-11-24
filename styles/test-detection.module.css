@@ -383,6 +383,7 @@
   text-align: center;
 }
 
+.testIcon,
 .editIcon,
 .deleteIcon {
   background: none;
@@ -393,6 +394,15 @@
   margin: 0 0.25rem;
   color: #666;
   transition: color 0.2s;
+}
+
+.testIcon:hover:not(:disabled) {
+  color: #28a745;
+}
+
+.testIcon:disabled {
+  color: #ccc;
+  cursor: not-allowed;
 }
 
 .editIcon:hover {
