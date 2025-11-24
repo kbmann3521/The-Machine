@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
+import jsStyles from '../styles/js-formatter.module.css'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
   const [copied, setCopied] = useState(false)
