@@ -333,31 +333,60 @@ export default function TestDetection() {
       setSingleTestResult(null)
       setTestResultIndex(index)
 
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-      const response = await fetch('/api/tools/predict', {
+      const fetchPromise = fetch('/api/tools/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputText: testCase.input }),
-        signal: controller.signal,
       })
 
-      clearTimeout(timeoutId)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 8000)
+      )
 
-      if (!response || !response.ok) {
+      let response
+      try {
+        response = await Promise.race([fetchPromise, timeoutPromise])
+      } catch (fetchErr) {
         setSingleTestResult({
           input: testCase.input,
           expected: testCase.expected,
           detected: 'error',
           passed: false,
-          error: 'Prediction service unavailable',
+          error: 'Service unavailable',
         })
+        setSingleTestLoading(false)
         return
       }
 
-      const { predictedTools } = await response.json()
-      const bestMatch = predictedTools[0]
+      if (!response?.ok) {
+        setSingleTestResult({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: 'error',
+          passed: false,
+          error: 'Prediction failed',
+        })
+        setSingleTestLoading(false)
+        return
+      }
+
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonErr) {
+        setSingleTestResult({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: 'error',
+          passed: false,
+          error: 'Invalid response',
+        })
+        setSingleTestLoading(false)
+        return
+      }
+
+      const { predictedTools } = data
+      const bestMatch = predictedTools?.[0]
 
       const passed = bestMatch?.toolId === testCase.expected
       setSingleTestResult({
@@ -367,6 +396,7 @@ export default function TestDetection() {
         passed,
         confidence: bestMatch?.similarity || 0,
       })
+      setSingleTestLoading(false)
     } catch (error) {
       console.debug('Single test error:', error?.message)
       setSingleTestResult({
@@ -376,7 +406,6 @@ export default function TestDetection() {
         passed: false,
         error: 'Test failed',
       })
-    } finally {
       setSingleTestLoading(false)
     }
   }
@@ -491,7 +520,7 @@ export default function TestDetection() {
         <div className={styles.controlsLeft}>
           {!loading ? (
             <button className={styles.startButton} onClick={runTests} disabled={loadingCases}>
-              �� Start Tests
+              ▶ Start Tests
             </button>
           ) : (
             <button className={styles.startButton} disabled>
