@@ -394,8 +394,8 @@ export default function TestDetection() {
               </thead>
               <tbody>
                 {testCases.map((testCase, idx) => (
-                  <>
-                    <tr key={`case-${testCase.id || idx}`}>
+                  <React.Fragment key={`case-${testCase.id || idx}`}>
+                    <tr>
                       <td className={styles.indexCol}>{idx + 1}</td>
                       <td className={styles.inputCol}>
                         <code>{truncateString(testCase.input, 50)}</code>
@@ -461,7 +461,7 @@ export default function TestDetection() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
