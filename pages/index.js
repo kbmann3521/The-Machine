@@ -500,17 +500,27 @@ export default function Home() {
             }),
           })
 
-          const data = await response.json()
+          if (!response) {
+            throw new Error('No response from server')
+          }
+
+          let data
+          try {
+            data = await response.json()
+          } catch (jsonError) {
+            throw new Error('Invalid response from server')
+          }
 
           if (!response.ok) {
-            throw new Error(data.error || 'Failed to run tool')
+            throw new Error(data?.error || `Server error: ${response.status}`)
           }
 
           setOutputResult(data.result)
         }
       } catch (err) {
-        setError(err.message)
-        console.error('Tool execution error:', err)
+        const errorMessage = err?.message || 'Tool execution failed'
+        setError(errorMessage)
+        console.debug('Tool execution error:', errorMessage)
       } finally {
         setToolLoading(false)
       }
