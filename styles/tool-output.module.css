@@ -57,30 +57,7 @@
   visibility: visible;
 }
 
-.copyButton {
-  padding: 5px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  color: #0066cc;
-  background-color: transparent;
-  border: 1px solid #0066cc;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.copyButton:hover {
-  background-color: #e3f2fd;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
-}
-
-.copyButton:active {
-  background-color: #bbdefb;
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.15);
-}
+/* Copy buttons now use global .copy-action class from globals.css */
 
 .content {
   position: relative;
@@ -351,87 +328,64 @@
   animation: none;
 }
 
-.outputField {
-  padding: 8px 10px;
-  background-color: var(--color-background-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  transition: border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+/* ===== Copy Card Styles (Local) ===== */
+/* Same as globals but in module for proper specificity in grid context */
+
+.copyCard {
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transition: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  gap: 4px !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
-.outputField:hover {
-  border-color: #0066cc;
-  background-color: var(--color-background-secondary);
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
-  transform: translateY(-2px);
+.copyCard:hover {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
-.fieldHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 4px;
-  gap: 4px;
+.copyCardHeader {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 0 !important;
 }
 
-.fieldLabel {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  flex: 1;
-  min-width: 0;
+.copyCardLabel {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: var(--color-text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  line-height: 1 !important;
 }
 
-.fieldCopyButton {
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 10px;
-  color: #0066cc;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  flex-shrink: 0;
-  position: relative;
-}
-
-.fieldCopyButton:hover {
-  border-color: #0066cc;
-  background-color: #e3f2fd;
-  transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(0, 102, 204, 0.2);
-}
-
-.fieldCopyButton:active {
-  background-color: #bbdefb;
-  transform: scale(0.95);
-}
-
-.fieldValue {
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  color: var(--color-text-primary);
-  word-wrap: break-word;
-  word-break: break-word;
-  padding: 4px;
-  background-color: var(--color-background-primary);
-  border-radius: 3px;
-  line-height: 1.4;
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 40px;
-  transition: none;
+.copyCardValue {
+  font-family: 'Courier New', monospace !important;
+  font-size: 11px !important;
+  color: var(--color-text-primary) !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 6px 8px !important;
+  background-color: var(--color-background-primary) !important;
+  border-radius: 3px !important;
+  line-height: 1.4 !important;
+  border: 1px solid var(--color-border) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-height: 40px !important;
+  transition: none !important;
 }
 
 .jsonFallback {
@@ -459,6 +413,39 @@
   margin-bottom: 6px;
 }
 
+.unitConverterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unitConverterHeader {
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+}
+
+.unitConverterHeader h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.hint {
+  padding: 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  opacity: 0.8;
+}
+
+/* Unit converter now uses same structured output grid as other tools */
+
 @media (max-width: 1024px) {
   .structuredOutput {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -470,24 +457,6 @@
   .structuredOutput {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-  }
-
-  .outputField {
-    padding: 7px 8px;
-  }
-
-  .fieldLabel {
-    font-size: 9px;
-  }
-
-  .fieldValue {
-    font-size: 11px;
-  }
-
-  .fieldCopyButton {
-    width: 18px;
-    height: 18px;
-    font-size: 9px;
   }
 }
 
@@ -519,19 +488,5 @@
   .structuredOutput {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-  }
-
-  .outputField {
-    padding: 7px 8px;
-  }
-
-  .fieldValue {
-    font-size: 11px;
-  }
-
-  .fieldCopyButton {
-    width: 18px;
-    height: 18px;
-    font-size: 9px;
   }
 }

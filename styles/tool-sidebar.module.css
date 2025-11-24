@@ -67,22 +67,11 @@
 }
 
 .loadingState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  padding: 40px 20px;
-  color: var(--color-text-secondary);
+  display: none;
 }
 
 .spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid var(--color-border);
-  border-top-color: #0066cc;
-  border-radius: 50%;
-  animation: spinSmooth 1s cubic-bezier(0.4, 0.2, 0.8, 0.6) infinite;
+  display: none;
 }
 
 @keyframes spinSmooth {
@@ -103,7 +92,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 991px) {
@@ -121,10 +109,9 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   width: 100%;
-  animation: slideInTool 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 @keyframes slideInTool {
@@ -135,6 +122,12 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@media (max-width: 991px) {
+  .toolItem {
+    animation: slideInTool 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 }
 
@@ -150,26 +143,69 @@
   }
 }
 
-.toolItem:hover {
-  background-color: var(--color-background-tertiary);
-  border-color: var(--color-border-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+@media (min-width: 992px) {
+  .toolItem:hover {
+    background-color: var(--color-background-tertiary);
+    border-color: var(--color-border-hover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 991px) {
+  .toolItem:hover {
+    background-color: var(--color-background-tertiary);
+    border-color: var(--color-border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .toolItem.selected {
   background: linear-gradient(135deg, rgba(0, 102, 204, 0.2) 0%, rgba(0, 102, 204, 0.1) 100%);
   border-color: #0066cc;
   box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.15);
-  animation: highlightPulse 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toolItem.topMatch {
-  animation: slideInTool 0.3s cubic-bezier(0.4, 0, 0.2, 1), highlightPulse 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+  animation: none;
+}
+
+@media (max-width: 991px) {
+  .toolItem.topMatch {
+    animation: slideInTool 0.6s cubic-bezier(0.4, 0, 0.2, 1), highlightPulse 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
+  }
 }
 
 .toolRank {
   display: none;
+}
+
+.toolIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: color 0.4s ease, transform 0.3s ease;
+}
+
+.toolItem:hover .toolIcon {
+  color: #0066cc;
+  transform: scale(1.1);
+}
+
+.toolItem.selected .toolIcon {
+  color: #0066cc;
+}
+
+.toolNameContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
 }
 
 .toolName {
@@ -179,6 +215,17 @@
   color: var(--color-text-primary);
   word-break: break-word;
   flex: 1;
+}
+
+.scoreLabel {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  font-family: 'Courier New', monospace;
 }
 
 .toolDescription {
@@ -244,6 +291,12 @@
     gap: 8px;
     padding: 8px 12px;
     flex-shrink: 0;
+  }
+
+  .toolIcon {
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
   }
 
   .toolName {

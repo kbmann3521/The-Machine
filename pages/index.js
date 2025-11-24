@@ -52,6 +52,9 @@ export default function Home() {
     removeTimestamps: false,
     removeDuplicateLines: false,
   })
+  const [advancedMode, setAdvancedMode] = useState(false)
+  const [previousInputLength, setPreviousInputLength] = useState(0)
+
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
@@ -63,45 +66,28 @@ export default function Home() {
   }, [selectedTool])
 
   // Fast local classification using heuristics (no API call)
+  // Only detects strong signals; backend handles nuanced detection
   const fastLocalClassification = useCallback((text) => {
     const lowerText = text.toLowerCase().trim()
-
     let inputType = 'text'
     let contentSummary = lowerText.substring(0, 100)
     let intentHint = 'unknown'
 
-    // Detect input type
+    if (!lowerText) {
+      return { inputType, contentSummary, intentHint }
+    }
+
+    // Strong indicators only — URLs, data URIs, etc.
     if (/^https?:\/\/|^www\./.test(lowerText)) {
       inputType = 'url'
       intentHint = 'url_processing'
-    } else if (/^data:image/.test(lowerText) || /\.(jpg|jpeg|png|gif|webp)$/i.test(lowerText)) {
+    } else if (/^data:image/.test(lowerText)) {
       inputType = 'image'
       intentHint = 'image_processing'
-    } else if (/^[{}\[\]<>]|function|const|let|var|class|import|export/.test(lowerText)) {
-      inputType = 'code'
-      intentHint = 'code_processing'
     }
 
-    // Detect intent hints from keywords
-    if (/convert|transform|change|switch/.test(lowerText)) {
-      intentHint = 'transformation'
-    } else if (/count|measure|analyze|statistics|metric/.test(lowerText)) {
-      intentHint = 'analysis'
-    } else if (/find|search|match|locate|select/.test(lowerText)) {
-      intentHint = 'search'
-    } else if (/remove|clean|strip|delete|trim|compress|minify/.test(lowerText)) {
-      intentHint = 'cleaning'
-    } else if (/encode|decode|escape|unescape|hash|crypt/.test(lowerText)) {
-      intentHint = 'encoding'
-    } else if (/format|beautify|pretty|indent|organize/.test(lowerText)) {
-      intentHint = 'formatting'
-    }
-
-    return {
-      inputType,
-      contentSummary,
-      intentHint,
-    }
+    // Let the backend detection matrix handle numeric/unit/plain text nuance
+    return { inputType, contentSummary, intentHint }
   }, [])
 
   // Detect text cleaning issues in the input
@@ -132,36 +118,49 @@ export default function Home() {
       }))
 
       // Fetch visibility flags from Supabase
+      let visibilityMap = {}
       try {
-        const response = await fetch('/api/tools/get-visibility')
-        const { visibilityMap } = await response.json()
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
-        // Store visibility map for use in predictTools
-        visibilityMapRef.current = visibilityMap
+        const response = await fetch('/api/tools/get-visibility', {
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
 
-        // Filter out tools with show_in_recommendations = false
-        const visibleTools = allTools.filter(tool =>
-          visibilityMap[tool.toolId] !== false
-        )
-
-        setPredictedTools(visibleTools)
-
-        // Don't set a default tool - wait for user input to select the best match
+        if (response.ok) {
+          const data = await response.json()
+          visibilityMap = data?.visibilityMap || {}
+        } else {
+          console.warn('Failed to fetch tool visibility, API returned status:', response.status)
+        }
       } catch (error) {
-        console.error('Failed to fetch tool visibility:', error)
-        // Fallback: show all tools if API call fails
-        const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
-        visibilityMapRef.current = {}
-        setPredictedTools(visibleTools)
-
-        // Don't set a default tool - wait for user input to select the best match
+        console.warn('Failed to fetch tool visibility, using fallback:', error.message)
+        // visibilityMap remains empty, which is a safe fallback
       }
+
+      // Store visibility map for use in predictTools
+      visibilityMapRef.current = visibilityMap
+
+      // Filter out tools with show_in_recommendations = false
+      const visibleTools = allTools.filter(tool => {
+        // If visibility map is available, use it exclusively (no fallback)
+        if (visibilityMapRef.current && Object.keys(visibilityMapRef.current).length > 0) {
+          return visibilityMapRef.current[tool.toolId] !== false
+        }
+        // Only if visibility map is empty, use local property as temporary fallback
+        return tool.show_in_recommendations !== false
+      })
+
+      setPredictedTools(visibleTools)
+
+      // Don't set a default tool - wait for user input to select the best match
     }
 
     initializeTools()
   }, [])
 
-  const predictTools = useCallback(async (text, image, preview) => {
+  const predictTools = useCallback(async (text, image, preview, isAddition = false) => {
     if (!text && !image) {
       setPredictedTools(prevTools => {
         const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
@@ -174,10 +173,11 @@ export default function Home() {
 
         // Filter out tools with show_in_recommendations = false using the stored visibility map
         const visibleTools = allTools.filter(tool => {
-          // Use visibility map from API if available, otherwise fall back to TOOLS property
-          if (visibilityMapRef.current && visibilityMapRef.current.hasOwnProperty(tool.toolId)) {
+          // If visibility map is available, use it exclusively (no fallback)
+          if (visibilityMapRef.current && Object.keys(visibilityMapRef.current).length > 0) {
             return visibilityMapRef.current[tool.toolId] !== false
           }
+          // Only if visibility map is empty, use local property as temporary fallback
           return tool.show_in_recommendations !== false
         })
 
@@ -212,17 +212,29 @@ export default function Home() {
       const triggeringClassification = fastLocalClassification(text)
       previousClassificationRef.current = triggeringClassification
 
-      const response = await fetch('/api/tools/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inputText: text,
-          inputImage: preview ? 'image' : null,
-        }),
-      })
+      // Fetch with 30 second timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      let response
+      try {
+        response = await fetch('/api/tools/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            inputText: text,
+            inputImage: preview ? 'image' : null,
+          }),
+          signal: controller.signal,
+        })
+      } finally {
+        clearTimeout(timeoutId)
+      }
 
       if (!response.ok) {
-        throw new Error('Failed to predict tools')
+        const errorText = await response.text()
+        console.error('API response error:', response.status, errorText)
+        throw new Error(`Failed to predict tools: ${response.status}`)
       }
 
       const data = await response.json()
@@ -232,10 +244,16 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      // Always auto-select the best match tool from predictions
+      // Auto-select the best match tool ONLY on input addition when not in advanced mode
       if (toolsWithMetadata.length > 0) {
         const topTool = toolsWithMetadata[0]
-        setSelectedTool(topTool)
+        // Only auto-select if:
+        // 1. Input was added (not deleted) AND
+        // 2. Not in advanced mode (user hasn't manually selected a tool)
+        if (isAddition && !advancedMode) {
+          console.log('Auto-selecting:', topTool.name)
+          setSelectedTool(topTool)
+        }
 
         // Check for text cleaning issues
         const cleanTextIssues = detectCleanTextIssues(text)
@@ -272,7 +290,12 @@ export default function Home() {
         // Use suggested config from API, or fall back to local auto-detection
         if (topTool?.suggestedConfig) {
           Object.assign(initialConfig, topTool.suggestedConfig)
-        } else {
+          // Apply activeToolkitSection if specified for text-toolkit
+          if (topTool.toolId === 'text-toolkit' && topTool.suggestedConfig.activeToolkitSection) {
+            setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
+          }
+        } else if (topTool.toolId !== 'json-formatter') {
+          // Skip auto-detection for JSON formatter - beautify is always the default
           const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
           if (detectedConfig) {
             Object.assign(initialConfig, detectedConfig)
@@ -283,7 +306,8 @@ export default function Home() {
       }
       setPredictedTools(toolsWithMetadata)
     } catch (err) {
-      console.error('Prediction error:', err)
+      console.error('Prediction error:', err?.message || err)
+      setError(`Failed to predict tools: ${err?.message || 'Unknown error'}`)
     } finally {
       // Clear the loading timer and disable loading
       if (loadingTimerRef.current) {
@@ -291,20 +315,26 @@ export default function Home() {
       }
       setLoading(false)
     }
-  }, [fastLocalClassification])
+  }, [fastLocalClassification, selectedTool, advancedMode])
 
   const handleInputChange = useCallback((text, image, preview) => {
+    const isAddition = text.length > previousInputLength
+
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
+    setPreviousInputLength(text.length)
 
     if (selectedToolRef.current && text) {
-      const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
-      if (detectedConfig) {
-        setConfigOptions(prevConfig => ({
-          ...prevConfig,
-          ...detectedConfig,
-        }))
+      // Skip auto-detection for JSON formatter - beautify is always the default
+      if (selectedToolRef.current.toolId !== 'json-formatter') {
+        const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
+        if (detectedConfig) {
+          setConfigOptions(prevConfig => ({
+            ...prevConfig,
+            ...detectedConfig,
+          }))
+        }
       }
     }
 
@@ -313,9 +343,9 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      predictTools(text, image, preview)
+      predictTools(text, image, preview, isAddition)
     }, 700)
-  }, [predictTools])
+  }, [predictTools, previousInputLength])
 
   const handleImageChange = useCallback((file, preview) => {
     setInputImage(file)
@@ -336,6 +366,7 @@ export default function Home() {
     setOutputResult(null)
     setError(null)
     setDescriptionSidebarOpen(false)
+    setAdvancedMode(true)
 
     const initialConfig = {}
     if (tool?.configSchema) {
@@ -347,7 +378,12 @@ export default function Home() {
     // Priority: Use suggestedConfig from API, then fall back to auto-detection
     if (tool?.suggestedConfig) {
       Object.assign(initialConfig, tool.suggestedConfig)
-    } else {
+      // Apply activeToolkitSection if specified for text-toolkit
+      if (tool.toolId === 'text-toolkit' && tool.suggestedConfig.activeToolkitSection) {
+        setActiveToolkitSection(tool.suggestedConfig.activeToolkitSection)
+      }
+    } else if (tool.toolId !== 'json-formatter') {
+      // Skip auto-detection for JSON formatter - beautify is always the default
       const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
       if (detectedConfig) {
         Object.assign(initialConfig, detectedConfig)

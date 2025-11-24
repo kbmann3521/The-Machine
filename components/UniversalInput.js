@@ -90,7 +90,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     const text = e.target.value
     setInputText(text)
     setCharCount(text.length)
-    onInputChange(text, inputImage, imagePreview)
+    onInputChange(text)
   }
 
   const handleImageFile = (file) => {
@@ -104,7 +104,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       setImagePreview(e.target.result)
       setInputImage(file)
       onImageChange(file, e.target.result)
-      onInputChange(inputText, file, e.target.result)
     }
     reader.readAsDataURL(file)
   }
@@ -135,16 +134,51 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const handlePaste = (e) => {
+    e.preventDefault()
+
     const items = e.clipboardData?.items
+    let hasImage = false
+
     if (items) {
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.startsWith('image/')) {
-          e.preventDefault()
           const file = items[i].getAsFile()
           if (file) {
             handleImageFile(file)
+            hasImage = true
           }
           break
+        }
+      }
+    }
+
+    if (!hasImage) {
+      const pastedText = e.clipboardData?.getData('text') || ''
+      if (pastedText) {
+        const textarea = textareaRef.current
+        if (textarea) {
+          // Get current text and cursor position
+          const currentText = textarea.value
+          const cursorStart = textarea.selectionStart
+          const cursorEnd = textarea.selectionEnd
+
+          // Insert pasted text at cursor position (replace selection if text is selected)
+          const newText = currentText.slice(0, cursorStart) + pastedText + currentText.slice(cursorEnd)
+
+          setInputText(newText)
+          setCharCount(newText.length)
+          onInputChange(newText)
+
+          // Move cursor to after the pasted text
+          setTimeout(() => {
+            textarea.selectionStart = textarea.selectionEnd = cursorStart + pastedText.length
+            textarea.focus()
+          }, 0)
+        } else {
+          // Fallback if ref is not available
+          setInputText(pastedText)
+          setCharCount(pastedText.length)
+          onInputChange(pastedText)
         }
       }
     }
@@ -154,7 +188,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     setImagePreview(null)
     setInputImage(null)
     onImageChange(null, null)
-    onInputChange(inputText, null, null)
   }
 
   const openFileDialog = () => {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
@@ -145,6 +146,120 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const pluralizeUnitName = (unitName, value) => {
+    const irregularPlurals = {
+      'feet': 'feet',
+      'metric ton': 'metric tons',
+      'stone': 'stones',
+      'ounce': 'ounces',
+      'fluid ounce': 'fluid ounces',
+    }
+
+    if (value === 1 || value === 1.0) {
+      return unitName
+    }
+
+    if (irregularPlurals[unitName]) {
+      return irregularPlurals[unitName]
+    }
+
+    if (unitName.endsWith('y')) {
+      return unitName.slice(0, -1) + 'ies'
+    }
+
+    return unitName + 's'
+  }
+
+  const renderUnitConverterCards = () => {
+    // Handle new format from unitConverterTool
+    if (displayResult?.status === 'ok' && displayResult?.conversions && displayResult?.normalizedInput) {
+      const { normalizedInput, conversions } = displayResult
+
+      return (
+        <div className={styles.unitConverterSection}>
+          <div className={styles.unitConverterHeader}>
+            <h4>{normalizedInput.human} equals:</h4>
+          </div>
+          <div className={styles.structuredOutput}>
+            {conversions.map((conversion, idx) => (
+              <div key={idx} className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>{conversion.unit}</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(
+                      conversion.human,
+                      `conversion-${idx}`
+                    )}
+                    title={`Copy ${conversion.human}`}
+                  >
+                    {copiedField === `conversion-${idx}` ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue}>{conversion.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // Handle old format for backward compatibility
+    if (!displayResult || !displayResult.results || !displayResult.inputUnit) return null
+
+    const results = displayResult.results
+    const inputUnit = displayResult.inputUnit
+    const inputValue = displayResult.input
+    const inputUnitFull = displayResult.inputUnitFull
+    const inputUnitFullPluralized = displayResult.inputUnitFullPluralized
+    const abbrvToFullName = displayResult.abbrvToFullName || {}
+
+    const conversions = []
+    for (const [toUnit, value] of Object.entries(results)) {
+      const roundedValue = Number.isFinite(value)
+        ? value > 0 && value < 0.001 || value > 999999
+          ? value.toExponential(6)
+          : parseFloat(value.toFixed(6))
+        : value
+      const fullName = abbrvToFullName[toUnit] || toUnit
+      const pluralizedName = pluralizeUnitName(fullName, roundedValue)
+      conversions.push({
+        toUnit,
+        toUnitFull: fullName,
+        toUnitFullPluralized: pluralizedName,
+        value: roundedValue
+      })
+    }
+
+    return (
+      <div className={styles.unitConverterSection}>
+        <div className={styles.unitConverterHeader}>
+          <h4>{inputValue} {inputUnitFullPluralized} equals:</h4>
+        </div>
+        <div className={styles.structuredOutput}>
+          {conversions.map((conversion, idx) => (
+            <div key={idx} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{conversion.toUnit}</span>
+                <button
+                  className="copy-action"
+                  onClick={() => handleCopyField(
+                    `${conversion.value} ${conversion.toUnitFullPluralized}`,
+                    `${conversion.value} ${conversion.toUnitFullPluralized}`
+                  )}
+                  title={`Copy ${conversion.value} ${conversion.toUnitFullPluralized}`}
+                >
+                  {copiedField === `${conversion.value} ${conversion.toUnitFullPluralized}` ? '✓' : <FaCopy />}
+                </button>
+              </div>
+              <div className={styles.copyCardValue}>{conversion.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   const renderStructuredOutput = () => {
     const fieldsToShow = getDisplayFields(toolId, displayResult)
     if (!fieldsToShow || fieldsToShow.length === 0) return null
@@ -156,18 +271,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             ? field.value
             : JSON.stringify(field.value)
           return (
-            <div key={idx} className={styles.outputField}>
-              <div className={styles.fieldHeader}>
-                <span className={styles.fieldLabel}>{field.label}:</span>
+            <div key={idx} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{field.label}</span>
                 <button
-                  className={styles.fieldCopyButton}
+                  className="copy-action"
                   onClick={() => handleCopyField(displayValue, field.label)}
                   title={`Copy ${field.label}`}
                 >
-                  {copiedField === field.label ? '✓' : '📋'}
+                  {copiedField === field.label ? '✓' : <FaCopy />}
                 </button>
               </div>
-              <div className={styles.fieldValue}>{displayValue}</div>
+              <div className={styles.copyCardValue}>{displayValue}</div>
             </div>
           )
         })}
@@ -177,6 +292,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   const getDisplayFields = (toolId, result) => {
     if (!result || typeof result !== 'object') return null
+
+    if (toolId === 'unit-converter') return null
 
     switch (toolId) {
       case 'color-converter':
@@ -437,6 +554,29 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (typeof displayResult === 'object') {
+      // Special handling for unit-converter
+      if (toolId === 'unit-converter') {
+        // Show hint for incomplete input states
+        if (displayResult?.status && displayResult.status !== 'ok') {
+          const hints = {
+            'empty': 'Enter a value with a unit, like "100 pounds" or "250 cm"',
+            'incomplete-number-or-unit': 'Keep typing... enter something like "100 pounds"',
+            'unknown-unit': 'Unit not recognized. Try "100 pounds", "250 cm", "5 ft", or "72 F"',
+            'parse-failed': 'Could not parse the input. Try "100 pounds" or "250 cm"'
+          }
+          return (
+            <div className={styles.hint}>
+              {hints[displayResult.status] || 'Keep typing...'}
+            </div>
+          )
+        }
+
+        const unitCards = renderUnitConverterCards()
+        if (unitCards) {
+          return unitCards
+        }
+      }
+
       // For text-toolkit with full-height text sections, don't show JSON fallback
       const isFullHeightTextSection = toolId === 'text-toolkit' &&
         ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)
@@ -508,7 +648,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         <div className={`${styles.buttonContainer} ${(displayResult && !loading && !error) ? styles.visible : styles.hidden}`}>
           {displayResult?.resizedImage ? (
             <button
-              className={styles.copyButton}
+              className="copy-action"
               onClick={handleDownloadImage}
               title="Download resized image"
             >
@@ -516,11 +656,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             </button>
           ) : (
             <button
-              className={styles.copyButton}
+              className="copy-action"
               onClick={handleCopy}
               title="Copy to clipboard"
             >
-              {copied ? '✓ Copied' : 'Copy'}
+              {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
             </button>
           )}
         </div>

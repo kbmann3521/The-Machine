@@ -134,3 +134,196 @@ input[type="file"] {
     padding: 1rem;
   }
 }
+
+/* Global Form Input Styles */
+/* Consistent height and styling for all form inputs across all tools */
+
+/* Standard form input height: 34px (8px padding + 12px text + 8px padding + 2px borders) */
+:root {
+  --form-input-height: 36px;
+  --form-input-padding: 8px 10px;
+  --form-input-font-size: 12px;
+  --form-input-border-radius: 5px;
+  --form-input-bg: var(--color-background-secondary);
+  --form-input-border: 1px solid var(--color-border);
+  --form-input-text: var(--color-text-primary);
+  --form-input-focus-border: #0066cc;
+  --form-input-focus-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+/* Global form input base class */
+.form-input,
+.form-select,
+.form-textarea {
+  height: var(--form-input-height);
+  padding: var(--form-input-padding);
+  font-family: inherit;
+  font-size: var(--form-input-font-size);
+  line-height: 1;
+  border: var(--form-input-border);
+  border-radius: var(--form-input-border-radius);
+  background-color: var(--form-input-bg);
+  color: var(--form-input-text);
+  transition: border-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--form-input-focus-border);
+  box-shadow: var(--form-input-focus-shadow);
+}
+
+.form-textarea {
+  height: auto;
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Global Toggle Switch Styles */
+/* Applied to all checkbox-based toggle switches across all tools for consistency */
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 36px;
+  height: 18px;
+  background-color: var(--color-border);
+  border-radius: 9px;
+  display: inline-block;
+  position: relative;
+  transition: background-color 0.3s ease;
+  vertical-align: middle;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background-color: #0066cc;
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background-color: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+  transition: left 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-input:checked + .toggle-slider::after {
+  left: 20px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  font-stretch: condensed;
+  letter-spacing: -0.3px;
+  color: var(--color-text-primary);
+  line-height: 1;
+  white-space: nowrap;
+  height: 100%;
+}
+
+.toggle-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: var(--form-input-padding);
+  height: var(--form-input-height);
+  background-color: var(--form-input-bg);
+  border: var(--form-input-border);
+  border-radius: var(--form-input-border-radius);
+  box-sizing: border-box;
+}
+
+.toggle-inline {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  font-stretch: condensed;
+  letter-spacing: -0.3px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+/* Inline toggle slider sizing (for use in dense layouts like filter results) */
+.toggle-inline .toggle-slider {
+  width: 36px;
+  height: 18px;
+}
+
+.toggle-inline .toggle-slider::after {
+  width: 14px;
+  height: 14px;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-50%);
+}
+
+.toggle-inline .toggle-input:checked + .toggle-slider::after {
+  left: 20px;
+}
+
+/* Global Copy Button and Card Styles */
+/* Modern, sleek, inline copy actions across all tools */
+
+.copy-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #0066cc;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  white-space: nowrap;
+}
+
+.copy-action:hover {
+  background-color: rgba(0, 102, 204, 0.08);
+  border-color: #0066cc;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.15);
+}
+
+.copy-action:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 102, 204, 0.1);
+}
+
+.copy-action--icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.9;
+}
+
+/* Copy card styles moved to tool-output.module.css as .copyCard, .copyCardHeader, .copyCardLabel, .copyCardValue */
