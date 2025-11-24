@@ -147,33 +147,33 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderUnitConverterCards = () => {
-    if (!displayResult || !displayResult.results || !displayResult.type) return null
+    if (!displayResult || !displayResult.results || !displayResult.inputUnit) return null
 
     const results = displayResult.results
-    const sections = {}
+    const inputUnit = displayResult.inputUnit
+    const inputValue = displayResult.input
 
-    for (const [fromUnit, conversions] of Object.entries(results)) {
-      if (!sections[fromUnit]) {
-        sections[fromUnit] = []
-      }
-      for (const [toUnit, value] of Object.entries(conversions)) {
-        const roundedValue = Number.isFinite(value)
-          ? value > 0 && value < 0.001 || value > 999999
-            ? value.toExponential(6)
-            : parseFloat(value.toFixed(6))
-          : value
-        sections[fromUnit].push({
-          toUnit,
-          value: roundedValue
-        })
-      }
+    const conversions = []
+    for (const [toUnit, value] of Object.entries(results)) {
+      const roundedValue = Number.isFinite(value)
+        ? value > 0 && value < 0.001 || value > 999999
+          ? value.toExponential(6)
+          : parseFloat(value.toFixed(6))
+        : value
+      conversions.push({
+        toUnit,
+        value: roundedValue
+      })
     }
 
     return (
-      <div className={styles.structuredOutput}>
-        {Object.entries(sections).map(([fromUnit, conversions]) =>
-          conversions.map((conversion, idx) => (
-            <div key={`${fromUnit}-${idx}`} className={styles.outputField}>
+      <div className={styles.unitConverterSection}>
+        <div className={styles.unitConverterHeader}>
+          <h4>{inputValue} {inputUnit} equals:</h4>
+        </div>
+        <div className={styles.structuredOutput}>
+          {conversions.map((conversion, idx) => (
+            <div key={idx} className={styles.outputField}>
               <div className={styles.fieldHeader}>
                 <span className={styles.fieldLabel}>{conversion.toUnit}:</span>
                 <button
@@ -184,13 +184,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   )}
                   title={`Copy ${conversion.value} ${conversion.toUnit}`}
                 >
-                  📋
+                  {copiedField === `${conversion.value} ${conversion.toUnit}` ? '✓' : <FaCopy />}
                 </button>
               </div>
               <div className={styles.fieldValue}>{conversion.value}</div>
             </div>
-          ))
-        )}
+          ))}
+        </div>
       </div>
     )
   }
