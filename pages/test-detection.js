@@ -394,39 +394,74 @@ export default function TestDetection() {
               </thead>
               <tbody>
                 {testCases.map((testCase, idx) => (
-                  <tr key={idx}>
-                    <td className={styles.indexCol}>{idx + 1}</td>
-                    <td className={styles.inputCol}>
-                      <code>{truncateString(testCase.input, 50)}</code>
-                    </td>
-                    <td className={styles.expectedCol}>
-                      <code>{testCase.expected}</code>
-                    </td>
-                    <td className={styles.actionsCol}>
-                      <button
-                        className={styles.testIcon}
-                        onClick={() => testSingleCase(testCase)}
-                        disabled={singleTestLoading}
-                        title="Test this case"
-                      >
-                        ▶
-                      </button>
-                      <button
-                        className={styles.editIcon}
-                        onClick={() => handleEdit(idx)}
-                        title="Edit"
-                      >
-                        ✎
-                      </button>
-                      <button
-                        className={styles.deleteIcon}
-                        onClick={() => handleDelete(idx)}
-                        title="Delete"
-                      >
-                        ✕
-                      </button>
-                    </td>
-                  </tr>
+                  <React.Fragment key={idx}>
+                    <tr>
+                      <td className={styles.indexCol}>{idx + 1}</td>
+                      <td className={styles.inputCol}>
+                        <code>{truncateString(testCase.input, 50)}</code>
+                      </td>
+                      <td className={styles.expectedCol}>
+                        <code>{testCase.expected}</code>
+                      </td>
+                      <td className={styles.actionsCol}>
+                        <button
+                          className={styles.testIcon}
+                          onClick={() => testSingleCase(testCase, idx)}
+                          disabled={singleTestLoading}
+                          title="Test this case"
+                        >
+                          ▶
+                        </button>
+                        <button
+                          className={styles.editIcon}
+                          onClick={() => handleEdit(idx)}
+                          title="Edit"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className={styles.deleteIcon}
+                          onClick={() => handleDelete(idx)}
+                          title="Delete"
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                    {singleTestResult && testResultIndex === idx && (
+                      <tr className={styles.resultRow}>
+                        <td colSpan="4">
+                          <div className={`${styles.singleResult} ${singleTestResult.passed ? styles.resultPassed : styles.resultFailed}`}>
+                            <div className={styles.resultInlineRow}>
+                              <span className={styles.resultInlineLabel}>Expected:</span>
+                              <code className={styles.resultInlineValue}>{singleTestResult.expected}</code>
+                            </div>
+                            <div className={styles.resultInlineRow}>
+                              <span className={styles.resultInlineLabel}>Detected:</span>
+                              <code className={styles.resultInlineValue}>{singleTestResult.detected}</code>
+                            </div>
+                            <div className={styles.resultInlineRow}>
+                              <span className={styles.resultInlineLabel}>Confidence:</span>
+                              <span className={styles.resultInlineValue}>{(singleTestResult.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div className={styles.resultInlineRow}>
+                              <span className={styles.resultInlineLabel}>Result:</span>
+                              <span className={styles.resultInlineValue}>
+                                {singleTestResult.passed ? (
+                                  <span className={styles.checkmark}>✓ PASS</span>
+                                ) : (
+                                  <span className={styles.cross}>✗ FAIL</span>
+                                )}
+                              </span>
+                            </div>
+                            <button className={styles.closeInlineResultButton} onClick={() => setSingleTestResult(null)}>
+                              ✕
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
