@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { TOOLS } from '../../../lib/tools'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -6,45 +7,48 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Validate environment variables
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.warn('Supabase environment variables not configured')
-      return res.status(200).json({ visibilityMap: {} })
-    }
+    let visibilityMap = {}
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        auth: {
-          persistSession: false,
-        },
+    // First, try to fetch from Supabase if configured
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      try {
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          {
+            auth: {
+              persistSession: false,
+            },
+          }
+        )
+
+        const { data: tools, error } = await supabase
+          .from('tools')
+          .select('id, show_in_recommendations')
+
+        if (!error && tools && Array.isArray(tools)) {
+          // Successfully fetched from Supabase - use this data
+          tools.forEach(tool => {
+            if (tool && tool.id) {
+              visibilityMap[tool.id] = tool.show_in_recommendations !== false
+            }
+          })
+        } else if (error) {
+          console.warn('Supabase fetch failed, falling back to local config:', error?.message)
+          // Fall through to use local config
+        }
+      } catch (err) {
+        console.warn('Supabase connection failed, falling back to local config:', err?.message)
+        // Fall through to use local config
       }
-    )
-
-    // Query with simple SELECT to avoid RLS issues
-    const { data: tools, error, status } = await supabase
-      .from('tools')
-      .select('id, show_in_recommendations')
-
-    if (error || !tools) {
-      console.error('Supabase error (status:', status, '):', error?.message)
-      // Return empty visibility map on error - app will use local defaults as fallback
-      return res.status(200).json({ visibilityMap: {} })
     }
 
-    if (!Array.isArray(tools)) {
-      console.warn('Invalid tools data received from Supabase')
-      return res.status(200).json({ visibilityMap: {} })
+    // If we don't have visibility data from Supabase, use local TOOLS config
+    if (Object.keys(visibilityMap).length === 0) {
+      Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+        visibilityMap[toolId] = toolData.show_in_recommendations !== false
+      })
     }
-
-    // Create a map of tool IDs to visibility status
-    const visibilityMap = {}
-    tools.forEach(tool => {
-      if (tool && tool.id) {
-        visibilityMap[tool.id] = tool.show_in_recommendations !== false
-      }
-    })
 
     res.status(200).json({
       visibilityMap,
