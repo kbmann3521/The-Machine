@@ -216,10 +216,7 @@ export default function TestDetection() {
     try {
       if (editingId !== null) {
         // Update existing case
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-        const response = await fetch('/api/test-detection/cases', {
+        const fetchPromise = fetch('/api/test-detection/cases', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -227,47 +224,73 @@ export default function TestDetection() {
             input: formData.input,
             expected: formData.expected,
           }),
-          signal: controller.signal,
         })
 
-        clearTimeout(timeoutId)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        )
 
-        if (!response || !response.ok) {
+        let response
+        try {
+          response = await Promise.race([fetchPromise, timeoutPromise])
+        } catch (err) {
           alert('Failed to update case. Database may be temporarily unavailable.')
           return
         }
 
-        const { case: updatedCase } = await response.json()
-        const updated = testCases.map(c =>
-          c.id === editingId ? updatedCase : c
-        )
-        setTestCases(updated)
+        if (!response?.ok) {
+          alert('Failed to update case. Database may be temporarily unavailable.')
+          return
+        }
+
+        try {
+          const { case: updatedCase } = await response.json()
+          const updated = testCases.map(c =>
+            c.id === editingId ? updatedCase : c
+          )
+          setTestCases(updated)
+        } catch (jsonErr) {
+          alert('Failed to process update. Please try again.')
+          return
+        }
+
         setEditingIndex(null)
         setEditingId(null)
       } else {
         // Add new case
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-        const response = await fetch('/api/test-detection/cases', {
+        const fetchPromise = fetch('/api/test-detection/cases', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             input: formData.input,
             expected: formData.expected,
           }),
-          signal: controller.signal,
         })
 
-        clearTimeout(timeoutId)
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        )
 
-        if (!response || !response.ok) {
+        let response
+        try {
+          response = await Promise.race([fetchPromise, timeoutPromise])
+        } catch (err) {
           alert('Failed to add case. Database may be temporarily unavailable.')
           return
         }
 
-        const { case: newCase } = await response.json()
-        setTestCases([...testCases, newCase])
+        if (!response?.ok) {
+          alert('Failed to add case. Database may be temporarily unavailable.')
+          return
+        }
+
+        try {
+          const { case: newCase } = await response.json()
+          setTestCases([...testCases, newCase])
+        } catch (jsonErr) {
+          alert('Failed to process response. Please try again.')
+          return
+        }
       }
 
       setFormData({ input: '', expected: '' })
