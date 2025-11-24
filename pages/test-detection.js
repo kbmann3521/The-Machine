@@ -190,8 +190,10 @@ export default function TestDetection() {
   }
 
   const handleEdit = (index) => {
-    setFormData(testCases[index])
+    const testCase = testCases[index]
+    setFormData({ input: testCase.input, expected: testCase.expected })
     setEditingIndex(index)
+    setEditingId(testCase.id || null)
     setShowAddForm(true)
   }
 
