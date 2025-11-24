@@ -395,7 +395,6 @@ export default function TestDetection() {
               <tbody>
                 {testCases.map((testCase, idx) => (
                   <>
-                    {/* Row */}
                     <tr>
                       <td className={styles.indexCol}>{idx + 1}</td>
                       <td className={styles.inputCol}>
