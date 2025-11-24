@@ -5,6 +5,7 @@ import styles from '../styles/tool-output.module.css'
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
+  const [expandedSection, setExpandedSection] = useState('formatted')
   const [previousResult, setPreviousResult] = useState(null)
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
