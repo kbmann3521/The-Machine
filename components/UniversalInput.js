@@ -219,6 +219,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'markdown-html-converter': 'Convert between Markdown and HTML markup',
       'xml-formatter': 'Validate and format XML with proper structure',
       'yaml-formatter': 'Format YAML configuration files with correct indentation',
+      'url-toolkit': 'Parse, validate, normalize, and manipulate URLs with advanced features',
       'url-parser': 'Extract and analyze URL components (domain, path, params, etc.)',
       'jwt-decoder': 'Decode and inspect JWT tokens and claims',
       'text-diff-checker': 'Compare two versions of text and highlight differences',
