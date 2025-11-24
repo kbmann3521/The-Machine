@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import styles from '../styles/test-detection.module.css'
 
-const TEST_CASES = [
+const DEFAULT_TEST_CASES = [
   { input: 'please rewrite this to sound more professional', expected: 'text-toolkit' },
   { input: '   Hello    world! This   has   extra spaces.   ', expected: 'clean-text' },
   { input: '<p>Hello <b>world</b></p>', expected: 'plain-text-stripper' },
@@ -50,61 +50,102 @@ const TEST_CASES = [
 ]
 
 export default function TestDetection() {
+  const [testCases, setTestCases] = useState(DEFAULT_TEST_CASES)
   const [results, setResults] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
   const [stats, setStats] = useState({ total: 0, passed: 0, failed: 0 })
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingIndex, setEditingIndex] = useState(null)
+  const [formData, setFormData] = useState({ input: '', expected: '' })
 
-  useEffect(() => {
-    const runTests = async () => {
-      setLoading(true)
-      const testResults = []
+  const runTests = async () => {
+    setLoading(true)
+    setResults([])
+    setProgress(0)
+    const testResults = []
 
-      for (const testCase of TEST_CASES) {
-        try {
-          const response = await fetch('/api/tools/predict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inputText: testCase.input }),
-          })
+    for (let i = 0; i < testCases.length; i++) {
+      const testCase = testCases[i]
+      try {
+        const response = await fetch('/api/tools/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inputText: testCase.input }),
+        })
 
-          const data = await response.json()
-          const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
-          const passed = detectedTool === testCase.expected
+        const data = await response.json()
+        const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
+        const passed = detectedTool === testCase.expected
 
-          testResults.push({
-            input: testCase.input,
-            expected: testCase.expected,
-            detected: detectedTool,
-            passed,
-          })
-        } catch (error) {
-          testResults.push({
-            input: testCase.input,
-            expected: testCase.expected,
-            detected: 'error',
-            passed: false,
-          })
-        }
+        testResults.push({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: detectedTool,
+          passed,
+        })
+      } catch (error) {
+        testResults.push({
+          input: testCase.input,
+          expected: testCase.expected,
+          detected: 'error',
+          passed: false,
+        })
       }
 
-      setResults(testResults)
-      const passed = testResults.filter(r => r.passed).length
-      setStats({
-        total: testResults.length,
-        passed,
-        failed: testResults.length - passed,
-      })
-      setLoading(false)
+      setProgress(((i + 1) / testCases.length) * 100)
     }
 
-    runTests()
-  }, [])
+    setResults(testResults)
+    const passed = testResults.filter(r => r.passed).length
+    setStats({
+      total: testResults.length,
+      passed,
+      failed: testResults.length - passed,
+    })
+    setLoading(false)
+  }
+
+  const handleAddOrUpdate = () => {
+    if (!formData.input.trim() || !formData.expected.trim()) {
+      alert('Please fill in both fields')
+      return
+    }
+
+    if (editingIndex !== null) {
+      const updated = [...testCases]
+      updated[editingIndex] = formData
+      setTestCases(updated)
+      setEditingIndex(null)
+    } else {
+      setTestCases([...testCases, formData])
+    }
+
+    setFormData({ input: '', expected: '' })
+    setShowAddForm(false)
+  }
+
+  const handleEdit = (index) => {
+    setFormData(testCases[index])
+    setEditingIndex(index)
+    setShowAddForm(true)
+  }
+
+  const handleDelete = (index) => {
+    setTestCases(testCases.filter((_, i) => i !== index))
+  }
+
+  const handleCancel = () => {
+    setFormData({ input: '', expected: '' })
+    setEditingIndex(null)
+    setShowAddForm(false)
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Detection Pipeline Test Suite</h1>
-        {!loading && (
+        {results.length > 0 && !loading && (
           <div className={styles.stats}>
             <div className={styles.stat}>
               <span className={styles.label}>Total:</span>
@@ -128,9 +169,70 @@ export default function TestDetection() {
         )}
       </div>
 
-      {loading ? (
-        <div className={styles.loading}>Running tests...</div>
-      ) : (
+      <div className={styles.controls}>
+        <div className={styles.controlsLeft}>
+          {!loading ? (
+            <button className={styles.startButton} onClick={runTests}>
+              ▶ Start Tests
+            </button>
+          ) : (
+            <button className={styles.startButton} disabled>
+              Running...
+            </button>
+          )}
+          <span className={styles.caseCount}>{testCases.length} test cases</span>
+        </div>
+        <button className={styles.addButton} onClick={() => setShowAddForm(true)} disabled={loading}>
+          + Add Test Case
+        </button>
+      </div>
+
+      {loading && (
+        <div className={styles.progressContainer}>
+          <div className={styles.progressBar}>
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+          </div>
+          <span className={styles.progressText}>
+            {Math.floor(progress)}% ({Math.floor((progress / 100) * testCases.length)} / {testCases.length})
+          </span>
+        </div>
+      )}
+
+      {showAddForm && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h2>{editingIndex !== null ? 'Edit Test Case' : 'Add Test Case'}</h2>
+            <div className={styles.formGroup}>
+              <label>Input:</label>
+              <textarea
+                value={formData.input}
+                onChange={e => setFormData({ ...formData, input: e.target.value })}
+                placeholder="Enter test input"
+                rows="4"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Expected Tool ID:</label>
+              <input
+                type="text"
+                value={formData.expected}
+                onChange={e => setFormData({ ...formData, expected: e.target.value })}
+                placeholder="e.g., text-toolkit"
+              />
+            </div>
+            <div className={styles.modalButtons}>
+              <button className={styles.saveButton} onClick={handleAddOrUpdate}>
+                {editingIndex !== null ? 'Update' : 'Add'}
+              </button>
+              <button className={styles.cancelButton} onClick={handleCancel}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {results.length > 0 && !loading && (
         <div className={styles.resultsTable}>
           <table>
             <thead>
@@ -139,6 +241,7 @@ export default function TestDetection() {
                 <th className={styles.inputCol}>Input</th>
                 <th className={styles.expectedCol}>Expected</th>
                 <th className={styles.detectedCol}>Detected</th>
+                <th className={styles.actionsCol}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -158,10 +261,32 @@ export default function TestDetection() {
                   <td className={styles.detectedCol}>
                     <code>{result.detected}</code>
                   </td>
+                  <td className={styles.actionsCol}>
+                    <button
+                      className={styles.editIcon}
+                      onClick={() => handleEdit(idx)}
+                      title="Edit"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      className={styles.deleteIcon}
+                      onClick={() => handleDelete(idx)}
+                      title="Delete"
+                    >
+                      ✕
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && results.length === 0 && (
+        <div className={styles.noResults}>
+          <p>Click "Start Tests" to run the detection pipeline on {testCases.length} test cases</p>
         </div>
       )}
     </div>
