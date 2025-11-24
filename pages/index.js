@@ -143,9 +143,14 @@ export default function Home() {
       visibilityMapRef.current = visibilityMap
 
       // Filter out tools with show_in_recommendations = false
-      const visibleTools = allTools.filter(tool =>
-        visibilityMap[tool.toolId] !== false
-      )
+      const visibleTools = allTools.filter(tool => {
+        // If visibility map is available, use it exclusively (no fallback)
+        if (visibilityMapRef.current && Object.keys(visibilityMapRef.current).length > 0) {
+          return visibilityMapRef.current[tool.toolId] !== false
+        }
+        // Only if visibility map is empty, use local property as temporary fallback
+        return tool.show_in_recommendations !== false
+      })
 
       setPredictedTools(visibleTools)
 
@@ -168,10 +173,11 @@ export default function Home() {
 
         // Filter out tools with show_in_recommendations = false using the stored visibility map
         const visibleTools = allTools.filter(tool => {
-          // Use visibility map from API if available, otherwise fall back to TOOLS property
-          if (visibilityMapRef.current && visibilityMapRef.current.hasOwnProperty(tool.toolId)) {
+          // If visibility map is available, use it exclusively (no fallback)
+          if (visibilityMapRef.current && Object.keys(visibilityMapRef.current).length > 0) {
             return visibilityMapRef.current[tool.toolId] !== false
           }
+          // Only if visibility map is empty, use local property as temporary fallback
           return tool.show_in_recommendations !== false
         })
 
