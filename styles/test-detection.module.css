@@ -644,4 +644,25 @@
     padding: 0.75rem 0.5rem;
     font-size: 0.9rem;
   }
+
+  .singleResultSection {
+    padding: 1rem;
+  }
+
+  .singleResultSection h2 {
+    font-size: 1.25rem;
+  }
+
+  .resultRow {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .resultLabel {
+    min-width: auto;
+  }
+
+  .closeResultButton {
+    width: 100%;
+  }
 }
