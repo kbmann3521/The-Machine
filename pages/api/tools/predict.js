@@ -19,9 +19,35 @@ import {
   generateEmbedding,
   cosineSimilarity,
 } from '../../../lib/embeddings'
-import { getVisibilityMap } from '../../../lib/visibility'
-import { detectSuggestedConfig } from '../../../lib/detectSuggestedConfig'
 import { classify as llmClassify } from '../../../lib/llmClassifier'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+
+/**
+ * Fetch tool visibility from Supabase
+ */
+async function getVisibilityMap() {
+  try {
+    const { data: tools } = await supabase
+      .from('tools')
+      .select('id, show_in_recommendations')
+
+    const visibilityMap = {}
+    if (tools && Array.isArray(tools)) {
+      tools.forEach(tool => {
+        visibilityMap[tool.id] = tool.show_in_recommendations !== false
+      })
+    }
+    return visibilityMap
+  } catch (error) {
+    console.error('Error fetching tool visibility:', error)
+    return {}
+  }
+}
 
 /**
  * Determine input type using detection matrix + LLM refinement.
