@@ -319,19 +319,25 @@ export default function TestDetection() {
     }
 
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-      const response = await fetch('/api/test-detection/cases', {
+      const fetchPromise = fetch('/api/test-detection/cases', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: testCaseId }),
-        signal: controller.signal,
       })
 
-      clearTimeout(timeoutId)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      )
 
-      if (!response || !response.ok) {
+      let response
+      try {
+        response = await Promise.race([fetchPromise, timeoutPromise])
+      } catch (err) {
+        alert('Failed to delete case. Database may be temporarily unavailable.')
+        return
+      }
+
+      if (!response?.ok) {
         alert('Failed to delete case. Database may be temporarily unavailable.')
         return
       }
