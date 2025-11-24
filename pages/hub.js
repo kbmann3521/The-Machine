@@ -163,7 +163,6 @@ export default function Hub() {
           <UniversalInput
             onInputChange={handleInputChange}
             onImageChange={handleImageChange}
-            onPredict={handlePredict}
             selectedTool={selectedTool}
           />
 
