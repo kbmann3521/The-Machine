@@ -235,14 +235,13 @@ export default function Home() {
         ...TOOLS[tool.toolId],
       }))
 
-      // Auto-select the best match tool ONLY on paste with no current selection
+      // Auto-select the best match tool ONLY on input addition when not in advanced mode
       if (toolsWithMetadata.length > 0) {
         const topTool = toolsWithMetadata[0]
         // Only auto-select if:
-        // 1. No tool is currently selected AND
-        // 2. Input came from a paste event
-        console.log('predictTools - isPaste:', isPaste, 'selectedTool:', selectedTool?.toolId)
-        if (!selectedTool && isPaste) {
+        // 1. Input was added (not deleted) AND
+        // 2. Not in advanced mode (user hasn't manually selected a tool)
+        if (isPaste && !advancedMode) {
           console.log('Auto-selecting:', topTool.name)
           setSelectedTool(topTool)
         }
