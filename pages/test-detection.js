@@ -225,6 +225,44 @@ export default function TestDetection() {
     setShowAddForm(false)
   }
 
+  const testSingleCase = async (testCase) => {
+    try {
+      setSingleTestLoading(true)
+      setSingleTestResult(null)
+
+      const response = await fetch('/api/tools/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputText: testCase.input }),
+      })
+
+      if (!response.ok) throw new Error('Prediction failed')
+
+      const { predictedTools } = await response.json()
+      const bestMatch = predictedTools[0]
+
+      const passed = bestMatch?.toolId === testCase.expected
+      setSingleTestResult({
+        input: testCase.input,
+        expected: testCase.expected,
+        detected: bestMatch?.toolId || 'unknown',
+        passed,
+        confidence: bestMatch?.similarity || 0,
+      })
+    } catch (error) {
+      console.error('Error testing single case:', error)
+      setSingleTestResult({
+        input: testCase.input,
+        expected: testCase.expected,
+        detected: 'error',
+        passed: false,
+        error: error.message,
+      })
+    } finally {
+      setSingleTestLoading(false)
+    }
+  }
+
   const seedDefaultCases = async () => {
     const message = testCases.length > 0
       ? 'This will replace all test cases with the default 42 test cases. Continue?'
