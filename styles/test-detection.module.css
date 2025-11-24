@@ -85,6 +85,12 @@
   gap: 1rem;
 }
 
+.controlsRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .startButton {
   background: #28a745;
   color: white;
