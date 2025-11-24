@@ -547,18 +547,6 @@
   align-items: center;
 }
 
-.checkmark {
-  color: #28a745;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.cross {
-  color: #dc3545;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
 .closeResultButton {
   background: #6c757d;
   color: white;
