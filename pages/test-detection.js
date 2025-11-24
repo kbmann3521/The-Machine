@@ -115,22 +115,37 @@ export default function TestDetection() {
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i]
       try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+
         const response = await fetch('/api/tools/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ inputText: testCase.input }),
+          signal: controller.signal,
         })
 
-        const data = await response.json()
-        const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
-        const passed = detectedTool === testCase.expected
+        clearTimeout(timeoutId)
 
-        testResults.push({
-          input: testCase.input,
-          expected: testCase.expected,
-          detected: detectedTool,
-          passed,
-        })
+        if (!response || !response.ok) {
+          testResults.push({
+            input: testCase.input,
+            expected: testCase.expected,
+            detected: 'error',
+            passed: false,
+          })
+        } else {
+          const data = await response.json()
+          const detectedTool = data.predictedTools?.[0]?.toolId || 'unknown'
+          const passed = detectedTool === testCase.expected
+
+          testResults.push({
+            input: testCase.input,
+            expected: testCase.expected,
+            detected: detectedTool,
+            passed,
+          })
+        }
       } catch (error) {
         testResults.push({
           input: testCase.input,
