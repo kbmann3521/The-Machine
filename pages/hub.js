@@ -75,13 +75,24 @@ export default function Hub() {
     setInputText(text)
     setPreviousInputLength(text.length)
 
+    console.log('Input change:', {
+      text,
+      previousInputLength,
+      newLength: text.length,
+      isAddition,
+      advancedMode,
+      condition: isAddition && !advancedMode
+    })
+
     if (text.length === 0) {
       setPredictedTools([])
       setSelectedTool(null)
       setOutputResult(null)
     } else if (isAddition && !advancedMode) {
+      console.log('Auto-selecting: calling handlePredict with noAutoSelect=false')
       handlePredict(text, inputImage, imagePreview, false)
     } else {
+      console.log('Not auto-selecting: calling handlePredict with noAutoSelect=true')
       handlePredict(text, inputImage, imagePreview, true)
     }
   }, [previousInputLength, advancedMode, inputImage, imagePreview, handlePredict])
