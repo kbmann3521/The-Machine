@@ -226,10 +226,11 @@ export default function TestDetection() {
     setShowAddForm(false)
   }
 
-  const testSingleCase = async (testCase) => {
+  const testSingleCase = async (testCase, index) => {
     try {
       setSingleTestLoading(true)
       setSingleTestResult(null)
+      setTestResultIndex(index)
 
       const response = await fetch('/api/tools/predict', {
         method: 'POST',
