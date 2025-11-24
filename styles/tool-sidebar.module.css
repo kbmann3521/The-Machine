@@ -121,16 +121,16 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   width: 100%;
-  animation: slideInTool 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideInTool 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes slideInTool {
   from {
     opacity: 0;
-    transform: translateX(-8px);
+    transform: translateX(-4px);
   }
   to {
     opacity: 1;
@@ -161,11 +161,11 @@
   background: linear-gradient(135deg, rgba(0, 102, 204, 0.2) 0%, rgba(0, 102, 204, 0.1) 100%);
   border-color: #0066cc;
   box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.15);
-  animation: highlightPulse 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: highlightPulse 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toolItem.topMatch {
-  animation: slideInTool 0.3s cubic-bezier(0.4, 0, 0.2, 1), highlightPulse 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+  animation: slideInTool 0.15s cubic-bezier(0.4, 0, 0.2, 1), highlightPulse 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
 }
 
 .toolRank {
@@ -181,7 +181,7 @@
   font-size: 16px;
   color: var(--color-text-secondary);
   flex-shrink: 0;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toolItem:hover .toolIcon {
