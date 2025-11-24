@@ -149,6 +149,232 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const renderJsFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
+    return (
+      <div className={jsStyles.jsFormatterContainer}>
+        {/* Formatted JavaScript Section */}
+        {displayResult.formatted && (
+          <div className={jsStyles.jsSection}>
+            <div className={jsStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'formatted' ? null : 'formatted')}>
+              <span className={jsStyles.sectionTitle}>Formatted Code</span>
+              <span className={jsStyles.sectionToggle}>{expandedSection === 'formatted' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'formatted' && (
+              <div className={jsStyles.sectionContent}>
+                <pre className={jsStyles.jsCode}>
+                  <code>{displayResult.formatted}</code>
+                </pre>
+                <button
+                  className={jsStyles.copyButton}
+                  onClick={() => handleCopyField(displayResult.formatted, 'formatted-js')}
+                  title="Copy formatted code"
+                >
+                  {copiedField === 'formatted-js' ? '✓ Copied' : <><FaCopy /> Copy</>}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Minified JavaScript Section */}
+        {displayResult.minified && (
+          <div className={jsStyles.jsSection}>
+            <div className={jsStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'minified' ? null : 'minified')}>
+              <span className={jsStyles.sectionTitle}>Minified Code</span>
+              <span className={jsStyles.sectionToggle}>{expandedSection === 'minified' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'minified' && (
+              <div className={jsStyles.sectionContent}>
+                <pre className={jsStyles.jsCode}>
+                  <code>{displayResult.minified}</code>
+                </pre>
+                <button
+                  className={jsStyles.copyButton}
+                  onClick={() => handleCopyField(displayResult.minified, 'minified-js')}
+                  title="Copy minified code"
+                >
+                  {copiedField === 'minified-js' ? '✓ Copied' : <><FaCopy /> Copy</>}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Obfuscated JavaScript Section */}
+        {displayResult.obfuscated && (
+          <div className={jsStyles.jsSection}>
+            <div className={jsStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'obfuscated' ? null : 'obfuscated')}>
+              <span className={jsStyles.sectionTitle}>Obfuscated Code</span>
+              <span className={jsStyles.sectionToggle}>{expandedSection === 'obfuscated' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'obfuscated' && (
+              <div className={jsStyles.sectionContent}>
+                <pre className={jsStyles.jsCode}>
+                  <code>{displayResult.obfuscated}</code>
+                </pre>
+                <button
+                  className={jsStyles.copyButton}
+                  onClick={() => handleCopyField(displayResult.obfuscated, 'obfuscated-js')}
+                  title="Copy obfuscated code"
+                >
+                  {copiedField === 'obfuscated-js' ? '✓ Copied' : <><FaCopy /> Copy</>}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Syntax Errors Section */}
+        {displayResult.errors && (
+          <div className={jsStyles.jsSection}>
+            <div className={jsStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'errors' ? null : 'errors')}>
+              <span className={jsStyles.sectionTitle}>
+                Syntax Check ({displayResult.errors.status})
+              </span>
+              <span className={jsStyles.sectionToggle}>{expandedSection === 'errors' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'errors' && (
+              <div className={jsStyles.sectionContent}>
+                {displayResult.errors.status === 'valid' ? (
+                  <div className={jsStyles.success}>✓ No syntax errors found!</div>
+                ) : (
+                  <div className={jsStyles.errorsList}>
+                    {displayResult.errors.errors && displayResult.errors.errors.map((error, idx) => (
+                      <div key={idx} className={jsStyles.error}>
+                        <div className={jsStyles.errorMessage}>
+                          <strong>Line {error.line}, Column {error.column}</strong>: {error.message}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Linting Section */}
+        {displayResult.linting && (
+          <div className={jsStyles.jsSection}>
+            <div className={jsStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'linting' ? null : 'linting')}>
+              <span className={jsStyles.sectionTitle}>
+                Linting Warnings ({displayResult.linting.total})
+              </span>
+              <span className={jsStyles.sectionToggle}>{expandedSection === 'linting' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'linting' && (
+              <div className={jsStyles.sectionContent}>
+                {displayResult.linting.warnings && displayResult.linting.warnings.length > 0 ? (
+                  <div className={jsStyles.warningsList}>
+                    {displayResult.linting.warnings.map((warning, idx) => (
+                      <div key={idx} className={`${jsStyles.warning} ${jsStyles[warning.level || 'info']}`}>
+                        <div className={jsStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
+                        <div className={jsStyles.warningMessage}>{warning.message}</div>
+                        {warning.suggestion && (
+                          <div className={jsStyles.warningSuggestion}>💡 {warning.suggestion}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={jsStyles.success}>✓ No linting warnings found!</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Code Analysis Section */}
+        {displayResult.analysis && (
+          <div className={jsStyles.jsSection}>
+            <div className={jsStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'analysis' ? null : 'analysis')}>
+              <span className={jsStyles.sectionTitle}>Code Analysis</span>
+              <span className={jsStyles.sectionToggle}>{expandedSection === 'analysis' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'analysis' && (
+              <div className={jsStyles.sectionContent}>
+                <div className={jsStyles.analysisGrid}>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Lines</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.lineCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Characters</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.characterCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Functions</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.functionCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Arrow Functions</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.arrowFunctionCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Variables</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.variableCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Imports</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.importCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Exports</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.exportCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Complexity</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.cyclomaticComplexity || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Classes</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.classCount || 0}</span>
+                  </div>
+                  <div className={jsStyles.analysisItem}>
+                    <span className={jsStyles.analysisLabel}>Longest Line</span>
+                    <span className={jsStyles.analysisValue}>{displayResult.analysis.longestLine || 0}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Security Scan Section */}
+        {displayResult.security && (
+          <div className={jsStyles.jsSection}>
+            <div className={jsStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'security' ? null : 'security')}>
+              <span className={jsStyles.sectionTitle}>Security Scan</span>
+              <span className={jsStyles.sectionToggle}>{expandedSection === 'security' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'security' && (
+              <div className={jsStyles.sectionContent}>
+                <div style={{ marginBottom: '10px' }}>
+                  <span className={`${jsStyles.securityBadge} ${jsStyles[displayResult.security.riskLevel || 'safe']}`}>
+                    Risk Level: {displayResult.security.riskLevel?.toUpperCase() || 'SAFE'}
+                  </span>
+                </div>
+                {displayResult.security.issues && displayResult.security.issues.length > 0 ? (
+                  <div className={jsStyles.issuesList}>
+                    {displayResult.security.issues.map((issue, idx) => (
+                      <div key={idx} className={jsStyles.issueItem}>
+                        <strong>{issue.pattern}</strong> - Severity: {issue.severity}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={jsStyles.success}>✓ No security issues detected!</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const renderSqlFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
