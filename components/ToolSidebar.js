@@ -223,13 +223,21 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                     {React.createElement(toolIcons[tool.toolId])}
                   </div>
                 )}
-                <h3
-                  className={styles.toolName}
-                  style={{ color: getScoreColor(tool.similarity) }}
-                  title={getScoreLabel(tool.similarity)}
-                >
-                  {tool.name}
-                </h3>
+                <div className={styles.toolNameContainer}>
+                  <h3
+                    className={styles.toolName}
+                    style={{ color: getScoreColor(tool.similarity) }}
+                    title={getScoreLabel(tool.similarity)}
+                  >
+                    {tool.name}
+                  </h3>
+                  <span
+                    className={styles.scoreLabel}
+                    title={`Similarity: ${(tool.similarity * 100).toFixed(0)}%`}
+                  >
+                    {(tool.similarity * 100).toFixed(0)}%
+                  </span>
+                </div>
               </article>
             )
           })}
