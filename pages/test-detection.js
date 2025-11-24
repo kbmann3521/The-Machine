@@ -223,6 +223,35 @@ export default function TestDetection() {
     setShowAddForm(false)
   }
 
+  const seedDefaultCases = async () => {
+    if (!window.confirm('This will add all default test cases to your database. Continue?')) {
+      return
+    }
+
+    try {
+      setLoadingCases(true)
+      // Add each default case
+      for (const defaultCase of DEFAULT_TEST_CASES) {
+        await fetch('/api/test-detection/cases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: defaultCase.input,
+            expected: defaultCase.expected,
+          }),
+        })
+      }
+      // Reload cases
+      await loadTestCases()
+      alert('Default test cases added successfully!')
+    } catch (error) {
+      console.error('Error seeding defaults:', error)
+      alert('Failed to seed default cases')
+    } finally {
+      setLoadingCases(false)
+    }
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
