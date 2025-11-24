@@ -143,11 +143,21 @@
   }
 }
 
-.toolItem:hover {
-  background-color: var(--color-background-tertiary);
-  border-color: var(--color-border-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+@media (min-width: 992px) {
+  .toolItem:hover {
+    background-color: var(--color-background-tertiary);
+    border-color: var(--color-border-hover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 991px) {
+  .toolItem:hover {
+    background-color: var(--color-background-tertiary);
+    border-color: var(--color-border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .toolItem.selected {
