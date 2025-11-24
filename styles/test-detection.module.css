@@ -543,16 +543,20 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
   font-size: 0.9rem;
   word-break: break-all;
+  display: flex;
+  align-items: center;
 }
 
-.resultValue :global(.checkmark) {
+.checkmark {
   color: #28a745;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
-.resultValue :global(.cross) {
+.cross {
   color: #dc3545;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
 .closeResultButton {
