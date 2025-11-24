@@ -73,23 +73,39 @@ export default function TestDetection() {
     try {
       setLoadingCases(true)
 
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 3000)
+      // Use Promise.race for timeout instead of AbortController to be more reliable
+      const fetchPromise = fetch('/api/test-detection/cases')
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Fetch timeout')), 2000)
+      )
 
-      const response = await fetch('/api/test-detection/cases', {
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      if (!response || !response.ok) {
-        // Silently fail - use defaults
-        console.debug('Failed to load test cases from database')
+      let response
+      try {
+        response = await Promise.race([fetchPromise, timeoutPromise])
+      } catch (fetchErr) {
+        // Fetch failed or timed out - silently use defaults
+        console.debug('Test cases fetch unavailable:', fetchErr?.message)
+        setLoadingCases(false)
         return
       }
 
-      const data = await response.json()
+      if (!response?.ok) {
+        // Bad response - silently use defaults
+        console.debug('Test cases API returned error:', response?.status)
+        setLoadingCases(false)
+        return
+      }
 
-      if (data.cases && data.cases.length > 0) {
+      let data
+      try {
+        data = await response.json()
+      } catch (jsonErr) {
+        console.debug('Failed to parse test cases response')
+        setLoadingCases(false)
+        return
+      }
+
+      if (data?.cases && Array.isArray(data.cases) && data.cases.length > 0) {
         // Convert database cases (with id field) to local format
         const formattedCases = data.cases.map(c => ({
           id: c.id,
@@ -98,10 +114,11 @@ export default function TestDetection() {
         }))
         setTestCases(formattedCases)
       }
+
+      setLoadingCases(false)
     } catch (error) {
-      // Silently fail - app will use DEFAULT_TEST_CASES
-      console.debug('Test cases fetch failed, using defaults:', error?.message)
-    } finally {
+      // Last resort fallback - silently fail
+      console.debug('Unexpected error in loadTestCases:', error?.message)
       setLoadingCases(false)
     }
   }
