@@ -19,8 +19,10 @@ import {
   generateEmbedding,
   cosineSimilarity,
 } from '../../../lib/embeddings'
-import { classify as llmClassify } from '../../../lib/llmClassifier'
+import llmClassifierModule from '../../../lib/llmClassifier'
 import { createClient } from '@supabase/supabase-js'
+
+const llmClassify = llmClassifierModule.classify
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
