@@ -177,6 +177,9 @@ export default function TestDetection() {
     try {
       if (editingId !== null) {
         // Update existing case
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
         const response = await fetch('/api/test-detection/cases', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -185,9 +188,15 @@ export default function TestDetection() {
             input: formData.input,
             expected: formData.expected,
           }),
+          signal: controller.signal,
         })
 
-        if (!response.ok) throw new Error('Failed to update case')
+        clearTimeout(timeoutId)
+
+        if (!response || !response.ok) {
+          alert('Failed to update case. Database may be temporarily unavailable.')
+          return
+        }
 
         const { case: updatedCase } = await response.json()
         const updated = testCases.map(c =>
@@ -198,6 +207,9 @@ export default function TestDetection() {
         setEditingId(null)
       } else {
         // Add new case
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
         const response = await fetch('/api/test-detection/cases', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -205,9 +217,15 @@ export default function TestDetection() {
             input: formData.input,
             expected: formData.expected,
           }),
+          signal: controller.signal,
         })
 
-        if (!response.ok) throw new Error('Failed to add case')
+        clearTimeout(timeoutId)
+
+        if (!response || !response.ok) {
+          alert('Failed to add case. Database may be temporarily unavailable.')
+          return
+        }
 
         const { case: newCase } = await response.json()
         setTestCases([...testCases, newCase])
@@ -216,8 +234,8 @@ export default function TestDetection() {
       setFormData({ input: '', expected: '' })
       setShowAddForm(false)
     } catch (error) {
-      console.error('Error saving test case:', error)
-      alert('Failed to save test case')
+      console.debug('Error saving test case:', error?.message)
+      alert('Failed to save test case. Please try again.')
     }
   }
 
