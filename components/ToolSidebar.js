@@ -84,14 +84,30 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
   const [searchQuery, setSearchQuery] = useState('')
 
   const filteredTools = useMemo(() => {
-    if (!searchQuery.trim()) return predictedTools
+    let tools = predictedTools
 
-    const query = searchQuery.toLowerCase()
-    return predictedTools.filter(tool =>
-      tool.name.toLowerCase().includes(query) ||
-      tool.description.toLowerCase().includes(query)
-    )
-  }, [predictedTools, searchQuery])
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      tools = tools.filter(tool =>
+        tool.name.toLowerCase().includes(query) ||
+        tool.description.toLowerCase().includes(query)
+      )
+    }
+
+    // Move selected tool to the top
+    if (selectedTool) {
+      const selectedIndex = tools.findIndex(tool => tool.toolId === selectedTool.toolId)
+      if (selectedIndex > 0) {
+        const reordered = [...tools]
+        const [selected] = reordered.splice(selectedIndex, 1)
+        reordered.unshift(selected)
+        return reordered
+      }
+    }
+
+    return tools
+  }, [predictedTools, searchQuery, selectedTool])
 
   const topMatch = filteredTools[0]
 
