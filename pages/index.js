@@ -206,19 +206,29 @@ export default function Home() {
       const triggeringClassification = fastLocalClassification(text)
       previousClassificationRef.current = triggeringClassification
 
-      const response = await fetch('/api/tools/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inputText: text,
-          inputImage: preview ? 'image' : null,
-        }),
-      })
+      // Fetch with 30 second timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      let response
+      try {
+        response = await fetch('/api/tools/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            inputText: text,
+            inputImage: preview ? 'image' : null,
+          }),
+          signal: controller.signal,
+        })
+      } finally {
+        clearTimeout(timeoutId)
+      }
 
       if (!response.ok) {
         const errorText = await response.text()
         console.error('API response error:', response.status, errorText)
-        throw new Error(`Failed to predict tools: ${response.status} ${errorText}`)
+        throw new Error(`Failed to predict tools: ${response.status}`)
       }
 
       const data = await response.json()
