@@ -147,6 +147,142 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const renderSqlFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
+    return (
+      <div className={styles.sqlFormatterContainer}>
+        {/* Formatted SQL Section */}
+        <div className={styles.sqlSection}>
+          <div className={styles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'formatted' ? null : 'formatted')}>
+            <span className={styles.sectionTitle}>Formatted SQL</span>
+            <span className={styles.sectionToggle}>{expandedSection === 'formatted' ? '▼' : '▶'}</span>
+          </div>
+          {expandedSection === 'formatted' && (
+            <div className={styles.sectionContent}>
+              <pre className={styles.sqlCode}>
+                <code>{displayResult.formatted || ''}</code>
+              </pre>
+              <button
+                className={styles.copyButton}
+                onClick={() => handleCopyField(displayResult.formatted, 'formatted-sql')}
+                title="Copy formatted SQL"
+              >
+                {copiedField === 'formatted-sql' ? '✓ Copied' : <><FaCopy /> Copy</>}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Lint Warnings Section */}
+        {displayResult.lint && (
+          <div className={styles.sqlSection}>
+            <div className={styles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'lint' ? null : 'lint')}>
+              <span className={styles.sectionTitle}>
+                Lint Warnings ({displayResult.lint.total})
+              </span>
+              <span className={styles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'lint' && (
+              <div className={styles.sectionContent}>
+                {displayResult.lint.warnings && displayResult.lint.warnings.length > 0 ? (
+                  <div className={styles.warningsList}>
+                    {displayResult.lint.warnings.map((warning, idx) => (
+                      <div key={idx} className={`${styles.warning} ${styles[warning.level || 'info']}`}>
+                        <div className={styles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
+                        <div className={styles.warningMessage}>{warning.message}</div>
+                        {warning.suggestion && (
+                          <div className={styles.warningSuggestion}>💡 {warning.suggestion}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.success}>✓ No lint warnings found!</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Query Analysis Section */}
+        {displayResult.analysis && (
+          <div className={styles.sqlSection}>
+            <div className={styles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'analysis' ? null : 'analysis')}>
+              <span className={styles.sectionTitle}>Query Analysis</span>
+              <span className={styles.sectionToggle}>{expandedSection === 'analysis' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'analysis' && (
+              <div className={styles.sectionContent}>
+                <div className={styles.analysisGrid}>
+                  <div className={styles.analysisItem}>
+                    <span className={styles.analysisLabel}>Query Type:</span>
+                    <span className={styles.analysisValue}>{displayResult.analysis.queryType || 'UNKNOWN'}</span>
+                  </div>
+                  <div className={styles.analysisItem}>
+                    <span className={styles.analysisLabel}>Has Joins:</span>
+                    <span className={styles.analysisValue}>{displayResult.analysis.hasJoin ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className={styles.analysisItem}>
+                    <span className={styles.analysisLabel}>Has Subqueries:</span>
+                    <span className={styles.analysisValue}>{displayResult.analysis.hasSubquery ? 'Yes' : 'No'}</span>
+                  </div>
+                  <div className={styles.analysisItem}>
+                    <span className={styles.analysisLabel}>Has Aggregation:</span>
+                    <span className={styles.analysisValue}>{displayResult.analysis.hasAggregation ? 'Yes' : 'No'}</span>
+                  </div>
+                </div>
+
+                {displayResult.analysis.tables && displayResult.analysis.tables.length > 0 && (
+                  <div className={styles.analysisSubsection}>
+                    <h4>Tables Used:</h4>
+                    <div className={styles.tagList}>
+                      {displayResult.analysis.tables.map((table, idx) => (
+                        <span key={idx} className={styles.tag}>{table}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {displayResult.analysis.columns && displayResult.analysis.columns.length > 0 && (
+                  <div className={styles.analysisSubsection}>
+                    <h4>Columns Used:</h4>
+                    <div className={styles.tagList}>
+                      {displayResult.analysis.columns.map((column, idx) => (
+                        <span key={idx} className={styles.tag}>{column}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Parse Tree Section */}
+        {displayResult.parseTree && (
+          <div className={styles.sqlSection}>
+            <div className={styles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'parseTree' ? null : 'parseTree')}>
+              <span className={styles.sectionTitle}>Parse Tree</span>
+              <span className={styles.sectionToggle}>{expandedSection === 'parseTree' ? '▼' : '▶'}</span>
+            </div>
+            {expandedSection === 'parseTree' && (
+              <div className={styles.sectionContent}>
+                {displayResult.parseTree.error ? (
+                  <div className={styles.error}>{displayResult.parseTree.error}</div>
+                ) : (
+                  <pre className={styles.jsonCode}>
+                    <code>{displayResult.parseTree.structure || JSON.stringify(displayResult.parseTree, null, 2)}</code>
+                  </pre>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const pluralizeUnitName = (unitName, value) => {
     const irregularPlurals = {
       'feet': 'feet',
