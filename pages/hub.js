@@ -80,7 +80,8 @@ export default function Hub() {
       setSelectedTool(null)
       setOutputResult(null)
     } else if (isAddition) {
-      handlePredict(text, inputImage, imagePreview, advancedMode)
+      const shouldAutoSelect = !advancedMode
+      handlePredict(text, inputImage, imagePreview, !shouldAutoSelect)
     } else {
       handlePredict(text, inputImage, imagePreview, true)
     }
