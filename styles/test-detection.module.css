@@ -545,12 +545,12 @@
   word-break: break-all;
 }
 
-.resultValue.checkmark {
+.resultValue :global(.checkmark) {
   color: #28a745;
   font-weight: bold;
 }
 
-.resultValue.cross {
+.resultValue :global(.cross) {
   color: #dc3545;
   font-weight: bold;
 }
