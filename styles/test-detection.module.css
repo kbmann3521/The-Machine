@@ -622,24 +622,18 @@
     font-size: 0.9rem;
   }
 
-  .singleResultSection {
-    padding: 1rem;
+  .singleResult {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
-  .singleResultSection h2 {
-    font-size: 1.25rem;
-  }
-
-  .resultRow {
+  .resultInlineRow {
     flex-direction: column;
-    gap: 0.5rem;
+    align-items: flex-start;
+    gap: 0.25rem;
   }
 
-  .resultLabel {
-    min-width: auto;
-  }
-
-  .closeResultButton {
-    width: 100%;
+  .closeInlineResultButton {
+    margin-left: 0;
   }
 }
