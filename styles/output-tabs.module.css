@@ -112,6 +112,41 @@
   overflow-x: auto;
 }
 
+.friendlySection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.friendlyField {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--bg-secondary, rgba(255, 255, 255, 0.05));
+  border-radius: 6px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.friendlyKey {
+  font-weight: 600;
+  color: var(--color-text-primary, #333);
+  min-width: 140px;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.friendlyValueContainer {
+  flex: 1;
+  overflow-x: auto;
+}
+
+.friendlyValue {
+  color: var(--color-text-secondary, #666);
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .jsonContent {
   padding: 0;
   overflow: auto;
