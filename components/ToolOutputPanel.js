@@ -1190,6 +1190,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderXmlFormatterOutput()
     }
 
+    // Special handling for Color Converter
+    if (toolId === 'color-converter' && displayResult && (displayResult.hex || displayResult.rgb || displayResult.hsl)) {
+      return renderColorConverterOutput()
+    }
+
     // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
