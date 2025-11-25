@@ -288,12 +288,17 @@ export default function Home() {
             throw new Error('Invalid prediction data')
           }
 
-          let toolsWithMetadata = data.predictedTools.map(tool => ({
-            ...tool,
-            ...TOOLS[tool.toolId],
-          }))
+          let toolsWithMetadata = data.predictedTools.map(tool => {
+            const localToolData = TOOLS[tool.toolId] || {}
+            // Supabase values take priority over local code values
+            return {
+              ...localToolData,
+              ...tool, // Supabase data overrides local data
+            }
+          })
 
           // Filter out tools with show_in_recommendations = false
+          // Only Supabase controls visibility
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
 
           // Auto-select the best match tool ONLY on input addition when not in advanced mode
