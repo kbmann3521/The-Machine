@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/output-tabs.module.css'
 
@@ -10,10 +10,11 @@ export default function OutputTabs({
   title = 'Output',
   onCopyCard = null,
 }) {
-  const [activeTab, setActiveTab] = useState('friendly')
+  const [activeTab, setActiveTab] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
+  const initializedRef = useRef(false)
 
   // Generate a user-friendly view from JSON data
   const generateFriendlyTab = (jsonContent) => {
