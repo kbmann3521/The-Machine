@@ -151,16 +151,11 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .tabsHeader {
-    align-items: flex-start;
-  }
-
+/* Tablet and smaller screens */
+@media (max-width: 900px) {
   .tab {
     padding: 10px 12px;
     font-size: 11px;
-    flex: 0 1 auto;
   }
 
   .tabActions {
@@ -169,6 +164,7 @@
     border-left: none;
     border-top: 1px solid var(--color-border, #ddd);
     width: 100%;
+    margin-left: 0;
     order: 2;
   }
 
@@ -192,10 +188,12 @@
   }
 }
 
+/* Mobile */
 @media (max-width: 480px) {
   .tab {
     padding: 8px 10px;
     font-size: 10px;
+    flex-shrink: 0;
   }
 
   .tabActions {
@@ -203,6 +201,7 @@
     padding: 6px 8px;
     gap: 6px;
     flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .minifyToggle {
