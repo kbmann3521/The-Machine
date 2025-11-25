@@ -195,16 +195,20 @@ export default function Home() {
   const predictTools = useCallback(async (text, image, preview, isAddition = false) => {
     if (!text && !image) {
       setPredictedTools(prevTools => {
-        const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-          toolId,
-          name: toolData.name,
-          description: toolData.description,
-          similarity: 0, // No match (white) when no input provided
-          ...toolData,
-        }))
+        // Use the tools from state if available (they were initialized with proper metadata)
+        // This ensures we're using Supabase data if it was fetched during initialization
+        const baseTools = prevTools.length > 0
+          ? prevTools.map(tool => ({ ...tool, similarity: 0 }))
+          : Object.entries(TOOLS).map(([toolId, toolData]) => ({
+              toolId,
+              name: toolData.name,
+              description: toolData.description,
+              similarity: 0, // No match (white) when no input provided
+              ...toolData,
+            }))
 
         // Filter out tools with show_in_recommendations = false using the stored visibility map
-        const visibleTools = allTools.filter(tool => {
+        const visibleTools = baseTools.filter(tool => {
           // If visibility map is available, use it exclusively (no fallback)
           if (visibilityMapRef.current && Object.keys(visibilityMapRef.current).length > 0) {
             return visibilityMapRef.current[tool.toolId] !== false
