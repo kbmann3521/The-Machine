@@ -159,45 +159,48 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = []
 
-    // Always show formatted tab - with either the formatted code or an error message
-    if (displayResult.formatted && typeof displayResult.formatted === 'string' && displayResult.formatted.trim()) {
-      tabs.push({
-        id: 'formatted',
-        label: 'Formatted',
-        content: displayResult.formatted,
-        contentType: 'code',
-      })
-    } else {
-      // Show placeholder when formatted output is unavailable
-      const placeholderContent = (
-        <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
-          Formatted output will appear here once you run the formatter on valid code.
-        </div>
-      )
-      tabs.push({
-        id: 'formatted',
-        label: 'Formatted',
-        content: placeholderContent,
-        contentType: 'component',
-      })
+    // Determine the primary output type based on which field exists
+    let primaryTabId = null
+    let primaryTabLabel = null
+    let primaryTabContent = null
+
+    if (displayResult.formatted !== undefined) {
+      primaryTabId = 'formatted'
+      primaryTabLabel = 'Formatted'
+      primaryTabContent = displayResult.formatted
+    } else if (displayResult.minified !== undefined) {
+      primaryTabId = 'minified'
+      primaryTabLabel = 'Minified'
+      primaryTabContent = displayResult.minified
+    } else if (displayResult.obfuscated !== undefined) {
+      primaryTabId = 'obfuscated'
+      primaryTabLabel = 'Obfuscated'
+      primaryTabContent = displayResult.obfuscated
     }
 
-    if (displayResult.minified) {
-      tabs.push({
-        id: 'minified',
-        label: 'Minified',
-        content: displayResult.minified,
-        contentType: 'code',
-      })
-    }
-
-    if (displayResult.obfuscated) {
-      tabs.push({
-        id: 'obfuscated',
-        label: 'Obfuscated',
-        content: displayResult.obfuscated,
-        contentType: 'code',
-      })
+    // Add primary tab
+    if (primaryTabId && primaryTabContent) {
+      if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
+        tabs.push({
+          id: primaryTabId,
+          label: primaryTabLabel,
+          content: primaryTabContent,
+          contentType: 'code',
+        })
+      } else {
+        // Show placeholder when output is unavailable
+        const placeholderContent = (
+          <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+            {primaryTabLabel} output will appear here once you run the formatter on valid code.
+          </div>
+        )
+        tabs.push({
+          id: primaryTabId,
+          label: primaryTabLabel,
+          content: placeholderContent,
+          contentType: 'component',
+        })
+      }
     }
 
     if (displayResult.errors) {
