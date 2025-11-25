@@ -39,17 +39,17 @@ export default function OutputTabs({
     }
   }
 
-  if (!tabConfig || tabConfig.length === 0) {
+  if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
   }
 
   // Set initial active tab to first tab if default doesn't exist
-  const firstTabId = tabConfig[0]?.id
-  if (!tabConfig.find(t => t.id === activeTab)) {
+  const firstTabId = finalTabConfig[0]?.id
+  if (!finalTabConfig.find(t => t.id === activeTab)) {
     setActiveTab(firstTabId)
   }
 
-  const activeTabConfig = tabConfig.find(t => t.id === activeTab)
+  const activeTabConfig = finalTabConfig.find(t => t.id === activeTab)
 
   const getJsonString = () => {
     if (!activeTabConfig?.content) return ''
