@@ -156,14 +156,28 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
+  .tabsHeader {
+    align-items: flex-start;
+  }
+
   .tab {
     padding: 10px 12px;
     font-size: 11px;
+    flex: 0 1 auto;
   }
 
   .tabActions {
     padding: 6px 8px;
     gap: 4px;
+    border-left: none;
+    border-top: 1px solid var(--color-border, #ddd);
+    width: 100%;
+    order: 2;
+  }
+
+  .tabs {
+    width: 100%;
+    order: 1;
   }
 
   .minifyToggle {
@@ -188,13 +202,13 @@
   }
 
   .tabActions {
-    flex-direction: column;
-    padding: 6px;
+    flex-direction: row;
+    padding: 6px 8px;
     gap: 6px;
+    flex-wrap: wrap;
   }
 
   .minifyToggle {
-    width: 100%;
     padding: 6px 8px;
     font-size: 9px;
   }
