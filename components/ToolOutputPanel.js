@@ -388,7 +388,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (displayResult.formatted) {
       tabs.push({
         id: 'formatted',
-        label: 'Formatted',
+        label: 'Output',
         content: displayResult.formatted,
         contentType: 'code',
       })
@@ -593,7 +593,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = [
         {
           id: 'formatted',
-          label: 'Formatted',
+          label: 'Output',
           content: displayResult,
           contentType: 'code',
         },
@@ -691,7 +691,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = [
         {
           id: 'formatted',
-          label: 'Formatted',
+          label: 'Output',
           content: displayResult,
           contentType: 'code',
         },
@@ -714,7 +714,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (displayResult.formatted) {
       tabs.push({
         id: 'formatted',
-        label: 'Formatted',
+        label: 'Output',
         content: displayResult.formatted,
         contentType: 'code',
       })
@@ -1541,7 +1541,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           tabs={[
             {
               id: 'formatted',
-              label: 'Formatted',
+              label: 'Output',
               content: displayResult,
               contentType: 'text',
             },
@@ -1587,7 +1587,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               tabs={[
                 {
                   id: 'formatted',
-                  label: 'Formatted',
+                  label: 'Output',
                   content: structuredView,
                   contentType: 'component',
                 },
@@ -1648,7 +1648,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             tabs={[
               {
                 id: 'formatted',
-                label: 'Formatted',
+                label: 'Output',
                 content: tableComponent,
                 contentType: 'component',
               },
