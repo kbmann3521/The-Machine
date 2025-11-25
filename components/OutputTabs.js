@@ -311,15 +311,11 @@ export default function OutputTabs({
     const { contentType, content, actions } = activeTabConfig
 
     // Handle component/function content (e.g., friendlyView)
-    if (contentType === 'component' || typeof content === 'function') {
-      return (
-        <div className={styles.friendlyContent}>
-          {typeof content === 'function'
-            ? content({ onCopyCard: handleCopyCard, copiedCardId })
-            : content
-          }
-        </div>
-      )
+    if (contentType === 'component') {
+      if (typeof content === 'function') {
+        return content({ onCopyCard: handleCopyCard, copiedCardId })
+      }
+      return content
     }
 
     // Handle JSON content
@@ -346,20 +342,12 @@ export default function OutputTabs({
 
     // Handle React components
     if (typeof content === 'function') {
-      return (
-        <div className={styles.friendlyContent}>
-          {content({ onCopyCard: handleCopyCard, copiedCardId })}
-        </div>
-      )
+      return content({ onCopyCard: handleCopyCard, copiedCardId })
     }
 
     // Handle React elements
     if (React.isValidElement(content)) {
-      return (
-        <div className={styles.friendlyContent}>
-          {content}
-        </div>
-      )
+      return content
     }
 
     return (
