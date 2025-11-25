@@ -74,12 +74,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       {
         id: 'default',
         label: 'Output',
-        content: (
-          <div className={styles.placeholder}>
-            <p>Run the tool to see output here</p>
-          </div>
-        ),
-        contentType: 'component',
+        content: 'Upload an image to see results',
+        contentType: 'text',
       },
     ]
     const OutputTabs = require('./OutputTabs').default
