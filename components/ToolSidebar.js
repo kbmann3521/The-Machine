@@ -64,6 +64,7 @@ const toolIcons = {
   'ip-validator': FaNetworkWired,
   'ip-integer-converter': FaNetworkWired,
   'ip-range-calculator': FaNetworkWired,
+  'ip-address-toolkit': FaNetworkWired,
 }
 
 const getScoreColor = (similarity) => {
