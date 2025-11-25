@@ -932,40 +932,27 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Text Stats - show friendly + JSON tabs
     if (toolId === 'text-stats' && displayResult.characters !== undefined) {
+      const stats = [
+        { label: 'Characters', value: displayResult.characters },
+        { label: 'Without Spaces', value: displayResult.charactersWithoutSpaces },
+        { label: 'Words', value: displayResult.words },
+        { label: 'Lines', value: displayResult.lines },
+        { label: 'Paragraphs', value: displayResult.paragraphs },
+        { label: 'Sentences', value: displayResult.sentences },
+        { label: 'Avg Word Length', value: displayResult.averageWordLength },
+        { label: 'Avg Words/Line', value: displayResult.averageWordsPerLine },
+      ]
+
       const friendlyView = (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase' }}>Characters</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.characters}</p>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase' }}>Without Spaces</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.charactersWithoutSpaces}</p>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase' }}>Words</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.words}</p>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase' }}>Lines</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.lines}</p>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase' }}>Paragraphs</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.paragraphs}</p>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase' }}>Sentences</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.sentences}</p>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', fontSize: '11px' }}>Avg Word Length</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.averageWordLength}</p>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', fontSize: '11px' }}>Avg Words/Line</p>
-            <p style={{ margin: '0', fontSize: '24px', fontWeight: '700', color: '#0066cc' }}>{displayResult.averageWordsPerLine}</p>
-          </div>
+        <div className={styles.structuredOutput}>
+          {stats.map((stat, idx) => (
+            <div key={idx} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{stat.label}</span>
+              </div>
+              <div className={styles.copyCardValue}>{stat.value}</div>
+            </div>
+          ))}
         </div>
       )
       return <OutputTabs friendlyView={friendlyView} jsonData={displayResult} showCopyButton={true} />
