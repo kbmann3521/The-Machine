@@ -1265,6 +1265,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderXmlFormatterOutput()
     }
 
+    // Special handling for JSON Formatter
+    if (toolId === 'json-formatter' && (typeof displayResult === 'string' || displayResult.isValid !== undefined)) {
+      return renderJsonFormatterOutput()
+    }
+
     // Special handling for Color Converter
     if (toolId === 'color-converter' && displayResult && (displayResult.hex || displayResult.rgb || displayResult.hsl)) {
       return renderColorConverterOutput()
