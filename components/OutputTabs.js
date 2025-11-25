@@ -26,6 +26,11 @@ export default function OutputTabs({
       }
     }
 
+    const isJWT = (obj) => {
+      if (typeof obj !== 'object' || obj === null) return false
+      return (obj.header || obj.payload) && (obj.signature !== undefined)
+    }
+
     const renderValue = (val) => {
       if (val === null) return 'null'
       if (typeof val === 'boolean') return val ? 'Yes' : 'No'
@@ -45,6 +50,90 @@ export default function OutputTabs({
       return String(val)
     }
 
+    const renderKeyValueField = (key, value, cardId, onCopyCard, copiedCardId) => {
+      const displayValue = renderValue(value)
+      return (
+        <div key={cardId} className={styles.dataCard}>
+          <div className={styles.dataCardHeader}>
+            <span className={styles.dataCardLabel}>{key}</span>
+            {onCopyCard && (
+              <button
+                className="copy-action"
+                onClick={() => onCopyCard(displayValue, cardId)}
+                title={`Copy ${key}`}
+              >
+                {copiedCardId === cardId ? '✓' : <FaCopy />}
+              </button>
+            )}
+          </div>
+          <div className={styles.dataCardValue}>{displayValue}</div>
+        </div>
+      )
+    }
+
+    const renderSection = (title, obj, sectionId, onCopyCard, copiedCardId) => {
+      if (!obj || typeof obj !== 'object') return null
+
+      const entries = Object.entries(obj)
+      return (
+        <div key={sectionId} className={styles.dataSection}>
+          <div className={styles.dataSectionTitle}>{title}</div>
+          <div className={styles.dataSectionContent}>
+            {entries.map(([key, value], idx) => {
+              const cardId = `${sectionId}-${key}`
+              return (
+                <div key={idx} className={styles.dataCardWrapper}>
+                  {typeof value === 'object' && value !== null && !Array.isArray(value) ? (
+                    <div className={styles.nestedDataCard}>
+                      <div className={styles.nestedKey}>{key}</div>
+                      <div className={styles.nestedObject}>
+                        {Object.entries(value).map(([nestedKey, nestedValue], nestedIdx) => (
+                          <div key={nestedIdx} className={styles.nestedField}>
+                            <span className={styles.nestedKeyName}>{nestedKey}:</span>
+                            <span className={styles.nestedValue}>{renderValue(nestedValue)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    renderKeyValueField(key, value, cardId, onCopyCard, copiedCardId)
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    const renderFriendlyJWT = (jwtData, onCopyCard, copiedCardId) => {
+      return (
+        <div className={styles.friendlyContent}>
+          {jwtData.header && renderSection('Header', jwtData.header, 'header', onCopyCard, copiedCardId)}
+          {jwtData.payload && renderSection('Payload', jwtData.payload, 'payload', onCopyCard, copiedCardId)}
+          {jwtData.signature && (
+            <div className={styles.dataSection}>
+              <div className={styles.dataSectionTitle}>Signature</div>
+              <div className={styles.dataSectionContent}>
+                <div className={styles.signatureCard}>
+                  <div className={styles.signatureValue}>{jwtData.signature}</div>
+                  {onCopyCard && (
+                    <button
+                      className="copy-action"
+                      onClick={() => onCopyCard(jwtData.signature, 'signature')}
+                      title="Copy signature"
+                    >
+                      {copiedCardId === 'signature' ? '✓' : <FaCopy />}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    }
+
     const renderObject = (obj, depth = 0) => {
       if (!obj || typeof obj !== 'object') {
         return <div className={styles.friendlyValue}>{renderValue(obj)}</div>
@@ -54,25 +143,46 @@ export default function OutputTabs({
       const entries = isArray ? obj.map((v, i) => [i.toString(), v]) : Object.entries(obj)
 
       return (
-        <div className={styles.friendlySection}>
-          {entries.map(([key, value], idx) => (
-            <div key={idx} className={styles.friendlyField}>
-              <div className={styles.friendlyKey}>{key}</div>
-              <div className={styles.friendlyValueContainer}>
-                {typeof value === 'object' && value !== null
-                  ? renderObject(value, depth + 1)
-                  : <div className={styles.friendlyValue}>{renderValue(value)}</div>
-                }
+        <div className={styles.friendlyContent}>
+          {entries.map(([key, value], idx) => {
+            const cardId = `field-${idx}`
+            return (
+              <div key={idx} className={styles.dataCardWrapper}>
+                {typeof value === 'object' && value !== null && !Array.isArray(value) ? (
+                  <div className={styles.nestedDataCard}>
+                    <div className={styles.nestedKey}>{key}</div>
+                    <div className={styles.nestedObject}>
+                      {Object.entries(value).map(([nestedKey, nestedValue], nestedIdx) => (
+                        <div key={nestedIdx} className={styles.nestedField}>
+                          <span className={styles.nestedKeyName}>{nestedKey}:</span>
+                          <span className={styles.nestedValue}>{renderValue(nestedValue)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  renderKeyValueField(key, value, cardId, null, null)
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )
     }
 
+    // Detect JWT and render specially
+    if (isJWT(data)) {
+      return {
+        id: 'formatted',
+        label: 'Formatted',
+        content: ({ onCopyCard, copiedCardId }) => renderFriendlyJWT(data, onCopyCard, copiedCardId),
+        contentType: 'component',
+      }
+    }
+
     return {
-      id: 'friendly',
-      label: 'Overview',
+      id: 'formatted',
+      label: 'Formatted',
       content: renderObject(data),
       contentType: 'component',
     }
