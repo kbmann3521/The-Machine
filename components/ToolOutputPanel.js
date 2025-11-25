@@ -68,7 +68,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         <div className={styles.header}>
           <h3>Output</h3>
         </div>
-        <div className={styles.content}></div>
+        <div className={styles.content}>
+          <div className={styles.placeholder}>
+            <p>Run the tool to see output here</p>
+          </div>
+        </div>
       </div>
     )
   }
