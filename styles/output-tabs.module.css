@@ -154,11 +154,14 @@
   .tab {
     padding: 10px 12px;
     font-size: 11px;
+    flex: 0 0 auto;
+    min-width: max-content;
   }
 
   .tabActions {
     padding: 6px 8px;
     gap: 4px;
+    flex-shrink: 0;
   }
 
   .minifyToggle {
@@ -174,18 +177,30 @@
   .friendlyContent {
     padding: 12px;
   }
+
+  .tabs::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .tabs::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
 }
 
 @media (max-width: 480px) {
   .tab {
     padding: 8px 10px;
     font-size: 10px;
+    flex: 0 0 auto;
+    min-width: max-content;
   }
 
   .tabActions {
     flex-direction: column;
     padding: 6px;
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .minifyToggle {
