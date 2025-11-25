@@ -281,10 +281,13 @@ export default function Home() {
             throw new Error('Invalid prediction data')
           }
 
-          const toolsWithMetadata = data.predictedTools.map(tool => ({
+          let toolsWithMetadata = data.predictedTools.map(tool => ({
             ...tool,
             ...TOOLS[tool.toolId],
           }))
+
+          // Filter out tools with show_in_recommendations = false
+          toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
 
           // Auto-select the best match tool ONLY on input addition when not in advanced mode
           if (toolsWithMetadata.length > 0) {
