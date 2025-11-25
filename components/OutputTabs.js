@@ -218,21 +218,28 @@ export default function OutputTabs({
     const friendlyTab = generateFriendlyTab(tabConfig[0].content)
     if (friendlyTab) {
       finalTabConfig = [friendlyTab, ...tabConfig]
-      // Set active tab to friendly/formatted if it's the first tab and no explicit active tab is set
-      if (activeTab === tabConfig[0].id) {
-        setActiveTab(friendlyTab.id)
-      }
     }
   }
 
+  // Initialize active tab on first render or when tabs change
+  useEffect(() => {
+    if (initializedRef.current && activeTab !== null) {
+      return // Don't reinitialize if already set by user
+    }
+
+    if (!finalTabConfig || finalTabConfig.length === 0) {
+      return
+    }
+
+    const firstTabId = finalTabConfig[0]?.id
+    if (!activeTab || !finalTabConfig.find(t => t.id === activeTab)) {
+      setActiveTab(firstTabId)
+      initializedRef.current = true
+    }
+  }, [finalTabConfig, activeTab])
+
   if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
-  }
-
-  // Set initial active tab to first tab if default doesn't exist
-  const firstTabId = finalTabConfig[0]?.id
-  if (!finalTabConfig.find(t => t.id === activeTab)) {
-    setActiveTab(firstTabId)
   }
 
   const activeTabConfig = finalTabConfig.find(t => t.id === activeTab)
