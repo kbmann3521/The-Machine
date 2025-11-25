@@ -370,13 +370,20 @@
   gap: 16px;
 }
 
+.outputHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border, #ddd);
+}
+
 .outputTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-text-primary, #000);
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--color-border, #ddd);
 }
 
 .emptyOutput {
