@@ -375,28 +375,23 @@ export default function Home() {
       try {
         let textToUse = inputText || ''
 
-        // For tools that don't require input, try to get an example
-        const noInputRequiredTools = [
-          'random-string-generator',
-          'variable-name-generator',
-          'function-name-generator',
-          'api-endpoint-generator',
-          'lorem-ipsum-generator',
-        ]
-
-        if (!textToUse && noInputRequiredTools.includes(tool.toolId)) {
-          const example = getToolExample(tool.toolId, {})
+        // If no input, try to get an example/placeholder for any tool
+        if (!textToUse && !imagePreview) {
+          const example = getToolExample(tool.toolId, config)
           if (example) {
             textToUse = example
           } else {
+            // No input and no example available - don't run the tool
             setToolLoading(false)
-            return // Don't run tool if no input and no example
+            setOutputResult(null)
+            return
           }
         }
 
-        // If still no input, don't run the tool
+        // If still no input and no image, don't run the tool
         if (!textToUse && !imagePreview) {
           setToolLoading(false)
+          setOutputResult(null)
           return
         }
 
