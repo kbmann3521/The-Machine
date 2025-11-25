@@ -123,7 +123,7 @@ export default async function handler(req, res) {
           category: toolData.category || 'general',
           inputTypes: toolData.inputTypes || ['text'],
           outputType: toolData.outputType || 'text',
-          showInRecommendations: toolData.show_in_recommendations !== false,
+          show_in_recommendations: toolData.show_in_recommendations !== false,
           detailedDescription: toolData.detailedDescription || null,
           configSchema: toolData.configSchema || [],
           example: toolData.example || '',
