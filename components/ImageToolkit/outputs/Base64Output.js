@@ -8,12 +8,8 @@ export default function Base64Output({ result }) {
       {
         id: 'placeholder',
         label: 'Preview',
-        content: (
-          <div className={styles.placeholder}>
-            <p>Upload an image to see Base64 preview</p>
-          </div>
-        ),
-        contentType: 'component',
+        content: 'Upload an image to see Base64 preview',
+        contentType: 'text',
       },
       {
         id: 'base64-placeholder',
