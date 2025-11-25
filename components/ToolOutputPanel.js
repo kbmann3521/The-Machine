@@ -661,7 +661,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = [
         {
           id: 'validation',
-          label: `Validation (${displayResult.isValid ? '✓' : '✗'})`,
+          label: `Validation (${displayResult.isValid ? '��' : '✗'})`,
           content: validationContent,
           contentType: 'component',
         },
@@ -1417,9 +1417,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       // Only render text content if we have it for the current section
       if (textContent) {
         return (
-          <pre className={styles.textOutput}>
-            <code>{textContent}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'output',
+                label: 'Output',
+                content: textContent,
+                contentType: 'text',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
 
@@ -1429,21 +1437,37 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return null
       }
 
-      // Text Diff - show JSON only
+      // Text Diff - show JSON with OutputTabs
       if (activeToolkitSection === 'textDiff' && displayResult.textDiff) {
         return (
-          <pre className={styles.jsonOutput}>
-            <code>{JSON.stringify(displayResult.textDiff, null, 2)}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult.textDiff,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
 
-      // Word Frequency - show JSON only
+      // Word Frequency - show JSON with OutputTabs
       if (activeToolkitSection === 'wordFrequency' && displayResult.wordFrequency) {
         return (
-          <pre className={styles.jsonOutput}>
-            <code>{JSON.stringify(displayResult.wordFrequency, null, 2)}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult.wordFrequency,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
     }
