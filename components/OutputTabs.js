@@ -393,7 +393,7 @@ export default function OutputTabs({
             {finalTabConfig.map(tab => (
               <button
                 key={tab.id}
-                className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+                className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}
