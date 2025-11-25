@@ -18,9 +18,9 @@ export default function OutputTabs({
   }
 
   const handleCopy = async () => {
-    const textToCopy = activeTab === 'friendly'
-      ? friendlyView?.innerText || JSON.stringify(jsonData)
-      : getJsonString()
+    const textToCopy = activeTab === 'json'
+      ? getJsonString()
+      : JSON.stringify(jsonData)
 
     try {
       await navigator.clipboard.writeText(textToCopy)
