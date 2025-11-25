@@ -258,7 +258,7 @@ export default function OutputTabs({
       <div className={styles.outputTabsContainer}>
         <div className={styles.tabsHeader}>
           <div className={styles.tabs}>
-            {tabConfig.map(tab => (
+            {finalTabConfig.map(tab => (
               <button
                 key={tab.id}
                 className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
