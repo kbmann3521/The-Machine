@@ -62,7 +62,7 @@ export default async function handler(req, res) {
                 category: tool.category || TOOLS[tool.id]?.category || 'general',
                 inputTypes: tool.input_types || TOOLS[tool.id]?.inputTypes || ['text'],
                 outputType: tool.output_type || TOOLS[tool.id]?.outputType || 'text',
-                showInRecommendations: tool.show_in_recommendations !== false,
+                show_in_recommendations: tool.show_in_recommendations !== false,
                 // Include detailed description from local TOOLS if available
                 detailedDescription: TOOLS[tool.id]?.detailedDescription || null,
                 configSchema: TOOLS[tool.id]?.configSchema || [],
