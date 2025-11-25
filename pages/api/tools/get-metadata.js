@@ -7,6 +7,13 @@ let cacheTimestamp = 0
 const CACHE_TTL = 30 * 1000 // 30 seconds - short cache for visibility changes
 
 export default async function handler(req, res) {
+  // Allow cache clearing via ?clearCache=true
+  if (req.query.clearCache === 'true') {
+    cachedToolMetadata = null
+    cacheTimestamp = 0
+    console.log('Tool metadata cache cleared')
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
