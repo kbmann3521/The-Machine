@@ -1090,29 +1090,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h3>Output</h3>
-        <div className={`${styles.buttonContainer} ${(displayResult && !loading && !error) ? styles.visible : styles.hidden}`}>
-          {displayResult?.resizedImage ? (
-            <button
-              className="copy-action"
-              onClick={handleDownloadImage}
-              title="Download resized image"
-            >
-              ⬇ Download
-            </button>
-          ) : (
-            <button
-              className="copy-action"
-              onClick={handleCopy}
-              title="Copy to clipboard"
-            >
-              {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
-            </button>
-          )}
-        </div>
-      </div>
-
       <div className={`${styles.content} ${loading ? styles.isLoading : ''}`}>
         {renderOutput()}
       </div>
