@@ -64,9 +64,6 @@ export default function OutputTabs({
 
   return (
     <div className={styles.outputTabsWrapper}>
-      <div className={styles.outputHeader}>
-        <h3 className={styles.outputTitle}>{title}</h3>
-      </div>
       <div className={styles.outputTabsContainer}>
         <div className={styles.tabsHeader}>
           <div className={styles.tabs}>
