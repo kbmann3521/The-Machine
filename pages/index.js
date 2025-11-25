@@ -569,6 +569,30 @@ export default function Home() {
                       <FaCircleInfo className={styles.descriptionIcon} />
                     </button>
                   </div>
+
+                  <div className={styles.configSection}>
+                    {selectedTool?.toolId === 'ip-address-toolkit' ? (
+                      <IPToolkitConfigPanel />
+                    ) : (
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                      />
+                    )}
+                  </div>
                 </>
               )}
             </div>
