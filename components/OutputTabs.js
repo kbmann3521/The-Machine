@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/output-tabs.module.css'
-import JsonFormatter from './JsonFormatter'
 
 export default function OutputTabs({
   tabs = null,
@@ -15,49 +14,6 @@ export default function OutputTabs({
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
-
-  // Support both old API (friendlyView + jsonData) and new API (tabs array)
-  let tabConfig = tabs
-  if (!tabs && (friendlyView || jsonData)) {
-    // Legacy mode: construct tabs from friendlyView and jsonData
-    tabConfig = []
-    if (friendlyView) {
-      tabConfig.push({
-        id: 'friendly',
-        label: 'Friendly',
-        content: friendlyView,
-        contentType: 'component',
-      })
-    }
-    if (jsonData) {
-      tabConfig.push({
-        id: 'json',
-        label: 'JSON',
-        content: jsonData,
-        contentType: 'json',
-      })
-    }
-  }
-
-  if (!finalTabConfig || finalTabConfig.length === 0) {
-    return null
-  }
-
-  // Set initial active tab to first tab if default doesn't exist
-  const firstTabId = finalTabConfig[0]?.id
-  if (!finalTabConfig.find(t => t.id === activeTab)) {
-    setActiveTab(firstTabId)
-  }
-
-  const activeTabConfig = finalTabConfig.find(t => t.id === activeTab)
-
-  const getJsonString = () => {
-    if (!activeTabConfig?.content) return ''
-    const json = typeof activeTabConfig.content === 'string'
-      ? activeTabConfig.content
-      : JSON.stringify(activeTabConfig.content, null, 2)
-    return isMinified ? JSON.stringify(JSON.parse(json)) : json
-  }
 
   // Generate a user-friendly view from JSON data
   const generateFriendlyTab = (jsonContent) => {
@@ -122,9 +78,32 @@ export default function OutputTabs({
     }
   }
 
+  // Support both old API (friendlyView + jsonData) and new API (tabs array)
+  let tabConfig = tabs
+  if (!tabs && (friendlyView || jsonData)) {
+    // Legacy mode: construct tabs from friendlyView and jsonData
+    tabConfig = []
+    if (friendlyView) {
+      tabConfig.push({
+        id: 'friendly',
+        label: 'Friendly',
+        content: friendlyView,
+        contentType: 'component',
+      })
+    }
+    if (jsonData) {
+      tabConfig.push({
+        id: 'json',
+        label: 'JSON',
+        content: jsonData,
+        contentType: 'json',
+      })
+    }
+  }
+
   // Auto-insert friendly tab if tabs only contain JSON
   let finalTabConfig = tabConfig
-  if (tabConfig.length === 1 && tabConfig[0].contentType === 'json') {
+  if (tabConfig && tabConfig.length === 1 && tabConfig[0].contentType === 'json') {
     const friendlyTab = generateFriendlyTab(tabConfig[0].content)
     if (friendlyTab) {
       finalTabConfig = [friendlyTab, ...tabConfig]
@@ -133,6 +112,26 @@ export default function OutputTabs({
         setActiveTab('friendly')
       }
     }
+  }
+
+  if (!finalTabConfig || finalTabConfig.length === 0) {
+    return null
+  }
+
+  // Set initial active tab to first tab if default doesn't exist
+  const firstTabId = finalTabConfig[0]?.id
+  if (!finalTabConfig.find(t => t.id === activeTab)) {
+    setActiveTab(firstTabId)
+  }
+
+  const activeTabConfig = finalTabConfig.find(t => t.id === activeTab)
+
+  const getJsonString = () => {
+    if (!activeTabConfig?.content) return ''
+    const json = typeof activeTabConfig.content === 'string'
+      ? activeTabConfig.content
+      : JSON.stringify(activeTabConfig.content, null, 2)
+    return isMinified ? JSON.stringify(JSON.parse(json)) : json
   }
 
   const handleCopy = async () => {
