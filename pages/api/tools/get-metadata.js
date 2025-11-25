@@ -70,9 +70,10 @@ export default async function handler(req, res) {
       }
     }
 
-    // If we don't have tool metadata from Supabase, use local TOOLS config
-    if (Object.keys(toolMetadata).length === 0) {
-      Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+    // Merge local TOOLS with Supabase tools - local tools fill in gaps and provide details
+    Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+      if (!toolMetadata[toolId]) {
+        // Tool not in Supabase, add it from local config
         toolMetadata[toolId] = {
           id: toolId,
           name: toolData.name || toolId,
@@ -85,8 +86,8 @@ export default async function handler(req, res) {
           configSchema: toolData.configSchema || [],
           example: toolData.example || '',
         }
-      })
-    }
+      }
+    })
 
     // Cache the result
     cachedToolMetadata = toolMetadata
