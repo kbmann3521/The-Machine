@@ -21,22 +21,23 @@
 .tabsHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   padding: 0;
   border-bottom: 1px solid var(--color-border, #ddd);
   background-color: var(--color-background-secondary, #f9f9f9);
-  min-width: 0;
+  gap: 0;
 }
 
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
 }
 
 .tab {
-  flex: 1;
   padding: 12px 16px;
   border: none;
   background-color: transparent;
@@ -64,9 +65,12 @@
 .tabActions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   padding: 8px 12px;
   border-left: 1px solid var(--color-border, #ddd);
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
 .minifyToggle {
@@ -150,19 +154,16 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
+/* Tablet and smaller screens */
+@media (max-width: 900px) {
   .tab {
     padding: 10px 12px;
     font-size: 11px;
-    flex: 0 0 auto;
-    min-width: max-content;
   }
 
   .tabActions {
-    padding: 6px 8px;
-    gap: 4px;
-    flex-shrink: 0;
+    padding: 8px 10px;
+    gap: 6px;
   }
 
   .minifyToggle {
@@ -178,35 +179,22 @@
   .friendlyContent {
     padding: 12px;
   }
-
-  .tabs::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .tabs::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 2px;
-  }
 }
 
+/* Mobile */
 @media (max-width: 480px) {
   .tab {
     padding: 8px 10px;
     font-size: 10px;
-    flex: 0 0 auto;
-    min-width: max-content;
   }
 
   .tabActions {
-    flex-direction: column;
-    padding: 6px;
-    gap: 6px;
-    flex-shrink: 0;
+    padding: 6px 8px;
+    gap: 4px;
   }
 
   .minifyToggle {
-    width: 100%;
-    padding: 6px 8px;
+    padding: 5px 8px;
     font-size: 9px;
   }
 }
