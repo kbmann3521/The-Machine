@@ -1,3 +1,23 @@
+.outputTabsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  min-height: 100%;
+}
+
+.outputHeader {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border, #ddd);
+}
+
+.outputTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary, #000);
+}
+
 .outputTabsContainer {
   display: flex;
   flex-direction: column;
@@ -6,6 +26,8 @@
   border-radius: 6px;
   background-color: var(--color-background-primary, #fff);
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .tabsHeader {
