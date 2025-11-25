@@ -549,6 +549,22 @@ export default function Home() {
 
               {selectedTool && (
                 <>
+                  <div className={styles.toolHeader}>
+                    <div>
+                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
+                      {selectedTool.description && (
+                        <p className={styles.toolDescription}>{selectedTool.description}</p>
+                      )}
+                    </div>
+                    <button
+                      className={styles.descriptionToggle}
+                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                      aria-label="Toggle tool description"
+                      title="View tool description"
+                    >
+                      <FaCircleInfo className={styles.descriptionIcon} />
+                    </button>
+                  </div>
                   <div className={styles.configSection}>
                     {selectedTool?.toolId === 'ip-address-toolkit' ? (
                       <IPToolkitConfigPanel activeMode={ipToolkitMode} onModeChange={setIpToolkitMode} />
@@ -572,14 +588,6 @@ export default function Home() {
                       />
                     )}
                   </div>
-                  <button
-                    className={styles.descriptionToggle}
-                    onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                    aria-label="Toggle tool description"
-                    title="View tool description"
-                  >
-                    <FaCircleInfo className={styles.descriptionIcon} />
-                  </button>
                 </>
               )}
             </div>
