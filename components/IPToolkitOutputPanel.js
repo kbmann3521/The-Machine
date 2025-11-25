@@ -5,17 +5,17 @@ import CIDROutput from './IPAddressToolkit/outputs/CIDROutput'
 import DiagnosticsOutput from './IPAddressToolkit/outputs/DiagnosticsOutput'
 import styles from '../styles/ip-toolkit.module.css'
 
-export default function IPToolkitOutputPanel({ activeMode = 'single-ip' }) {
+export default function IPToolkitOutputPanel({ activeMode = 'single-ip', result }) {
   const renderOutputPanel = () => {
     switch (activeMode) {
       case 'single-ip':
-        return <SingleIPOutput />
+        return <SingleIPOutput result={result} />
       case 'bulk':
-        return <BulkOutput />
+        return <BulkOutput result={result} />
       case 'cidr-subnet':
-        return <CIDROutput />
+        return <CIDROutput result={result} />
       case 'diagnostics':
-        return <DiagnosticsOutput />
+        return <DiagnosticsOutput result={result} />
       default:
         return null
     }
