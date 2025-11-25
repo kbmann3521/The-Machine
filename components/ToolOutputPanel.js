@@ -159,14 +159,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = []
 
-    // Only show formatted tab if there's valid formatted output
-    const formattedCode = displayResult.formatted && typeof displayResult.formatted === 'string' ? displayResult.formatted.trim() : ''
-    if (formattedCode && formattedCode !== '{}') {
+    // Always show formatted tab - with either the formatted code or an error message
+    if (displayResult.formatted && typeof displayResult.formatted === 'string' && displayResult.formatted.trim()) {
       tabs.push({
         id: 'formatted',
         label: 'Formatted',
         content: displayResult.formatted,
         contentType: 'code',
+      })
+    } else {
+      // Show placeholder when formatted output is unavailable
+      const placeholderContent = (
+        <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+          Formatted output will appear here once you run the formatter on valid code.
+        </div>
+      )
+      tabs.push({
+        id: 'formatted',
+        label: 'Formatted',
+        content: placeholderContent,
+        contentType: 'component',
       })
     }
 
