@@ -1613,7 +1613,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
 
       if (displayResult.type === 'table' && Array.isArray(displayResult.data)) {
-        return (
+        const tableComponent = (
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
@@ -1635,12 +1635,39 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             </table>
           </div>
         )
+        return (
+          <OutputTabs
+            tabs={[
+              {
+                id: 'formatted',
+                label: 'Formatted',
+                content: tableComponent,
+                contentType: 'component',
+              },
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
+        )
       }
 
       return (
-        <pre className={styles.jsonOutput}>
-          <code>{JSON.stringify(displayResult, null, 2)}</code>
-        </pre>
+        <OutputTabs
+          tabs={[
+            {
+              id: 'json',
+              label: 'JSON',
+              content: displayResult,
+              contentType: 'json',
+            },
+          ]}
+          showCopyButton={true}
+        />
       )
     }
   }
