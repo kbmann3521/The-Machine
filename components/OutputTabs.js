@@ -59,6 +59,82 @@ export default function OutputTabs({
     return isMinified ? JSON.stringify(JSON.parse(json)) : json
   }
 
+  // Generate a user-friendly view from JSON data
+  const generateFriendlyTab = (jsonContent) => {
+    let data = jsonContent
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data)
+      } catch (e) {
+        return null
+      }
+    }
+
+    const renderValue = (val) => {
+      if (val === null) return 'null'
+      if (typeof val === 'boolean') return val ? 'Yes' : 'No'
+      if (typeof val === 'number') return val.toString()
+      if (typeof val === 'string') return val
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '(empty array)'
+        if (typeof val[0] === 'object') {
+          return `${val.length} item${val.length !== 1 ? 's' : ''}`
+        }
+        return val.join(', ')
+      }
+      if (typeof val === 'object') {
+        const keys = Object.keys(val)
+        return `${keys.length} field${keys.length !== 1 ? 's' : ''}`
+      }
+      return String(val)
+    }
+
+    const renderObject = (obj, depth = 0) => {
+      if (!obj || typeof obj !== 'object') {
+        return <div className={styles.friendlyValue}>{renderValue(obj)}</div>
+      }
+
+      const isArray = Array.isArray(obj)
+      const entries = isArray ? obj.map((v, i) => [i.toString(), v]) : Object.entries(obj)
+
+      return (
+        <div className={styles.friendlySection}>
+          {entries.map(([key, value], idx) => (
+            <div key={idx} className={styles.friendlyField}>
+              <div className={styles.friendlyKey}>{key}</div>
+              <div className={styles.friendlyValueContainer}>
+                {typeof value === 'object' && value !== null
+                  ? renderObject(value, depth + 1)
+                  : <div className={styles.friendlyValue}>{renderValue(value)}</div>
+                }
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return {
+      id: 'friendly',
+      label: 'Overview',
+      content: renderObject(data),
+      contentType: 'component',
+    }
+  }
+
+  // Auto-insert friendly tab if tabs only contain JSON
+  let finalTabConfig = tabConfig
+  if (tabConfig.length === 1 && tabConfig[0].contentType === 'json') {
+    const friendlyTab = generateFriendlyTab(tabConfig[0].content)
+    if (friendlyTab) {
+      finalTabConfig = [friendlyTab, ...tabConfig]
+      // Set active tab to friendly if it's the first tab and no explicit active tab is set
+      if (activeTab === tabConfig[0].id) {
+        setActiveTab('friendly')
+      }
+    }
+  }
+
   const handleCopy = async () => {
     let textToCopy = ''
 
