@@ -223,6 +223,7 @@ export default function OutputTabs({
   // Initialize active tab when tabs config changes
   useEffect(() => {
     if (!finalTabConfig || finalTabConfig.length === 0) {
+      setActiveTab(null)
       return
     }
 
@@ -236,7 +237,7 @@ export default function OutputTabs({
     if (!finalTabConfig.find(t => t.id === activeTab)) {
       setActiveTab(finalTabConfig[0].id)
     }
-  }, [finalTabConfig.map(t => t.id).join(',')]) // Only depend on tab IDs
+  }, [tabs]) // Depend on input tabs prop
 
   if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
