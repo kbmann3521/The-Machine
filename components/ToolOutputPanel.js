@@ -157,6 +157,181 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
+    const tabs = []
+
+    if (displayResult.formatted) {
+      tabs.push({
+        id: 'formatted',
+        label: 'Formatted',
+        content: displayResult.formatted,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.minified) {
+      tabs.push({
+        id: 'minified',
+        label: 'Minified',
+        content: displayResult.minified,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.obfuscated) {
+      tabs.push({
+        id: 'obfuscated',
+        label: 'Obfuscated',
+        content: displayResult.obfuscated,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.errors) {
+      const syntaxContent = (
+        <>
+          {displayResult.errors.status === 'valid' ? (
+            <div className={jsStyles.success}>✓ No syntax errors found!</div>
+          ) : (
+            <div className={jsStyles.errorsList}>
+              {displayResult.errors.errors && displayResult.errors.errors.map((error, idx) => (
+                <div key={idx} className={jsStyles.error}>
+                  <div className={jsStyles.errorMessage}>
+                    <strong>Line {error.line}, Column {error.column}</strong>: {error.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'syntax',
+        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '✗'})`,
+        content: syntaxContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.linting) {
+      const lintContent = (
+        <>
+          {displayResult.linting.warnings && displayResult.linting.warnings.length > 0 ? (
+            <div className={jsStyles.warningsList}>
+              {displayResult.linting.warnings.map((warning, idx) => (
+                <div key={idx} className={`${jsStyles.warning} ${jsStyles[warning.level || 'info']}`}>
+                  <div className={jsStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
+                  <div className={jsStyles.warningMessage}>{warning.message}</div>
+                  {warning.suggestion && (
+                    <div className={jsStyles.warningSuggestion}>💡 {warning.suggestion}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={jsStyles.success}>✓ No linting warnings found!</div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'linting',
+        label: `Linting (${displayResult.linting.total})`,
+        content: lintContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.analysis) {
+      const analysisContent = (
+        <>
+          <div className={jsStyles.analysisGrid}>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Lines</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.lineCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Characters</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.characterCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Functions</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.functionCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Arrow Functions</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.arrowFunctionCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Variables</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.variableCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Imports</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.importCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Exports</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.exportCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Complexity</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.cyclomaticComplexity || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Classes</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.classCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Longest Line</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.longestLine || 0}</span>
+            </div>
+          </div>
+        </>
+      )
+      tabs.push({
+        id: 'analysis',
+        label: 'Analysis',
+        content: analysisContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.security) {
+      const securityContent = (
+        <>
+          <div style={{ marginBottom: '10px' }}>
+            <span className={`${jsStyles.securityBadge} ${jsStyles[displayResult.security.riskLevel || 'safe']}`}>
+              Risk Level: {displayResult.security.riskLevel?.toUpperCase() || 'SAFE'}
+            </span>
+          </div>
+          {displayResult.security.issues && displayResult.security.issues.length > 0 ? (
+            <div className={jsStyles.issuesList}>
+              {displayResult.security.issues.map((issue, idx) => (
+                <div key={idx} className={jsStyles.issueItem}>
+                  <strong>{issue.pattern}</strong> - Severity: {issue.severity}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={jsStyles.success}>✓ No security issues detected!</div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'security',
+        label: 'Security',
+        content: securityContent,
+        contentType: 'component',
+      })
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderJsFormatterOutputOld = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
     return (
       <div className={jsStyles.jsFormatterContainer}>
         {/* Formatted JavaScript Section */}
