@@ -396,7 +396,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.lint) {
       const lintContent = (
-        <div className={sqlStyles.sectionContent} style={{ padding: '16px' }}>
+        <>
           {displayResult.lint.warnings && displayResult.lint.warnings.length > 0 ? (
             <div className={sqlStyles.warningsList}>
               {displayResult.lint.warnings.map((warning, idx) => (
@@ -412,7 +412,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           ) : (
             <div className={sqlStyles.success}>✓ No lint warnings found!</div>
           )}
-        </div>
+        </>
       )
       tabs.push({
         id: 'lint',
@@ -704,7 +704,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                         <div className={sqlStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
                         <div className={sqlStyles.warningMessage}>{warning.message}</div>
                         {warning.suggestion && (
-                          <div className={sqlStyles.warningSuggestion}>💡 {warning.suggestion}</div>
+                          <div className={sqlStyles.warningSuggestion}>���� {warning.suggestion}</div>
                         )}
                       </div>
                     ))}
