@@ -1313,19 +1313,58 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  // Helper to wrap errors in OutputTabs format
+  const createErrorTab = (errorMsg) => {
+    return {
+      id: 'error',
+      label: 'Error',
+      content: errorMsg,
+      contentType: 'text',
+    }
+  }
+
+  // Helper to format JSON into a readable, modern layout
+  const formatJsonForDisplay = (data) => {
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data)
+      } catch (e) {
+        return data
+      }
+    }
+
+    const formatValue = (val, indent = 0) => {
+      const spaces = ' '.repeat(indent)
+      if (val === null) return 'null'
+      if (typeof val === 'boolean') return val.toString()
+      if (typeof val === 'number') return val.toString()
+      if (typeof val === 'string') return `"${val}"`
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '[]'
+        const items = val.map(v => formatValue(v, indent + 2))
+        return `[${items.join(', ')}]`
+      }
+      if (typeof val === 'object') {
+        const keys = Object.keys(val)
+        if (keys.length === 0) return '{}'
+        const lines = keys.map(k => {
+          const v = val[k]
+          return `${spaces}  "${k}": ${formatValue(v, indent + 2)}`
+        })
+        return `{\n${lines.join(',\n')}\n${spaces}}`
+      }
+      return String(val)
+    }
+
+    return formatValue(data)
+  }
+
   const renderOutput = () => {
-    if (error) {
+    // Check for top-level errors, but allow tools to handle them internally
+    if (error && !['jwt-decoder', 'sql-formatter', 'js-formatter', 'xml-formatter', 'json-formatter', 'color-converter'].includes(toolId)) {
       return (
         <div className={styles.error}>
           <strong>Error:</strong> {error}
-        </div>
-      )
-    }
-
-    if (displayResult?.error) {
-      return (
-        <div className={styles.error}>
-          <strong>Error:</strong> {displayResult.error}
         </div>
       )
     }
@@ -1359,9 +1398,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderColorConverterOutput()
     }
 
-    // Special handling for JWT Decoder
-    if (toolId === 'jwt-decoder' && displayResult) {
-      return renderJwtDecoderOutput()
+    // Special handling for JWT Decoder - handle errors inside tabs
+    if (toolId === 'jwt-decoder') {
+      const tabs = []
+      if (displayResult?.error || error) {
+        tabs.push(createErrorTab(displayResult?.error || error))
+        return <OutputTabs tabs={tabs} showCopyButton={true} />
+      }
+      if (displayResult && displayResult.decoded) {
+        return renderJwtDecoderOutput()
+      }
+      return null
     }
 
     // Special handling for text-toolkit sections that render as full-height text
