@@ -555,52 +555,14 @@
 }
 
 /* MOBILE RESPONSIVE */
-@media (max-width: 1024px) {
-  .mainContent {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .configPanel,
-  .outputPanel {
-    max-height: none;
-  }
-}
-
 @media (max-width: 768px) {
-  .container {
-    padding: 16px;
-    gap: 16px;
-  }
-
-  .header {
-    padding: 16px;
-  }
-
-  .title {
-    font-size: 22px;
-  }
-
-  .description {
-    font-size: 13px;
-  }
-
-  .tabs {
-    gap: 4px;
-  }
-
   .tab {
-    padding: 10px 12px;
-    font-size: 12px;
+    padding: 8px 10px;
+    font-size: 11px;
   }
 
   .tabIcon {
     display: none;
-  }
-
-  .configPanel,
-  .outputPanel {
-    padding: 16px;
   }
 
   .card {
@@ -627,30 +589,17 @@
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding: 12px;
-    gap: 12px;
-  }
-
-  .header {
-    padding: 12px;
-  }
-
-  .title {
-    font-size: 18px;
-  }
-
-  .tabs {
-    -webkit-overflow-scrolling: touch;
-  }
-
   .tab {
-    padding: 8px 10px;
-    font-size: 11px;
+    padding: 6px 8px;
+    font-size: 10px;
   }
 
   .tabLabel {
     display: none;
+  }
+
+  .tabIcon {
+    font-size: 12px;
   }
 
   .detectionBubble {
@@ -659,15 +608,6 @@
 
   .detectionText {
     flex-direction: column;
-  }
-
-  .mainContent {
-    gap: 12px;
-  }
-
-  .configPanel,
-  .outputPanel {
-    padding: 12px;
   }
 
   .runButton {
