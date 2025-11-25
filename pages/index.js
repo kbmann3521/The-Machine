@@ -109,13 +109,46 @@ export default function Home() {
 
   useEffect(() => {
     const initializeTools = async () => {
-      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-        toolId,
-        name: toolData.name,
-        description: toolData.description,
-        similarity: 0, // No match (white) when no input provided
-        ...toolData,
-      }))
+      let allTools = []
+
+      // First, try to fetch tool metadata from Supabase
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 4000) // 4 second timeout
+
+        const response = await fetch('/api/tools/get-metadata', {
+          signal: controller.signal,
+          headers: { 'Content-Type': 'application/json' },
+        })
+        clearTimeout(timeoutId)
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data?.tools && typeof data.tools === 'object') {
+            // Use metadata from Supabase
+            allTools = Object.entries(data.tools).map(([toolId, toolData]) => ({
+              toolId,
+              similarity: 0, // No match (white) when no input provided
+              ...toolData,
+              // Merge with local TOOLS for any missing properties
+              ...(TOOLS[toolId] || {}),
+            }))
+          }
+        }
+      } catch (error) {
+        console.debug('Tool metadata fetch failed, using local fallback:', error?.message)
+      }
+
+      // If no tools from Supabase, fall back to local TOOLS
+      if (allTools.length === 0) {
+        allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+          toolId,
+          name: toolData.name,
+          description: toolData.description,
+          similarity: 0, // No match (white) when no input provided
+          ...toolData,
+        }))
+      }
 
       // Fetch visibility flags from Supabase - with improved error handling
       let visibilityMap = {}
