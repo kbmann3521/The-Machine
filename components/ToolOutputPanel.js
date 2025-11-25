@@ -980,6 +980,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderJsFormatterOutput()
     }
 
+    // Special handling for XML Formatter
+    if (toolId === 'xml-formatter' && (typeof displayResult === 'string' || displayResult.result || displayResult.formatted)) {
+      return renderXmlFormatterOutput()
+    }
+
     // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
