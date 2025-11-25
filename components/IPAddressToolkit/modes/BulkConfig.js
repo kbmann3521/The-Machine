@@ -182,10 +182,6 @@ export default function BulkConfig({ configState, setConfigState }) {
         </div>
       </div>
 
-      {/* Run Button */}
-      <button className={styles.runButton}>
-        Run Bulk Processing
-      </button>
     </div>
   )
 }
