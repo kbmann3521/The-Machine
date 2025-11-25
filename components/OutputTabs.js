@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/output-tabs.module.css'
+import JsonFormatter from './JsonFormatter'
 
 export default function OutputTabs({
   tabs = null,
