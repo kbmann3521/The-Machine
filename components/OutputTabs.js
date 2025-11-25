@@ -220,22 +220,23 @@ export default function OutputTabs({
     }
   }
 
-  // Initialize active tab on first render or when tabs change
+  // Initialize active tab when tabs config changes
   useEffect(() => {
-    if (initializedRef.current && activeTab !== null) {
-      return // Don't reinitialize if already set by user
-    }
-
     if (!finalTabConfig || finalTabConfig.length === 0) {
       return
     }
 
-    const firstTabId = finalTabConfig[0]?.id
-    if (!activeTab || !finalTabConfig.find(t => t.id === activeTab)) {
-      setActiveTab(firstTabId)
-      initializedRef.current = true
+    // If no tab is selected, set to first tab
+    if (!activeTab) {
+      setActiveTab(finalTabConfig[0].id)
+      return
     }
-  }, [finalTabConfig, activeTab])
+
+    // If current active tab is not in config, switch to first tab
+    if (!finalTabConfig.find(t => t.id === activeTab)) {
+      setActiveTab(finalTabConfig[0].id)
+    }
+  }, [finalTabConfig.map(t => t.id).join(',')]) // Only depend on tab IDs
 
   if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
