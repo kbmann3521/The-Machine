@@ -42,7 +42,7 @@ export default function IPToolkitConfigPanel({ activeMode = 'single-ip', onModeC
               <button
                 key={mode.id}
                 className={`${styles.tab} ${activeMode === mode.id ? styles.tabActive : ''}`}
-                onClick={() => setActiveMode(mode.id)}
+                onClick={() => onModeChange?.(mode.id)}
                 title={mode.label}
               >
                 <IconComponent className={styles.tabIcon} />
