@@ -182,7 +182,7 @@ export default function OutputTabs({
 
     return {
       id: 'formatted',
-      label: 'Formatted',
+      label: 'Output',
       content: renderObject(data),
       contentType: 'component',
     }
