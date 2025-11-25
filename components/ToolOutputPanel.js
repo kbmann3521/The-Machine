@@ -492,6 +492,58 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
 
+  const renderColorConverterOutput = () => {
+    if (!displayResult) return null
+
+    const colorFormats = [
+      { label: 'HEX', value: displayResult.hex },
+      { label: 'RGB', value: displayResult.rgb },
+      { label: 'HSL', value: displayResult.hsl },
+      { label: 'CMYK', value: displayResult.cmyk },
+      { label: 'HSV', value: displayResult.hsv },
+      { label: 'Detected Format', value: displayResult.detectedFormat },
+    ].filter(f => f.value)
+
+    if (colorFormats.length === 0) return null
+
+    const friendlyView = ({ onCopyCard, copiedCardId }) => (
+      <div className={styles.structuredOutput}>
+        {colorFormats.map((format, idx) => (
+          <div key={idx} className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>{format.label}</span>
+              <button
+                className="copy-action"
+                onClick={() => onCopyCard(format.value, format.label)}
+                title={`Copy ${format.label}`}
+              >
+                {copiedCardId === format.label ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue}>{format.value}</div>
+          </div>
+        ))}
+      </div>
+    )
+
+    const tabs = [
+      {
+        id: 'friendly',
+        label: 'Formats',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
   const renderXmlFormatterOutput = () => {
     // Handle string output (beautified, minified, cleaned XML)
     if (typeof displayResult === 'string') {
