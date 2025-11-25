@@ -4,7 +4,7 @@ import { TOOLS } from '../../../lib/tools'
 // Cache tool metadata with TTL
 let cachedToolMetadata = null
 let cacheTimestamp = 0
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 30 * 1000 // 30 seconds - short cache for visibility changes
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
