@@ -1366,6 +1366,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderColorConverterOutput()
     }
 
+    // Special handling for JWT Decoder
+    if (toolId === 'jwt-decoder' && displayResult && displayResult.decoded) {
+      return renderJwtDecoderOutput()
+    }
+
     // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
