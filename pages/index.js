@@ -628,24 +628,24 @@ export default function Home() {
 
           <main className={styles.mainContent}>
             <div className={styles.content}>
-          {selectedTool?.toolId === 'ip-address-toolkit' ? (
-            <IPAddressToolkit />
-          ) : (
-            <div className={styles.toolContainer}>
-              <div className={styles.leftPanel}>
-                <div className={styles.inputSection}>
-                  <UniversalInput
-                    onInputChange={handleInputChange}
-                    onImageChange={handleImageChange}
-                    selectedTool={selectedTool}
-                    configOptions={configOptions}
-                    getToolExample={getToolExample}
-                  />
-                </div>
+          <div className={styles.toolContainer}>
+            <div className={styles.leftPanel}>
+              <div className={styles.inputSection}>
+                <UniversalInput
+                  onInputChange={handleInputChange}
+                  onImageChange={handleImageChange}
+                  selectedTool={selectedTool}
+                  configOptions={configOptions}
+                  getToolExample={getToolExample}
+                />
+              </div>
 
-                {selectedTool && (
-                  <div className={styles.configSection}>
-                    <div className={styles.configHeader}>
+              {selectedTool && (
+                <div className={styles.configSection}>
+                  <div className={styles.configHeader}>
+                    {selectedTool?.toolId === 'ip-address-toolkit' ? (
+                      <IPToolkitConfigPanel />
+                    ) : (
                       <ToolConfigPanel
                         tool={selectedTool}
                         onConfigChange={handleConfigChange}
@@ -663,21 +663,25 @@ export default function Home() {
                         removeExtrasConfig={removeExtrasConfig}
                         onRemoveExtrasConfigChange={setRemoveExtrasConfig}
                       />
-                      <button
-                        className={styles.descriptionToggle}
-                        onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                        aria-label="Toggle tool description"
-                        title="View tool description"
-                      >
-                        <span className={styles.descriptionIcon}>ℹ</span>
-                      </button>
-                    </div>
+                    )}
+                    <button
+                      className={styles.descriptionToggle}
+                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                      aria-label="Toggle tool description"
+                      title="View tool description"
+                    >
+                      <span className={styles.descriptionIcon}>ℹ</span>
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
 
-              <div className={styles.rightPanel}>
-                <div className={styles.outputSection}>
+            <div className={styles.rightPanel}>
+              <div className={styles.outputSection}>
+                {selectedTool?.toolId === 'ip-address-toolkit' ? (
+                  <IPToolkitOutputPanel activeMode={ipToolkitMode} />
+                ) : (
                   <ToolOutputPanel
                     result={outputResult}
                     outputType={selectedTool?.outputType}
@@ -686,10 +690,10 @@ export default function Home() {
                     toolId={selectedTool?.toolId}
                     activeToolkitSection={activeToolkitSection}
                   />
-                </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       </main>
         </div>
