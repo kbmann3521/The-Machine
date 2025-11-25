@@ -644,7 +644,7 @@ export default function Home() {
                 <div className={styles.configSection}>
                   <div className={styles.configHeader}>
                     {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                      <IPToolkitConfigPanel />
+                      <IPToolkitConfigPanel activeMode={ipToolkitMode} onModeChange={setIpToolkitMode} />
                     ) : (
                       <ToolConfigPanel
                         tool={selectedTool}
@@ -670,7 +670,7 @@ export default function Home() {
                       aria-label="Toggle tool description"
                       title="View tool description"
                     >
-                      <span className={styles.descriptionIcon}>ℹ</span>
+                      <span className={styles.descriptionIcon}>���</span>
                     </button>
                   </div>
                 </div>
