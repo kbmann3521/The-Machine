@@ -386,7 +386,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const tabs = []
 
     if (displayResult.formatted) {
-      const formattedContent = ({ onCopyCard }) => (
+      const formattedContent = ({ onCopyCard, copiedCardId }) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
           <pre className={sqlStyles.sqlCode} style={{ margin: 0 }}>
             <code>{displayResult.formatted}</code>
@@ -396,7 +396,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             onClick={() => onCopyCard(displayResult.formatted, 'formatted-sql')}
             title="Copy formatted SQL"
           >
-            {copiedField === 'formatted-sql' ? '✓ Copied' : <><FaCopy /> Copy</>}
+            {copiedCardId === 'formatted-sql' ? '✓ Copied' : <><FaCopy /> Copy</>}
           </button>
         </div>
       )
