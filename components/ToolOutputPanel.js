@@ -57,6 +57,35 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
 
+  // Special handling for image-toolkit - show OutputTabs even when empty
+  if (toolId === 'image-toolkit') {
+    if (displayResult?.mode === 'resize') {
+      const ResizeOutput = require('./ImageToolkit/outputs/ResizeOutput').default
+      return <ResizeOutput result={displayResult} />
+    }
+
+    if (displayResult?.mode === 'base64') {
+      const Base64Output = require('./ImageToolkit/outputs/Base64Output').default
+      return <Base64Output result={displayResult} />
+    }
+
+    // Default placeholder with OutputTabs design
+    const defaultTabs = [
+      {
+        id: 'default',
+        label: 'Output',
+        content: (
+          <div className={styles.placeholder}>
+            <p>Run the tool to see output here</p>
+          </div>
+        ),
+        contentType: 'component',
+      },
+    ]
+    const OutputTabs = require('./OutputTabs').default
+    return <OutputTabs tabs={defaultTabs} />
+  }
+
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
