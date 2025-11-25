@@ -160,7 +160,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const tabs = []
 
     // Only show formatted tab if there's valid formatted output and no critical errors
-    if (displayResult.formatted && displayResult.formatted !== '{}' && displayResult.formatted?.trim()) {
+    const formattedCode = displayResult.formatted && typeof displayResult.formatted === 'string' ? displayResult.formatted.trim() : ''
+    if (formattedCode && formattedCode !== '{}') {
       tabs.push({
         id: 'formatted',
         label: 'Formatted',
