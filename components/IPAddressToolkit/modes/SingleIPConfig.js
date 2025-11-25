@@ -1,4 +1,5 @@
 import React from 'react'
+import React from 'react'
 import { FaLock } from 'react-icons/fa6'
 import styles from '../../../styles/ip-toolkit.module.css'
 
