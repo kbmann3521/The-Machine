@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaLock, FaQuestion, FaMagic, FaTerminal, FaHeading, FaCalculator, FaGaugeHigh, FaDatabase, FaNetworkWired, FaStream, FaRuler, FaJava, FaEnvelope, FaKey, FaToggleOn, FaNetworkWire } from 'react-icons/fa6'
+import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaLock, FaQuestion, FaMagic, FaTerminal, FaHeading, FaCalculator, FaGaugeHigh, FaDatabase, FaNetworkWired, FaStream, FaRuler, FaJava, FaEnvelope, FaKey, FaToggleOn, FaNetworkWire, FaTrash, FaCheck } from 'react-icons/fa6'
 import { BsRegex } from 'react-icons/bs'
 import { ImCalculator } from 'react-icons/im'
 import styles from '../styles/tool-sidebar.module.css'
