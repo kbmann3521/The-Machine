@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaLock, FaQuestion, FaMagic, FaTerminal, FaHeading, FaCalculator, FaGaugeHigh, FaDatabase, FaNetworkWired, FaStream, FaRuler, FaJava, FaEnvelope, FaKey, FaToggleOn, FaNetworkWire } from 'react-icons/fa6'
+import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaLock, FaQuestion, FaMagic, FaTerminal, FaHeading, FaCalculator, FaGaugeHigh, FaDatabase, FaNetworkWired, FaStream, FaRuler, FaJava, FaEnvelope, FaKey, FaToggleOn, FaNetworkWire, FaTrash, FaCheck } from 'react-icons/fa6'
 import { BsRegex } from 'react-icons/bs'
 import { ImCalculator } from 'react-icons/im'
 import styles from '../styles/tool-sidebar.module.css'
@@ -64,6 +64,7 @@ const toolIcons = {
   'ip-validator': FaNetworkWired,
   'ip-integer-converter': FaNetworkWired,
   'ip-range-calculator': FaNetworkWired,
+  'ip-address-toolkit': FaNetworkWired,
 }
 
 const getScoreColor = (similarity) => {
@@ -83,8 +84,42 @@ const getScoreLabel = (similarity) => {
 
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [markedForDeletion, setMarkedForDeletion] = useState({})
+  const [markingTool, setMarkingTool] = useState(null)
   const itemRefs = useRef({})
   const prevPositionsRef = useRef({})
+
+  const handleMarkForDelete = async (e, toolId, currentMarked) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    setMarkingTool(toolId)
+    const newMarked = !currentMarked
+
+    try {
+      const response = await fetch('/api/tools/mark-for-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId,
+          marked: newMarked,
+        }),
+      })
+
+      if (response.ok) {
+        setMarkedForDeletion(prev => ({
+          ...prev,
+          [toolId]: newMarked,
+        }))
+      } else {
+        console.error('Failed to mark tool for deletion')
+      }
+    } catch (error) {
+      console.error('Error marking tool for deletion:', error)
+    } finally {
+      setMarkingTool(null)
+    }
+  }
 
   const filteredTools = useMemo(() => {
     let tools = predictedTools
@@ -205,13 +240,18 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
             const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
             const isSelected = selectedTool?.toolId === tool.toolId
 
+            const isMarked = markedForDeletion[tool.toolId] || tool.markForDelete || false
+            const isMarking = markingTool === tool.toolId
+
             return (
               <article
                 key={tool.toolId}
                 ref={(el) => setItemRef(tool.toolId, el)}
                 className={`${styles.toolItem} ${
                   isSelected ? styles.selected : ''
-                } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
+                } ${isTopMatch && !searchQuery ? styles.topMatch : ''} ${
+                  isMarked ? styles.markedForDeletion : ''
+                }`}
                 onClick={() => onSelectTool(tool)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
                 role="button"
@@ -239,6 +279,21 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                     {(tool.similarity * 100).toFixed(0)}%
                   </span>
                 </div>
+                <button
+                  className={`${styles.markDeleteBtn} ${isMarked ? styles.marked : ''}`}
+                  onClick={(e) => handleMarkForDelete(e, tool.toolId, isMarked)}
+                  disabled={isMarking}
+                  title={isMarked ? 'Marked for deletion' : 'Mark for deletion'}
+                  aria-label={`Mark ${tool.name} for deletion`}
+                >
+                  {isMarking ? (
+                    <span className={styles.spinner} />
+                  ) : isMarked ? (
+                    <FaCheck />
+                  ) : (
+                    <FaTrash />
+                  )}
+                </button>
               </article>
             )
           })}

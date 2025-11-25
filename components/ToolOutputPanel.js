@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
+import jsStyles from '../styles/js-formatter.module.css'
+import OutputTabs from './OutputTabs'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
   const [copied, setCopied] = useState(false)
@@ -66,7 +68,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         <div className={styles.header}>
           <h3>Output</h3>
         </div>
-        <div className={styles.content}></div>
+        <div className={styles.content}>
+          <div className={styles.placeholder}>
+            <p>Run the tool to see output here</p>
+          </div>
+        </div>
       </div>
     )
   }
@@ -148,7 +154,651 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const renderJsFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
+    const tabs = []
+
+    // Determine the primary output type based on which field exists
+    let primaryTabId = null
+    let primaryTabLabel = null
+    let primaryTabContent = null
+
+    if (displayResult.formatted !== undefined) {
+      primaryTabId = 'formatted'
+      primaryTabLabel = 'Formatted'
+      primaryTabContent = displayResult.formatted
+    } else if (displayResult.minified !== undefined) {
+      primaryTabId = 'minified'
+      primaryTabLabel = 'Minified'
+      primaryTabContent = displayResult.minified
+    } else if (displayResult.obfuscated !== undefined) {
+      primaryTabId = 'obfuscated'
+      primaryTabLabel = 'Obfuscated'
+      primaryTabContent = displayResult.obfuscated
+    }
+
+    // Add primary tab
+    if (primaryTabId && primaryTabContent) {
+      if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
+        tabs.push({
+          id: primaryTabId,
+          label: primaryTabLabel,
+          content: primaryTabContent,
+          contentType: 'code',
+        })
+      } else {
+        // Show placeholder when output is unavailable
+        const placeholderContent = (
+          <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+            {primaryTabLabel} output will appear here once you run the formatter on valid code.
+          </div>
+        )
+        tabs.push({
+          id: primaryTabId,
+          label: primaryTabLabel,
+          content: placeholderContent,
+          contentType: 'component',
+        })
+      }
+    }
+
+    if (displayResult.linting) {
+      const lintContent = (
+        <>
+          {displayResult.linting.warnings && displayResult.linting.warnings.length > 0 ? (
+            <div className={jsStyles.warningsList}>
+              {displayResult.linting.warnings.map((warning, idx) => (
+                <div key={idx} className={`${jsStyles.warning} ${jsStyles[warning.level || 'info']}`}>
+                  <div className={jsStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
+                  <div className={jsStyles.warningMessage}>
+                    {warning.line !== undefined && warning.column !== undefined && (
+                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginRight: '8px' }}>
+                        Line {warning.line}, Column {warning.column}
+                      </span>
+                    )}
+                    {warning.message}
+                    {warning.ruleId && (
+                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginLeft: '8px' }}>
+                        ({warning.ruleId})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={jsStyles.success}>✓ No linting warnings found!</div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'linting',
+        label: `Linting (${displayResult.linting.total})`,
+        content: lintContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.errors) {
+      const syntaxContent = (
+        <>
+          {displayResult.errors.status === 'valid' ? (
+            <div className={jsStyles.success}>✓ No syntax errors found!</div>
+          ) : (
+            <div className={jsStyles.errorsList}>
+              {displayResult.errors.errors && displayResult.errors.errors.map((error, idx) => (
+                <div key={idx} className={jsStyles.error}>
+                  <div className={jsStyles.errorMessage}>
+                    <strong>Line {error.line}, Column {error.column}</strong>: {error.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'syntax',
+        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '✗'})`,
+        content: syntaxContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.analysis) {
+      const analysisContent = (
+        <>
+          <div className={jsStyles.analysisGrid}>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Lines</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.lineCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Characters</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.characterCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Functions</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.functionCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Arrow Functions</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.arrowFunctionCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Variables</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.variableCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Imports</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.importCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Exports</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.exportCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Complexity</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.cyclomaticComplexity || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Classes</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.classCount || 0}</span>
+            </div>
+            <div className={jsStyles.analysisItem}>
+              <span className={jsStyles.analysisLabel}>Longest Line</span>
+              <span className={jsStyles.analysisValue}>{displayResult.analysis.longestLine || 0}</span>
+            </div>
+          </div>
+        </>
+      )
+      tabs.push({
+        id: 'analysis',
+        label: 'Analysis',
+        content: analysisContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.security) {
+      const securityContent = (
+        <>
+          <div style={{ marginBottom: '10px' }}>
+            <span className={`${jsStyles.securityBadge} ${jsStyles[displayResult.security.riskLevel || 'safe']}`}>
+              Risk Level: {displayResult.security.riskLevel?.toUpperCase() || 'SAFE'}
+            </span>
+          </div>
+          {displayResult.security.issues && displayResult.security.issues.length > 0 ? (
+            <div className={jsStyles.issuesList}>
+              {displayResult.security.issues.map((issue, idx) => (
+                <div key={idx} className={jsStyles.issueItem}>
+                  <strong>{issue.pattern}</strong> - Severity: {issue.severity}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={jsStyles.success}>✓ No security issues detected!</div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'security',
+        label: 'Security',
+        content: securityContent,
+        contentType: 'component',
+      })
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
   const renderSqlFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
+    const tabs = []
+
+    if (displayResult.formatted) {
+      tabs.push({
+        id: 'formatted',
+        label: 'Formatted',
+        content: displayResult.formatted,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.lint) {
+      const lintContent = (
+        <>
+          {displayResult.lint.warnings && displayResult.lint.warnings.length > 0 ? (
+            <div className={sqlStyles.warningsList}>
+              {displayResult.lint.warnings.map((warning, idx) => (
+                <div key={idx} className={`${sqlStyles.warning} ${sqlStyles[warning.level || 'info']}`}>
+                  <div className={sqlStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
+                  <div className={sqlStyles.warningMessage}>{warning.message}</div>
+                  {warning.suggestion && (
+                    <div className={sqlStyles.warningSuggestion}>💡 {warning.suggestion}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={sqlStyles.success}>✓ No lint warnings found!</div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'lint',
+        label: `Lint (${displayResult.lint.total})`,
+        content: lintContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.analysis) {
+      const analysisContent = (
+        <>
+          <div className={sqlStyles.analysisGrid}>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Query Type:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.queryType || 'UNKNOWN'}</span>
+            </div>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Has Joins:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasJoin ? 'Yes' : 'No'}</span>
+            </div>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Has Subqueries:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasSubquery ? 'Yes' : 'No'}</span>
+            </div>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Has Aggregation:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasAggregation ? 'Yes' : 'No'}</span>
+            </div>
+          </div>
+
+          {displayResult.analysis.tables && displayResult.analysis.tables.length > 0 && (
+            <div className={sqlStyles.analysisSubsection}>
+              <h4>Tables Used:</h4>
+              <div className={sqlStyles.tagList}>
+                {displayResult.analysis.tables.map((table, idx) => (
+                  <span key={idx} className={sqlStyles.tag}>{table}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {displayResult.analysis.columns && displayResult.analysis.columns.length > 0 && (
+            <div className={sqlStyles.analysisSubsection}>
+              <h4>Columns Used:</h4>
+              <div className={sqlStyles.tagList}>
+                {displayResult.analysis.columns.map((column, idx) => (
+                  <span key={idx} className={sqlStyles.tag}>{column}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'analysis',
+        label: 'Analysis',
+        content: analysisContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.parseTree) {
+      const parseTreeContent = displayResult.parseTree.error
+        ? `Error: ${displayResult.parseTree.error}`
+        : displayResult.parseTree.structure || JSON.stringify(displayResult.parseTree, null, 2)
+      tabs.push({
+        id: 'parseTree',
+        label: 'Parse Tree',
+        content: parseTreeContent,
+        contentType: 'code',
+      })
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderColorConverterOutput = () => {
+    if (!displayResult) return null
+
+    const colorFormats = [
+      { label: 'HEX', value: displayResult.hex },
+      { label: 'RGB', value: displayResult.rgb },
+      { label: 'HSL', value: displayResult.hsl },
+      { label: 'CMYK', value: displayResult.cmyk },
+      { label: 'HSV', value: displayResult.hsv },
+      { label: 'Detected Format', value: displayResult.detectedFormat },
+    ].filter(f => f.value)
+
+    if (colorFormats.length === 0) return null
+
+    const friendlyView = ({ onCopyCard, copiedCardId }) => (
+      <div className={styles.structuredOutput}>
+        {colorFormats.map((format, idx) => (
+          <div key={idx} className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>{format.label}</span>
+              <button
+                className="copy-action"
+                onClick={() => onCopyCard(format.value, format.label)}
+                title={`Copy ${format.label}`}
+              >
+                {copiedCardId === format.label ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue}>{format.value}</div>
+          </div>
+        ))}
+      </div>
+    )
+
+    const tabs = [
+      {
+        id: 'friendly',
+        label: 'Formats',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderJsonFormatterOutput = () => {
+    // Handle string output (beautified, minified, or error messages)
+    if (typeof displayResult === 'string') {
+      // Check if it's an error message
+      if (displayResult.startsWith('Error:')) {
+        const tabs = [
+          {
+            id: 'error',
+            label: 'Error',
+            content: displayResult,
+            contentType: 'code',
+          },
+        ]
+        return <OutputTabs tabs={tabs} showCopyButton={true} />
+      }
+
+      // Regular string output (beautified, minified, sorted, etc.)
+      const tabs = [
+        {
+          id: 'formatted',
+          label: 'Formatted',
+          content: displayResult,
+          contentType: 'code',
+        },
+      ]
+      return <OutputTabs tabs={tabs} showCopyButton={true} />
+    }
+
+    // Handle validation results
+    if (displayResult.isValid !== undefined) {
+      const validationContent = (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{
+              fontSize: '20px',
+              fontWeight: '600',
+              color: displayResult.isValid ? '#4caf50' : '#f44336'
+            }}>
+              {displayResult.isValid ? '✓ Valid' : '✗ Invalid'}
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+              {displayResult.message}
+            </div>
+          </div>
+          {displayResult.size !== undefined && (
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+              <strong>Size:</strong> {displayResult.size} bytes
+            </div>
+          )}
+          {displayResult.lines !== undefined && (
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+              <strong>Lines:</strong> {displayResult.lines}
+            </div>
+          )}
+          {displayResult.error && (
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(244, 67, 54, 0.1)',
+              border: '1px solid rgba(244, 67, 54, 0.3)',
+              borderRadius: '5px',
+              marginTop: '12px',
+              color: '#f44336',
+              fontSize: '13px'
+            }}>
+              <div style={{ fontWeight: '600', marginBottom: '4px' }}>Error Details:</div>
+              <div>{displayResult.error}</div>
+              {displayResult.position && (
+                <div style={{ marginTop: '8px', fontSize: '12px' }}>
+                  <strong>Position:</strong> {displayResult.position}
+                </div>
+              )}
+              {displayResult.snippet && (
+                <div style={{
+                  marginTop: '8px',
+                  padding: '8px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  borderRadius: '3px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                  overflow: 'auto'
+                }}>
+                  <strong>Context:</strong> ...{displayResult.snippet}...
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )
+
+      const tabs = [
+        {
+          id: 'validation',
+          label: `Validation (${displayResult.isValid ? '✓' : '✗'})`,
+          content: validationContent,
+          contentType: 'component',
+        },
+      ]
+      return <OutputTabs tabs={tabs} showCopyButton={true} />
+    }
+
+    // Handle other object outputs (defaults to JSON tab)
+    const tabs = [
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderXmlFormatterOutput = () => {
+    // Handle string output (beautified, minified, cleaned XML)
+    if (typeof displayResult === 'string') {
+      const tabs = [
+        {
+          id: 'formatted',
+          label: 'Formatted',
+          content: displayResult,
+          contentType: 'code',
+        },
+      ]
+      return <OutputTabs tabs={tabs} showCopyButton={true} />
+    }
+
+    // Handle object output from validate, lint, xpath, to-json, to-yaml
+    const tabs = []
+
+    if (displayResult.result) {
+      tabs.push({
+        id: 'result',
+        label: 'Result',
+        content: displayResult.result,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.formatted) {
+      tabs.push({
+        id: 'formatted',
+        label: 'Formatted',
+        content: displayResult.formatted,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.warnings && displayResult.warnings.length > 0) {
+      const warningsContent = (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {displayResult.warnings.map((warning, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                  border: '1px solid rgba(255, 193, 7, 0.3)',
+                  borderRadius: '5px',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                  Warning {idx + 1}
+                </div>
+                <div style={{ fontSize: '13px' }}>{warning}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+      tabs.push({
+        id: 'warnings',
+        label: `Warnings (${displayResult.warnings.length})`,
+        content: warningsContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.errors && displayResult.errors.length > 0) {
+      const errorsContent = (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {displayResult.errors.map((error, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(239, 83, 80, 0.15)',
+                  border: '1px solid rgba(239, 83, 80, 0.3)',
+                  borderRadius: '5px',
+                  color: '#ef5350',
+                }}
+              >
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                  Error {idx + 1}
+                </div>
+                <div style={{ fontSize: '13px' }}>{error}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+      tabs.push({
+        id: 'errors',
+        label: `Errors (${displayResult.errors.length})`,
+        content: errorsContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.json) {
+      tabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: displayResult.json,
+        contentType: 'json',
+      })
+    }
+
+    if (displayResult.yaml) {
+      tabs.push({
+        id: 'yaml',
+        label: 'YAML',
+        content: displayResult.yaml,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.xpathResults) {
+      const xpathContent = (
+        <div style={{ padding: '16px' }}>
+          {Array.isArray(displayResult.xpathResults) ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {displayResult.xpathResults.length > 0 ? (
+                displayResult.xpathResults.map((result, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '5px',
+                      fontFamily: 'monospace',
+                      fontSize: '12px',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {result}
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+                  No results found for the XPath query.
+                </div>
+              )}
+            </div>
+          ) : (
+            <pre style={{ margin: 0, fontSize: '12px' }}>
+              <code>{String(displayResult.xpathResults)}</code>
+            </pre>
+          )}
+        </div>
+      )
+      tabs.push({
+        id: 'xpath',
+        label: 'XPath Results',
+        content: xpathContent,
+        contentType: 'component',
+      })
+    }
+
+    if (tabs.length === 0) {
+      return null
+    }
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderSqlFormatterOutputOld = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
     return (
@@ -182,7 +832,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <span className={sqlStyles.sectionTitle}>
                 Lint Warnings ({displayResult.lint.total})
               </span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '��'}</span>
             </div>
             {expandedSection === 'lint' && (
               <div className={sqlStyles.sectionContent}>
@@ -617,6 +1267,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderSqlFormatterOutput()
     }
 
+    // Special handling for JavaScript Formatter
+    if (toolId === 'js-formatter' && (displayResult.formatted || displayResult.minified || displayResult.obfuscated || displayResult.errors || displayResult.linting || displayResult.analysis || displayResult.security)) {
+      return renderJsFormatterOutput()
+    }
+
+    // Special handling for XML Formatter
+    if (toolId === 'xml-formatter' && (typeof displayResult === 'string' || displayResult.result || displayResult.formatted)) {
+      return renderXmlFormatterOutput()
+    }
+
+    // Special handling for JSON Formatter
+    if (toolId === 'json-formatter' && (typeof displayResult === 'string' || displayResult.isValid !== undefined)) {
+      return renderJsonFormatterOutput()
+    }
+
+    // Special handling for Color Converter
+    if (toolId === 'color-converter' && displayResult && (displayResult.hex || displayResult.rgb || displayResult.hsl)) {
+      return renderColorConverterOutput()
+    }
+
     // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
@@ -674,6 +1344,77 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </pre>
         )
       }
+    }
+
+    // String Reverse - show friendly + JSON tabs
+    if (toolId === 'string-reverse' && displayResult.reversed !== undefined) {
+      const friendlyView = ({ onCopyCard, copiedCardId }) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Original</p>
+              <button className="copy-action" onClick={() => onCopyCard(displayResult.original, 'original')} title="Copy original">
+                {copiedCardId === 'original' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.original}</code>
+          </div>
+          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reversed</p>
+              <button className="copy-action" onClick={() => onCopyCard(displayResult.reversed, 'reversed')} title="Copy reversed">
+                {copiedCardId === 'reversed' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.reversed}</code>
+          </div>
+          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Length</p>
+              <button className="copy-action" onClick={() => onCopyCard(displayResult.length, 'length')} title="Copy length">
+                {copiedCardId === 'length' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <p style={{ margin: '0', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px' }}>{displayResult.length} characters</p>
+          </div>
+        </div>
+      )
+      return <OutputTabs friendlyView={friendlyView} jsonData={displayResult} showCopyButton={true} />
+    }
+
+    // Text Stats - show friendly + JSON tabs
+    if (toolId === 'text-stats' && displayResult.characters !== undefined) {
+      const stats = [
+        { id: 'characters', label: 'Characters', value: displayResult.characters },
+        { id: 'without-spaces', label: 'Without Spaces', value: displayResult.charactersWithoutSpaces },
+        { id: 'words', label: 'Words', value: displayResult.words },
+        { id: 'lines', label: 'Lines', value: displayResult.lines },
+        { id: 'paragraphs', label: 'Paragraphs', value: displayResult.paragraphs },
+        { id: 'sentences', label: 'Sentences', value: displayResult.sentences },
+        { id: 'avg-word-length', label: 'Avg Word Length', value: displayResult.averageWordLength },
+        { id: 'avg-words-per-line', label: 'Avg Words/Line', value: displayResult.averageWordsPerLine },
+      ]
+
+      const friendlyView = ({ onCopyCard, copiedCardId }) => (
+        <div className={styles.structuredOutput}>
+          {stats.map((stat) => (
+            <div key={stat.id} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{stat.label}</span>
+                <button
+                  className="copy-action"
+                  onClick={() => onCopyCard(stat.value, stat.id)}
+                  title={`Copy ${stat.label}`}
+                >
+                  {copiedCardId === stat.id ? '✓' : <FaCopy />}
+                </button>
+              </div>
+              <div className={styles.copyCardValue}>{stat.value}</div>
+            </div>
+          ))}
+        </div>
+      )
+      return <OutputTabs friendlyView={friendlyView} jsonData={displayResult} showCopyButton={true} />
     }
 
     if (displayResult?.resizedImage) {
@@ -786,29 +1527,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h3>Output</h3>
-        <div className={`${styles.buttonContainer} ${(displayResult && !loading && !error) ? styles.visible : styles.hidden}`}>
-          {displayResult?.resizedImage ? (
-            <button
-              className="copy-action"
-              onClick={handleDownloadImage}
-              title="Download resized image"
-            >
-              ⬇ Download
-            </button>
-          ) : (
-            <button
-              className="copy-action"
-              onClick={handleCopy}
-              title="Copy to clipboard"
-            >
-              {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
-            </button>
-          )}
-        </div>
-      </div>
-
       <div className={`${styles.content} ${loading ? styles.isLoading : ''}`}>
         {renderOutput()}
       </div>

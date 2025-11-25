@@ -6,6 +6,9 @@ import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
+import IPToolkitConfigPanel from '../components/IPToolkitConfigPanel'
+import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
+import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, autoDetectToolConfig, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
@@ -54,6 +57,7 @@ export default function Home() {
   })
   const [advancedMode, setAdvancedMode] = useState(false)
   const [previousInputLength, setPreviousInputLength] = useState(0)
+  const [ipToolkitMode, setIpToolkitMode] = useState('single-ip')
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -109,21 +113,14 @@ export default function Home() {
 
   useEffect(() => {
     const initializeTools = async () => {
-      const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-        toolId,
-        name: toolData.name,
-        description: toolData.description,
-        similarity: 0, // No match (white) when no input provided
-        ...toolData,
-      }))
+      let allTools = []
 
-      // Fetch visibility flags from Supabase - with improved error handling
-      let visibilityMap = {}
+      // First, try to fetch tool metadata from Supabase
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 4000) // 4 second timeout
 
-        const response = await fetch('/api/tools/get-visibility', {
+        const response = await fetch('/api/tools/get-metadata', {
           signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
         })
@@ -131,208 +128,66 @@ export default function Home() {
 
         if (response.ok) {
           const data = await response.json()
-          visibilityMap = data?.visibilityMap || {}
+          if (data?.tools && typeof data.tools === 'object') {
+            // Use metadata from Supabase
+            allTools = Object.entries(data.tools).map(([toolId, toolData]) => ({
+              toolId,
+              similarity: 0, // No match (white) when no input provided
+              ...toolData,
+              // Merge with local TOOLS for any missing properties
+              ...(TOOLS[toolId] || {}),
+            }))
+          }
         }
       } catch (error) {
-        // Silently fail - use fallback
-        console.debug('Visibility map fetch failed, using local fallback')
+        console.debug('Tool metadata fetch failed, using local fallback:', error?.message)
       }
 
-      // Store visibility map for use in predictTools
-      visibilityMapRef.current = visibilityMap
-
-      // Filter out tools with show_in_recommendations = false
-      const visibleTools = allTools.filter(tool => {
-        // If visibility map is available, use it exclusively (no fallback)
-        if (visibilityMapRef.current && Object.keys(visibilityMapRef.current).length > 0) {
-          return visibilityMapRef.current[tool.toolId] !== false
-        }
-        // Only if visibility map is empty, use local property as temporary fallback
-        return tool.show_in_recommendations !== false
-      })
-
-      setPredictedTools(visibleTools)
-
-      // Don't set a default tool - wait for user input to select the best match
-    }
-
-    initializeTools()
-  }, [])
-
-  const predictTools = useCallback(async (text, image, preview, isAddition = false) => {
-    if (!text && !image) {
-      setPredictedTools(prevTools => {
-        const allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+      // If no tools from Supabase, fall back to local TOOLS
+      if (allTools.length === 0) {
+        allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
           toolId,
           name: toolData.name,
           description: toolData.description,
           similarity: 0, // No match (white) when no input provided
           ...toolData,
         }))
+      }
 
-        // Filter out tools with show_in_recommendations = false using the stored visibility map
-        const visibleTools = allTools.filter(tool => {
-          // If visibility map is available, use it exclusively (no fallback)
-          if (visibilityMapRef.current && Object.keys(visibilityMapRef.current).length > 0) {
-            return visibilityMapRef.current[tool.toolId] !== false
-          }
-          // Only if visibility map is empty, use local property as temporary fallback
-          return tool.show_in_recommendations !== false
-        })
-
-        // Only update if the order has changed
-        const newOrder = visibleTools.map(t => t.toolId).join(',')
-        const prevOrder = prevTools.map(t => t.toolId).join(',')
-
-        if (newOrder === prevOrder) {
-          return prevTools
+      // Sync visibility map from tool metadata
+      const newVisibilityMap = {}
+      allTools.forEach(tool => {
+        if (tool.show_in_recommendations !== undefined) {
+          newVisibilityMap[tool.toolId] = tool.show_in_recommendations !== false
         }
-
-        return visibleTools
       })
-      return
+
+      if (Object.keys(newVisibilityMap).length > 0) {
+        visibilityMapRef.current = newVisibilityMap
+      }
+
+      setPredictedTools(allTools)
     }
 
-    setError(null)
-    setOutputResult(null)
+    initializeTools()
+  }, [])
 
-    // Clear any existing loading timer
-    if (loadingTimerRef.current) {
-      clearTimeout(loadingTimerRef.current)
-    }
+  const handleSelectTool = useCallback(
+    (tool) => {
+      setSelectedTool(tool)
+      setAdvancedMode(true) // User manually selected - exit auto-detect
 
-    // Only show loading if the request takes longer than 500ms
-    loadingTimerRef.current = setTimeout(() => {
-      setLoading(true)
-    }, 500)
-
-    try {
-      // Store the classification that triggered this search
-      const triggeringClassification = fastLocalClassification(text)
-      previousClassificationRef.current = triggeringClassification
-
-      // Fetch with 20 second timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 20000)
-
-      let response
-      try {
-        response = await fetch('/api/tools/predict', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            inputText: text,
-            inputImage: preview ? 'image' : null,
-          }),
-          signal: controller.signal,
+      // Initialize config for the selected tool
+      const initialConfig = {}
+      if (tool?.configSchema) {
+        tool.configSchema.forEach(field => {
+          initialConfig[field.id] = field.default || ''
         })
-      } catch (fetchError) {
-        clearTimeout(timeoutId)
-        // Handle fetch errors gracefully
-        console.debug('Predict API fetch failed:', fetchError.message)
-        // Fall through to use local prediction
-        throw new Error('Prediction service unavailable')
       }
-
-      clearTimeout(timeoutId)
-
-      if (!response || !response.ok) {
-        const errorText = response ? await response.text() : 'No response'
-        console.debug('Predict API error:', response?.status, errorText)
-        throw new Error('Prediction service unavailable')
-      }
-
-      let data
-      try {
-        data = await response.json()
-      } catch (jsonError) {
-        console.debug('Failed to parse prediction response')
-        throw new Error('Invalid response from prediction service')
-      }
-
-      if (!data || !Array.isArray(data.predictedTools)) {
-        throw new Error('Invalid prediction data')
-      }
-
-      const toolsWithMetadata = data.predictedTools.map(tool => ({
-        ...tool,
-        ...TOOLS[tool.toolId],
-      }))
-
-      // Auto-select the best match tool ONLY on input addition when not in advanced mode
-      if (toolsWithMetadata.length > 0) {
-        const topTool = toolsWithMetadata[0]
-        // Only auto-select if:
-        // 1. Input was added (not deleted) AND
-        // 2. Not in advanced mode (user hasn't manually selected a tool)
-        if (isAddition && !advancedMode) {
-          console.log('Auto-selecting:', topTool.name)
-          setSelectedTool(topTool)
-        }
-
-        // Check for text cleaning issues
-        const cleanTextIssues = detectCleanTextIssues(text)
-
-        // If top tool is Text Toolkit and there are cleaning issues, auto-switch to removeExtras
-        if (topTool.toolId === 'text-toolkit' && cleanTextIssues) {
-          setActiveToolkitSection('removeExtras')
-
-          // Pre-enable relevant cleaning options based on detected issues
-          const updatedConfig = { ...removeExtrasConfig }
-          if (cleanTextIssues.hasExcessiveSpaces) {
-            updatedConfig.compressSpaces = true
-          }
-          if (cleanTextIssues.hasBlankLines) {
-            updatedConfig.removeBlankLines = true
-          }
-          if (cleanTextIssues.hasMixedWhitespace) {
-            updatedConfig.normalizeWhitespace = true
-          }
-          if (cleanTextIssues.hasExcessiveLineBreaks) {
-            updatedConfig.removeBlankLines = true
-          }
-          setRemoveExtrasConfig(updatedConfig)
-        }
-
-        // Set up initial config for the top tool
-        const initialConfig = {}
-        if (topTool?.configSchema) {
-          topTool.configSchema.forEach(field => {
-            initialConfig[field.id] = field.default || ''
-          })
-        }
-
-        // Use suggested config from API, or fall back to local auto-detection
-        if (topTool?.suggestedConfig) {
-          Object.assign(initialConfig, topTool.suggestedConfig)
-          // Apply activeToolkitSection if specified for text-toolkit
-          if (topTool.toolId === 'text-toolkit' && topTool.suggestedConfig.activeToolkitSection) {
-            setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
-          }
-        } else if (topTool.toolId !== 'json-formatter') {
-          // Skip auto-detection for JSON formatter - beautify is always the default
-          const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
-          if (detectedConfig) {
-            Object.assign(initialConfig, detectedConfig)
-          }
-        }
-
-        setConfigOptions(initialConfig)
-      }
-      setPredictedTools(toolsWithMetadata)
-    } catch (err) {
-      // Silently fail - the app will continue with the existing tool list
-      // This prevents network errors from blocking the user
-      console.debug('Prediction unavailable:', err?.message || err)
-      // Don't set error - let user continue with whatever tools are already displayed
-    } finally {
-      // Clear the loading timer and disable loading
-      if (loadingTimerRef.current) {
-        clearTimeout(loadingTimerRef.current)
-      }
-      setLoading(false)
-    }
-  }, [fastLocalClassification, selectedTool, advancedMode])
+      setConfigOptions(initialConfig)
+    },
+    []
+  )
 
   const handleInputChange = useCallback((text, image, preview) => {
     const isAddition = text.length > previousInputLength
@@ -360,163 +215,263 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      predictTools(text, image, preview, isAddition)
-    }, 700)
-  }, [predictTools, previousInputLength])
-
-  const handleImageChange = useCallback((file, preview) => {
-    setInputImage(file)
-    setImagePreview(preview)
-
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-
-    // Image input always triggers search (different from text)
-    const imageClassification = { inputType: 'image', contentSummary: 'image', intentHint: 'image_processing' }
-    previousClassificationRef.current = imageClassification
-    predictTools(inputText, file, preview)
-  }, [inputText, predictTools])
-
-  const handleSelectTool = useCallback((tool) => {
-    setSelectedTool(tool)
-    setOutputResult(null)
-    setError(null)
-    setDescriptionSidebarOpen(false)
-    setAdvancedMode(true)
-
-    const initialConfig = {}
-    if (tool?.configSchema) {
-      tool.configSchema.forEach(field => {
-        initialConfig[field.id] = field.default || ''
-      })
-    }
-
-    // Priority: Use suggestedConfig from API, then fall back to auto-detection
-    if (tool?.suggestedConfig) {
-      Object.assign(initialConfig, tool.suggestedConfig)
-      // Apply activeToolkitSection if specified for text-toolkit
-      if (tool.toolId === 'text-toolkit' && tool.suggestedConfig.activeToolkitSection) {
-        setActiveToolkitSection(tool.suggestedConfig.activeToolkitSection)
-      }
-    } else if (tool.toolId !== 'json-formatter') {
-      // Skip auto-detection for JSON formatter - beautify is always the default
-      const detectedConfig = autoDetectToolConfig(tool.toolId, inputText)
-      if (detectedConfig) {
-        Object.assign(initialConfig, detectedConfig)
-      }
-    }
-
-    setConfigOptions(initialConfig)
-  }, [inputText])
-
-  const handleConfigChange = useCallback((config) => {
-    setConfigOptions(config)
-  }, [])
-
-  const autoRunTool = useCallback(
-    async (tool, config) => {
-      if (!tool) {
-        return
-      }
-
-      const noInputRequiredTools = []
-
-      let textToUse = inputText
-      const hasImageInput = imagePreview
-
-      if (!textToUse && !hasImageInput) {
-        const example = getToolExample(tool.toolId, config)
-        if (example) {
-          textToUse = example
-        } else {
-          const requiresInput = !noInputRequiredTools.includes(tool.toolId)
-          if (requiresInput) {
-            return
-          }
-        }
-      }
-
-      if (!textToUse && !hasImageInput) {
-        return
-      }
-
-      setToolLoading(true)
       setError(null)
+      setOutputResult(null)
 
-      try {
-        if (tool.toolId === 'image-resizer' && imagePreview) {
-          const resizedData = await resizeImage(imagePreview, config)
-          setOutputResult(resizedData)
-        } else {
-          // For text-toolkit, merge find/replace, diff, or sort lines config if that section is active
-          let finalConfig = config
-          if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
-            finalConfig = {
-              ...config,
-              findText: findReplaceConfig.findText || '',
-              replaceText: findReplaceConfig.replaceText || '',
-              useRegex: findReplaceConfig.useRegex || false,
-              matchCase: findReplaceConfig.matchCase || false,
-            }
-          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'textDiff') {
-            finalConfig = {
-              ...config,
-              text2: diffConfig.text2 || '',
-            }
-          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'sortLines') {
-            finalConfig = {
-              ...config,
-              order: sortLinesConfig.order || 'asc',
-              caseSensitive: sortLinesConfig.caseSensitive || false,
-              removeDuplicates: sortLinesConfig.removeDuplicates || false,
-            }
-          } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'removeExtras') {
-            finalConfig = {
-              ...config,
-              removePdfGarbage: removeExtrasConfig.removePdfGarbage !== false,
-              removeInvisibleChars: removeExtrasConfig.removeInvisibleChars !== false,
-              stripHtml: removeExtrasConfig.stripHtml !== false,
-              stripMarkdown: removeExtrasConfig.stripMarkdown !== false,
-              normalizeWhitespace: removeExtrasConfig.normalizeWhitespace !== false,
-              fixPunctuationSpacing: removeExtrasConfig.fixPunctuationSpacing !== false,
-              compressSpaces: removeExtrasConfig.compressSpaces !== false,
-              trimLines: removeExtrasConfig.trimLines !== false,
-              removeLineBreaks: removeExtrasConfig.removeLineBreaks === true,
-              removeBlankLines: removeExtrasConfig.removeBlankLines !== false,
-              removeTimestamps: removeExtrasConfig.removeTimestamps === true,
-              removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
-            }
+      // Clear any existing loading timer
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
+        loadingTimerRef.current = null
+      }
+
+      // Only show loading if the request takes longer than 500ms
+      loadingTimerRef.current = setTimeout(() => {
+        setLoading(true)
+      }, 500)
+
+      const predictTools = async () => {
+        try {
+          // Store the classification that triggered this search
+          const triggeringClassification = fastLocalClassification(text)
+          previousClassificationRef.current = triggeringClassification
+
+          // Fetch with 20 second timeout
+          const controller = new AbortController()
+          const abortTimeoutId = setTimeout(() => controller.abort(), 20000)
+
+          let response
+          try {
+            response = await fetch('/api/tools/predict', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                inputText: text,
+                inputImage: preview ? 'image' : null,
+              }),
+              signal: controller.signal,
+            })
+          } catch (fetchError) {
+            clearTimeout(abortTimeoutId)
+            // Handle fetch errors gracefully
+            console.debug('Predict API fetch failed:', fetchError.message)
+            // Fall through to use local prediction
+            throw new Error('Prediction service unavailable')
           }
 
-          const response = await fetch('/api/tools/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              toolId: tool.toolId,
-              inputText: textToUse,
-              inputImage: imagePreview,
-              config: finalConfig,
-            }),
-          })
+          clearTimeout(abortTimeoutId)
 
-          if (!response) {
-            throw new Error('No response from server')
+          if (!response || !response.ok) {
+            const errorText = response ? await response.text() : 'No response'
+            console.debug('Predict API error:', response?.status, errorText)
+            throw new Error('Prediction service unavailable')
           }
 
           let data
           try {
             data = await response.json()
           } catch (jsonError) {
-            throw new Error('Invalid response from server')
+            console.debug('Failed to parse prediction response')
+            throw new Error('Invalid response from prediction service')
           }
 
-          if (!response.ok) {
-            throw new Error(data?.error || `Server error: ${response.status}`)
+          if (!data || !Array.isArray(data.predictedTools)) {
+            throw new Error('Invalid prediction data')
           }
 
-          setOutputResult(data.result)
+          const toolsWithMetadata = data.predictedTools.map(tool => ({
+            ...tool,
+            ...TOOLS[tool.toolId],
+          }))
+
+          // Auto-select the best match tool ONLY on input addition when not in advanced mode
+          if (toolsWithMetadata.length > 0) {
+            const topTool = toolsWithMetadata[0]
+            // Only auto-select if:
+            // 1. Input was added (not deleted) AND
+            // 2. Not in advanced mode (user hasn't manually selected a tool)
+            if (isAddition && !advancedMode) {
+              console.log('Auto-selecting:', topTool.name)
+              setSelectedTool(topTool)
+            }
+
+            // Check for text cleaning issues
+            const cleanTextIssues = detectCleanTextIssues(text)
+
+            // If top tool is Text Toolkit and there are cleaning issues, auto-switch to removeExtras
+            if (topTool.toolId === 'text-toolkit' && cleanTextIssues) {
+              setActiveToolkitSection('removeExtras')
+
+              // Pre-enable relevant cleaning options based on detected issues
+              const updatedConfig = { ...removeExtrasConfig }
+              if (cleanTextIssues.hasExcessiveSpaces) {
+                updatedConfig.compressSpaces = true
+              }
+              if (cleanTextIssues.hasBlankLines) {
+                updatedConfig.removeBlankLines = true
+              }
+              if (cleanTextIssues.hasMixedWhitespace) {
+                updatedConfig.normalizeWhitespace = true
+              }
+              if (cleanTextIssues.hasExcessiveLineBreaks) {
+                updatedConfig.removeBlankLines = true
+              }
+              setRemoveExtrasConfig(updatedConfig)
+            }
+
+            // Set up initial config for the top tool
+            const initialConfig = {}
+            if (topTool?.configSchema) {
+              topTool.configSchema.forEach(field => {
+                initialConfig[field.id] = field.default || ''
+              })
+            }
+
+            // Use suggested config from API, or fall back to local auto-detection
+            if (topTool?.suggestedConfig) {
+              Object.assign(initialConfig, topTool.suggestedConfig)
+              // Apply activeToolkitSection if specified for text-toolkit
+              if (topTool.toolId === 'text-toolkit' && topTool.suggestedConfig.activeToolkitSection) {
+                setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
+              }
+            } else if (topTool.toolId !== 'json-formatter') {
+              // Skip auto-detection for JSON formatter - beautify is always the default
+              const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
+              if (detectedConfig) {
+                Object.assign(initialConfig, detectedConfig)
+              }
+            }
+
+            setConfigOptions(initialConfig)
+          }
+          setPredictedTools(toolsWithMetadata)
+        } catch (err) {
+          // Silently fail - the app will continue with the existing tool list
+          // This prevents network errors from blocking the user
+          console.debug('Prediction unavailable:', err?.message || err)
+          // Don't set error - let user continue with whatever tools are already displayed
+        } finally {
+          // Clear the loading timer and disable loading
+          if (loadingTimerRef.current) {
+            clearTimeout(loadingTimerRef.current)
+            loadingTimerRef.current = null
+          }
+          setLoading(false)
         }
+      }
+
+      predictTools()
+    }, 300)
+  }, [fastLocalClassification, selectedTool, advancedMode, detectCleanTextIssues, previousInputLength])
+
+  const handleImageChange = useCallback((image, preview) => {
+    setInputImage(image)
+    setImagePreview(preview)
+  }, [])
+
+  const handleConfigChange = useCallback(
+    (newConfig) => {
+      setConfigOptions(newConfig)
+    },
+    []
+  )
+
+  const autoRunTool = useCallback(
+    async (tool, config) => {
+      if (!tool) return
+
+      setToolLoading(true)
+
+      try {
+        let textToUse = inputText || ''
+
+        // If no input, try to get an example/placeholder for any tool
+        if (!textToUse && !imagePreview) {
+          const example = getToolExample(tool.toolId, config)
+          if (example) {
+            textToUse = example
+          } else {
+            // No input and no example available - don't run the tool
+            setToolLoading(false)
+            setOutputResult(null)
+            return
+          }
+        }
+
+        // If still no input and no image, don't run the tool
+        if (!textToUse && !imagePreview) {
+          setToolLoading(false)
+          setOutputResult(null)
+          return
+        }
+
+        // Special handling for various tools with their own configs
+        let finalConfig = config
+
+        if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
+          finalConfig = {
+            ...config,
+            findText: findReplaceConfig.findText || '',
+            replaceText: findReplaceConfig.replaceText || '',
+            useRegex: findReplaceConfig.useRegex || false,
+            matchCase: findReplaceConfig.matchCase || false,
+          }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'diff') {
+          finalConfig = {
+            ...config,
+            text2: diffConfig.text2 || '',
+          }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'sortLines') {
+          finalConfig = {
+            ...config,
+            order: sortLinesConfig.order || 'asc',
+            caseSensitive: sortLinesConfig.caseSensitive || false,
+            removeDuplicates: sortLinesConfig.removeDuplicates || false,
+          }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'removeExtras') {
+          finalConfig = {
+            ...config,
+            removePdfGarbage: removeExtrasConfig.removePdfGarbage !== false,
+            removeInvisibleChars: removeExtrasConfig.removeInvisibleChars !== false,
+            stripHtml: removeExtrasConfig.stripHtml !== false,
+            stripMarkdown: removeExtrasConfig.stripMarkdown !== false,
+            normalizeWhitespace: removeExtrasConfig.normalizeWhitespace !== false,
+            fixPunctuationSpacing: removeExtrasConfig.fixPunctuationSpacing !== false,
+            compressSpaces: removeExtrasConfig.compressSpaces !== false,
+            trimLines: removeExtrasConfig.trimLines !== false,
+            removeLineBreaks: removeExtrasConfig.removeLineBreaks === true,
+            removeBlankLines: removeExtrasConfig.removeBlankLines !== false,
+            removeTimestamps: removeExtrasConfig.removeTimestamps === true,
+            removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
+          }
+        }
+
+        const response = await fetch('/api/tools/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            toolId: tool.toolId,
+            inputText: textToUse,
+            inputImage: imagePreview,
+            config: finalConfig,
+          }),
+        })
+
+        if (!response) {
+          throw new Error('No response from server')
+        }
+
+        let data
+        try {
+          data = await response.json()
+        } catch (jsonError) {
+          throw new Error('Invalid response from server')
+        }
+
+        if (!response.ok) {
+          throw new Error(data?.error || `Server error: ${response.status}`)
+        }
+
+        setOutputResult(data.result)
       } catch (err) {
         const errorMessage = err?.message || 'Tool execution failed'
         setError(errorMessage)
@@ -601,48 +556,65 @@ export default function Home() {
               </div>
 
               {selectedTool && (
-                <div className={styles.configSection}>
-                  <div className={styles.configHeader}>
-                    <ToolConfigPanel
-                      tool={selectedTool}
-                      onConfigChange={handleConfigChange}
-                      loading={toolLoading}
-                      onRegenerate={handleRegenerate}
-                      currentConfig={configOptions}
-                      activeToolkitSection={activeToolkitSection}
-                      onToolkitSectionChange={setActiveToolkitSection}
-                      findReplaceConfig={findReplaceConfig}
-                      onFindReplaceConfigChange={setFindReplaceConfig}
-                      diffConfig={diffConfig}
-                      onDiffConfigChange={setDiffConfig}
-                      sortLinesConfig={sortLinesConfig}
-                      onSortLinesConfigChange={setSortLinesConfig}
-                      removeExtrasConfig={removeExtrasConfig}
-                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                    />
+                <>
+                  <div className={styles.toolHeader}>
+                    <div>
+                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
+                      {selectedTool.description && (
+                        <p className={styles.toolDescription}>{selectedTool.description}</p>
+                      )}
+                    </div>
                     <button
                       className={styles.descriptionToggle}
                       onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
                       aria-label="Toggle tool description"
                       title="View tool description"
                     >
-                      <span className={styles.descriptionIcon}>ℹ</span>
+                      <FaCircleInfo className={styles.descriptionIcon} />
                     </button>
                   </div>
-                </div>
+
+                  <div className={styles.configSection}>
+                    {selectedTool?.toolId === 'ip-address-toolkit' ? (
+                      <IPToolkitConfigPanel />
+                    ) : (
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                      />
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
-                <ToolOutputPanel
-                  result={outputResult}
-                  outputType={selectedTool?.outputType}
-                  loading={toolLoading}
-                  error={error}
-                  toolId={selectedTool?.toolId}
-                  activeToolkitSection={activeToolkitSection}
-                />
+                {selectedTool?.toolId === 'ip-address-toolkit' ? (
+                  <IPToolkitOutputPanel activeMode={ipToolkitMode} result={outputResult} />
+                ) : (
+                  <ToolOutputPanel
+                    result={outputResult}
+                    outputType={selectedTool?.outputType}
+                    loading={toolLoading}
+                    error={error}
+                    toolId={selectedTool?.toolId}
+                    activeToolkitSection={activeToolkitSection}
+                  />
+                )}
               </div>
             </div>
           </div>

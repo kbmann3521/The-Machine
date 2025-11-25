@@ -149,11 +149,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h3>{tool.name}</h3>
-        <p className={styles.description}>{tool.description}</p>
-      </div>
-
       {tool.toolId === 'text-toolkit' && (
         <div className={styles.toolkitFilters}>
           <div className={styles.filterLabel}>Filter Results:</div>
