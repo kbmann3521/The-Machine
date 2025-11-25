@@ -235,11 +235,20 @@ export default function OutputTabs({
       )
     }
 
-    // Default: try to render as component or stringify
+    // Handle React components
     if (typeof content === 'function') {
       return (
         <div className={styles.friendlyContent}>
           {content({ onCopyCard: handleCopyCard, copiedCardId })}
+        </div>
+      )
+    }
+
+    // Handle React elements
+    if (React.isValidElement(content)) {
+      return (
+        <div className={styles.friendlyContent}>
+          {content}
         </div>
       )
     }
