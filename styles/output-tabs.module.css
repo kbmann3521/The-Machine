@@ -121,22 +121,21 @@
   padding: 0;
   overflow: auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .textCode {
   margin: 0;
   padding: 16px;
   background-color: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  color: var(--color-text-secondary, #999);
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--color-text-primary, #000);
   overflow: auto;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
-  text-align: center;
+  text-align: left;
+  width: 100%;
 }
 
 .jsonCode {
