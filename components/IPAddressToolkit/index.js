@@ -15,7 +15,7 @@ const MODES = [
   { id: 'single-ip', label: 'Single IP', icon: FaNetworkWired },
   { id: 'bulk', label: 'Bulk', icon: FaClipboard },
   { id: 'cidr-subnet', label: 'CIDR & Subnet', icon: FaProjectDiagram },
-  { id: 'diagnostics', label: 'Diagnostics', icon: FaHeartbeat },
+  { id: 'diagnostics', label: 'Diagnostics', icon: FaQuestion },
 ]
 
 export default function IPAddressToolkit() {
