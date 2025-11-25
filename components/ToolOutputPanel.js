@@ -383,6 +383,132 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderSqlFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
+    const tabs = []
+
+    if (displayResult.formatted) {
+      const formattedContent = ({ onCopyCard }) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
+          <pre className={sqlStyles.sqlCode} style={{ margin: 0 }}>
+            <code>{displayResult.formatted}</code>
+          </pre>
+          <button
+            className={sqlStyles.copyButton}
+            onClick={() => onCopyCard(displayResult.formatted, 'formatted-sql')}
+            title="Copy formatted SQL"
+          >
+            {copiedField === 'formatted-sql' ? '✓ Copied' : <><FaCopy /> Copy</>}
+          </button>
+        </div>
+      )
+      tabs.push({
+        id: 'formatted',
+        label: 'Formatted',
+        content: formattedContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.lint) {
+      const lintContent = (
+        <div className={sqlStyles.sectionContent} style={{ padding: '16px' }}>
+          {displayResult.lint.warnings && displayResult.lint.warnings.length > 0 ? (
+            <div className={sqlStyles.warningsList}>
+              {displayResult.lint.warnings.map((warning, idx) => (
+                <div key={idx} className={`${sqlStyles.warning} ${sqlStyles[warning.level || 'info']}`}>
+                  <div className={sqlStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
+                  <div className={sqlStyles.warningMessage}>{warning.message}</div>
+                  {warning.suggestion && (
+                    <div className={sqlStyles.warningSuggestion}>💡 {warning.suggestion}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={sqlStyles.success}>✓ No lint warnings found!</div>
+          )}
+        </div>
+      )
+      tabs.push({
+        id: 'lint',
+        label: `Lint (${displayResult.lint.total})`,
+        content: lintContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.analysis) {
+      const analysisContent = (
+        <div className={sqlStyles.sectionContent} style={{ padding: '16px' }}>
+          <div className={sqlStyles.analysisGrid}>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Query Type:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.queryType || 'UNKNOWN'}</span>
+            </div>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Has Joins:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasJoin ? 'Yes' : 'No'}</span>
+            </div>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Has Subqueries:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasSubquery ? 'Yes' : 'No'}</span>
+            </div>
+            <div className={sqlStyles.analysisItem}>
+              <span className={sqlStyles.analysisLabel}>Has Aggregation:</span>
+              <span className={sqlStyles.analysisValue}>{displayResult.analysis.hasAggregation ? 'Yes' : 'No'}</span>
+            </div>
+          </div>
+
+          {displayResult.analysis.tables && displayResult.analysis.tables.length > 0 && (
+            <div className={sqlStyles.analysisSubsection}>
+              <h4>Tables Used:</h4>
+              <div className={sqlStyles.tagList}>
+                {displayResult.analysis.tables.map((table, idx) => (
+                  <span key={idx} className={sqlStyles.tag}>{table}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {displayResult.analysis.columns && displayResult.analysis.columns.length > 0 && (
+            <div className={sqlStyles.analysisSubsection}>
+              <h4>Columns Used:</h4>
+              <div className={sqlStyles.tagList}>
+                {displayResult.analysis.columns.map((column, idx) => (
+                  <span key={idx} className={sqlStyles.tag}>{column}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+      tabs.push({
+        id: 'analysis',
+        label: 'Analysis',
+        content: analysisContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.parseTree) {
+      const parseTreeContent = displayResult.parseTree.error
+        ? `Error: ${displayResult.parseTree.error}`
+        : displayResult.parseTree.structure || JSON.stringify(displayResult.parseTree, null, 2)
+      tabs.push({
+        id: 'parseTree',
+        label: 'Parse Tree',
+        content: parseTreeContent,
+        contentType: 'code',
+      })
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderSqlFormatterOutputOld = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
     return (
       <div className={sqlStyles.sqlFormatterContainer}>
         {/* Formatted SQL Section */}
