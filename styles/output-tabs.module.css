@@ -133,6 +133,7 @@
   line-height: 1.5;
   white-space: pre;
   word-break: break-word;
+  height: 100%;
 }
 
 .jsonCode code {
