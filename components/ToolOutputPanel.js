@@ -410,7 +410,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <span className={sqlStyles.sectionTitle}>
                 Lint Warnings ({displayResult.lint.total})
               </span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '��'}</span>
             </div>
             {expandedSection === 'lint' && (
               <div className={sqlStyles.sectionContent}>
@@ -933,22 +933,29 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Text Stats - show friendly + JSON tabs
     if (toolId === 'text-stats' && displayResult.characters !== undefined) {
       const stats = [
-        { label: 'Characters', value: displayResult.characters },
-        { label: 'Without Spaces', value: displayResult.charactersWithoutSpaces },
-        { label: 'Words', value: displayResult.words },
-        { label: 'Lines', value: displayResult.lines },
-        { label: 'Paragraphs', value: displayResult.paragraphs },
-        { label: 'Sentences', value: displayResult.sentences },
-        { label: 'Avg Word Length', value: displayResult.averageWordLength },
-        { label: 'Avg Words/Line', value: displayResult.averageWordsPerLine },
+        { id: 'characters', label: 'Characters', value: displayResult.characters },
+        { id: 'without-spaces', label: 'Without Spaces', value: displayResult.charactersWithoutSpaces },
+        { id: 'words', label: 'Words', value: displayResult.words },
+        { id: 'lines', label: 'Lines', value: displayResult.lines },
+        { id: 'paragraphs', label: 'Paragraphs', value: displayResult.paragraphs },
+        { id: 'sentences', label: 'Sentences', value: displayResult.sentences },
+        { id: 'avg-word-length', label: 'Avg Word Length', value: displayResult.averageWordLength },
+        { id: 'avg-words-per-line', label: 'Avg Words/Line', value: displayResult.averageWordsPerLine },
       ]
 
-      const friendlyView = (
+      const friendlyView = ({ onCopyCard, copiedCardId }) => (
         <div className={styles.structuredOutput}>
-          {stats.map((stat, idx) => (
-            <div key={idx} className={styles.copyCard}>
+          {stats.map((stat) => (
+            <div key={stat.id} className={styles.copyCard}>
               <div className={styles.copyCardHeader}>
                 <span className={styles.copyCardLabel}>{stat.label}</span>
+                <button
+                  className="copy-action"
+                  onClick={() => onCopyCard(stat.value, stat.id)}
+                  title={`Copy ${stat.label}`}
+                >
+                  {copiedCardId === stat.id ? '✓' : <FaCopy />}
+                </button>
               </div>
               <div className={styles.copyCardValue}>{stat.value}</div>
             </div>
