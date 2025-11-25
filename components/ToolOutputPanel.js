@@ -386,25 +386,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const tabs = []
 
     if (displayResult.formatted) {
-      const formattedContent = ({ onCopyCard, copiedCardId }) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
-          <pre className={sqlStyles.sqlCode} style={{ margin: 0 }}>
-            <code>{displayResult.formatted}</code>
-          </pre>
-          <button
-            className={sqlStyles.copyButton}
-            onClick={() => onCopyCard(displayResult.formatted, 'formatted-sql')}
-            title="Copy formatted SQL"
-          >
-            {copiedCardId === 'formatted-sql' ? '✓ Copied' : <><FaCopy /> Copy</>}
-          </button>
-        </div>
-      )
       tabs.push({
         id: 'formatted',
         label: 'Formatted',
-        content: formattedContent,
-        contentType: 'component',
+        content: displayResult.formatted,
+        contentType: 'code',
       })
     }
 
