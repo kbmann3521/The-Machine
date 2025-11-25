@@ -198,10 +198,6 @@ export default function DiagnosticsConfig({ configState, setConfigState }) {
         </div>
       </div>
 
-      {/* Run Button */}
-      <button className={styles.runButton}>
-        Run Diagnostics
-      </button>
     </div>
   )
 }
