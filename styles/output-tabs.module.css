@@ -296,14 +296,16 @@
 }
 
 .jsonContent {
-  padding: 0;
+  padding: 16px;
   overflow: auto;
+  background-color: var(--color-background-primary, #fff);
 }
 
 .textContent {
-  padding: 0;
+  padding: 16px;
   overflow: auto;
   display: flex;
+  background-color: var(--color-background-primary, #fff);
 }
 
 .textCode {
