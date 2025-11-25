@@ -506,6 +506,173 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
 
+  const renderXmlFormatterOutput = () => {
+    // Handle string output (beautified, minified, cleaned XML)
+    if (typeof displayResult === 'string') {
+      const tabs = [
+        {
+          id: 'formatted',
+          label: 'Formatted',
+          content: displayResult,
+          contentType: 'code',
+        },
+      ]
+      return <OutputTabs tabs={tabs} showCopyButton={true} />
+    }
+
+    // Handle object output from validate, lint, xpath, to-json, to-yaml
+    const tabs = []
+
+    if (displayResult.result) {
+      tabs.push({
+        id: 'result',
+        label: 'Result',
+        content: displayResult.result,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.formatted) {
+      tabs.push({
+        id: 'formatted',
+        label: 'Formatted',
+        content: displayResult.formatted,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.warnings && displayResult.warnings.length > 0) {
+      const warningsContent = (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {displayResult.warnings.map((warning, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                  border: '1px solid rgba(255, 193, 7, 0.3)',
+                  borderRadius: '5px',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                  Warning {idx + 1}
+                </div>
+                <div style={{ fontSize: '13px' }}>{warning}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+      tabs.push({
+        id: 'warnings',
+        label: `Warnings (${displayResult.warnings.length})`,
+        content: warningsContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.errors && displayResult.errors.length > 0) {
+      const errorsContent = (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {displayResult.errors.map((error, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(239, 83, 80, 0.15)',
+                  border: '1px solid rgba(239, 83, 80, 0.3)',
+                  borderRadius: '5px',
+                  color: '#ef5350',
+                }}
+              >
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                  Error {idx + 1}
+                </div>
+                <div style={{ fontSize: '13px' }}>{error}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+      tabs.push({
+        id: 'errors',
+        label: `Errors (${displayResult.errors.length})`,
+        content: errorsContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.json) {
+      tabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: displayResult.json,
+        contentType: 'json',
+      })
+    }
+
+    if (displayResult.yaml) {
+      tabs.push({
+        id: 'yaml',
+        label: 'YAML',
+        content: displayResult.yaml,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.xpathResults) {
+      const xpathContent = (
+        <div style={{ padding: '16px' }}>
+          {Array.isArray(displayResult.xpathResults) ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {displayResult.xpathResults.length > 0 ? (
+                displayResult.xpathResults.map((result, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '5px',
+                      fontFamily: 'monospace',
+                      fontSize: '12px',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {result}
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+                  No results found for the XPath query.
+                </div>
+              )}
+            </div>
+          ) : (
+            <pre style={{ margin: 0, fontSize: '12px' }}>
+              <code>{String(displayResult.xpathResults)}</code>
+            </pre>
+          )}
+        </div>
+      )
+      tabs.push({
+        id: 'xpath',
+        label: 'XPath Results',
+        content: xpathContent,
+        contentType: 'component',
+      })
+    }
+
+    if (tabs.length === 0) {
+      return null
+    }
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
   const renderSqlFormatterOutputOld = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
