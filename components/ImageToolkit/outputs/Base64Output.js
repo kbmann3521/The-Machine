@@ -4,7 +4,37 @@ import styles from '../../../styles/image-toolkit.module.css'
 
 export default function Base64Output({ result }) {
   if (!result || !result.base64Data) {
-    return null
+    const tabs = [
+      {
+        id: 'placeholder',
+        label: 'Preview',
+        content: (
+          <div className={styles.placeholder}>
+            <p>Upload an image to see Base64 preview</p>
+          </div>
+        ),
+        contentType: 'component',
+      },
+      {
+        id: 'base64-placeholder',
+        label: 'Base64 String',
+        content: '[base64-encoded-image-data]',
+        contentType: 'code',
+      },
+      {
+        id: 'uri-placeholder',
+        label: 'Data URI',
+        content: 'data:image/jpeg;base64,[encoded-data]',
+        contentType: 'code',
+      },
+      {
+        id: 'html-placeholder',
+        label: 'HTML Embed',
+        content: '<img src="data:image/jpeg;base64,[encoded-data]" alt="Embedded Image" />',
+        contentType: 'code',
+      },
+    ]
+    return <OutputTabs tabs={tabs} />
   }
 
   const dataUri = result.base64Data
