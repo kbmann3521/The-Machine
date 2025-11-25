@@ -595,7 +595,7 @@ export default function Home() {
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
                 {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                  <IPToolkitOutputPanel activeMode={ipToolkitMode} />
+                  <IPToolkitOutputPanel activeMode={ipToolkitMode} result={outputResult} />
                 ) : (
                   <ToolOutputPanel
                     result={outputResult}
