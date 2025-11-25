@@ -329,7 +329,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
 
-
   const renderSqlFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
