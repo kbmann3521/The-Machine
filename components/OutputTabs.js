@@ -85,7 +85,7 @@ export default function OutputTabs({
         </div>
       </div>
 
-      <div className={styles.tabContent}>
+      <div className={`${styles.tabContent} ${styles.tabContentFull}`}>
         {activeTab === 'friendly' && friendlyView && (
           <div className={styles.friendlyContent}>
             {friendlyView}
