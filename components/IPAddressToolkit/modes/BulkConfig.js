@@ -1,7 +1,14 @@
 import React from 'react'
+import { MdChevronRight } from 'react-icons/md'
 import styles from '../../../styles/ip-toolkit.module.css'
+import useAccordion from '../../../lib/useAccordion'
 
 export default function BulkConfig({ configState, setConfigState }) {
+  const { expanded: advancedExpanded, toggle: toggleAdvanced } = useAccordion(
+    'bulk-advanced-expanded',
+    false
+  )
+
   const handleChange = (key, value) => {
     setConfigState(prev => ({
       ...prev,
@@ -20,7 +27,6 @@ export default function BulkConfig({ configState, setConfigState }) {
     <div className={styles.configSection}>
       <h2 className={styles.configTitle}>Bulk Processing</h2>
 
-      {/* Input Type Radio */}
       <div className={styles.configGroup}>
         <label className={styles.configLabel}>Input Type</label>
         <div className={styles.radioGroup}>
@@ -50,7 +56,6 @@ export default function BulkConfig({ configState, setConfigState }) {
         </div>
       </div>
 
-      {/* Max IPs Input */}
       <div className={styles.configGroup}>
         <label className={styles.configLabel}>Max IPs to Process</label>
         <input
@@ -64,9 +69,8 @@ export default function BulkConfig({ configState, setConfigState }) {
         <p className={styles.helperText}>Default: 500 IPs</p>
       </div>
 
-      {/* Bulk Operations Checkboxes */}
       <div className={styles.configGroup}>
-        <label className={styles.configLabel}>Bulk Operations</label>
+        <label className={styles.configLabel}>Basic Options</label>
         <div className={styles.checkboxGroup}>
           <label className={styles.checkboxLabel}>
             <input
@@ -97,50 +101,72 @@ export default function BulkConfig({ configState, setConfigState }) {
             />
             <span>Classify Public/Private</span>
           </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.bulkGeo || false}
-              onChange={() => handleCheckboxChange('bulkGeo')}
-              className={styles.checkbox}
-            />
-            <span>Geo (Country only)</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.bulkAsn || false}
-              onChange={() => handleCheckboxChange('bulkAsn')}
-              className={styles.checkbox}
-            />
-            <span>ASN-lite</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.cidrCompression || false}
-              onChange={() => handleCheckboxChange('cidrCompression')}
-              className={styles.checkbox}
-            />
-            <span>CIDR Compression</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.generateSummary || false}
-              onChange={() => handleCheckboxChange('generateSummary')}
-              className={styles.checkbox}
-            />
-            <span>Generate Summary</span>
-          </label>
         </div>
       </div>
 
-      {/* Output Format Radio */}
+      <div className={styles.configGroup}>
+        <button className={styles.accordionToggle} onClick={toggleAdvanced}>
+          <span className={`${styles.accordionChevron} ${advancedExpanded ? styles.expanded : ''}`}>
+            <MdChevronRight />
+          </span>
+          Advanced Options
+        </button>
+
+        <div className={`${styles.accordionContent} ${advancedExpanded ? styles.expanded : ''}`}>
+          <div className={styles.checkboxGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.bulkGeo || false}
+                onChange={() => handleCheckboxChange('bulkGeo')}
+                className={styles.checkbox}
+              />
+              <span>Geo (Lite)</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.bulkAsn || false}
+                onChange={() => handleCheckboxChange('bulkAsn')}
+                className={styles.checkbox}
+              />
+              <span>ASN (Lite)</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.cidrCompression || false}
+                onChange={() => handleCheckboxChange('cidrCompression')}
+                className={styles.checkbox}
+              />
+              <span>CIDR Compression</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.maliciousHits || false}
+                onChange={() => handleCheckboxChange('maliciousHits')}
+                className={styles.checkbox}
+              />
+              <span>Malicious Hits</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.cloudProviderFlags || false}
+                onChange={() => handleCheckboxChange('cloudProviderFlags')}
+                className={styles.checkbox}
+              />
+              <span>Cloud Provider Flags</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div className={styles.configGroup}>
         <label className={styles.configLabel}>Output Format</label>
         <div className={styles.radioGroup}>
@@ -181,7 +207,6 @@ export default function BulkConfig({ configState, setConfigState }) {
           </label>
         </div>
       </div>
-
     </div>
   )
 }
