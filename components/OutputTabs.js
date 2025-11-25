@@ -174,7 +174,7 @@ export default function OutputTabs({
     if (isJWT(data)) {
       return {
         id: 'formatted',
-        label: 'Formatted',
+        label: 'Output',
         content: ({ onCopyCard, copiedCardId }) => renderFriendlyJWT(data, onCopyCard, copiedCardId),
         contentType: 'component',
       }
