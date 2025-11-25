@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaNetworkWired, FaClipboard, FaProjectDiagram, FaHeartbeat } from 'react-icons/fa6'
+import { FaNetworkWired, FaClipboard, FaProjectDiagram, FaQuestion } from 'react-icons/fa6'
 import DetectionBubble from './DetectionBubble'
 import SingleIPConfig from './modes/SingleIPConfig'
 import BulkConfig from './modes/BulkConfig'
