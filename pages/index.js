@@ -146,19 +146,14 @@ export default function Home() {
         console.debug('Tool metadata fetch failed, using local fallback:', error?.message)
       }
 
-      // If no tools from Supabase, fall back to local TOOLS (all visible by default)
+      // If no tools from Supabase, use local TOOLS as fallback
       if (allTools.length === 0) {
-        allTools = Object.entries(TOOLS).map(([toolId, toolData]) => {
-          const { show_in_recommendations, mark_for_delete, ...rest } = toolData
-          // When using local fallback, ignore code-based visibility
-          // All tools are visible by default unless explicitly hidden in Supabase
-          return {
-            toolId,
-            similarity: 0, // No match (white) when no input provided
-            show_in_recommendations: true, // Default to visible in fallback mode
-            ...rest,
-          }
-        })
+        console.warn('No tools from Supabase, using local fallback')
+        allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+          toolId,
+          similarity: 0,
+          ...toolData,
+        }))
       }
 
       // Filter out tools with show_in_recommendations = false
