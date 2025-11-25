@@ -382,6 +382,25 @@
 
   .friendlyContent {
     padding: 12px;
+    gap: 16px;
+  }
+
+  .dataSectionContent {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  .dataCard {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .dataCardLabel {
+    font-size: 11px;
+  }
+
+  .dataCardValue {
+    font-size: 12px;
   }
 }
 
@@ -400,5 +419,27 @@
   .minifyToggle {
     padding: 5px 8px;
     font-size: 9px;
+  }
+
+  .dataSectionContent {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .dataCard {
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .dataCardLabel {
+    font-size: 10px;
+  }
+
+  .dataCardValue {
+    font-size: 11px;
+  }
+
+  .dataSectionTitle {
+    font-size: 12px;
   }
 }
