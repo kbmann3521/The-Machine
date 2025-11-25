@@ -186,20 +186,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Determine the primary output type based on which field exists
     let primaryTabId = null
-    let primaryTabLabel = null
     let primaryTabContent = null
 
     if (displayResult.formatted !== undefined) {
       primaryTabId = 'formatted'
-      primaryTabLabel = 'Formatted'
       primaryTabContent = displayResult.formatted
     } else if (displayResult.minified !== undefined) {
       primaryTabId = 'minified'
-      primaryTabLabel = 'Minified'
       primaryTabContent = displayResult.minified
     } else if (displayResult.obfuscated !== undefined) {
       primaryTabId = 'obfuscated'
-      primaryTabLabel = 'Obfuscated'
       primaryTabContent = displayResult.obfuscated
     }
 
@@ -208,7 +204,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
         tabs.push({
           id: primaryTabId,
-          label: primaryTabLabel,
+          label: 'Output',
           content: primaryTabContent,
           contentType: 'code',
         })
@@ -216,12 +212,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // Show placeholder when output is unavailable
         const placeholderContent = (
           <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
-            {primaryTabLabel} output will appear here once you run the formatter on valid code.
+            Output will appear here once you run the formatter on valid code.
           </div>
         )
         tabs.push({
           id: primaryTabId,
-          label: primaryTabLabel,
+          label: 'Output',
           content: placeholderContent,
           contentType: 'component',
         })
