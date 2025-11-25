@@ -129,14 +129,17 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json()
           if (data?.tools && typeof data.tools === 'object') {
-            // Use metadata from Supabase
-            allTools = Object.entries(data.tools).map(([toolId, toolData]) => ({
-              toolId,
-              similarity: 0, // No match (white) when no input provided
-              ...toolData,
-              // Merge with local TOOLS for any missing properties
-              ...(TOOLS[toolId] || {}),
-            }))
+            // Use metadata from Supabase as source of truth
+            allTools = Object.entries(data.tools).map(([toolId, toolData]) => {
+              const localToolData = TOOLS[toolId] || {}
+              // Supabase values take priority over local code values
+              return {
+                toolId,
+                similarity: 0, // No match (white) when no input provided
+                ...localToolData,
+                ...toolData, // Supabase data overrides local data
+              }
+            })
           }
         }
       } catch (error) {
