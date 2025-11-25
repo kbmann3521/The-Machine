@@ -63,11 +63,11 @@
 .tabActions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   padding: 8px 12px;
   border-left: 1px solid var(--color-border, #ddd);
-  flex-shrink: 0;
-  min-width: fit-content;
+  margin-left: auto;
 }
 
 .minifyToggle {
