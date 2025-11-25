@@ -239,13 +239,18 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
             const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
             const isSelected = selectedTool?.toolId === tool.toolId
 
+            const isMarked = markedForDeletion[tool.toolId] || tool.markForDelete || false
+            const isMarking = markingTool === tool.toolId
+
             return (
               <article
                 key={tool.toolId}
                 ref={(el) => setItemRef(tool.toolId, el)}
                 className={`${styles.toolItem} ${
                   isSelected ? styles.selected : ''
-                } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
+                } ${isTopMatch && !searchQuery ? styles.topMatch : ''} ${
+                  isMarked ? styles.markedForDeletion : ''
+                }`}
                 onClick={() => onSelectTool(tool)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
                 role="button"
@@ -273,6 +278,21 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                     {(tool.similarity * 100).toFixed(0)}%
                   </span>
                 </div>
+                <button
+                  className={`${styles.markDeleteBtn} ${isMarked ? styles.marked : ''}`}
+                  onClick={(e) => handleMarkForDelete(e, tool.toolId, isMarked)}
+                  disabled={isMarking}
+                  title={isMarked ? 'Marked for deletion' : 'Mark for deletion'}
+                  aria-label={`Mark ${tool.name} for deletion`}
+                >
+                  {isMarking ? (
+                    <span className={styles.spinner} />
+                  ) : isMarked ? (
+                    <FaCheck />
+                  ) : (
+                    <FaTrash />
+                  )}
+                </button>
               </article>
             )
           })}
