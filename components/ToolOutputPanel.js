@@ -545,7 +545,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderJwtDecoderOutput = () => {
-    if (!displayResult || displayResult.error) return null
+    const tabs = []
+
+    // If there's an error, add an error tab
+    if (displayResult?.error) {
+      tabs.push({
+        id: 'error',
+        label: 'Error',
+        content: displayResult.error,
+        contentType: 'text',
+      })
+      return <OutputTabs tabs={tabs} showCopyButton={true} />
+    }
+
+    if (!displayResult || !displayResult.decoded) return null
 
     const sections = [
       { label: 'Header', value: displayResult.header },
@@ -555,45 +568,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (sections.length === 0) return null
 
-    const friendlyView = ({ onCopyCard, copiedCardId }) => (
-      <div className={styles.structuredOutput}>
-        {sections.map((section, idx) => (
-          <div key={idx} className={styles.copyCard}>
-            <div className={styles.copyCardHeader}>
-              <span className={styles.copyCardLabel}>{section.label}</span>
-              <button
-                className="copy-action"
-                onClick={() => onCopyCard(
-                  typeof section.value === 'object' ? JSON.stringify(section.value, null, 2) : section.value,
-                  section.label
-                )}
-                title={`Copy ${section.label}`}
-              >
-                {copiedCardId === section.label ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <div className={styles.copyCardValue}>
-              {typeof section.value === 'object' ? JSON.stringify(section.value, null, 2) : section.value}
-            </div>
-          </div>
-        ))}
-      </div>
-    )
+    // Plain text view of decoded JWT
+    const plainTextView = sections.map(section => {
+      const valueStr = typeof section.value === 'object' ? JSON.stringify(section.value, null, 2) : section.value
+      return `${section.label}:\n${valueStr}`
+    }).join('\n\n')
 
-    const tabs = [
-      {
-        id: 'decoded',
-        label: 'Decoded',
-        content: friendlyView,
-        contentType: 'component',
-      },
-      {
-        id: 'json',
-        label: 'JSON',
-        content: displayResult,
-        contentType: 'json',
-      },
-    ]
+    tabs.push({
+      id: 'decoded',
+      label: 'Decoded',
+      content: plainTextView,
+      contentType: 'text',
+    })
+
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: displayResult,
+      contentType: 'json',
+    })
 
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
@@ -1367,7 +1360,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Special handling for JWT Decoder
-    if (toolId === 'jwt-decoder' && displayResult && displayResult.decoded) {
+    if (toolId === 'jwt-decoder' && displayResult) {
       return renderJwtDecoderOutput()
     }
 
