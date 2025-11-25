@@ -203,32 +203,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     }
 
-    if (displayResult.errors) {
-      const syntaxContent = (
-        <>
-          {displayResult.errors.status === 'valid' ? (
-            <div className={jsStyles.success}>✓ No syntax errors found!</div>
-          ) : (
-            <div className={jsStyles.errorsList}>
-              {displayResult.errors.errors && displayResult.errors.errors.map((error, idx) => (
-                <div key={idx} className={jsStyles.error}>
-                  <div className={jsStyles.errorMessage}>
-                    <strong>Line {error.line}, Column {error.column}</strong>: {error.message}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )
-      tabs.push({
-        id: 'syntax',
-        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '✗'})`,
-        content: syntaxContent,
-        contentType: 'component',
-      })
-    }
-
     if (displayResult.linting) {
       const lintContent = (
         <>
@@ -253,6 +227,32 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'linting',
         label: `Linting (${displayResult.linting.total})`,
         content: lintContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.errors) {
+      const syntaxContent = (
+        <>
+          {displayResult.errors.status === 'valid' ? (
+            <div className={jsStyles.success}>✓ No syntax errors found!</div>
+          ) : (
+            <div className={jsStyles.errorsList}>
+              {displayResult.errors.errors && displayResult.errors.errors.map((error, idx) => (
+                <div key={idx} className={jsStyles.error}>
+                  <div className={jsStyles.errorMessage}>
+                    <strong>Line {error.line}, Column {error.column}</strong>: {error.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )
+      tabs.push({
+        id: 'syntax',
+        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '✗'})`,
+        content: syntaxContent,
         contentType: 'component',
       })
     }
@@ -823,7 +823,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <span className={sqlStyles.sectionTitle}>
                 Lint Warnings ({displayResult.lint.total})
               </span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '��'}</span>
             </div>
             {expandedSection === 'lint' && (
               <div className={sqlStyles.sectionContent}>
