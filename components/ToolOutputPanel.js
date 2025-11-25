@@ -424,7 +424,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.analysis) {
       const analysisContent = (
-        <div className={sqlStyles.sectionContent} style={{ padding: '16px' }}>
+        <>
           <div className={sqlStyles.analysisGrid}>
             <div className={sqlStyles.analysisItem}>
               <span className={sqlStyles.analysisLabel}>Query Type:</span>
@@ -465,7 +465,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               </div>
             </div>
           )}
-        </div>
+        </>
       )
       tabs.push({
         id: 'analysis',
@@ -704,7 +704,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                         <div className={sqlStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
                         <div className={sqlStyles.warningMessage}>{warning.message}</div>
                         {warning.suggestion && (
-                          <div className={sqlStyles.warningSuggestion}>���� {warning.suggestion}</div>
+                          <div className={sqlStyles.warningSuggestion}>💡 {warning.suggestion}</div>
                         )}
                       </div>
                     ))}
