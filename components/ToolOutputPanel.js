@@ -89,16 +89,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   if (isEmpty || isTextToolkitWithoutContent) {
     return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h3>Output</h3>
-        </div>
-        <div className={styles.content}>
-          <div className={styles.placeholder}>
-            <p>Run the tool to see output here</p>
-          </div>
-        </div>
-      </div>
+      <OutputTabs
+        tabs={[
+          {
+            id: 'default',
+            label: 'Output',
+            content: 'Run the tool to see output here',
+            contentType: 'text',
+          },
+        ]}
+      />
     )
   }
 
