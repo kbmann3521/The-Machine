@@ -1,7 +1,14 @@
 import React from 'react'
+import { MdChevronRight } from 'react-icons/md'
 import styles from '../../../styles/ip-toolkit.module.css'
+import useAccordion from '../../../lib/useAccordion'
 
 export default function CIDRConfig({ configState, setConfigState }) {
+  const { expanded: advancedExpanded, toggle: toggleAdvanced } = useAccordion(
+    'cidr-advanced-expanded',
+    false
+  )
+
   const handleChange = (key, value) => {
     setConfigState(prev => ({
       ...prev,
@@ -20,7 +27,6 @@ export default function CIDRConfig({ configState, setConfigState }) {
     <div className={styles.configSection}>
       <h2 className={styles.configTitle}>CIDR & Subnet</h2>
 
-      {/* Base Network Input */}
       <div className={styles.configGroup}>
         <label className={styles.configLabel}>Base Network</label>
         <input
@@ -32,7 +38,6 @@ export default function CIDRConfig({ configState, setConfigState }) {
         />
       </div>
 
-      {/* Subnetting Mode Radio */}
       <div className={styles.configGroup}>
         <label className={styles.configLabel}>Subnetting Mode</label>
         <div className={styles.radioGroup}>
@@ -62,7 +67,6 @@ export default function CIDRConfig({ configState, setConfigState }) {
         </div>
       </div>
 
-      {/* Dynamic Input Based on Mode */}
       {configState.subnetMode !== 'by-hosts' && (
         <div className={styles.configGroup}>
           <label className={styles.configLabel}>Number of Subnets</label>
@@ -89,10 +93,19 @@ export default function CIDRConfig({ configState, setConfigState }) {
         </div>
       )}
 
-      {/* Options Checkboxes */}
       <div className={styles.configGroup}>
-        <label className={styles.configLabel}>Options</label>
+        <label className={styles.configLabel}>Basic Options</label>
         <div className={styles.checkboxGroup}>
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={configState.showSubnetTable !== false}
+              onChange={() => handleCheckboxChange('showSubnetTable')}
+              className={styles.checkbox}
+            />
+            <span>Show Subnet Table</span>
+          </label>
+
           <label className={styles.checkboxLabel}>
             <input
               type="checkbox"
@@ -100,31 +113,93 @@ export default function CIDRConfig({ configState, setConfigState }) {
               onChange={() => handleCheckboxChange('showVisualizer')}
               className={styles.checkbox}
             />
-            <span>Show CIDR Visualizer</span>
+            <span>Show Visualizer</span>
           </label>
 
           <label className={styles.checkboxLabel}>
             <input
               type="checkbox"
-              checked={configState.showOverlapChecker || false}
-              onChange={() => handleCheckboxChange('showOverlapChecker')}
+              checked={configState.showFirstLastIP || false}
+              onChange={() => handleCheckboxChange('showFirstLastIP')}
               className={styles.checkbox}
             />
-            <span>Show Overlap Checker</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.exportJson || false}
-              onChange={() => handleCheckboxChange('exportJson')}
-              className={styles.checkbox}
-            />
-            <span>Export JSON</span>
+            <span>Show First/Last IP</span>
           </label>
         </div>
       </div>
 
+      <div className={styles.configGroup}>
+        <button className={styles.accordionToggle} onClick={toggleAdvanced}>
+          <span className={`${styles.accordionChevron} ${advancedExpanded ? styles.expanded : ''}`}>
+            <MdChevronRight />
+          </span>
+          Advanced Options
+        </button>
+
+        <div className={`${styles.accordionContent} ${advancedExpanded ? styles.expanded : ''}`}>
+          <div className={styles.checkboxGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.asnOwnershipPerSubnet || false}
+                onChange={() => handleCheckboxChange('asnOwnershipPerSubnet')}
+                className={styles.checkbox}
+              />
+              <span>ASN Ownership per Subnet</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.countryBreakdown || false}
+                onChange={() => handleCheckboxChange('countryBreakdown')}
+                className={styles.checkbox}
+              />
+              <span>Country Breakdown</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.cloudProviderFlags || false}
+                onChange={() => handleCheckboxChange('cloudProviderFlags')}
+                className={styles.checkbox}
+              />
+              <span>Cloud Provider Flags</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.threatIntelPerSubnet || false}
+                onChange={() => handleCheckboxChange('threatIntelPerSubnet')}
+                className={styles.checkbox}
+              />
+              <span>Threat Intel per Subnet</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.reputationPerSubnet || false}
+                onChange={() => handleCheckboxChange('reputationPerSubnet')}
+                className={styles.checkbox}
+              />
+              <span>Reputation per Subnet</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.multiSourceOwnershipComparison || false}
+                onChange={() => handleCheckboxChange('multiSourceOwnershipComparison')}
+                className={styles.checkbox}
+              />
+              <span>Multi-source Ownership Comparison</span>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
