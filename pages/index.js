@@ -626,64 +626,68 @@ export default function Home() {
 
           <main className={styles.mainContent}>
             <div className={styles.content}>
-          <div className={styles.toolContainer}>
-            <div className={styles.leftPanel}>
-              <div className={styles.inputSection}>
-                <UniversalInput
-                  onInputChange={handleInputChange}
-                  onImageChange={handleImageChange}
-                  selectedTool={selectedTool}
-                  configOptions={configOptions}
-                  getToolExample={getToolExample}
-                />
-              </div>
-
-              {selectedTool && (
-                <div className={styles.configSection}>
-                  <div className={styles.configHeader}>
-                    <ToolConfigPanel
-                      tool={selectedTool}
-                      onConfigChange={handleConfigChange}
-                      loading={toolLoading}
-                      onRegenerate={handleRegenerate}
-                      currentConfig={configOptions}
-                      activeToolkitSection={activeToolkitSection}
-                      onToolkitSectionChange={setActiveToolkitSection}
-                      findReplaceConfig={findReplaceConfig}
-                      onFindReplaceConfigChange={setFindReplaceConfig}
-                      diffConfig={diffConfig}
-                      onDiffConfigChange={setDiffConfig}
-                      sortLinesConfig={sortLinesConfig}
-                      onSortLinesConfigChange={setSortLinesConfig}
-                      removeExtrasConfig={removeExtrasConfig}
-                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                    />
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <span className={styles.descriptionIcon}>ℹ</span>
-                    </button>
-                  </div>
+          {selectedTool?.toolId === 'ip-address-toolkit' ? (
+            <IPAddressToolkit />
+          ) : (
+            <div className={styles.toolContainer}>
+              <div className={styles.leftPanel}>
+                <div className={styles.inputSection}>
+                  <UniversalInput
+                    onInputChange={handleInputChange}
+                    onImageChange={handleImageChange}
+                    selectedTool={selectedTool}
+                    configOptions={configOptions}
+                    getToolExample={getToolExample}
+                  />
                 </div>
-              )}
-            </div>
 
-            <div className={styles.rightPanel}>
-              <div className={styles.outputSection}>
-                <ToolOutputPanel
-                  result={outputResult}
-                  outputType={selectedTool?.outputType}
-                  loading={toolLoading}
-                  error={error}
-                  toolId={selectedTool?.toolId}
-                  activeToolkitSection={activeToolkitSection}
-                />
+                {selectedTool && (
+                  <div className={styles.configSection}>
+                    <div className={styles.configHeader}>
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                      />
+                      <button
+                        className={styles.descriptionToggle}
+                        onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                        aria-label="Toggle tool description"
+                        title="View tool description"
+                      >
+                        <span className={styles.descriptionIcon}>ℹ</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.rightPanel}>
+                <div className={styles.outputSection}>
+                  <ToolOutputPanel
+                    result={outputResult}
+                    outputType={selectedTool?.outputType}
+                    loading={toolLoading}
+                    error={error}
+                    toolId={selectedTool?.toolId}
+                    activeToolkitSection={activeToolkitSection}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
         </div>
