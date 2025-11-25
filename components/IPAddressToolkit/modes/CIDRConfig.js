@@ -125,10 +125,6 @@ export default function CIDRConfig({ configState, setConfigState }) {
         </div>
       </div>
 
-      {/* Run Button */}
-      <button className={styles.runButton}>
-        Run Subnetting
-      </button>
     </div>
   )
 }
