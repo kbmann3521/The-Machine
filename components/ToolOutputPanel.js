@@ -544,6 +544,60 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
 
+  const renderJwtDecoderOutput = () => {
+    if (!displayResult || displayResult.error) return null
+
+    const sections = [
+      { label: 'Header', value: displayResult.header },
+      { label: 'Payload', value: displayResult.payload },
+      { label: 'Signature', value: displayResult.signature },
+    ].filter(s => s.value)
+
+    if (sections.length === 0) return null
+
+    const friendlyView = ({ onCopyCard, copiedCardId }) => (
+      <div className={styles.structuredOutput}>
+        {sections.map((section, idx) => (
+          <div key={idx} className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>{section.label}</span>
+              <button
+                className="copy-action"
+                onClick={() => onCopyCard(
+                  typeof section.value === 'object' ? JSON.stringify(section.value, null, 2) : section.value,
+                  section.label
+                )}
+                title={`Copy ${section.label}`}
+              >
+                {copiedCardId === section.label ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue}>
+              {typeof section.value === 'object' ? JSON.stringify(section.value, null, 2) : section.value}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+
+    const tabs = [
+      {
+        id: 'decoded',
+        label: 'Decoded',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
   const renderJsonFormatterOutput = () => {
     // Handle string output (beautified, minified, or error messages)
     if (typeof displayResult === 'string') {
