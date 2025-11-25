@@ -14,7 +14,7 @@ import styles from '../../styles/ip-toolkit.module.css'
 const MODES = [
   { id: 'single-ip', label: 'Single IP', icon: FaNetworkWired },
   { id: 'bulk', label: 'Bulk', icon: FaClipboard },
-  { id: 'cidr-subnet', label: 'CIDR & Subnet', icon: FaProjectDiagram },
+  { id: 'cidr-subnet', label: 'CIDR & Subnet', icon: FaServer },
   { id: 'diagnostics', label: 'Diagnostics', icon: FaQuestion },
 ]
 
