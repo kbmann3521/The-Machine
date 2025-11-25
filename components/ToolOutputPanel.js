@@ -1288,30 +1288,32 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Special handling for image-toolkit
-    if (toolId === 'image-toolkit' && displayResult) {
-      if (displayResult.error) {
-        return (
-          <div className={styles.error}>
-            <p>{displayResult.error}</p>
-          </div>
-        )
-      }
-
-      if (displayResult.mode === 'resize' && displayResult.imageData) {
+    if (toolId === 'image-toolkit') {
+      if (displayResult?.mode === 'resize') {
         const ResizeOutput = require('./ImageToolkit/outputs/ResizeOutput').default
         return <ResizeOutput result={displayResult} />
       }
 
-      if (displayResult.mode === 'base64' && displayResult.base64Data) {
+      if (displayResult?.mode === 'base64') {
         const Base64Output = require('./ImageToolkit/outputs/Base64Output').default
         return <Base64Output result={displayResult} />
       }
 
-      return (
-        <div className={styles.placeholder}>
-          <p>Configure image options and upload an image</p>
-        </div>
-      )
+      // Default placeholder when no result
+      const defaultTabs = [
+        {
+          id: 'default',
+          label: 'Output',
+          content: (
+            <div className={styles.placeholder}>
+              <p>Run the tool to see output here</p>
+            </div>
+          ),
+          contentType: 'component',
+        },
+      ]
+      const OutputTabs = require('./OutputTabs').default
+      return <OutputTabs tabs={defaultTabs} />
     }
 
     // Special handling for text-toolkit sections that render as full-height text
