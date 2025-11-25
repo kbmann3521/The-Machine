@@ -1537,9 +1537,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (typeof displayResult === 'string') {
       return (
-        <pre className={styles.textOutput}>
-          <code>{displayResult}</code>
-        </pre>
+        <OutputTabs
+          tabs={[
+            {
+              id: 'formatted',
+              label: 'Formatted',
+              content: displayResult,
+              contentType: 'text',
+            },
+          ]}
+          showCopyButton={true}
+        />
       )
     }
 
