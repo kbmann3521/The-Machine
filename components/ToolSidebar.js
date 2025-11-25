@@ -7,6 +7,7 @@ import styles from '../styles/tool-sidebar.module.css'
 // Map tool IDs to react-icons
 const toolIcons = {
   'text-toolkit': FaFont,
+  'image-toolkit': FaImage,
   'image-resizer': FaImage,
   'word-counter': FaHashtag,
   'case-converter': FaLettercase,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/output-tabs.module.css'
 
@@ -10,10 +10,183 @@ export default function OutputTabs({
   title = 'Output',
   onCopyCard = null,
 }) {
-  const [activeTab, setActiveTab] = useState('friendly')
+  const [activeTab, setActiveTab] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
+
+  // Generate a user-friendly view from JSON data
+  const generateFriendlyTab = (jsonContent) => {
+    let data = jsonContent
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data)
+      } catch (e) {
+        return null
+      }
+    }
+
+    const isJWT = (obj) => {
+      if (typeof obj !== 'object' || obj === null) return false
+      return (obj.header || obj.payload) && (obj.signature !== undefined)
+    }
+
+    const renderValue = (val) => {
+      if (val === null) return 'null'
+      if (typeof val === 'boolean') return val ? 'Yes' : 'No'
+      if (typeof val === 'number') return val.toString()
+      if (typeof val === 'string') return val
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '(empty array)'
+        if (typeof val[0] === 'object') {
+          return `${val.length} item${val.length !== 1 ? 's' : ''}`
+        }
+        return val.join(', ')
+      }
+      if (typeof val === 'object') {
+        const keys = Object.keys(val)
+        return `${keys.length} field${keys.length !== 1 ? 's' : ''}`
+      }
+      return String(val)
+    }
+
+    const renderKeyValueField = (key, value, cardId, onCopyCard, copiedCardId) => {
+      const displayValue = renderValue(value)
+      return (
+        <div key={cardId} className={styles.dataCard}>
+          <div className={styles.dataCardHeader}>
+            <span className={styles.dataCardLabel}>{key}</span>
+            {onCopyCard && (
+              <button
+                className="copy-action"
+                onClick={() => onCopyCard(displayValue, cardId)}
+                title={`Copy ${key}`}
+              >
+                {copiedCardId === cardId ? '✓' : <FaCopy />}
+              </button>
+            )}
+          </div>
+          <div className={styles.dataCardValue}>{displayValue}</div>
+        </div>
+      )
+    }
+
+    const renderSection = (title, obj, sectionId, onCopyCard, copiedCardId) => {
+      if (!obj || typeof obj !== 'object') return null
+
+      const entries = Object.entries(obj)
+      return (
+        <div key={sectionId} className={styles.dataSection}>
+          <div className={styles.dataSectionTitle}>{title}</div>
+          <div className={styles.dataSectionContent}>
+            {entries.map(([key, value], idx) => {
+              const cardId = `${sectionId}-${key}`
+              return (
+                <div key={idx} className={styles.dataCardWrapper}>
+                  {typeof value === 'object' && value !== null && !Array.isArray(value) ? (
+                    <div className={styles.nestedDataCard}>
+                      <div className={styles.nestedKey}>{key}</div>
+                      <div className={styles.nestedObject}>
+                        {Object.entries(value).map(([nestedKey, nestedValue], nestedIdx) => (
+                          <div key={nestedIdx} className={styles.nestedField}>
+                            <span className={styles.nestedKeyName}>{nestedKey}:</span>
+                            <span className={styles.nestedValue}>{renderValue(nestedValue)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    renderKeyValueField(key, value, cardId, onCopyCard, copiedCardId)
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    const renderFriendlyJWT = (jwtData, onCopyCard, copiedCardId) => {
+      return (
+        <div className={styles.friendlyContent}>
+          {jwtData.header && renderSection('Header', jwtData.header, 'header', onCopyCard, copiedCardId)}
+          {jwtData.payload && renderSection('Payload', jwtData.payload, 'payload', onCopyCard, copiedCardId)}
+          {jwtData.signature && (
+            <div className={styles.dataSection}>
+              <div className={styles.dataSectionTitle}>Signature</div>
+              <div className={styles.dataSectionContent}>
+                <div className={styles.signatureCard}>
+                  <div className={styles.signatureValue}>{jwtData.signature}</div>
+                  {onCopyCard && (
+                    <button
+                      className="copy-action"
+                      onClick={() => onCopyCard(jwtData.signature, 'signature')}
+                      title="Copy signature"
+                    >
+                      {copiedCardId === 'signature' ? '✓' : <FaCopy />}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    const renderObject = (obj, depth = 0) => {
+      if (!obj || typeof obj !== 'object') {
+        return <div className={styles.friendlyValue}>{renderValue(obj)}</div>
+      }
+
+      const isArray = Array.isArray(obj)
+      const entries = isArray ? obj.map((v, i) => [i.toString(), v]) : Object.entries(obj)
+
+      return (
+        <div className={styles.friendlyContent}>
+          {entries.map(([key, value], idx) => {
+            const cardId = `field-${idx}`
+            return (
+              <div key={idx} className={styles.dataCardWrapper}>
+                {typeof value === 'object' && value !== null && !Array.isArray(value) ? (
+                  <div className={styles.nestedDataCard}>
+                    <div className={styles.nestedKey}>{key}</div>
+                    <div className={styles.nestedObject}>
+                      {Object.entries(value).map(([nestedKey, nestedValue], nestedIdx) => (
+                        <div key={nestedIdx} className={styles.nestedField}>
+                          <span className={styles.nestedKeyName}>{nestedKey}:</span>
+                          <span className={styles.nestedValue}>{renderValue(nestedValue)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  renderKeyValueField(key, value, cardId, null, null)
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+
+    // Detect JWT and render specially
+    if (isJWT(data)) {
+      return {
+        id: 'formatted',
+        label: 'Output',
+        content: ({ onCopyCard, copiedCardId }) => renderFriendlyJWT(data, onCopyCard, copiedCardId),
+        contentType: 'component',
+      }
+    }
+
+    return {
+      id: 'formatted',
+      label: 'Output',
+      content: renderObject(data),
+      contentType: 'component',
+    }
+  }
 
   // Support both old API (friendlyView + jsonData) and new API (tabs array)
   let tabConfig = tabs
@@ -38,17 +211,41 @@ export default function OutputTabs({
     }
   }
 
-  if (!tabConfig || tabConfig.length === 0) {
+  // Auto-insert friendly tab if tabs only contain JSON
+  let finalTabConfig = tabConfig
+  if (tabConfig && tabConfig.length === 1 && tabConfig[0].contentType === 'json') {
+    const friendlyTab = generateFriendlyTab(tabConfig[0].content)
+    if (friendlyTab) {
+      finalTabConfig = [friendlyTab, ...tabConfig]
+    }
+  }
+
+  // Initialize active tab when tabs config changes
+  useEffect(() => {
+    if (!finalTabConfig || finalTabConfig.length === 0) {
+      setActiveTab(null)
+      return
+    }
+
+    // If no tab is selected, set to first tab
+    if (!activeTab) {
+      setActiveTab(finalTabConfig[0].id)
+      return
+    }
+
+    // If current active tab is not in config, switch to first tab
+    if (!finalTabConfig.find(t => t.id === activeTab)) {
+      setActiveTab(finalTabConfig[0].id)
+    }
+  }, [tabs]) // Depend on input tabs prop
+
+  if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
   }
 
-  // Set initial active tab to first tab if default doesn't exist
-  const firstTabId = tabConfig[0]?.id
-  if (!tabConfig.find(t => t.id === activeTab)) {
-    setActiveTab(firstTabId)
-  }
-
-  const activeTabConfig = tabConfig.find(t => t.id === activeTab)
+  // Ensure activeTab is set
+  const currentActiveTab = activeTab || finalTabConfig[0]?.id
+  const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
   const getJsonString = () => {
     if (!activeTabConfig?.content) return ''
@@ -125,13 +322,17 @@ export default function OutputTabs({
     const { contentType, content, actions } = activeTabConfig
 
     // Handle component/function content (e.g., friendlyView)
-    if (contentType === 'component' || typeof content === 'function') {
+    if (contentType === 'component') {
+      if (typeof content === 'function') {
+        return (
+          <div className={styles.friendlyContent}>
+            {content({ onCopyCard: handleCopyCard, copiedCardId })}
+          </div>
+        )
+      }
       return (
         <div className={styles.friendlyContent}>
-          {typeof content === 'function'
-            ? content({ onCopyCard: handleCopyCard, copiedCardId })
-            : content
-          }
+          {content}
         </div>
       )
     }
@@ -158,11 +359,20 @@ export default function OutputTabs({
       )
     }
 
-    // Default: try to render as component or stringify
+    // Handle React components
     if (typeof content === 'function') {
       return (
         <div className={styles.friendlyContent}>
           {content({ onCopyCard: handleCopyCard, copiedCardId })}
+        </div>
+      )
+    }
+
+    // Handle React elements
+    if (React.isValidElement(content)) {
+      return (
+        <div className={styles.friendlyContent}>
+          {content}
         </div>
       )
     }
@@ -181,10 +391,10 @@ export default function OutputTabs({
       <div className={styles.outputTabsContainer}>
         <div className={styles.tabsHeader}>
           <div className={styles.tabs}>
-            {tabConfig.map(tab => (
+            {finalTabConfig.map(tab => (
               <button
                 key={tab.id}
-                className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
+                className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}

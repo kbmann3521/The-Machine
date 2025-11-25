@@ -57,6 +57,31 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
 
+  // Special handling for image-toolkit - show OutputTabs even when empty
+  if (toolId === 'image-toolkit') {
+    if (displayResult?.mode === 'resize') {
+      const ResizeOutput = require('./ImageToolkit/outputs/ResizeOutput').default
+      return <ResizeOutput result={displayResult} />
+    }
+
+    if (displayResult?.mode === 'base64') {
+      const Base64Output = require('./ImageToolkit/outputs/Base64Output').default
+      return <Base64Output result={displayResult} />
+    }
+
+    // Default placeholder with OutputTabs design
+    const defaultTabs = [
+      {
+        id: 'default',
+        label: 'Output',
+        content: 'Upload an image to see results',
+        contentType: 'text',
+      },
+    ]
+    const OutputTabs = require('./OutputTabs').default
+    return <OutputTabs tabs={defaultTabs} />
+  }
+
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
@@ -64,16 +89,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   if (isEmpty || isTextToolkitWithoutContent) {
     return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h3>Output</h3>
-        </div>
-        <div className={styles.content}>
-          <div className={styles.placeholder}>
-            <p>Run the tool to see output here</p>
-          </div>
-        </div>
-      </div>
+      <OutputTabs
+        tabs={[
+          {
+            id: 'default',
+            label: 'Output',
+            content: 'Run the tool to see output here',
+            contentType: 'text',
+          },
+        ]}
+      />
     )
   }
 
@@ -161,20 +186,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Determine the primary output type based on which field exists
     let primaryTabId = null
-    let primaryTabLabel = null
     let primaryTabContent = null
 
     if (displayResult.formatted !== undefined) {
       primaryTabId = 'formatted'
-      primaryTabLabel = 'Formatted'
       primaryTabContent = displayResult.formatted
     } else if (displayResult.minified !== undefined) {
       primaryTabId = 'minified'
-      primaryTabLabel = 'Minified'
       primaryTabContent = displayResult.minified
     } else if (displayResult.obfuscated !== undefined) {
       primaryTabId = 'obfuscated'
-      primaryTabLabel = 'Obfuscated'
       primaryTabContent = displayResult.obfuscated
     }
 
@@ -183,7 +204,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
         tabs.push({
           id: primaryTabId,
-          label: primaryTabLabel,
+          label: 'Output',
           content: primaryTabContent,
           contentType: 'code',
         })
@@ -191,12 +212,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // Show placeholder when output is unavailable
         const placeholderContent = (
           <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
-            {primaryTabLabel} output will appear here once you run the formatter on valid code.
+            Output will appear here once you run the formatter on valid code.
           </div>
         )
         tabs.push({
           id: primaryTabId,
-          label: primaryTabLabel,
+          label: 'Output',
           content: placeholderContent,
           contentType: 'component',
         })
@@ -363,7 +384,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (displayResult.formatted) {
       tabs.push({
         id: 'formatted',
-        label: 'Formatted',
+        label: 'Output',
         content: displayResult.formatted,
         contentType: 'code',
       })
@@ -519,6 +540,35 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
 
+  const renderJwtDecoderOutput = () => {
+    // If there's an error, add an error tab
+    if (displayResult?.error) {
+      const tabs = [
+        {
+          id: 'error',
+          label: 'Error',
+          content: displayResult.error,
+          contentType: 'text',
+        }
+      ]
+      return <OutputTabs tabs={tabs} showCopyButton={true} />
+    }
+
+    if (!displayResult || !displayResult.decoded) return null
+
+    // Use OutputTabs with JSON-only tab, let it auto-generate the friendly view
+    const tabs = [
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      }
+    ]
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
+  }
+
   const renderJsonFormatterOutput = () => {
     // Handle string output (beautified, minified, or error messages)
     if (typeof displayResult === 'string') {
@@ -539,7 +589,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = [
         {
           id: 'formatted',
-          label: 'Formatted',
+          label: 'Output',
           content: displayResult,
           contentType: 'code',
         },
@@ -611,7 +661,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = [
         {
           id: 'validation',
-          label: `Validation (${displayResult.isValid ? '✓' : '✗'})`,
+          label: `Validation (${displayResult.isValid ? '��' : '✗'})`,
           content: validationContent,
           contentType: 'component',
         },
@@ -637,7 +687,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = [
         {
           id: 'formatted',
-          label: 'Formatted',
+          label: 'Output',
           content: displayResult,
           contentType: 'code',
         },
@@ -660,7 +710,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (displayResult.formatted) {
       tabs.push({
         id: 'formatted',
-        label: 'Formatted',
+        label: 'Output',
         content: displayResult.formatted,
         contentType: 'code',
       })
@@ -1099,6 +1149,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           { label: 'MIME Type', value: result.mimeType || result.extension },
         ].filter(f => f.value)
 
+
       case 'url-parser':
         return [
           { label: 'Protocol', value: result.protocol },
@@ -1241,19 +1292,58 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  // Helper to wrap errors in OutputTabs format
+  const createErrorTab = (errorMsg) => {
+    return {
+      id: 'error',
+      label: 'Error',
+      content: errorMsg,
+      contentType: 'text',
+    }
+  }
+
+  // Helper to format JSON into a readable, modern layout
+  const formatJsonForDisplay = (data) => {
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data)
+      } catch (e) {
+        return data
+      }
+    }
+
+    const formatValue = (val, indent = 0) => {
+      const spaces = ' '.repeat(indent)
+      if (val === null) return 'null'
+      if (typeof val === 'boolean') return val.toString()
+      if (typeof val === 'number') return val.toString()
+      if (typeof val === 'string') return `"${val}"`
+      if (Array.isArray(val)) {
+        if (val.length === 0) return '[]'
+        const items = val.map(v => formatValue(v, indent + 2))
+        return `[${items.join(', ')}]`
+      }
+      if (typeof val === 'object') {
+        const keys = Object.keys(val)
+        if (keys.length === 0) return '{}'
+        const lines = keys.map(k => {
+          const v = val[k]
+          return `${spaces}  "${k}": ${formatValue(v, indent + 2)}`
+        })
+        return `{\n${lines.join(',\n')}\n${spaces}}`
+      }
+      return String(val)
+    }
+
+    return formatValue(data)
+  }
+
   const renderOutput = () => {
-    if (error) {
+    // Check for top-level errors, but allow tools to handle them internally
+    if (error && !['jwt-decoder', 'sql-formatter', 'js-formatter', 'xml-formatter', 'json-formatter', 'color-converter'].includes(toolId)) {
       return (
         <div className={styles.error}>
           <strong>Error:</strong> {error}
-        </div>
-      )
-    }
-
-    if (displayResult?.error) {
-      return (
-        <div className={styles.error}>
-          <strong>Error:</strong> {displayResult.error}
         </div>
       )
     }
@@ -1287,6 +1377,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return renderColorConverterOutput()
     }
 
+    // Special handling for JWT Decoder - handle errors inside tabs
+    if (toolId === 'jwt-decoder') {
+      const tabs = []
+      if (displayResult?.error || error) {
+        tabs.push(createErrorTab(displayResult?.error || error))
+        return <OutputTabs tabs={tabs} showCopyButton={true} />
+      }
+      if (displayResult && displayResult.decoded) {
+        return renderJwtDecoderOutput()
+      }
+      return null
+    }
+
     // Special handling for text-toolkit sections that render as full-height text
     if (toolId === 'text-toolkit' && displayResult) {
       let textContent = null
@@ -1315,9 +1418,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       // Only render text content if we have it for the current section
       if (textContent) {
         return (
-          <pre className={styles.textOutput}>
-            <code>{textContent}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'output',
+                label: 'Output',
+                content: textContent,
+                contentType: 'text',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
 
@@ -1327,21 +1438,37 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return null
       }
 
-      // Text Diff - show JSON only
+      // Text Diff - show JSON with OutputTabs
       if (activeToolkitSection === 'textDiff' && displayResult.textDiff) {
         return (
-          <pre className={styles.jsonOutput}>
-            <code>{JSON.stringify(displayResult.textDiff, null, 2)}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult.textDiff,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
 
-      // Word Frequency - show JSON only
+      // Word Frequency - show JSON with OutputTabs
       if (activeToolkitSection === 'wordFrequency' && displayResult.wordFrequency) {
         return (
-          <pre className={styles.jsonOutput}>
-            <code>{JSON.stringify(displayResult.wordFrequency, null, 2)}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult.wordFrequency,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
     }
@@ -1431,9 +1558,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (typeof displayResult === 'string') {
       return (
-        <pre className={styles.textOutput}>
-          <code>{displayResult}</code>
-        </pre>
+        <OutputTabs
+          tabs={[
+            {
+              id: 'formatted',
+              label: 'Output',
+              content: displayResult,
+              contentType: 'text',
+            },
+          ]}
+          showCopyButton={true}
+        />
       )
     }
 
@@ -1469,31 +1604,45 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         const structuredView = renderStructuredOutput()
         if (structuredView) {
           return (
-            <div>
-              {structuredView}
-              <div className={styles.jsonFallback}>
-                <details>
-                  <summary>View full JSON</summary>
-                  <pre className={styles.jsonOutput}>
-                    <code>{JSON.stringify(displayResult, null, 2)}</code>
-                  </pre>
-                </details>
-              </div>
-            </div>
+            <OutputTabs
+              tabs={[
+                {
+                  id: 'formatted',
+                  label: 'Output',
+                  content: structuredView,
+                  contentType: 'component',
+                },
+                {
+                  id: 'json',
+                  label: 'JSON',
+                  content: displayResult,
+                  contentType: 'json',
+                },
+              ]}
+              showCopyButton={true}
+            />
           )
         }
       }
 
       if (outputType === 'json' || (typeof displayResult === 'object' && !isFullHeightTextSection)) {
         return (
-          <pre className={styles.jsonOutput}>
-            <code>{JSON.stringify(displayResult, null, 2)}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
 
       if (displayResult.type === 'table' && Array.isArray(displayResult.data)) {
-        return (
+        const tableComponent = (
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <thead>
@@ -1515,12 +1664,39 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             </table>
           </div>
         )
+        return (
+          <OutputTabs
+            tabs={[
+              {
+                id: 'formatted',
+                label: 'Output',
+                content: tableComponent,
+                contentType: 'component',
+              },
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
+        )
       }
 
       return (
-        <pre className={styles.jsonOutput}>
-          <code>{JSON.stringify(displayResult, null, 2)}</code>
-        </pre>
+        <OutputTabs
+          tabs={[
+            {
+              id: 'json',
+              label: 'JSON',
+              content: displayResult,
+              contentType: 'json',
+            },
+          ]}
+          showCopyButton={true}
+        />
       )
     }
   }

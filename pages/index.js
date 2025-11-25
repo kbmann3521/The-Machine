@@ -129,30 +129,35 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json()
           if (data?.tools && typeof data.tools === 'object') {
-            // Use metadata from Supabase
-            allTools = Object.entries(data.tools).map(([toolId, toolData]) => ({
-              toolId,
-              similarity: 0, // No match (white) when no input provided
-              ...toolData,
-              // Merge with local TOOLS for any missing properties
-              ...(TOOLS[toolId] || {}),
-            }))
+            // Use metadata from Supabase as source of truth
+            allTools = Object.entries(data.tools).map(([toolId, toolData]) => {
+              const localToolData = TOOLS[toolId] || {}
+              // Supabase values take priority over local code values
+              return {
+                toolId,
+                similarity: 0, // No match (white) when no input provided
+                ...localToolData,
+                ...toolData, // Supabase data overrides local data
+              }
+            })
           }
         }
       } catch (error) {
         console.debug('Tool metadata fetch failed, using local fallback:', error?.message)
       }
 
-      // If no tools from Supabase, fall back to local TOOLS
+      // If no tools from Supabase, use local TOOLS as fallback
       if (allTools.length === 0) {
+        console.warn('No tools from Supabase, using local fallback')
         allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
           toolId,
-          name: toolData.name,
-          description: toolData.description,
-          similarity: 0, // No match (white) when no input provided
+          similarity: 0,
           ...toolData,
         }))
       }
+
+      // Filter out tools with show_in_recommendations = false
+      const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
 
       // Sync visibility map from tool metadata
       const newVisibilityMap = {}
@@ -166,7 +171,7 @@ export default function Home() {
         visibilityMapRef.current = newVisibilityMap
       }
 
-      setPredictedTools(allTools)
+      setPredictedTools(visibleTools)
     }
 
     initializeTools()
@@ -278,10 +283,18 @@ export default function Home() {
             throw new Error('Invalid prediction data')
           }
 
-          const toolsWithMetadata = data.predictedTools.map(tool => ({
-            ...tool,
-            ...TOOLS[tool.toolId],
-          }))
+          let toolsWithMetadata = data.predictedTools.map(tool => {
+            const localToolData = TOOLS[tool.toolId] || {}
+            // Supabase values take priority over local code values
+            return {
+              ...localToolData,
+              ...tool, // Supabase data overrides local data
+            }
+          })
+
+          // Filter out tools with show_in_recommendations = false
+          // Only Supabase controls visibility
+          toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
 
           // Auto-select the best match tool ONLY on input addition when not in advanced mode
           if (toolsWithMetadata.length > 0) {

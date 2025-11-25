@@ -4,9 +4,16 @@ import { TOOLS } from '../../../lib/tools'
 // Cache tool metadata with TTL
 let cachedToolMetadata = null
 let cacheTimestamp = 0
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 30 * 1000 // 30 seconds - short cache for visibility changes
 
 export default async function handler(req, res) {
+  // Allow cache clearing via ?clearCache=true
+  if (req.query.clearCache === 'true') {
+    cachedToolMetadata = null
+    cacheTimestamp = 0
+    console.log('Tool metadata cache cleared')
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -55,7 +62,7 @@ export default async function handler(req, res) {
                 category: tool.category || TOOLS[tool.id]?.category || 'general',
                 inputTypes: tool.input_types || TOOLS[tool.id]?.inputTypes || ['text'],
                 outputType: tool.output_type || TOOLS[tool.id]?.outputType || 'text',
-                showInRecommendations: tool.show_in_recommendations !== false,
+                show_in_recommendations: tool.show_in_recommendations !== false,
                 // Include detailed description from local TOOLS if available
                 detailedDescription: TOOLS[tool.id]?.detailedDescription || null,
                 configSchema: TOOLS[tool.id]?.configSchema || [],
@@ -70,22 +77,16 @@ export default async function handler(req, res) {
       }
     }
 
-    // Merge local TOOLS with Supabase tools - local tools fill in gaps and provide details
-    Object.entries(TOOLS).forEach(([toolId, toolData]) => {
-      if (!toolMetadata[toolId]) {
-        // Tool not in Supabase, add it from local config
-        toolMetadata[toolId] = {
-          id: toolId,
-          name: toolData.name || toolId,
-          description: toolData.description || '',
-          category: toolData.category || 'general',
-          inputTypes: toolData.inputTypes || ['text'],
-          outputType: toolData.outputType || 'text',
-          showInRecommendations: toolData.show_in_recommendations !== false,
-          detailedDescription: toolData.detailedDescription || null,
-          configSchema: toolData.configSchema || [],
-          example: toolData.example || '',
-        }
+    // IMPORTANT: Only use tools from Supabase, DO NOT add local TOOLS
+    // Supabase is the source of truth for tool visibility and deletion
+    // Local TOOLS config is only used for filling in missing UI details (detailedDescription, configSchema, example)
+    Object.keys(toolMetadata).forEach(toolId => {
+      const localTool = TOOLS[toolId]
+      if (localTool) {
+        // Enrich Supabase tool data with local UI details
+        toolMetadata[toolId].detailedDescription = localTool.detailedDescription || null
+        toolMetadata[toolId].configSchema = localTool.configSchema || []
+        toolMetadata[toolId].example = localTool.example || ''
       }
     })
 
@@ -100,30 +101,43 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error in get-metadata handler:', error)
 
-    // Build fallback from local TOOLS config
-    const fallbackMetadata = {}
-    Object.entries(TOOLS).forEach(([toolId, toolData]) => {
-      fallbackMetadata[toolId] = {
-        id: toolId,
-        name: toolData.name || toolId,
-        description: toolData.description || '',
-        category: toolData.category || 'general',
-        inputTypes: toolData.inputTypes || ['text'],
-        outputType: toolData.outputType || 'text',
-        showInRecommendations: toolData.show_in_recommendations !== false,
-        detailedDescription: toolData.detailedDescription || null,
-        configSchema: toolData.configSchema || [],
-        example: toolData.example || '',
-      }
-    })
+    // If we already have cached toolMetadata from Supabase, return it
+    if (toolMetadata && Object.keys(toolMetadata).length > 0) {
+      cachedToolMetadata = toolMetadata
+      cacheTimestamp = Date.now()
 
-    // Cache and return fallback
-    cachedToolMetadata = fallbackMetadata
-    cacheTimestamp = Date.now()
+      res.status(200).json({
+        tools: toolMetadata,
+        count: Object.keys(toolMetadata).length,
+      })
+    } else {
+      // Emergency fallback: return what we can from local TOOLS
+      // Note: This will include all tools in lib/tools.js
+      console.warn('Using emergency local TOOLS fallback - Supabase data unavailable')
+      const fallbackMetadata = {}
+      Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+        fallbackMetadata[toolId] = {
+          id: toolId,
+          name: toolData.name || toolId,
+          description: toolData.description || '',
+          category: toolData.category || 'general',
+          inputTypes: toolData.inputTypes || ['text'],
+          outputType: toolData.outputType || 'text',
+          show_in_recommendations: toolData.show_in_recommendations !== false,
+          detailedDescription: toolData.detailedDescription || null,
+          configSchema: toolData.configSchema || [],
+          example: toolData.example || '',
+        }
+      })
 
-    res.status(200).json({
-      tools: fallbackMetadata,
-      count: Object.keys(fallbackMetadata).length,
-    })
+      // Cache and return fallback
+      cachedToolMetadata = fallbackMetadata
+      cacheTimestamp = Date.now()
+
+      res.status(200).json({
+        tools: fallbackMetadata,
+        count: Object.keys(fallbackMetadata).length,
+      })
+    }
   }
 }
