@@ -176,6 +176,15 @@ export default function Home() {
     (tool) => {
       setSelectedTool(tool)
       setAdvancedMode(true) // User manually selected - exit auto-detect
+
+      // Initialize config for the selected tool
+      const initialConfig = {}
+      if (tool?.configSchema) {
+        tool.configSchema.forEach(field => {
+          initialConfig[field.id] = field.default || ''
+        })
+      }
+      setConfigOptions(initialConfig)
     },
     []
   )
