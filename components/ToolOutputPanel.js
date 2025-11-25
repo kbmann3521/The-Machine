@@ -545,48 +545,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderJwtDecoderOutput = () => {
-    const tabs = []
-
     // If there's an error, add an error tab
     if (displayResult?.error) {
-      tabs.push({
-        id: 'error',
-        label: 'Error',
-        content: displayResult.error,
-        contentType: 'text',
-      })
+      const tabs = [
+        {
+          id: 'error',
+          label: 'Error',
+          content: displayResult.error,
+          contentType: 'text',
+        }
+      ]
       return <OutputTabs tabs={tabs} showCopyButton={true} />
     }
 
     if (!displayResult || !displayResult.decoded) return null
 
-    const sections = [
-      { label: 'Header', value: displayResult.header },
-      { label: 'Payload', value: displayResult.payload },
-      { label: 'Signature', value: displayResult.signature },
-    ].filter(s => s.value)
-
-    if (sections.length === 0) return null
-
-    // Plain text view of decoded JWT
-    const plainTextView = sections.map(section => {
-      const valueStr = typeof section.value === 'object' ? JSON.stringify(section.value, null, 2) : section.value
-      return `${section.label}:\n${valueStr}`
-    }).join('\n\n')
-
-    tabs.push({
-      id: 'decoded',
-      label: 'Decoded',
-      content: plainTextView,
-      contentType: 'text',
-    })
-
-    tabs.push({
-      id: 'json',
-      label: 'JSON',
-      content: displayResult,
-      contentType: 'json',
-    })
+    // Use OutputTabs with JSON-only tab, let it auto-generate the friendly view
+    const tabs = [
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      }
+    ]
 
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
