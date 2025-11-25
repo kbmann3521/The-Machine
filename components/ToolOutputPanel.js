@@ -1575,26 +1575,40 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         const structuredView = renderStructuredOutput()
         if (structuredView) {
           return (
-            <div>
-              {structuredView}
-              <div className={styles.jsonFallback}>
-                <details>
-                  <summary>View full JSON</summary>
-                  <pre className={styles.jsonOutput}>
-                    <code>{JSON.stringify(displayResult, null, 2)}</code>
-                  </pre>
-                </details>
-              </div>
-            </div>
+            <OutputTabs
+              tabs={[
+                {
+                  id: 'formatted',
+                  label: 'Formatted',
+                  content: structuredView,
+                  contentType: 'component',
+                },
+                {
+                  id: 'json',
+                  label: 'JSON',
+                  content: displayResult,
+                  contentType: 'json',
+                },
+              ]}
+              showCopyButton={true}
+            />
           )
         }
       }
 
       if (outputType === 'json' || (typeof displayResult === 'object' && !isFullHeightTextSection)) {
         return (
-          <pre className={styles.jsonOutput}>
-            <code>{JSON.stringify(displayResult, null, 2)}</code>
-          </pre>
+          <OutputTabs
+            tabs={[
+              {
+                id: 'json',
+                label: 'JSON',
+                content: displayResult,
+                contentType: 'json',
+              },
+            ]}
+            showCopyButton={true}
+          />
         )
       }
 
