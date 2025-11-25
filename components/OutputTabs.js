@@ -61,12 +61,24 @@ export default function OutputTabs({
   const handleCopy = async () => {
     let textToCopy = ''
 
-    if (activeTabConfig?.contentType === 'json') {
+    if (!activeTabConfig) return
+
+    // For JSON/code content types, use the formatted string
+    if (activeTabConfig?.contentType === 'json' || activeTabConfig?.contentType === 'code') {
       textToCopy = getJsonString()
+    } else if (activeTabConfig?.contentType === 'text') {
+      // For text, just use the content as-is
+      textToCopy = String(activeTabConfig.content)
     } else if (typeof activeTabConfig?.content === 'string') {
+      // If content is a string, copy it directly
       textToCopy = activeTabConfig.content
+    } else if (typeof activeTabConfig?.content === 'function') {
+      // For component/function types, we can't copy - show a message or skip
+      console.warn('Cannot copy component content')
+      return
     } else {
-      textToCopy = JSON.stringify(activeTabConfig?.content)
+      // Fallback for objects
+      textToCopy = JSON.stringify(activeTabConfig.content, null, 2)
     }
 
     try {
