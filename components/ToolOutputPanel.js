@@ -159,7 +159,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = []
 
-    // Only show formatted tab if there's valid formatted output and no critical errors
+    // Only show formatted tab if there's valid formatted output
     const formattedCode = displayResult.formatted && typeof displayResult.formatted === 'string' ? displayResult.formatted.trim() : ''
     if (formattedCode && formattedCode !== '{}') {
       tabs.push({
@@ -167,18 +167,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         label: 'Formatted',
         content: displayResult.formatted,
         contentType: 'code',
-      })
-    } else if (displayResult.errors && displayResult.errors.status !== 'valid') {
-      // If there are syntax errors, don't show formatted tab - let user fix the syntax
-      const errorMessage = displayResult.errors.errors?.length > 0
-        ? `Fix syntax errors before formatting`
-        : 'Unable to format due to syntax errors'
-
-      tabs.push({
-        id: 'error-notice',
-        label: 'Format Error',
-        content: <div style={{ padding: '16px', color: '#ef5350', fontSize: '13px' }}>{errorMessage}</div>,
-        contentType: 'component',
       })
     }
 
