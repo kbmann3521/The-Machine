@@ -1,14 +1,13 @@
 import React from 'react'
-import { FaLock } from 'react-icons/fa6'
+import { MdChevronRight } from 'react-icons/md'
 import styles from '../../../styles/ip-toolkit.module.css'
+import useAccordion from '../../../lib/useAccordion'
 
 export default function SingleIPConfig({ configState, setConfigState }) {
-  const handleChange = (key, value) => {
-    setConfigState(prev => ({
-      ...prev,
-      [key]: value,
-    }))
-  }
+  const { expanded: advancedExpanded, toggle: toggleAdvanced } = useAccordion(
+    'singleip-advanced-expanded',
+    false
+  )
 
   const handleCheckboxChange = (key) => {
     setConfigState(prev => ({
@@ -17,41 +16,19 @@ export default function SingleIPConfig({ configState, setConfigState }) {
     }))
   }
 
+  const handleChange = (key, value) => {
+    setConfigState(prev => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
+
   return (
     <div className={styles.configSection}>
       <h2 className={styles.configTitle}>Single IP Analysis</h2>
 
-      {/* IP Version Select */}
       <div className={styles.configGroup}>
-        <label className={styles.configLabel}>IP Version</label>
-        <select
-          className={styles.select}
-          value={configState.ipVersion || 'auto'}
-          onChange={e => handleChange('ipVersion', e.target.value)}
-        >
-          <option value="auto">Auto Detect</option>
-          <option value="ipv4">IPv4</option>
-          <option value="ipv6">IPv6</option>
-        </select>
-      </div>
-
-      {/* Data Level Select */}
-      <div className={styles.configGroup}>
-        <label className={styles.configLabel}>Data Level</label>
-        <select
-          className={styles.select}
-          value={configState.dataLevel || 'basic'}
-          onChange={e => handleChange('dataLevel', e.target.value)}
-        >
-          <option value="basic">Basic</option>
-          <option value="extended">Extended</option>
-          <option value="pro">Pro</option>
-        </select>
-      </div>
-
-      {/* Operations Checkboxes */}
-      <div className={styles.configGroup}>
-        <label className={styles.configLabel}>Operations</label>
+        <label className={styles.configLabel}>Basic Options</label>
         <div className={styles.checkboxGroup}>
           <label className={styles.checkboxLabel}>
             <input
@@ -90,87 +67,104 @@ export default function SingleIPConfig({ configState, setConfigState }) {
               onChange={() => handleCheckboxChange('privatePublic')}
               className={styles.checkbox}
             />
-            <span>Private/Public Check</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.asn || false}
-              onChange={() => handleCheckboxChange('asn')}
-              className={styles.checkbox}
-            />
-            <span>ASN (Lite)</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.geo || false}
-              onChange={() => handleCheckboxChange('geo')}
-              className={styles.checkbox}
-            />
-            <span>Geo (Country)</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.reverseDns || false}
-              onChange={() => handleCheckboxChange('reverseDns')}
-              className={styles.checkbox}
-            />
-            <span>Reverse DNS (PTR)</span>
-          </label>
-
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={configState.networkSafety || false}
-              onChange={() => handleCheckboxChange('networkSafety')}
-              className={styles.checkbox}
-            />
-            <span>Network Safety Score</span>
-          </label>
-        </div>
-
-        {/* Pro Options Divider */}
-        <div className={styles.proOptionsDivider}>PRO-ONLY</div>
-
-        <div className={styles.checkboxGroup}>
-          <label className={`${styles.checkboxLabel} ${styles.proOption}`}>
-            <input
-              type="checkbox"
-              disabled
-              className={styles.checkbox}
-            />
-            <span>Reputation Check</span>
-            <FaLock className={styles.proLock} />
-          </label>
-
-          <label className={`${styles.checkboxLabel} ${styles.proOption}`}>
-            <input
-              type="checkbox"
-              disabled
-              className={styles.checkbox}
-            />
-            <span>Threat Intel (Lite)</span>
-            <FaLock className={styles.proLock} />
-          </label>
-
-          <label className={`${styles.checkboxLabel} ${styles.proOption}`}>
-            <input
-              type="checkbox"
-              disabled
-              className={styles.checkbox}
-            />
-            <span>Multi-source Cross-check</span>
-            <FaLock className={styles.proLock} />
+            <span>Classify (public/private/reserved)</span>
           </label>
         </div>
       </div>
 
-      {/* Output Style Radio */}
+      <div className={styles.configGroup}>
+        <button className={styles.accordionToggle} onClick={toggleAdvanced}>
+          <span className={`${styles.accordionChevron} ${advancedExpanded ? styles.expanded : ''}`}>
+            <MdChevronRight />
+          </span>
+          Advanced Options
+        </button>
+
+        <div className={`${styles.accordionContent} ${advancedExpanded ? styles.expanded : ''}`}>
+          <div className={styles.checkboxGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.asn || false}
+                onChange={() => handleCheckboxChange('asn')}
+                className={styles.checkbox}
+              />
+              <span>ASN Lookup</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.geo || false}
+                onChange={() => handleCheckboxChange('geo')}
+                className={styles.checkbox}
+              />
+              <span>Geo Lookup</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.reverseDns || false}
+                onChange={() => handleCheckboxChange('reverseDns')}
+                className={styles.checkbox}
+              />
+              <span>Reverse DNS (PTR)</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.networkSafety || false}
+                onChange={() => handleCheckboxChange('networkSafety')}
+                className={styles.checkbox}
+              />
+              <span>Network Safety Score</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.cloudProviderDetection || false}
+                onChange={() => handleCheckboxChange('cloudProviderDetection')}
+                className={styles.checkbox}
+              />
+              <span>Cloud Provider Detection</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.reputationScore || false}
+                onChange={() => handleCheckboxChange('reputationScore')}
+                className={styles.checkbox}
+              />
+              <span>Reputation Score</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.threatIntel || false}
+                onChange={() => handleCheckboxChange('threatIntel')}
+                className={styles.checkbox}
+              />
+              <span>Threat Intel Check</span>
+            </label>
+
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={configState.multiSourceCheck || false}
+                onChange={() => handleCheckboxChange('multiSourceCheck')}
+                className={styles.checkbox}
+              />
+              <span>Multi-Source Cross-Check</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div className={styles.configGroup}>
         <label className={styles.configLabel}>Output Style</label>
         <div className={styles.radioGroup}>
@@ -211,7 +205,6 @@ export default function SingleIPConfig({ configState, setConfigState }) {
           </label>
         </div>
       </div>
-
     </div>
   )
 }
