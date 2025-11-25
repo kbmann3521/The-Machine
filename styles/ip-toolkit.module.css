@@ -254,6 +254,50 @@
   accent-color: #0066cc;
 }
 
+/* ACCORDION */
+.accordionToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0066cc;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.accordionToggle:hover {
+  color: #0052a3;
+}
+
+.accordionChevron {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.accordionChevron.expanded {
+  transform: rotate(90deg);
+}
+
+.accordionContent {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+}
+
+.accordionContent.expanded {
+  max-height: 2000px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
 /* OPERATION BLOCK */
 .operationBlock {
   padding: 12px;
