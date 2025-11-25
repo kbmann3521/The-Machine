@@ -183,12 +183,6 @@
   animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.configHeader {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  width: 100%;
-}
 
 .descriptionToggle {
   flex-shrink: 0;
