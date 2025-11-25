@@ -310,7 +310,7 @@
 
 .textCode {
   margin: 0;
-  padding: 16px;
+  padding: 0;
   background-color: transparent;
   font-family: 'Courier New', monospace;
   font-size: 13px;
@@ -325,7 +325,7 @@
 
 .jsonCode {
   margin: 0;
-  padding: 16px;
+  padding: 0;
   background-color: rgba(0, 0, 0, 0);
   font-family: 'Courier New', monospace;
   font-size: 12px;
