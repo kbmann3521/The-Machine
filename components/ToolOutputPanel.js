@@ -410,7 +410,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <span className={sqlStyles.sectionTitle}>
                 Lint Warnings ({displayResult.lint.total})
               </span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '��'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
             </div>
             {expandedSection === 'lint' && (
               <div className={sqlStyles.sectionContent}>
@@ -911,18 +911,33 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // String Reverse - show friendly + JSON tabs
     if (toolId === 'string-reverse' && displayResult.reversed !== undefined) {
-      const friendlyView = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      const friendlyView = ({ onCopyCard, copiedCardId }) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
           <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Original</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Original</p>
+              <button className="copy-action" onClick={() => onCopyCard(displayResult.original, 'original')} title="Copy original">
+                {copiedCardId === 'original' ? '✓' : <FaCopy />}
+              </button>
+            </div>
             <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.original}</code>
           </div>
           <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reversed</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reversed</p>
+              <button className="copy-action" onClick={() => onCopyCard(displayResult.reversed, 'reversed')} title="Copy reversed">
+                {copiedCardId === 'reversed' ? '✓' : <FaCopy />}
+              </button>
+            </div>
             <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.reversed}</code>
           </div>
           <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Length</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Length</p>
+              <button className="copy-action" onClick={() => onCopyCard(displayResult.length, 'length')} title="Copy length">
+                {copiedCardId === 'length' ? '✓' : <FaCopy />}
+              </button>
+            </div>
             <p style={{ margin: '0', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px' }}>{displayResult.length} characters</p>
           </div>
         </div>
