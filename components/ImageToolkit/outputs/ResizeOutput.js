@@ -14,12 +14,8 @@ export default function ResizeOutput({ result }) {
       {
         id: 'placeholder',
         label: 'Resized Image',
-        content: (
-          <div className={styles.placeholder}>
-            <p>Upload an image to see resized preview</p>
-          </div>
-        ),
-        contentType: 'component',
+        content: 'Upload an image to see resized preview',
+        contentType: 'text',
       },
       {
         id: 'code-placeholder',
