@@ -7,10 +7,12 @@ export default function OutputTabs({
   jsonData,
   showCopyButton = false,
   title = 'Output',
+  onCopyCard = null,
 }) {
   const [activeTab, setActiveTab] = useState('friendly')
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copiedCardId, setCopiedCardId] = useState(null)
 
   const getJsonString = () => {
     const json = typeof jsonData === 'string' ? jsonData : JSON.stringify(jsonData, null, 2)
@@ -28,6 +30,18 @@ export default function OutputTabs({
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       fallbackCopy(textToCopy)
+    }
+  }
+
+  const handleCopyCard = async (value, cardId) => {
+    try {
+      await navigator.clipboard.writeText(String(value))
+      setCopiedCardId(cardId)
+      setTimeout(() => setCopiedCardId(null), 2000)
+    } catch (err) {
+      fallbackCopy(String(value))
+      setCopiedCardId(cardId)
+      setTimeout(() => setCopiedCardId(null), 2000)
     }
   }
 
@@ -49,56 +63,64 @@ export default function OutputTabs({
   }
 
   return (
-    <div className={styles.outputTabsContainer}>
-      <div className={styles.tabsHeader}>
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${activeTab === 'friendly' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('friendly')}
-          >
-            Friendly
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === 'json' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('json')}
-          >
-            JSON
-          </button>
-        </div>
-
-        <div className={styles.tabActions}>
-          {activeTab === 'json' && (
-            <button
-              className={styles.minifyToggle}
-              onClick={() => setIsMinified(!isMinified)}
-              title={isMinified ? 'Expand JSON' : 'Minify JSON'}
-            >
-              {isMinified ? 'Expand' : 'Minify'}
-            </button>
-          )}
-
-          {showCopyButton && (
-            <button className="copy-action" onClick={handleCopy} title="Copy output">
-              {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
-            </button>
-          )}
-        </div>
+    <div className={styles.outputTabsWrapper}>
+      <div className={styles.outputHeader}>
+        <h3 className={styles.outputTitle}>{title}</h3>
       </div>
-
-      <div className={`${styles.tabContent} ${styles.tabContentFull}`}>
-        {activeTab === 'friendly' && friendlyView && (
-          <div className={styles.friendlyContent}>
-            {friendlyView}
+      <div className={styles.outputTabsContainer}>
+        <div className={styles.tabsHeader}>
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${activeTab === 'friendly' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('friendly')}
+            >
+              Friendly
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'json' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('json')}
+            >
+              JSON
+            </button>
           </div>
-        )}
 
-        {activeTab === 'json' && (
-          <div className={styles.jsonContent}>
-            <pre className={styles.jsonCode}>
-              <code>{getJsonString()}</code>
-            </pre>
+          <div className={styles.tabActions}>
+            {activeTab === 'json' && (
+              <button
+                className={styles.minifyToggle}
+                onClick={() => setIsMinified(!isMinified)}
+                title={isMinified ? 'Expand JSON' : 'Minify JSON'}
+              >
+                {isMinified ? 'Expand' : 'Minify'}
+              </button>
+            )}
+
+            {showCopyButton && (
+              <button className="copy-action" onClick={handleCopy} title="Copy output">
+                {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
+              </button>
+            )}
           </div>
-        )}
+        </div>
+
+        <div className={`${styles.tabContent} ${styles.tabContentFull}`}>
+          {activeTab === 'friendly' && friendlyView && (
+            <div className={styles.friendlyContent}>
+              {typeof friendlyView === 'function' 
+                ? friendlyView({ onCopyCard: handleCopyCard, copiedCardId })
+                : friendlyView
+              }
+            </div>
+          )}
+
+          {activeTab === 'json' && (
+            <div className={styles.jsonContent}>
+              <pre className={styles.jsonCode}>
+                <code>{getJsonString()}</code>
+              </pre>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
