@@ -161,18 +161,8 @@
   }
 
   .tabActions {
-    padding: 6px 8px;
-    gap: 4px;
-    border-left: none;
-    border-top: 1px solid var(--color-border, #ddd);
-    width: 100%;
-    margin-left: 0;
-    order: 2;
-  }
-
-  .tabs {
-    width: 100%;
-    order: 1;
+    padding: 8px 10px;
+    gap: 6px;
   }
 
   .minifyToggle {
@@ -195,19 +185,15 @@
   .tab {
     padding: 8px 10px;
     font-size: 10px;
-    flex-shrink: 0;
   }
 
   .tabActions {
-    flex-direction: row;
     padding: 6px 8px;
-    gap: 6px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    gap: 4px;
   }
 
   .minifyToggle {
-    padding: 6px 8px;
+    padding: 5px 8px;
     font-size: 9px;
   }
 }
