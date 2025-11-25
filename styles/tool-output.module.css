@@ -23,6 +23,22 @@
   opacity: 0.7;
 }
 
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 150px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.placeholder p {
+  margin: 0;
+  text-align: center;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
