@@ -154,6 +154,9 @@ export default function Home() {
         }))
       }
 
+      // Filter out tools with show_in_recommendations = false
+      const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+
       // Sync visibility map from tool metadata
       const newVisibilityMap = {}
       allTools.forEach(tool => {
@@ -166,7 +169,7 @@ export default function Home() {
         visibilityMapRef.current = newVisibilityMap
       }
 
-      setPredictedTools(allTools)
+      setPredictedTools(visibleTools)
     }
 
     initializeTools()
