@@ -212,6 +212,7 @@ export default function Home() {
       // Clear any existing loading timer
       if (loadingTimerRef.current) {
         clearTimeout(loadingTimerRef.current)
+        loadingTimerRef.current = null
       }
 
       // Only show loading if the request takes longer than 500ms
@@ -219,7 +220,7 @@ export default function Home() {
         setLoading(true)
       }, 500)
 
-      (async () => {
+      const predictTools = async () => {
         try {
           // Store the classification that triggered this search
           const triggeringClassification = fastLocalClassification(text)
@@ -227,7 +228,7 @@ export default function Home() {
 
           // Fetch with 20 second timeout
           const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 20000)
+          const abortTimeoutId = setTimeout(() => controller.abort(), 20000)
 
           let response
           try {
@@ -241,14 +242,14 @@ export default function Home() {
               signal: controller.signal,
             })
           } catch (fetchError) {
-            clearTimeout(timeoutId)
+            clearTimeout(abortTimeoutId)
             // Handle fetch errors gracefully
             console.debug('Predict API fetch failed:', fetchError.message)
             // Fall through to use local prediction
             throw new Error('Prediction service unavailable')
           }
 
-          clearTimeout(timeoutId)
+          clearTimeout(abortTimeoutId)
 
           if (!response || !response.ok) {
             const errorText = response ? await response.text() : 'No response'
@@ -343,10 +344,13 @@ export default function Home() {
           // Clear the loading timer and disable loading
           if (loadingTimerRef.current) {
             clearTimeout(loadingTimerRef.current)
+            loadingTimerRef.current = null
           }
           setLoading(false)
         }
-      })()
+      }
+
+      predictTools()
     }, 300)
   }, [fastLocalClassification, selectedTool, advancedMode, detectCleanTextIssues, previousInputLength])
 
