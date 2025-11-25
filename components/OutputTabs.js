@@ -217,9 +217,9 @@ export default function OutputTabs({
     const friendlyTab = generateFriendlyTab(tabConfig[0].content)
     if (friendlyTab) {
       finalTabConfig = [friendlyTab, ...tabConfig]
-      // Set active tab to friendly if it's the first tab and no explicit active tab is set
+      // Set active tab to friendly/formatted if it's the first tab and no explicit active tab is set
       if (activeTab === tabConfig[0].id) {
-        setActiveTab('friendly')
+        setActiveTab(friendlyTab.id)
       }
     }
   }
