@@ -1,12 +1,52 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { FaCopy } from 'react-icons/fa6'
 import styles from '../../../styles/ip-toolkit.module.css'
 
 export default function SingleIPOutput({ result }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    let textToCopy = ''
+
+    if (typeof result === 'string') {
+      textToCopy = result
+    } else {
+      textToCopy = JSON.stringify(result, null, 2)
+    }
+
+    try {
+      await navigator.clipboard.writeText(textToCopy)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      fallbackCopy(textToCopy)
+    }
+  }
+
+  const fallbackCopy = (text) => {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+    document.body.removeChild(textarea)
+  }
+
   // Show empty state if no result
   if (!result) {
     return (
       <div className={styles.outputSection}>
-        <h2 className={styles.outputTitle}>Results</h2>
+        <div className={styles.outputHeader}>
+          <h3 className={styles.outputTitle}>Output</h3>
+        </div>
         <div className={styles.emptyOutput}>
           <p className={styles.emptyOutputText}>
             Enter an IP address to see analysis results
@@ -20,7 +60,12 @@ export default function SingleIPOutput({ result }) {
   if (result.error) {
     return (
       <div className={styles.outputSection}>
-        <h2 className={styles.outputTitle}>Results</h2>
+        <div className={styles.outputHeader}>
+          <h3 className={styles.outputTitle}>Output</h3>
+          <button className="copy-action" onClick={handleCopy} title="Copy output">
+            {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
+          </button>
+        </div>
         <div className={styles.card}>
           <div className={styles.cardContent}>
             <div className={styles.resultRow}>
@@ -36,7 +81,12 @@ export default function SingleIPOutput({ result }) {
   // Show results
   return (
     <div className={styles.outputSection}>
-      <h2 className={styles.outputTitle}>Results</h2>
+      <div className={styles.outputHeader}>
+        <h3 className={styles.outputTitle}>Output</h3>
+        <button className="copy-action" onClick={handleCopy} title="Copy output">
+          {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
+        </button>
+      </div>
 
       {/* Validation Status Card */}
       {result.isValid !== undefined && (
