@@ -212,10 +212,6 @@ export default function SingleIPConfig({ configState, setConfigState }) {
         </div>
       </div>
 
-      {/* Run Button */}
-      <button className={styles.runButton}>
-        Run Analysis
-      </button>
     </div>
   )
 }
