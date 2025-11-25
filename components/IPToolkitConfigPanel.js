@@ -13,8 +13,7 @@ const MODES = [
   { id: 'diagnostics', label: 'Diagnostics', icon: FaQuestion },
 ]
 
-export default function IPToolkitConfigPanel() {
-  const [activeMode, setActiveMode] = useState('single-ip')
+export default function IPToolkitConfigPanel({ activeMode = 'single-ip', onModeChange }) {
   const [configState, setConfigState] = useState({})
 
   const renderConfigPanel = () => {
