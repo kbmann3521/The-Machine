@@ -137,17 +137,8 @@ export default function OutputTabs({
       )
     }
 
-    // Handle JSON content - use modern formatter
-    if (contentType === 'json') {
-      return (
-        <div className={styles.jsonContent}>
-          <JsonFormatter data={activeTabConfig.content} />
-        </div>
-      )
-    }
-
-    // Handle code content
-    if (contentType === 'code') {
+    // Handle JSON content
+    if (contentType === 'json' || contentType === 'code') {
       return (
         <div className={styles.jsonContent}>
           <pre className={styles.jsonCode}>
