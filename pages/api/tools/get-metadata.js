@@ -70,22 +70,16 @@ export default async function handler(req, res) {
       }
     }
 
-    // Merge local TOOLS with Supabase tools - local tools fill in gaps and provide details
-    Object.entries(TOOLS).forEach(([toolId, toolData]) => {
-      if (!toolMetadata[toolId]) {
-        // Tool not in Supabase, add it from local config
-        toolMetadata[toolId] = {
-          id: toolId,
-          name: toolData.name || toolId,
-          description: toolData.description || '',
-          category: toolData.category || 'general',
-          inputTypes: toolData.inputTypes || ['text'],
-          outputType: toolData.outputType || 'text',
-          showInRecommendations: toolData.show_in_recommendations !== false,
-          detailedDescription: toolData.detailedDescription || null,
-          configSchema: toolData.configSchema || [],
-          example: toolData.example || '',
-        }
+    // IMPORTANT: Only use tools from Supabase, DO NOT add local TOOLS
+    // Supabase is the source of truth for tool visibility and deletion
+    // Local TOOLS config is only used for filling in missing UI details (detailedDescription, configSchema, example)
+    Object.keys(toolMetadata).forEach(toolId => {
+      const localTool = TOOLS[toolId]
+      if (localTool) {
+        // Enrich Supabase tool data with local UI details
+        toolMetadata[toolId].detailedDescription = localTool.detailedDescription || null
+        toolMetadata[toolId].configSchema = localTool.configSchema || []
+        toolMetadata[toolId].example = localTool.example || ''
       }
     })
 
