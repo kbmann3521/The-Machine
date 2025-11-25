@@ -242,7 +242,9 @@ export default function OutputTabs({
     return null
   }
 
-  const activeTabConfig = finalTabConfig.find(t => t.id === activeTab)
+  // Ensure activeTab is set
+  const currentActiveTab = activeTab || finalTabConfig[0]?.id
+  const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
   const getJsonString = () => {
     if (!activeTabConfig?.content) return ''
