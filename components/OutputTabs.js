@@ -313,9 +313,17 @@ export default function OutputTabs({
     // Handle component/function content (e.g., friendlyView)
     if (contentType === 'component') {
       if (typeof content === 'function') {
-        return content({ onCopyCard: handleCopyCard, copiedCardId })
+        return (
+          <div className={styles.friendlyContent}>
+            {content({ onCopyCard: handleCopyCard, copiedCardId })}
+          </div>
+        )
       }
-      return content
+      return (
+        <div className={styles.friendlyContent}>
+          {content}
+        </div>
+      )
     }
 
     // Handle JSON content
@@ -342,12 +350,20 @@ export default function OutputTabs({
 
     // Handle React components
     if (typeof content === 'function') {
-      return content({ onCopyCard: handleCopyCard, copiedCardId })
+      return (
+        <div className={styles.friendlyContent}>
+          {content({ onCopyCard: handleCopyCard, copiedCardId })}
+        </div>
+      )
     }
 
     // Handle React elements
     if (React.isValidElement(content)) {
-      return content
+      return (
+        <div className={styles.friendlyContent}>
+          {content}
+        </div>
+      )
     }
 
     return (
