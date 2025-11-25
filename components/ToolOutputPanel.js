@@ -211,10 +211,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               {displayResult.linting.warnings.map((warning, idx) => (
                 <div key={idx} className={`${jsStyles.warning} ${jsStyles[warning.level || 'info']}`}>
                   <div className={jsStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
-                  <div className={jsStyles.warningMessage}>{warning.message}</div>
-                  {warning.suggestion && (
-                    <div className={jsStyles.warningSuggestion}>💡 {warning.suggestion}</div>
-                  )}
+                  <div className={jsStyles.warningMessage}>
+                    {warning.line !== undefined && warning.column !== undefined && (
+                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginRight: '8px' }}>
+                        Line {warning.line}, Column {warning.column}
+                      </span>
+                    )}
+                    {warning.message}
+                    {warning.ruleId && (
+                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginLeft: '8px' }}>
+                        ({warning.ruleId})
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
