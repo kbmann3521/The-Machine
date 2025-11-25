@@ -28,15 +28,22 @@
   align-items: center;
   justify-content: center;
   flex: 1;
+  width: 100%;
   min-height: 150px;
   color: var(--color-text-secondary);
-  font-size: 13px;
-  opacity: 0.7;
+  font-size: 14px;
+  opacity: 0.6;
+  background-color: var(--color-background-tertiary);
+  border-radius: 5px;
+  border: 1px dashed var(--color-border);
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .placeholder p {
   margin: 0;
   text-align: center;
+  line-height: 1.5;
 }
 
 .header {
