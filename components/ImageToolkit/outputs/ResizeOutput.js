@@ -8,6 +8,29 @@ export default function ResizeOutput({ result }) {
   const [error, setError] = useState(null)
   const canvasRef = useRef(null)
 
+  // Show placeholder with OutputTabs when no image is uploaded yet
+  if (!result || !result.imageData) {
+    const tabs = [
+      {
+        id: 'placeholder',
+        label: 'Resized Image',
+        content: (
+          <div className={styles.placeholder}>
+            <p>Upload an image to see resized preview</p>
+          </div>
+        ),
+        contentType: 'component',
+      },
+      {
+        id: 'code-placeholder',
+        label: 'HTML Code',
+        content: '<img src="[resized-image-data]" alt="Resized Image" width="800" height="600" />',
+        contentType: 'code',
+      },
+    ]
+    return <OutputTabs tabs={tabs} />
+  }
+
   useEffect(() => {
     if (!result || !result.imageData) {
       return
