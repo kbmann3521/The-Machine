@@ -182,37 +182,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
+    const [showRepairInfo, setShowRepairInfo] = React.useState(false)
     const tabs = []
-
-    // Show repair notification if code was repaired
-    if (displayResult.repaired && displayResult.repaired.wasRepaired) {
-      const repairMessage = displayResult.repaired.method === 'prettier'
-        ? '✨ Code was auto-repaired using Prettier recovery'
-        : displayResult.repaired.method === 'babel-recovery'
-        ? '🔧 Code was auto-repaired using Babel error recovery'
-        : displayResult.repaired.method === 'eslint-fix'
-        ? '⚙️ Code was auto-fixed using ESLint'
-        : '🧠 Code was auto-repaired'
-
-      tabs.push({
-        id: 'repair-notice',
-        label: 'Repair Info',
-        content: (
-          <div style={{
-            padding: '12px',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            border: '1px solid rgba(76, 175, 80, 0.3)',
-            borderRadius: '4px',
-            color: '#4caf50',
-            fontSize: '13px',
-            fontWeight: '500',
-          }}>
-            {repairMessage}
-          </div>
-        ),
-        contentType: 'component',
-      })
-    }
 
     // Determine the primary output type based on which field exists
     let primaryTabId = null
@@ -229,7 +200,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       primaryTabContent = displayResult.obfuscated
     }
 
-    // Add primary tab
+    // Add primary tab FIRST
     if (primaryTabId && primaryTabContent) {
       if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
         tabs.push({
@@ -252,6 +223,58 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'component',
         })
       }
+    }
+
+    // Add repair info as a collapsible toggle (after output)
+    let repairInfoContent = null
+    if (displayResult.repaired && displayResult.repaired.wasRepaired) {
+      const repairMessage = displayResult.repaired.method === 'prettier'
+        ? '✨ Code was auto-repaired using Prettier recovery'
+        : displayResult.repaired.method === 'babel-recovery'
+        ? '🔧 Code was auto-repaired using Babel error recovery'
+        : displayResult.repaired.method === 'eslint-fix'
+        ? '⚙️ Code was auto-fixed using ESLint'
+        : '🧠 Code was auto-repaired'
+
+      repairInfoContent = (
+        <div style={{ marginBottom: '12px' }}>
+          <button
+            onClick={() => setShowRepairInfo(!showRepairInfo)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 12px',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#4caf50',
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.15)'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.1)'}
+          >
+            <span>{showRepairInfo ? '▼' : '▶'}</span>
+            <span>Show Repair Info</span>
+          </button>
+          {showRepairInfo && (
+            <div style={{
+              marginTop: '8px',
+              padding: '12px',
+              backgroundColor: 'rgba(76, 175, 80, 0.05)',
+              border: '1px solid rgba(76, 175, 80, 0.2)',
+              borderRadius: '4px',
+              color: '#4caf50',
+              fontSize: '13px',
+            }}>
+              {repairMessage}
+            </div>
+          )}
+        </div>
+      )
     }
 
     if (displayResult.linting) {
