@@ -131,27 +131,77 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
   }
 
+  const getErrorInfo = () => {
+    const errorInfo = new Map()
+
+    if (errorData) {
+      if (errorData.errors && errorData.errors.errors) {
+        errorData.errors.errors.forEach(error => {
+          if (error.line) {
+            if (!errorInfo.has(error.line)) {
+              errorInfo.set(error.line, {
+                type: 'error',
+                column: error.column !== undefined ? error.column : null,
+                message: error.message,
+              })
+            }
+          }
+        })
+      }
+
+      if (errorData.linting && errorData.linting.warnings) {
+        errorData.linting.warnings.forEach(warning => {
+          if (warning.line) {
+            if (!errorInfo.has(warning.line)) {
+              errorInfo.set(warning.line, {
+                type: 'warning',
+                column: warning.column !== undefined ? warning.column : null,
+                message: warning.message,
+              })
+            }
+          }
+        })
+      }
+    }
+
+    return errorInfo
+  }
+
   const renderHighlights = () => {
-    const lineTypes = getErrorLines()
-    if (lineTypes.size === 0) return null
+    const errorInfo = getErrorInfo()
+    if (errorInfo.size === 0) return null
 
     const lines = inputText.split('\n')
     const highlights = []
 
     lines.forEach((line, index) => {
       const lineNumber = index + 1
-      const lineType = lineTypes.get(lineNumber)
+      const info = errorInfo.get(lineNumber)
 
-      if (lineType === 'error') {
+      if (info?.type === 'error') {
+        const column = info.column !== null ? Math.max(0, info.column - 1) : 0
+        const before = line.substring(0, column)
+        const errorChar = line[column] || ''
+        const after = line.substring(column + 1)
+
         highlights.push(
           <div key={`error-${lineNumber}`} className={styles.errorHighlight}>
-            {line}
+            {before}
+            {errorChar && <span style={{ backgroundColor: 'rgba(244, 67, 54, 0.4)', textDecoration: 'wavy underline' }}>{errorChar}</span>}
+            {after}
           </div>
         )
-      } else if (lineType === 'warning') {
+      } else if (info?.type === 'warning') {
+        const column = info.column !== null ? Math.max(0, info.column - 1) : 0
+        const before = line.substring(0, column)
+        const warnChar = line[column] || ''
+        const after = line.substring(column + 1)
+
         highlights.push(
           <div key={`warning-${lineNumber}`} className={styles.warningHighlight}>
-            {line}
+            {before}
+            {warnChar && <span style={{ backgroundColor: 'rgba(255, 193, 7, 0.4)' }}>{warnChar}</span>}
+            {after}
           </div>
         )
       } else {
