@@ -86,7 +86,15 @@
 .errorHighlight {
   height: 1.5em;
   background-color: rgba(239, 68, 68, 0.15);
-  border-left: 3px solid rgba(239, 68, 68, 0.8);
+  border-left: 3px solid #ef4444;
+  padding-left: 6px;
+  margin-left: -6px;
+}
+
+.warningHighlight {
+  height: 1.5em;
+  background-color: rgba(255, 167, 38, 0.1);
+  border-left: 3px solid #ffa726;
   padding-left: 6px;
   margin-left: -6px;
 }
