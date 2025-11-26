@@ -3,24 +3,30 @@ import { MdChevronRight } from 'react-icons/md'
 import styles from '../../../styles/ip-toolkit.module.css'
 import useAccordion from '../../../lib/useAccordion'
 
-export default function SingleIPConfig({ configState, setConfigState }) {
+export default function SingleIPConfig({ configState = {}, setConfigState }) {
   const { expanded: advancedExpanded, toggle: toggleAdvanced } = useAccordion(
     'singleip-advanced-expanded',
     false
   )
 
   const handleCheckboxChange = (key) => {
-    setConfigState(prev => ({
-      ...prev,
-      [key]: !prev[key],
-    }))
+    const newConfig = {
+      ...configState,
+      [key]: !configState[key],
+    }
+    if (typeof setConfigState === 'function') {
+      setConfigState(newConfig)
+    }
   }
 
   const handleChange = (key, value) => {
-    setConfigState(prev => ({
-      ...prev,
+    const newConfig = {
+      ...configState,
       [key]: value,
-    }))
+    }
+    if (typeof setConfigState === 'function') {
+      setConfigState(newConfig)
+    }
   }
 
   return (
