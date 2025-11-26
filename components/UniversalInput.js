@@ -88,6 +88,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef(null)
   const textareaRef = useRef(null)
+  const highlightsLayerRef = useRef(null)
 
   const handleTextChange = (e) => {
     const text = e.target.value
