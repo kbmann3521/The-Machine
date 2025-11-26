@@ -97,13 +97,15 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const getErrorLines = () => {
-    const errorLines = new Set()
+    const lineTypes = new Map()
 
     if (errorData) {
       if (errorData.errors && errorData.errors.errors) {
         errorData.errors.errors.forEach(error => {
           if (error.line) {
-            errorLines.add(error.line)
+            if (!lineTypes.has(error.line)) {
+              lineTypes.set(error.line, 'error')
+            }
           }
         })
       }
@@ -111,13 +113,15 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       if (errorData.linting && errorData.linting.warnings) {
         errorData.linting.warnings.forEach(warning => {
           if (warning.line) {
-            errorLines.add(warning.line)
+            if (!lineTypes.has(warning.line) || lineTypes.get(warning.line) === 'warning') {
+              lineTypes.set(warning.line, 'warning')
+            }
           }
         })
       }
     }
 
-    return errorLines
+    return lineTypes
   }
 
   const handleScroll = (e) => {
