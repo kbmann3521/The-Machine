@@ -616,18 +616,14 @@ export default function Home() {
 
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
-                {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                  <IPToolkitOutputPanel activeMode={ipToolkitMode} result={outputResult} />
-                ) : (
-                  <ToolOutputPanel
-                    result={outputResult}
-                    outputType={selectedTool?.outputType}
-                    loading={toolLoading}
-                    error={error}
-                    toolId={selectedTool?.toolId}
-                    activeToolkitSection={activeToolkitSection}
-                  />
-                )}
+                <ToolOutputPanel
+                  result={outputResult}
+                  outputType={selectedTool?.outputType}
+                  loading={toolLoading}
+                  error={error}
+                  toolId={selectedTool?.toolId}
+                  activeToolkitSection={activeToolkitSection}
+                />
               </div>
             </div>
           </div>
