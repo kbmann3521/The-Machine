@@ -456,6 +456,14 @@ export default function Home() {
             removeTimestamps: removeExtrasConfig.removeTimestamps === true,
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
           }
+        } else if (tool.toolId === 'ip-address-toolkit') {
+          finalConfig = {
+            ...config,
+            validateIP: ipToolkitConfig.validateIP !== false,
+            normalize: ipToolkitConfig.normalize || false,
+            ipToInteger: ipToolkitConfig.ipToInteger || false,
+            privatePublic: ipToolkitConfig.privatePublic || false,
+          }
         }
 
         const response = await fetch('/api/tools/run', {
