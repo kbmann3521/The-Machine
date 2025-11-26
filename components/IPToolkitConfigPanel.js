@@ -28,11 +28,11 @@ export default function IPToolkitConfigPanel({ activeMode = 'single-ip', onModeC
       case 'single-ip':
         return <SingleIPConfig configState={configState} setConfigState={handleConfigChange} />
       case 'bulk':
-        return <BulkConfig configState={configState} setConfigState={setConfigState} />
+        return <BulkConfig configState={configState} setConfigState={handleConfigChange} />
       case 'cidr-subnet':
-        return <CIDRConfig configState={configState} setConfigState={setConfigState} />
+        return <CIDRConfig configState={configState} setConfigState={handleConfigChange} />
       case 'diagnostics':
-        return <DiagnosticsConfig configState={configState} setConfigState={setConfigState} />
+        return <DiagnosticsConfig configState={configState} setConfigState={handleConfigChange} />
       default:
         return null
     }
