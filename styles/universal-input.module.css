@@ -105,6 +105,8 @@
   background-color: transparent;
   line-height: 1.5;
   color: var(--color-text-primary);
+  position: relative;
+  z-index: 2;
 }
 
 .textarea::placeholder {
