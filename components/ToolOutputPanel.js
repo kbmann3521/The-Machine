@@ -223,7 +223,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     }
 
-    // Add repair info as a collapsible toggle (after output)
+    // Add repair info notification (after output)
     let repairInfoContent = null
     if (displayResult.repaired && displayResult.repaired.wasRepaired) {
       const repairMessage = displayResult.repaired.method === 'prettier'
@@ -235,42 +235,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         : '🧠 Code was auto-repaired'
 
       repairInfoContent = (
-        <div style={{ marginBottom: '12px' }}>
-          <button
-            onClick={() => setShowRepairInfo(!showRepairInfo)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 12px',
-              backgroundColor: 'rgba(76, 175, 80, 0.1)',
-              border: '1px solid rgba(76, 175, 80, 0.3)',
-              borderRadius: '4px',
-              color: '#4caf50',
-              fontSize: '13px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.15)'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.1)'}
-          >
-            <span>{showRepairInfo ? '▼' : '▶'}</span>
-            <span>Show Repair Info</span>
-          </button>
-          {showRepairInfo && (
-            <div style={{
-              marginTop: '8px',
-              padding: '12px',
-              backgroundColor: 'rgba(76, 175, 80, 0.05)',
-              border: '1px solid rgba(76, 175, 80, 0.2)',
-              borderRadius: '4px',
-              color: '#4caf50',
-              fontSize: '13px',
-            }}>
-              {repairMessage}
-            </div>
-          )}
+        <div style={{
+          marginBottom: '12px',
+          padding: '10px 12px',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          border: '1px solid rgba(76, 175, 80, 0.3)',
+          borderRadius: '4px',
+          color: '#4caf50',
+          fontSize: '13px',
+          fontWeight: '500',
+        }}>
+          {repairMessage}
         </div>
       )
     }
