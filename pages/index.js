@@ -589,7 +589,7 @@ export default function Home() {
 
                   <div className={styles.configSection}>
                     {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                      <IPToolkitConfigPanel activeMode={ipToolkitMode} onModeChange={setIpToolkitMode} />
+                      <IPToolkitConfigPanel activeMode={ipToolkitMode} onModeChange={setIpToolkitMode} currentConfig={ipToolkitConfig} onConfigChange={setIpToolkitConfig} />
                     ) : (
                       <ToolConfigPanel
                         tool={selectedTool}
