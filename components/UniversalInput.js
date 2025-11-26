@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample }) {
+export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type your text here... drag & drop or paste an image (Ctrl+V)"
