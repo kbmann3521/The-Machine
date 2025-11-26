@@ -96,33 +96,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     onInputChange(text)
   }
 
-  const getErrorLines = () => {
-    const lineTypes = new Map()
-
-    if (errorData) {
-      if (errorData.errors && errorData.errors.errors) {
-        errorData.errors.errors.forEach(error => {
-          if (error.line) {
-            if (!lineTypes.has(error.line)) {
-              lineTypes.set(error.line, 'error')
-            }
-          }
-        })
-      }
-
-      if (errorData.linting && errorData.linting.warnings) {
-        errorData.linting.warnings.forEach(warning => {
-          if (warning.line) {
-            if (!lineTypes.has(warning.line) || lineTypes.get(warning.line) === 'warning') {
-              lineTypes.set(warning.line, 'warning')
-            }
-          }
-        })
-      }
-    }
-
-    return lineTypes
-  }
 
   const handleScroll = (e) => {
     if (highlightsLayerRef.current) {
