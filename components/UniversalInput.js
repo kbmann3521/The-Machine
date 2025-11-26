@@ -132,17 +132,25 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const renderHighlights = () => {
-    const errorLines = getErrorLines()
-    if (errorLines.size === 0) return null
+    const lineTypes = getErrorLines()
+    if (lineTypes.size === 0) return null
 
     const lines = inputText.split('\n')
     const highlights = []
 
     lines.forEach((line, index) => {
       const lineNumber = index + 1
-      if (errorLines.has(lineNumber)) {
+      const lineType = lineTypes.get(lineNumber)
+
+      if (lineType === 'error') {
         highlights.push(
           <div key={`error-${lineNumber}`} className={styles.errorHighlight}>
+            {line}
+          </div>
+        )
+      } else if (lineType === 'warning') {
+        highlights.push(
+          <div key={`warning-${lineNumber}`} className={styles.warningHighlight}>
             {line}
           </div>
         )
