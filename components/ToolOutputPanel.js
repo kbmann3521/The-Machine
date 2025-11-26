@@ -179,8 +179,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  const [showRepairInfo, setShowRepairInfo] = useState(false)
-
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
