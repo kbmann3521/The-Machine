@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing inputText or inputImage' })
     }
 
-    const result = runTool(toolId, inputText, config || {}, inputImage)
+    const result = await runTool(toolId, inputText, config || {}, inputImage)
 
     res.status(200).json({
       success: true,
