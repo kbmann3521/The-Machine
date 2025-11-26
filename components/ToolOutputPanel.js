@@ -426,7 +426,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return (
+      <>
+        {repairInfoContent}
+        <OutputTabs tabs={tabs} showCopyButton={true} />
+      </>
+    )
   }
 
   const renderSqlFormatterOutput = () => {
