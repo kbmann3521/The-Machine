@@ -332,11 +332,17 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
+          {getErrorLines().size > 0 && (
+            <div id="highlights-layer" className={styles.highlightsLayer}>
+              {renderHighlights()}
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             className={styles.textarea}
             value={inputText}
             onChange={handleTextChange}
+            onScroll={handleScroll}
             onPaste={handlePaste}
             placeholder={getPlaceholder()}
           />
