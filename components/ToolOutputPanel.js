@@ -179,10 +179,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const [showRepairInfo, setShowRepairInfo] = useState(false)
+
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
-
-    const [showRepairInfo, setShowRepairInfo] = React.useState(false)
     const tabs = []
 
     // Determine the primary output type based on which field exists
