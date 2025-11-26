@@ -95,6 +95,65 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     onInputChange(text)
   }
 
+  const getErrorLines = () => {
+    const errorLines = new Set()
+
+    if (errorData) {
+      if (errorData.errors && errorData.errors.errors) {
+        errorData.errors.errors.forEach(error => {
+          if (error.line) {
+            errorLines.add(error.line)
+          }
+        })
+      }
+
+      if (errorData.linting && errorData.linting.warnings) {
+        errorData.linting.warnings.forEach(warning => {
+          if (warning.line) {
+            errorLines.add(warning.line)
+          }
+        })
+      }
+    }
+
+    return errorLines
+  }
+
+  const handleScroll = (e) => {
+    const highlightsLayer = document.getElementById('highlights-layer')
+    if (highlightsLayer) {
+      highlightsLayer.scrollTop = e.target.scrollTop
+      highlightsLayer.scrollLeft = e.target.scrollLeft
+    }
+  }
+
+  const renderHighlights = () => {
+    const errorLines = getErrorLines()
+    if (errorLines.size === 0) return null
+
+    const lines = inputText.split('\n')
+    const highlights = []
+
+    lines.forEach((line, index) => {
+      const lineNumber = index + 1
+      if (errorLines.has(lineNumber)) {
+        highlights.push(
+          <div key={`error-${lineNumber}`} className={styles.errorHighlight}>
+            {line}
+          </div>
+        )
+      } else {
+        highlights.push(
+          <div key={`line-${lineNumber}`} className={styles.highlightLine}>
+            {line}
+          </div>
+        )
+      }
+    })
+
+    return highlights
+  }
+
   const handleImageFile = (file) => {
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file')
