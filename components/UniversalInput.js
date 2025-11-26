@@ -75,6 +75,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'integer-to-ip': 'Paste an integer to convert to an IP address',
       'ip-range-calculator': 'Paste an IP with CIDR notation (e.g., 192.168.1.0/24) to analyze',
       'markdown-linter': 'Paste Markdown content to check for formatting issues and lint errors',
+      'ip-address-toolkit': 'Enter an IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888) to analyze',
     }
 
     return staticPlaceholders[selectedTool.toolId] || "Type or paste content here..."
