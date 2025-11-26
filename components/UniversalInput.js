@@ -122,10 +122,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const handleScroll = (e) => {
-    const highlightsLayer = document.getElementById('highlights-layer')
-    if (highlightsLayer) {
-      highlightsLayer.scrollTop = e.target.scrollTop
-      highlightsLayer.scrollLeft = e.target.scrollLeft
+    if (highlightsLayerRef.current) {
+      highlightsLayerRef.current.scrollTop = e.target.scrollTop
+      highlightsLayerRef.current.scrollLeft = e.target.scrollLeft
     }
   }
 
