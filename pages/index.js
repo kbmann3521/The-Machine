@@ -57,6 +57,7 @@ export default function Home() {
   const [advancedMode, setAdvancedMode] = useState(false)
   const [previousInputLength, setPreviousInputLength] = useState(0)
   const [ipToolkitMode, setIpToolkitMode] = useState('single-ip')
+  const [ipToolkitConfig, setIpToolkitConfig] = useState({})
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
