@@ -334,7 +334,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           onDrop={handleDrop}
         >
           {getErrorLines().size > 0 && (
-            <div id="highlights-layer" className={styles.highlightsLayer}>
+            <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
               {renderHighlights()}
             </div>
           )}
