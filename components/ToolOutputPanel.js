@@ -229,6 +229,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const wasRepaired = displayResult.repaired && displayResult.repaired.wasRepaired
       const repairs = displayResult.repaired && displayResult.repaired.repairs ? displayResult.repaired.repairs : []
       const repairCount = repairs.length
+      const hasSyntaxErrors = displayResult.errors && displayResult.errors.status === 'invalid' && displayResult.errors.errors && displayResult.errors.errors.length > 0
 
       let repairContent = null
       let tabLabel = 'Repair Info'
@@ -296,6 +297,49 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             </div>
           </div>
         )
+      } else if (!wasRepaired && hasSyntaxErrors) {
+        const firstError = displayResult.errors.errors[0]
+        const errorLine = firstError?.line || 'unknown'
+        const errorMsg = firstError?.message || 'Unknown syntax error'
+
+        tabLabel = 'Repair Info ✗'
+
+        repairContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              marginBottom: '16px',
+            }}>
+              <div style={{
+                fontSize: '24px',
+                color: '#f44336',
+                fontWeight: 'bold',
+                marginTop: '-2px',
+              }}>
+                ✗
+              </div>
+              <div>
+                <div style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: 'var(--color-text-primary)',
+                  marginBottom: '4px',
+                }}>
+                  Cannot auto-repair
+                </div>
+                <div style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: '1.5',
+                }}>
+                  JavaScript has a syntax error on line {errorLine}. {errorMsg.includes('comma') || errorMsg.includes('bracket') || errorMsg.includes('token') ? '(likely a missing comma or bracket)' : ''} Please fix the syntax first.
+                </div>
+              </div>
+            </div>
+          </div>
+        )
       } else {
         tabLabel = 'Repair Info ✓'
 
@@ -312,7 +356,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 color: '#4caf50',
                 fontWeight: 'bold',
               }}>
-                ✓
+                ��
               </div>
               <div>
                 <div style={{
