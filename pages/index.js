@@ -573,6 +573,7 @@ export default function Home() {
                   selectedTool={selectedTool}
                   configOptions={configOptions}
                   getToolExample={getToolExample}
+                  errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
                 />
               </div>
 
