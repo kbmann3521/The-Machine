@@ -171,46 +171,6 @@ export default function SingleIPConfig({ configState = {}, setConfigState }) {
         </div>
       </div>
 
-      <div className={styles.configGroup}>
-        <label className={styles.configLabel}>Output Style</label>
-        <div className={styles.radioGroup}>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="outputStyle"
-              value="cards"
-              checked={configState.outputStyle !== 'json' && configState.outputStyle !== 'both'}
-              onChange={() => handleChange('outputStyle', 'cards')}
-              className={styles.radio}
-            />
-            <span>Friendly Cards</span>
-          </label>
-
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="outputStyle"
-              value="json"
-              checked={configState.outputStyle === 'json'}
-              onChange={() => handleChange('outputStyle', 'json')}
-              className={styles.radio}
-            />
-            <span>Raw JSON</span>
-          </label>
-
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="outputStyle"
-              value="both"
-              checked={configState.outputStyle === 'both'}
-              onChange={() => handleChange('outputStyle', 'both')}
-              className={styles.radio}
-            />
-            <span>Both</span>
-          </label>
-        </div>
-      </div>
     </div>
   )
 }
