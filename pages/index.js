@@ -7,7 +7,6 @@ import ToolOutputPanel from '../components/ToolOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import IPToolkitConfigPanel from '../components/IPToolkitConfigPanel'
-import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, autoDetectToolConfig, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
@@ -58,6 +57,7 @@ export default function Home() {
   const [advancedMode, setAdvancedMode] = useState(false)
   const [previousInputLength, setPreviousInputLength] = useState(0)
   const [ipToolkitMode, setIpToolkitMode] = useState('single-ip')
+  const [ipToolkitConfig, setIpToolkitConfig] = useState({})
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -456,6 +456,14 @@ export default function Home() {
             removeTimestamps: removeExtrasConfig.removeTimestamps === true,
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
           }
+        } else if (tool.toolId === 'ip-address-toolkit') {
+          finalConfig = {
+            ...config,
+            validateIP: ipToolkitConfig.validateIP !== false,
+            normalize: ipToolkitConfig.normalize || false,
+            ipToInteger: ipToolkitConfig.ipToInteger || false,
+            privatePublic: ipToolkitConfig.privatePublic || false,
+          }
         }
 
         const response = await fetch('/api/tools/run', {
@@ -493,7 +501,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -565,6 +573,7 @@ export default function Home() {
                   selectedTool={selectedTool}
                   configOptions={configOptions}
                   getToolExample={getToolExample}
+                  errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
                 />
               </div>
 
@@ -589,7 +598,7 @@ export default function Home() {
 
                   <div className={styles.configSection}>
                     {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                      <IPToolkitConfigPanel />
+                      <IPToolkitConfigPanel activeMode={ipToolkitMode} onModeChange={setIpToolkitMode} currentConfig={ipToolkitConfig} onConfigChange={setIpToolkitConfig} />
                     ) : (
                       <ToolConfigPanel
                         tool={selectedTool}
@@ -616,18 +625,14 @@ export default function Home() {
 
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
-                {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                  <IPToolkitOutputPanel activeMode={ipToolkitMode} result={outputResult} />
-                ) : (
-                  <ToolOutputPanel
-                    result={outputResult}
-                    outputType={selectedTool?.outputType}
-                    loading={toolLoading}
-                    error={error}
-                    toolId={selectedTool?.toolId}
-                    activeToolkitSection={activeToolkitSection}
-                  />
-                )}
+                <ToolOutputPanel
+                  result={outputResult}
+                  outputType={selectedTool?.outputType}
+                  loading={toolLoading}
+                  error={error}
+                  toolId={selectedTool?.toolId}
+                  activeToolkitSection={activeToolkitSection}
+                />
               </div>
             </div>
           </div>

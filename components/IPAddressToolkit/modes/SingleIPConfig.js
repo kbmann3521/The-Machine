@@ -3,24 +3,30 @@ import { MdChevronRight } from 'react-icons/md'
 import styles from '../../../styles/ip-toolkit.module.css'
 import useAccordion from '../../../lib/useAccordion'
 
-export default function SingleIPConfig({ configState, setConfigState }) {
+export default function SingleIPConfig({ configState = {}, setConfigState }) {
   const { expanded: advancedExpanded, toggle: toggleAdvanced } = useAccordion(
     'singleip-advanced-expanded',
     false
   )
 
   const handleCheckboxChange = (key) => {
-    setConfigState(prev => ({
-      ...prev,
-      [key]: !prev[key],
-    }))
+    const newConfig = {
+      ...configState,
+      [key]: !configState[key],
+    }
+    if (typeof setConfigState === 'function') {
+      setConfigState(newConfig)
+    }
   }
 
   const handleChange = (key, value) => {
-    setConfigState(prev => ({
-      ...prev,
+    const newConfig = {
+      ...configState,
       [key]: value,
-    }))
+    }
+    if (typeof setConfigState === 'function') {
+      setConfigState(newConfig)
+    }
   }
 
   return (
@@ -165,46 +171,6 @@ export default function SingleIPConfig({ configState, setConfigState }) {
         </div>
       </div>
 
-      <div className={styles.configGroup}>
-        <label className={styles.configLabel}>Output Style</label>
-        <div className={styles.radioGroup}>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="outputStyle"
-              value="cards"
-              checked={configState.outputStyle !== 'json' && configState.outputStyle !== 'both'}
-              onChange={() => handleChange('outputStyle', 'cards')}
-              className={styles.radio}
-            />
-            <span>Friendly Cards</span>
-          </label>
-
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="outputStyle"
-              value="json"
-              checked={configState.outputStyle === 'json'}
-              onChange={() => handleChange('outputStyle', 'json')}
-              className={styles.radio}
-            />
-            <span>Raw JSON</span>
-          </label>
-
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="outputStyle"
-              value="both"
-              checked={configState.outputStyle === 'both'}
-              onChange={() => handleChange('outputStyle', 'both')}
-              className={styles.radio}
-            />
-            <span>Both</span>
-          </label>
-        </div>
-      </div>
     </div>
   )
 }

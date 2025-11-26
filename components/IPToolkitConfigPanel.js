@@ -13,19 +13,26 @@ const MODES = [
   { id: 'diagnostics', label: 'Diagnostics', icon: FaQuestion },
 ]
 
-export default function IPToolkitConfigPanel({ activeMode = 'single-ip', onModeChange }) {
-  const [configState, setConfigState] = useState({})
+export default function IPToolkitConfigPanel({ activeMode = 'single-ip', onModeChange, currentConfig = {}, onConfigChange }) {
+  const [configState, setConfigState] = useState(currentConfig)
+
+  const handleConfigChange = (newConfig) => {
+    setConfigState(newConfig)
+    if (onConfigChange) {
+      onConfigChange(newConfig)
+    }
+  }
 
   const renderConfigPanel = () => {
     switch (activeMode) {
       case 'single-ip':
-        return <SingleIPConfig configState={configState} setConfigState={setConfigState} />
+        return <SingleIPConfig configState={configState} setConfigState={handleConfigChange} />
       case 'bulk':
-        return <BulkConfig configState={configState} setConfigState={setConfigState} />
+        return <BulkConfig configState={configState} setConfigState={handleConfigChange} />
       case 'cidr-subnet':
-        return <CIDRConfig configState={configState} setConfigState={setConfigState} />
+        return <CIDRConfig configState={configState} setConfigState={handleConfigChange} />
       case 'diagnostics':
-        return <DiagnosticsConfig configState={configState} setConfigState={setConfigState} />
+        return <DiagnosticsConfig configState={configState} setConfigState={handleConfigChange} />
       default:
         return null
     }

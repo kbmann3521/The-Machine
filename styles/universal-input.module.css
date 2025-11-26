@@ -60,6 +60,45 @@
   border-color: #0066cc;
 }
 
+.highlightsLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 12px 12px 0 12px;
+  overflow: hidden;
+  pointer-events: none;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: transparent;
+  z-index: 1;
+}
+
+.highlightLine {
+  height: 1.5em;
+  background-color: transparent;
+}
+
+.errorHighlight {
+  height: 1.5em;
+  background-color: rgba(239, 68, 68, 0.15);
+  border-left: 3px solid #ef4444;
+  padding-left: 6px;
+  margin-left: -6px;
+}
+
+.warningHighlight {
+  height: 1.5em;
+  background-color: rgba(255, 167, 38, 0.1);
+  border-left: 3px solid #ffa726;
+  padding-left: 6px;
+  margin-left: -6px;
+}
+
 .textarea {
   flex: 1;
   min-height: 160px;
@@ -74,6 +113,8 @@
   background-color: transparent;
   line-height: 1.5;
   color: var(--color-text-primary);
+  position: relative;
+  z-index: 2;
 }
 
 .textarea::placeholder {

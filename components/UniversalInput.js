@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample }) {
+export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type your text here... drag & drop or paste an image (Ctrl+V)"
@@ -75,6 +75,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'integer-to-ip': 'Paste an integer to convert to an IP address',
       'ip-range-calculator': 'Paste an IP with CIDR notation (e.g., 192.168.1.0/24) to analyze',
       'markdown-linter': 'Paste Markdown content to check for formatting issues and lint errors',
+      'ip-address-toolkit': 'Enter an IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888) to analyze',
     }
 
     return staticPlaceholders[selectedTool.toolId] || "Type or paste content here..."
@@ -86,12 +87,83 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef(null)
   const textareaRef = useRef(null)
+  const highlightsLayerRef = useRef(null)
 
   const handleTextChange = (e) => {
     const text = e.target.value
     setInputText(text)
     setCharCount(text.length)
     onInputChange(text)
+  }
+
+  const getErrorLines = () => {
+    const lineTypes = new Map()
+
+    if (errorData) {
+      if (errorData.errors && errorData.errors.errors) {
+        errorData.errors.errors.forEach(error => {
+          if (error.line) {
+            if (!lineTypes.has(error.line)) {
+              lineTypes.set(error.line, 'error')
+            }
+          }
+        })
+      }
+
+      if (errorData.linting && errorData.linting.warnings) {
+        errorData.linting.warnings.forEach(warning => {
+          if (warning.line) {
+            if (!lineTypes.has(warning.line) || lineTypes.get(warning.line) === 'warning') {
+              lineTypes.set(warning.line, 'warning')
+            }
+          }
+        })
+      }
+    }
+
+    return lineTypes
+  }
+
+  const handleScroll = (e) => {
+    if (highlightsLayerRef.current) {
+      highlightsLayerRef.current.scrollTop = e.target.scrollTop
+      highlightsLayerRef.current.scrollLeft = e.target.scrollLeft
+    }
+  }
+
+  const renderHighlights = () => {
+    const lineTypes = getErrorLines()
+    if (lineTypes.size === 0) return null
+
+    const lines = inputText.split('\n')
+    const highlights = []
+
+    lines.forEach((line, index) => {
+      const lineNumber = index + 1
+      const lineType = lineTypes.get(lineNumber)
+
+      if (lineType === 'error') {
+        highlights.push(
+          <div key={`error-${lineNumber}`} className={styles.errorHighlight}>
+            {line}
+          </div>
+        )
+      } else if (lineType === 'warning') {
+        highlights.push(
+          <div key={`warning-${lineNumber}`} className={styles.warningHighlight}>
+            {line}
+          </div>
+        )
+      } else {
+        highlights.push(
+          <div key={`line-${lineNumber}`} className={styles.highlightLine}>
+            {line}
+          </div>
+        )
+      }
+    })
+
+    return highlights
   }
 
   const handleImageFile = (file) => {
@@ -272,11 +344,17 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
+          {getErrorLines().size > 0 ? (
+            <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
+              {renderHighlights()}
+            </div>
+          ) : null}
           <textarea
             ref={textareaRef}
             className={styles.textarea}
             value={inputText}
             onChange={handleTextChange}
+            onScroll={handleScroll}
             onPaste={handlePaste}
             placeholder={getPlaceholder()}
           />
