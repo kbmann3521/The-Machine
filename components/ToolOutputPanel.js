@@ -1094,11 +1094,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       let tabLabel = 'Repair Info'
 
       if (wasRepaired && repairCount > 0) {
-        const repairMessage = displayResult.repaired.method === 'libxmljs2-recovery'
-          ? '🔧 XML was auto-repaired using libxmljs2 recovery'
+        const repairMessage = displayResult.repaired.method === 'fast-xml-parser-recover'
+          ? '🔧 XML was auto-repaired using tolerant parser'
           : '🧠 XML was auto-repaired'
 
-        tabLabel = `Repair Info (${repairCount})`
+        tabLabel = repairCount === 1 ? 'Repair Info' : `Repair Info (${repairCount})`
 
         repairContent = (
           <div style={{ padding: '12px' }}>
@@ -1115,38 +1115,97 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               {repairMessage}
             </div>
 
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              marginBottom: '12px',
-            }}>
-              Total repairs: <strong>{repairCount}</strong>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {repairs.map((repair, idx) => (
-                <div key={idx} style={{
-                  padding: '8px',
-                  backgroundColor: 'var(--color-background-tertiary)',
-                  borderRadius: '4px',
-                  borderLeft: '3px solid #4caf50',
-                  fontSize: '11px',
-                }}>
-                  <div style={{ fontWeight: '600', marginBottom: '4px', color: '#4caf50' }}>
-                    Line {repair.lineNumber}
-                  </div>
-                  <div style={{ marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
-                    <span style={{ fontSize: '10px', opacity: 0.7 }}>before:</span>
-                    <code style={{ display: 'block', padding: '4px 0', color: '#ef5350', fontFamily: 'monospace' }}>
-                      {repair.original || '(empty)'}
-                    </code>
-                  </div>
-                  <div style={{ color: 'var(--color-text-secondary)' }}>
-                    <span style={{ fontSize: '10px', opacity: 0.7 }}>after:</span>
-                    <code style={{ display: 'block', padding: '4px 0', color: '#4caf50', fontFamily: 'monospace' }}>
-                      {repair.repaired || '(empty)'}
-                    </code>
-                  </div>
+                <div key={idx}>
+                  {repair.comprehensive ? (
+                    <div style={{
+                      display: 'flex',
+                      gap: '12px',
+                      fontSize: '11px',
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          marginBottom: '6px',
+                          color: '#ef5350',
+                          textTransform: 'uppercase',
+                          opacity: 0.8,
+                        }}>
+                          Original (Invalid)
+                        </div>
+                        <code style={{
+                          display: 'block',
+                          padding: '8px',
+                          backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(239, 83, 80, 0.3)',
+                          color: '#ef5350',
+                          fontFamily: 'monospace',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          maxHeight: '150px',
+                          overflow: 'auto',
+                          fontSize: '10px',
+                        }}>
+                          {repair.original || '(empty)'}
+                        </code>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          marginBottom: '6px',
+                          color: '#4caf50',
+                          textTransform: 'uppercase',
+                          opacity: 0.8,
+                        }}>
+                          Repaired (Valid)
+                        </div>
+                        <code style={{
+                          display: 'block',
+                          padding: '8px',
+                          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(76, 175, 80, 0.3)',
+                          color: '#4caf50',
+                          fontFamily: 'monospace',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          maxHeight: '150px',
+                          overflow: 'auto',
+                          fontSize: '10px',
+                        }}>
+                          {repair.repaired || '(empty)'}
+                        </code>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      padding: '8px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      borderRadius: '4px',
+                      borderLeft: '3px solid #4caf50',
+                      fontSize: '11px',
+                    }}>
+                      <div style={{ fontWeight: '600', marginBottom: '4px', color: '#4caf50' }}>
+                        Line {repair.lineNumber}
+                      </div>
+                      <div style={{ marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
+                        <span style={{ fontSize: '10px', opacity: 0.7 }}>before:</span>
+                        <code style={{ display: 'block', padding: '4px 0', color: '#ef5350', fontFamily: 'monospace' }}>
+                          {repair.original || '(empty)'}
+                        </code>
+                      </div>
+                      <div style={{ color: 'var(--color-text-secondary)' }}>
+                        <span style={{ fontSize: '10px', opacity: 0.7 }}>after:</span>
+                        <code style={{ display: 'block', padding: '4px 0', color: '#4caf50', fontFamily: 'monospace' }}>
+                          {repair.repaired || '(empty)'}
+                        </code>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
