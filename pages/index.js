@@ -321,20 +321,22 @@ export default function Home() {
               setRemoveExtrasConfig(updatedConfig)
             }
 
-            // Set up initial config for the top tool
-            const initialConfig = {}
-            if (topTool?.configSchema) {
-              topTool.configSchema.forEach(field => {
-                initialConfig[field.id] = field.default || ''
-              })
+            // Only reset config if the tool has changed
+            if (selectedTool?.toolId !== topTool?.toolId) {
+              // Set up initial config for the top tool
+              const initialConfig = {}
+              if (topTool?.configSchema) {
+                topTool.configSchema.forEach(field => {
+                  initialConfig[field.id] = field.default || ''
+                })
+              }
+              setConfigOptions(initialConfig)
             }
 
             // Apply activeToolkitSection if specified for text-toolkit
             if (topTool.toolId === 'text-toolkit' && topTool?.suggestedConfig?.activeToolkitSection) {
               setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
             }
-
-            setConfigOptions(initialConfig)
           }
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
