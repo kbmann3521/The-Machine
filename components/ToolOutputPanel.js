@@ -988,7 +988,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.validation) {
       const validationErrors = displayResult.validation.errors || []
-      const validationLabel = validationErrors.length === 0 ? 'Validation ✓' : `Validation (✗)`
+      const validationLabel = validationErrors.length === 0 ? 'Validation (✓)' : `Validation (✗)`
       const validationContent = validationErrors.length === 0 ? (
         <div style={{
           padding: '10px 12px',
