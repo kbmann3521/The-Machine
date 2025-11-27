@@ -987,48 +987,79 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (displayResult.validation) {
-      const validationErrors = displayResult.validation.errors || []
-      const validationLabel = validationErrors.length === 0 ? 'Validation (✓)' : `Validation (✗)`
-      const validationContent = validationErrors.length === 0 ? (
-        <div style={{
-          padding: '10px 12px',
-          borderRadius: '4px',
-          borderLeft: '3px solid #66bb6a',
-          backgroundColor: 'rgba(102, 187, 106, 0.1)',
-          color: '#66bb6a',
-          fontSize: '12px',
-          fontWeight: '500',
-        }}>
-          ✓ XML is valid and well-formed
-        </div>
-      ) : (
-        <div style={{ padding: '12px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {validationErrors.map((error, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '4px',
-                  borderLeft: '3px solid #ef5350',
-                  backgroundColor: 'rgba(239, 83, 80, 0.1)',
-                }}
-              >
-                <div style={{ fontSize: '12px', color: '#ef5350', marginBottom: '4px' }}>
-                  <strong>Line {error.line}, Column {error.column || 1}</strong>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
-                  {error.message}
-                </div>
+      const original = displayResult.validation.original
+      const repaired = displayResult.validation.repaired
+
+      const tabsContent = (
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* Original */}
+          <div>
+            <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>Original XML</div>
+            {original.isValid ? (
+              <div style={{
+                padding: '10px 12px',
+                borderLeft: '3px solid #66bb6a',
+                backgroundColor: 'rgba(102,187,106,0.1)',
+                fontSize: '12px',
+                color: '#66bb6a',
+              }}>
+                ✓ Original XML is valid
               </div>
-            ))}
+            ) : (
+              original.errors.map((err, i) => (
+                <div key={i} style={{
+                  padding: '10px 12px',
+                  borderLeft: '3px solid #ef5350',
+                  backgroundColor: 'rgba(239,83,80,0.1)',
+                }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '4px', color: '#ef5350' }}>
+                    Line {err.line || '?'}, Column {err.column || '?'}
+                  </div>
+                  <div style={{ fontSize: '12px' }}>{err.message}</div>
+                </div>
+              ))
+            )}
           </div>
+
+          {/* Repaired */}
+          {repaired && (
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>After Auto-Repair</div>
+              {repaired.isValid ? (
+                <div style={{
+                  padding: '10px 12px',
+                  borderLeft: '3px solid #66bb6a',
+                  backgroundColor: 'rgba(102,187,106,0.1)',
+                  fontSize: '12px',
+                  color: '#66bb6a',
+                }}>
+                  ✓ Repaired XML is valid
+                </div>
+              ) : (
+                repaired.errors.map((err, i) => (
+                  <div key={i} style={{
+                    padding: '10px 12px',
+                    borderLeft: '3px solid #ef5350',
+                    backgroundColor: 'rgba(239,83,80,0.1)',
+                  }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '4px', color: '#ef5350' }}>
+                      Line {err.line || '?'}, Column {err.column || '?'}
+                    </div>
+                    <div style={{ fontSize: '12px' }}>{err.message}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
         </div>
       )
+
       tabs.push({
         id: 'validation',
-        label: validationLabel,
-        content: validationContent,
+        label: original.isValid && (!repaired || repaired.isValid) ? 'Validation (✓)' : 'Validation (✗)',
+        content: tabsContent,
         contentType: 'component',
       })
     }
