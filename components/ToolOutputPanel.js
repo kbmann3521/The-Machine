@@ -1035,7 +1035,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.linting) {
       const lintingWarnings = displayResult.linting.warnings || []
-      const lintingLabel = lintingWarnings.length === 0 ? 'Linting ✓' : `Linting (${lintingWarnings.length})`
+      const lintingLabel = lintingWarnings.length === 0 ? 'Linting (✓)' : `Linting (${lintingWarnings.length})`
       const lintingContent = lintingWarnings.length === 0 ? (
         <div style={{
           padding: '10px 12px',
