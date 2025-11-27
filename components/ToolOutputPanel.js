@@ -1061,7 +1061,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       tabs.push({
         id: 'validation',
-        label: original.isValid && (!repaired || repaired.isValid) ? 'Validation (✓)' : 'Validation (✗)',
+        label: finalIsValid ? 'Validation (✓)' : 'Validation (✗)',
         content: tabsContent,
         contentType: 'component',
       })
