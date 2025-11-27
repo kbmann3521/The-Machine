@@ -990,6 +990,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const original = displayResult.validation.original
       const repaired = displayResult.validation.repaired
 
+      // Final validity is determined by repaired state (after auto-repair), not original
+      const finalIsValid = repaired ? repaired.isValid : original.isValid
+
       const tabsContent = (
         <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
