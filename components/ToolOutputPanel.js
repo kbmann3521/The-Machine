@@ -238,7 +238,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         const repairMessage = displayResult.repaired.method === 'prettier'
           ? '✨ Code was auto-repaired using Prettier recovery'
           : displayResult.repaired.method === 'babel-recovery'
-          ? '🔧 Code was auto-repaired using Babel error recovery'
+          ? '���� Code was auto-repaired using Babel error recovery'
           : displayResult.repaired.method === 'eslint-fix'
           ? '⚙️ Code was auto-fixed using ESLint'
           : '🧠 Code was auto-repaired'
@@ -990,15 +990,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const validationErrors = displayResult.validation.errors || []
       const validationLabel = validationErrors.length === 0 ? 'Validation ✓' : `Validation (✗)`
       const validationContent = validationErrors.length === 0 ? (
-        <div style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ fontSize: '18px', color: '#4caf50', fontWeight: 'bold' }}>✓</div>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
-                XML is valid and well-formed
-              </div>
-            </div>
-          </div>
+        <div style={{
+          padding: '10px 12px',
+          borderRadius: '4px',
+          borderLeft: '3px solid #66bb6a',
+          backgroundColor: 'rgba(102, 187, 106, 0.1)',
+          color: '#66bb6a',
+          fontSize: '12px',
+          fontWeight: '500',
+        }}>
+          ✓ XML is valid and well-formed
         </div>
       ) : (
         <div style={{ padding: '12px' }}>
