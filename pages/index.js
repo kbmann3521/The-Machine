@@ -203,16 +203,6 @@ export default function Home() {
     setPreviousInputLength(text.length)
 
     if (selectedToolRef.current && text) {
-      // Skip auto-detection for JSON formatter - beautify is always the default
-      if (selectedToolRef.current.toolId !== 'json-formatter') {
-        const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
-        if (detectedConfig) {
-          setConfigOptions(prevConfig => ({
-            ...prevConfig,
-            ...detectedConfig,
-          }))
-        }
-      }
     }
 
     if (debounceTimerRef.current) {
