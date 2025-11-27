@@ -1156,37 +1156,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         tabLabel = 'Repair Info (✓)'
 
         repairContent = (
-          <div style={{ padding: '16px' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px',
-            }}>
-              <div style={{
-                fontSize: '20px',
-                color: '#4caf50',
-                fontWeight: 'bold',
-              }}>
-                ✓
-              </div>
-              <div>
-                <div style={{
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: 'var(--color-text-primary)',
-                }}>
-                  No auto-repair needed
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  color: 'var(--color-text-secondary)',
-                  marginTop: '4px',
-                }}>
-                  Your XML was already valid and properly formed.
-                </div>
-              </div>
-            </div>
+          <div style={{
+            padding: '10px 12px',
+            borderRadius: '4px',
+            borderLeft: '3px solid #66bb6a',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            color: '#66bb6a',
+            fontSize: '12px',
+            fontWeight: '500',
+          }}>
+            ✓ No auto-repair needed
           </div>
         )
       }
