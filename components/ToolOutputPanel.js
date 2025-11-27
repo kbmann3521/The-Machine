@@ -986,6 +986,103 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    if (displayResult.validation) {
+      const validationErrors = displayResult.validation.errors || []
+      const validationLabel = validationErrors.length === 0 ? 'Validation ✓' : `Validation (✗)`
+      const validationContent = validationErrors.length === 0 ? (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '18px', color: '#4caf50', fontWeight: 'bold' }}>✓</div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
+                XML is valid and well-formed
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {validationErrors.map((error, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '4px',
+                  borderLeft: '3px solid #ef5350',
+                  backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: '#ef5350', marginBottom: '4px' }}>
+                  <strong>Line {error.line}, Column {error.column || 1}</strong>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                  {error.message}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+      tabs.push({
+        id: 'validation',
+        label: validationLabel,
+        content: validationContent,
+        contentType: 'component',
+      })
+    }
+
+    if (displayResult.linting) {
+      const lintingWarnings = displayResult.linting.warnings || []
+      const lintingLabel = lintingWarnings.length === 0 ? 'Linting ✓' : `Linting (${lintingWarnings.length})`
+      const lintingContent = lintingWarnings.length === 0 ? (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '18px', color: '#4caf50', fontWeight: 'bold' }}>✓</div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
+                No linting issues found
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {lintingWarnings.map((warning, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '4px',
+                  borderLeft: '3px solid #ffa726',
+                  backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px' }}>
+                  <strong>Line {warning.line}, Column {warning.column || 1}</strong>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '2px' }}>
+                  {warning.message}
+                </div>
+                {warning.ruleId && (
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                    Rule: {warning.ruleId}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+      tabs.push({
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
+        contentType: 'component',
+      })
+    }
+
     if (tabs.length === 0) {
       return null
     }
