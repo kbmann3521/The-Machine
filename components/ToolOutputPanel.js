@@ -1033,6 +1033,74 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    if (displayResult.repairInfo) {
+      const repairContent = (
+        <div style={{ padding: '12px' }}>
+          {displayResult.repairInfo.wasRepaired ? (
+            <div style={{
+              marginBottom: '12px',
+              padding: '10px',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#4caf50',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✨ XML was auto-repaired successfully
+            </div>
+          ) : (
+            <div style={{
+              marginBottom: '12px',
+              padding: '10px',
+              backgroundColor: 'rgba(102, 187, 106, 0.1)',
+              border: '1px solid rgba(102, 187, 106, 0.3)',
+              borderRadius: '4px',
+              color: '#66bb6a',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✓ XML was already valid
+            </div>
+          )}
+          {displayResult.repairInfo.repairedXml && displayResult.repairInfo.originalXml !== displayResult.repairInfo.repairedXml && (
+            <div style={{ marginTop: '12px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+                Repair Details:
+              </div>
+              <div style={{
+                padding: '8px',
+                backgroundColor: 'var(--color-background-tertiary)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '8px',
+              }}>
+                <div style={{ marginBottom: '4px' }}>
+                  <strong>Original:</strong>
+                  <pre style={{ margin: '4px 0 0 0', maxHeight: '100px', overflow: 'auto', fontSize: '10px' }}>
+                    {displayResult.repairInfo.originalXml}
+                  </pre>
+                </div>
+                <div>
+                  <strong>Repaired:</strong>
+                  <pre style={{ margin: '4px 0 0 0', maxHeight: '100px', overflow: 'auto', fontSize: '10px' }}>
+                    {displayResult.repairInfo.repairedXml}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+      tabs.push({
+        id: 'repair-info',
+        label: 'Repair Info',
+        content: repairContent,
+        contentType: 'component',
+      })
+    }
+
     if (displayResult.linting) {
       const lintingWarnings = displayResult.linting.warnings || []
       const lintingLabel = lintingWarnings.length === 0 ? 'Linting (✓)' : `Linting (${lintingWarnings.length})`
@@ -1062,10 +1130,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 }}
               >
                 <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px' }}>
-                  <strong>Line {warning.line}, Column {warning.column || 1}</strong>
+                  <strong>Issue {idx + 1}</strong>
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '2px' }}>
-                  {warning.message}
+                  {typeof warning === 'string' ? warning : warning.message}
                 </div>
                 {warning.ruleId && (
                   <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
