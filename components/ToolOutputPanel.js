@@ -1065,65 +1065,93 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (displayResult.repairInfo) {
+      const info = displayResult.repairInfo
+      const diff = info.diff || []
+      const summary = info.summary || []
+
       const repairContent = (
-        <div style={{ padding: '12px' }}>
-          {displayResult.repairInfo.wasRepaired ? (
+        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* Status Banner */}
+          {info.wasRepaired ? (
             <div style={{
-              marginBottom: '12px',
               padding: '10px',
-              backgroundColor: 'rgba(76, 175, 80, 0.1)',
-              border: '1px solid rgba(76, 175, 80, 0.3)',
+              backgroundColor: 'rgba(76,175,80,0.1)',
+              border: '1px solid rgba(76,175,80,0.3)',
               borderRadius: '4px',
               color: '#4caf50',
               fontSize: '13px',
-              fontWeight: '500',
+              fontWeight: '500'
             }}>
               ✨ XML was auto-repaired successfully
             </div>
           ) : (
             <div style={{
-              marginBottom: '12px',
               padding: '10px',
-              backgroundColor: 'rgba(102, 187, 106, 0.1)',
-              border: '1px solid rgba(102, 187, 106, 0.3)',
+              backgroundColor: 'rgba(102,187,106,0.1)',
+              border: '1px solid rgba(102,187,106,0.3)',
               borderRadius: '4px',
               color: '#66bb6a',
               fontSize: '13px',
-              fontWeight: '500',
+              fontWeight: '500'
             }}>
-              ✓ XML was already valid
+              ✓ XML required no repairs
             </div>
           )}
-          {displayResult.repairInfo.repairedXml && displayResult.repairInfo.originalXml !== displayResult.repairInfo.repairedXml && (
-            <div style={{ marginTop: '12px' }}>
-              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
-                Repair Details:
-              </div>
-              <div style={{
-                padding: '8px',
-                backgroundColor: 'var(--color-background-tertiary)',
-                borderRadius: '4px',
-                fontSize: '11px',
-                color: 'var(--color-text-secondary)',
-                marginBottom: '8px',
-              }}>
-                <div style={{ marginBottom: '4px' }}>
-                  <strong>Original:</strong>
-                  <pre style={{ margin: '4px 0 0 0', maxHeight: '100px', overflow: 'auto', fontSize: '10px' }}>
-                    {displayResult.repairInfo.originalXml}
-                  </pre>
-                </div>
-                <div>
-                  <strong>Repaired:</strong>
-                  <pre style={{ margin: '4px 0 0 0', maxHeight: '100px', overflow: 'auto', fontSize: '10px' }}>
-                    {displayResult.repairInfo.repairedXml}
-                  </pre>
-                </div>
+
+          {/* Human-readable Summary */}
+          {summary.length > 0 && (
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>What Was Fixed:</div>
+              <ul style={{ paddingLeft: '18px' }}>
+                {summary.map((msg, idx) => (
+                  <li key={idx} style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '3px' }}>
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Diff Display */}
+          {diff.length > 0 && (
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>Line-by-Line Changes:</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {diff.map((d, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '4px',
+                      padding: '10px',
+                      fontSize: '11px'
+                    }}
+                  >
+                    <div style={{ marginBottom: '6px', fontWeight: 600 }}>
+                      Line {d.line}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '10px', color: '#ef5350', marginBottom: '3px' }}>Original:</div>
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{d.original || '(empty)'}</pre>
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '10px', color: '#66bb6a', marginBottom: '3px' }}>Repaired:</div>
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{d.repaired || '(empty)'}</pre>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
       )
+
       tabs.push({
         id: 'repair-info',
         label: 'Repair Info',
