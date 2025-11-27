@@ -1085,6 +1085,120 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    if (displayResult.repaired) {
+      const wasRepaired = displayResult.repaired && displayResult.repaired.wasRepaired
+      const repairs = displayResult.repaired && displayResult.repaired.repairs ? displayResult.repaired.repairs : []
+      const repairCount = repairs.length
+
+      let repairContent = null
+      let tabLabel = 'Repair Info'
+
+      if (wasRepaired && repairCount > 0) {
+        const repairMessage = displayResult.repaired.method === 'libxmljs2-recovery'
+          ? '🔧 XML was auto-repaired using libxmljs2 recovery'
+          : '🧠 XML was auto-repaired'
+
+        tabLabel = `Repair Info (${repairCount})`
+
+        repairContent = (
+          <div style={{ padding: '12px' }}>
+            <div style={{
+              marginBottom: '12px',
+              padding: '10px',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#4caf50',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              {repairMessage}
+            </div>
+
+            <div style={{
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+            }}>
+              Total repairs: <strong>{repairCount}</strong>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {repairs.map((repair, idx) => (
+                <div key={idx} style={{
+                  padding: '8px',
+                  backgroundColor: 'var(--color-background-tertiary)',
+                  borderRadius: '4px',
+                  borderLeft: '3px solid #4caf50',
+                  fontSize: '11px',
+                }}>
+                  <div style={{ fontWeight: '600', marginBottom: '4px', color: '#4caf50' }}>
+                    Line {repair.lineNumber}
+                  </div>
+                  <div style={{ marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
+                    <span style={{ fontSize: '10px', opacity: 0.7 }}>before:</span>
+                    <code style={{ display: 'block', padding: '4px 0', color: '#ef5350', fontFamily: 'monospace' }}>
+                      {repair.original || '(empty)'}
+                    </code>
+                  </div>
+                  <div style={{ color: 'var(--color-text-secondary)' }}>
+                    <span style={{ fontSize: '10px', opacity: 0.7 }}>after:</span>
+                    <code style={{ display: 'block', padding: '4px 0', color: '#4caf50', fontFamily: 'monospace' }}>
+                      {repair.repaired || '(empty)'}
+                    </code>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      } else {
+        tabLabel = 'Repair Info (✓)'
+
+        repairContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+            }}>
+              <div style={{
+                fontSize: '20px',
+                color: '#4caf50',
+                fontWeight: 'bold',
+              }}>
+                ✓
+              </div>
+              <div>
+                <div style={{
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: 'var(--color-text-primary)',
+                }}>
+                  No auto-repair needed
+                </div>
+                <div style={{
+                  fontSize: '12px',
+                  color: 'var(--color-text-secondary)',
+                  marginTop: '4px',
+                }}>
+                  Your XML was already valid and properly formed.
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      tabs.push({
+        id: 'repair-info',
+        label: tabLabel,
+        content: repairContent,
+        contentType: 'component',
+      })
+    }
+
     if (tabs.length === 0) {
       return null
     }
