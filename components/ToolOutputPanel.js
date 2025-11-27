@@ -302,40 +302,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         const errorLine = firstError?.line || 'unknown'
         const errorMsg = firstError?.message || 'Unknown syntax error'
 
-        tabLabel = 'Repair Info ✗'
+        tabLabel = 'Repair Info (✗)'
 
         repairContent = (
-          <div style={{ padding: '16px' }}>
+          <div style={{ padding: '12px' }}>
             <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              marginBottom: '16px',
+              padding: '10px 12px',
+              borderRadius: '4px',
+              borderLeft: '3px solid #ef5350',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
             }}>
               <div style={{
-                fontSize: '24px',
-                color: '#f44336',
-                fontWeight: 'bold',
-                marginTop: '-2px',
+                fontSize: '12px',
+                color: '#ef5350',
+                marginBottom: '4px',
               }}>
-                ✗
-              </div>
-              <div>
-                <div style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: 'var(--color-text-primary)',
-                  marginBottom: '4px',
-                }}>
-                  Cannot auto-repair
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  color: 'var(--color-text-secondary)',
-                  lineHeight: '1.5',
-                }}>
-                  JavaScript has a syntax error on line {errorLine}. {errorMsg.includes('comma') || errorMsg.includes('bracket') || errorMsg.includes('token') ? '(likely a missing comma or bracket)' : ''} Please fix the syntax first.
-                </div>
+                <strong>Cannot auto-repair:</strong> JavaScript has a syntax error on line {errorLine}. {errorMsg.includes('comma') || errorMsg.includes('bracket') || errorMsg.includes('token') ? '(likely a missing comma or bracket)' : ''} Please fix the syntax first.
               </div>
             </div>
           </div>
