@@ -91,6 +91,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const highlightsLayerRef = useRef(null)
   const lineNumbersRef = useRef(null)
 
+  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
+  const showLineNumbers = selectedTool && codeRelatedCategories.includes(selectedTool.category)
+
   const handleTextChange = (e) => {
     const text = e.target.value
     setInputText(text)
