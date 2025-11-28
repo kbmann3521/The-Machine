@@ -340,11 +340,15 @@ export default function OutputTabs({
 
     // Handle JSON content
     if (contentType === 'json' || contentType === 'code') {
+      const codeContent = getJsonString()
       return (
-        <div className={styles.jsonContent}>
-          <pre className={styles.jsonCode}>
-            <code>{getJsonString()}</code>
-          </pre>
+        <div className={styles.codeContentWithLineNumbers}>
+          <LineNumbers content={codeContent} />
+          <div className={styles.codeContentWrapper}>
+            <pre className={styles.jsonCode}>
+              <code>{codeContent}</code>
+            </pre>
+          </div>
         </div>
       )
     }
