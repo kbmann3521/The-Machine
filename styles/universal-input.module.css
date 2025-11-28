@@ -39,7 +39,7 @@
   border-radius: 6px;
   background-color: var(--color-background-secondary);
   transition: all 0.2s;
-  padding-bottom: 6px;
+  overflow: hidden;
 }
 
 .inputField:hover {
@@ -58,6 +58,22 @@
 
 .inputField.hasImage {
   border-color: #0066cc;
+}
+
+.textareaWithLineNumbers {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.textareaWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
 }
 
 .highlightsLayer {
