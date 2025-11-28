@@ -87,14 +87,6 @@
   overflow: hidden;
 }
 
-.inputFooter {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding-bottom: 6px;
-  position: relative;
-}
-
 .highlightsLayer {
   position: absolute;
   top: 0;
