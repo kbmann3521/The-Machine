@@ -849,7 +849,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Handle object output from validate, lint, xpath, to-json, to-yaml
     const tabs = []
 
-    if (displayResult.result) {
+    // Primary output: show finalXml if valid, otherwise cleanedXml
+    const primaryXml = displayResult.finalXml || displayResult.cleanedXml || displayResult.formatted || displayResult.result
+    if (primaryXml) {
+      tabs.push({
+        id: 'output',
+        label: 'Output',
+        content: primaryXml,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.result && displayResult.result !== primaryXml) {
       tabs.push({
         id: 'result',
         label: 'Result',
@@ -858,10 +869,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (displayResult.formatted) {
+    if (displayResult.formatted && displayResult.formatted !== primaryXml) {
       tabs.push({
         id: 'formatted',
-        label: 'Output',
+        label: 'Formatted',
         content: displayResult.formatted,
         contentType: 'code',
       })
