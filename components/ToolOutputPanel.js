@@ -1071,125 +1071,54 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     }
 
-    if (displayResult.repairInfo) {
-      const info = displayResult.repairInfo
-      const diff = info.diff || []
-      const summary = info.summary || []
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
+      const allLintWarnings = [...lintingWarnings]
 
-      const repairContent = (
-        <div style={{ padding: '12px' }}>
-          <div style={{
-            marginBottom: '12px',
-            padding: '10px',
-            backgroundColor: info.wasRepaired ? 'rgba(76, 175, 80, 0.1)' : 'rgba(102, 187, 106, 0.1)',
-            border: info.wasRepaired ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(102, 187, 106, 0.3)',
-            borderRadius: '4px',
-            color: info.wasRepaired ? '#4caf50' : '#66bb6a',
-            fontSize: '13px',
-            fontWeight: '500',
-          }}>
-            {info.wasRepaired ? '✨ XML was auto-repaired successfully' : '✓ XML required no repairs'}
-          </div>
+      // Also include lintWarnings array if present (backward compatibility)
+      if (displayResult.lintWarnings && Array.isArray(displayResult.lintWarnings)) {
+        allLintWarnings.push(...displayResult.lintWarnings.map(msg =>
+          typeof msg === 'string' ? { type: 'warning', message: msg } : msg
+        ))
+      }
 
-          {diff.length > 0 && (
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              marginBottom: '12px',
-            }}>
-              Total repairs: <strong>{diff.length}</strong>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {diff.map((d, idx) => (
-              <div key={idx} style={{
-                padding: '8px',
-                backgroundColor: 'var(--color-background-tertiary)',
-                borderRadius: '4px',
-                borderLeft: '3px solid #4caf50',
-                fontSize: '11px',
-              }}>
-                <div style={{ fontWeight: '600', marginBottom: '4px', color: '#4caf50' }}>
-                  Line {d.line}
-                </div>
-                <div style={{ marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
-                  <span style={{ fontSize: '10px', opacity: 0.7 }}>before:</span>
-                  <code style={{ display: 'block', padding: '4px 0', color: '#ef5350', fontFamily: 'monospace' }}>
-                    {d.original || '(empty)'}
-                  </code>
-                </div>
-                <div style={{ color: 'var(--color-text-secondary)' }}>
-                  <span style={{ fontSize: '10px', opacity: 0.7 }}>after:</span>
-                  <code style={{ display: 'block', padding: '4px 0', color: '#4caf50', fontFamily: 'monospace' }}>
-                    {d.repaired || '(empty)'}
-                  </code>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {summary.length > 0 && diff.length === 0 && (
-            <div>
-              <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>What Was Fixed:</div>
-              <ul style={{ paddingLeft: '18px' }}>
-                {summary.map((msg, idx) => (
-                  <li key={idx} style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '3px' }}>
-                    {msg}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )
-
-      const repairLabel = diff.length > 0 ? `Repair Info (${diff.length})` : 'Repair Info (✓)'
-      tabs.push({
-        id: 'repair-info',
-        label: repairLabel,
-        content: repairContent,
-        contentType: 'component',
-      })
-    }
-
-    if (displayResult.linting) {
-      const lintingWarnings = displayResult.linting.warnings || []
-      const lintingLabel = lintingWarnings.length === 0 ? 'Linting (✓)' : `Linting (${lintingWarnings.length})`
-      const lintingContent = lintingWarnings.length === 0 ? (
+      const lintingLabel = allLintWarnings.length === 0 ? 'Linting (✓)' : `Linting (${allLintWarnings.length})`
+      const lintingContent = allLintWarnings.length === 0 ? (
         <div style={{
-          padding: '10px 12px',
-          borderRadius: '4px',
-          borderLeft: '3px solid #66bb6a',
+          padding: '16px',
           backgroundColor: 'rgba(102, 187, 106, 0.1)',
+          border: '1px solid rgba(102, 187, 106, 0.3)',
+          borderRadius: '4px',
           color: '#66bb6a',
-          fontSize: '12px',
+          fontSize: '13px',
           fontWeight: '500',
+          textAlign: 'center',
         }}>
-          ✓ No linting issues found
+          ✓ No linting warnings found
         </div>
       ) : (
-        <div style={{ padding: '12px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {lintingWarnings.map((warning, idx) => (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {allLintWarnings.map((warning, idx) => (
               <div
                 key={idx}
                 style={{
-                  padding: '10px 12px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                  border: '1px solid rgba(255, 167, 38, 0.2)',
                   borderRadius: '4px',
                   borderLeft: '3px solid #ffa726',
-                  backgroundColor: 'rgba(255, 167, 38, 0.1)',
                 }}
               >
-                <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px' }}>
-                  <strong>Issue {idx + 1}</strong>
+                <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                  ⚠️ Warning {idx + 1}
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '2px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
                   {typeof warning === 'string' ? warning : warning.message}
                 </div>
-                {warning.ruleId && (
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
-                    Rule: {warning.ruleId}
+                {warning.category && (
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                    Category: {warning.category}
                   </div>
                 )}
               </div>
