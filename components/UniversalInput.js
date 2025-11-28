@@ -370,34 +370,33 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           <div className={styles.instructionLabel}>{getInstructionText()}</div>
         )}
 
-        <button
-          className={styles.uploadImageButton}
-          onClick={openFileDialog}
-          title="Click to upload an image"
-          type="button"
-        >
-          <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
-          </svg>
-          Upload Image
-        </button>
-
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          accept="image/*"
-          className={styles.fileInput}
-        />
-
         <div
           className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
+          <button
+            className={styles.uploadImageButton}
+            onClick={openFileDialog}
+            title="Click to upload an image"
+            type="button"
+          >
+            <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload Image
+          </button>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            accept="image/*"
+            className={styles.fileInput}
+          />
           <div className={`${styles.textareaWithLineNumbers} ${showLineNumbers ? '' : styles.noLineNumbers}`}>
             {showLineNumbers && <LineNumbers ref={lineNumbersRef} content={inputText} />}
             <div className={styles.textareaWrapper}>
