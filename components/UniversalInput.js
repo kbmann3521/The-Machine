@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import styles from '../styles/universal-input.module.css'
+import LineNumbers from './LineNumbers'
 
 export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
   const getPlaceholder = () => {
