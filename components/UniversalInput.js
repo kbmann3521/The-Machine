@@ -89,6 +89,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const fileInputRef = useRef(null)
   const textareaRef = useRef(null)
   const highlightsLayerRef = useRef(null)
+  const lineNumbersRef = useRef(null)
 
   const handleTextChange = (e) => {
     const text = e.target.value
