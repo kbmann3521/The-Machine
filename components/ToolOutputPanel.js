@@ -843,6 +843,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
     }
 
+    // Return null if displayResult is not an object
+    if (!displayResult || typeof displayResult !== 'object') return null
+
     // Handle object output from validate, lint, xpath, to-json, to-yaml
     const tabs = []
 
