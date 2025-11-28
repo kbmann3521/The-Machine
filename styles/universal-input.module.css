@@ -67,6 +67,10 @@
   overflow: hidden;
 }
 
+.textareaWithLineNumbers.noLineNumbers {
+  border-radius: 6px;
+}
+
 .textareaWrapper {
   position: relative;
   display: flex;
