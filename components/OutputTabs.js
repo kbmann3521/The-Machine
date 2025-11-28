@@ -10,7 +10,10 @@ export default function OutputTabs({
   showCopyButton = false,
   title = 'Output',
   onCopyCard = null,
+  toolCategory = null,
 }) {
+  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
+  const showLineNumbers = codeRelatedCategories.includes(toolCategory)
   const [activeTab, setActiveTab] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
