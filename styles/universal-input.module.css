@@ -65,7 +65,6 @@
   width: 100%;
   flex: 1;
   overflow: hidden;
-  border-radius: 6px;
 }
 
 .textareaWrapper {
@@ -74,6 +73,14 @@
   flex-direction: column;
   flex: 1;
   overflow: hidden;
+}
+
+.inputFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 6px;
+  position: relative;
 }
 
 .highlightsLayer {
