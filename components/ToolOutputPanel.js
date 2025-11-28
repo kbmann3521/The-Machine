@@ -992,85 +992,83 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (displayResult.validation) {
-      const original = displayResult.validation.original
-      const repaired = displayResult.validation.repaired
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
 
-      // Final validity is determined by repaired state (after auto-repair), not original
-      const finalIsValid = repaired ? repaired.isValid : original.isValid
-
-      const tabsContent = (
-        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-          {/* Original */}
-          <div>
-            <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>Original XML</div>
-            {original.isValid ? (
-              <div style={{
-                padding: '10px 12px',
-                borderLeft: '3px solid #66bb6a',
-                backgroundColor: 'rgba(102,187,106,0.1)',
-                fontSize: '12px',
-                color: '#66bb6a',
-              }}>
-                ✓ Original XML is valid
-              </div>
-            ) : (
-              original.errors.map((err, i) => (
-                <div key={i} style={{
-                  padding: '10px 12px',
-                  borderLeft: '3px solid #ef5350',
-                  backgroundColor: 'rgba(239,83,80,0.1)',
-                }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '4px', color: '#ef5350' }}>
-                    Line {err.line || '?'}, Column {err.column || '?'}
-                  </div>
-                  <div style={{ fontSize: '12px' }}>{err.message}</div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Repaired */}
-          {repaired && (
-            <div>
-              <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>After Auto-Repair</div>
-              {repaired.isValid ? (
-                <div style={{
-                  padding: '10px 12px',
-                  borderLeft: '3px solid #66bb6a',
-                  backgroundColor: 'rgba(102,187,106,0.1)',
-                  fontSize: '12px',
-                  color: '#66bb6a',
-                }}>
-                  ✓ Repaired XML is valid
-                </div>
-              ) : (
-                repaired.errors.map((err, i) => (
-                  <div key={i} style={{
-                    padding: '10px 12px',
-                    borderLeft: '3px solid #ef5350',
-                    backgroundColor: 'rgba(239,83,80,0.1)',
-                  }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '4px', color: '#ef5350' }}>
-                      Line {err.line || '?'}, Column {err.column || '?'}
-                    </div>
-                    <div style={{ fontSize: '12px' }}>{err.message}</div>
-                  </div>
-                ))
-              )}
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} XML Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
-          )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {validationErrors.map((error, idx) => (
+                <div key={idx} style={{
+                  padding: '12px',
+                  backgroundColor: 'var(--color-background-tertiary)',
+                  border: '1px solid rgba(239, 83, 80, 0.2)',
+                  borderRadius: '4px',
+                }}>
+                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
+                    {error.line !== null && error.column !== null
+                      ? `Line ${error.line}, Column ${error.column}`
+                      : 'General Error'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                    {error.message}
+                  </div>
+                  {error.category && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                      Category: {error.category}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
 
-        </div>
-      )
-
-      tabs.push({
-        id: 'validation',
-        label: finalIsValid ? 'Validation (✓)' : 'Validation (✗)',
-        content: tabsContent,
-        contentType: 'component',
-      })
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ No validation errors found
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
     }
 
     if (displayResult.repairInfo) {
