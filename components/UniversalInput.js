@@ -373,7 +373,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           onDrop={handleDrop}
         >
           <div className={styles.textareaWithLineNumbers}>
-            <LineNumbers content={inputText} />
+            <LineNumbers ref={lineNumbersRef} content={inputText} />
             <div className={styles.textareaWrapper}>
               {getErrorInfo().size > 0 ? (
                 <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
