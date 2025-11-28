@@ -341,7 +341,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 color: '#4caf50',
                 fontWeight: 'bold',
               }}>
-                ��
+                ✅
               </div>
               <div>
                 <div style={{
@@ -809,7 +809,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = [
         {
           id: 'validation',
-          label: `Validation (${displayResult.isValid ? '��' : '✗'})`,
+          label: `Validation (${displayResult.isValid ? '✓' : '✗'})`,
           content: validationContent,
           contentType: 'component',
         },
@@ -1076,37 +1076,59 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const summary = info.summary || []
 
       const repairContent = (
-        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ padding: '12px' }}>
+          <div style={{
+            marginBottom: '12px',
+            padding: '10px',
+            backgroundColor: info.wasRepaired ? 'rgba(76, 175, 80, 0.1)' : 'rgba(102, 187, 106, 0.1)',
+            border: info.wasRepaired ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: info.wasRepaired ? '#4caf50' : '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+          }}>
+            {info.wasRepaired ? '✨ XML was auto-repaired successfully' : '✓ XML required no repairs'}
+          </div>
 
-          {/* Status Banner */}
-          {info.wasRepaired ? (
+          {diff.length > 0 && (
             <div style={{
-              padding: '10px',
-              backgroundColor: 'rgba(76,175,80,0.1)',
-              border: '1px solid rgba(76,175,80,0.3)',
-              borderRadius: '4px',
-              color: '#4caf50',
-              fontSize: '13px',
-              fontWeight: '500'
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
             }}>
-              ✨ XML was auto-repaired successfully
-            </div>
-          ) : (
-            <div style={{
-              padding: '10px',
-              backgroundColor: 'rgba(102,187,106,0.1)',
-              border: '1px solid rgba(102,187,106,0.3)',
-              borderRadius: '4px',
-              color: '#66bb6a',
-              fontSize: '13px',
-              fontWeight: '500'
-            }}>
-              ✓ XML required no repairs
+              Total repairs: <strong>{diff.length}</strong>
             </div>
           )}
 
-          {/* Human-readable Summary */}
-          {summary.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {diff.map((d, idx) => (
+              <div key={idx} style={{
+                padding: '8px',
+                backgroundColor: 'var(--color-background-tertiary)',
+                borderRadius: '4px',
+                borderLeft: '3px solid #4caf50',
+                fontSize: '11px',
+              }}>
+                <div style={{ fontWeight: '600', marginBottom: '4px', color: '#4caf50' }}>
+                  Line {d.line}
+                </div>
+                <div style={{ marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
+                  <span style={{ fontSize: '10px', opacity: 0.7 }}>before:</span>
+                  <code style={{ display: 'block', padding: '4px 0', color: '#ef5350', fontFamily: 'monospace' }}>
+                    {d.original || '(empty)'}
+                  </code>
+                </div>
+                <div style={{ color: 'var(--color-text-secondary)' }}>
+                  <span style={{ fontSize: '10px', opacity: 0.7 }}>after:</span>
+                  <code style={{ display: 'block', padding: '4px 0', color: '#4caf50', fontFamily: 'monospace' }}>
+                    {d.repaired || '(empty)'}
+                  </code>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {summary.length > 0 && diff.length === 0 && (
             <div>
               <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>What Was Fixed:</div>
               <ul style={{ paddingLeft: '18px' }}>
@@ -1116,43 +1138,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
-
-          {/* Diff Display */}
-          {diff.length > 0 && (
-            <div>
-              <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>Line-by-Line Changes:</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {diff.map((d, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      backgroundColor: 'var(--color-background-tertiary)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '4px',
-                      padding: '10px',
-                      fontSize: '11px'
-                    }}
-                  >
-                    <div style={{ marginBottom: '6px', fontWeight: 600 }}>
-                      Line {d.line}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '10px', color: '#ef5350', marginBottom: '3px' }}>Original:</div>
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{d.original || '(empty)'}</pre>
-                      </div>
-
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '10px', color: '#66bb6a', marginBottom: '3px' }}>Repaired:</div>
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{d.repaired || '(empty)'}</pre>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>
@@ -1180,7 +1165,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           fontSize: '12px',
           fontWeight: '500',
         }}>
-          �� No linting issues found
+          ✓ No linting issues found
         </div>
       ) : (
         <div style={{ padding: '12px' }}>
@@ -1261,7 +1246,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <span className={sqlStyles.sectionTitle}>
                 Lint Warnings ({displayResult.lint.total})
               </span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '��'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
             </div>
             {expandedSection === 'lint' && (
               <div className={sqlStyles.sectionContent}>
@@ -1606,64 +1591,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
           ].filter(f => f.value !== undefined && f.value !== null)
         }
-
-        // Case Converter - show as structured fields
-        if (activeToolkitSection === 'caseConverter' && result.caseConverter && typeof result.caseConverter === 'object') {
-          const fields = []
-          if (result.caseConverter.uppercase) {
-            fields.push({ label: 'UPPERCASE', value: result.caseConverter.uppercase })
-          }
-          if (result.caseConverter.lowercase) {
-            fields.push({ label: 'lowercase', value: result.caseConverter.lowercase })
-          }
-          if (result.caseConverter.titleCase) {
-            fields.push({ label: 'Title Case', value: result.caseConverter.titleCase })
-          }
-          if (result.caseConverter.sentenceCase) {
-            fields.push({ label: 'Sentence case', value: result.caseConverter.sentenceCase })
-          }
-          return fields.filter(f => f.value !== undefined && f.value !== null)
-        }
-
-
-        // Text Analyzer - show as structured fields
-        if (activeToolkitSection === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
-          const fields = []
-          if (result.textAnalyzer.readability) {
-            if (result.textAnalyzer.readability.readabilityLevel) {
-              fields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
-            }
-            if (result.textAnalyzer.readability.fleschReadingEase !== undefined) {
-              fields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
-            }
-            if (result.textAnalyzer.readability.fleschKincaidGrade !== undefined) {
-              fields.push({ label: 'Flesch-Kincaid Grade', value: result.textAnalyzer.readability.fleschKincaidGrade })
-            }
-          }
-          if (result.textAnalyzer.statistics) {
-            if (result.textAnalyzer.statistics.words !== undefined) {
-              fields.push({ label: 'Words', value: result.textAnalyzer.statistics.words })
-            }
-            if (result.textAnalyzer.statistics.characters !== undefined) {
-              fields.push({ label: 'Characters', value: result.textAnalyzer.statistics.characters })
-            }
-            if (result.textAnalyzer.statistics.sentences !== undefined) {
-              fields.push({ label: 'Sentences', value: result.textAnalyzer.statistics.sentences })
-            }
-            if (result.textAnalyzer.statistics.lines !== undefined) {
-              fields.push({ label: 'Lines', value: result.textAnalyzer.statistics.lines })
-            }
-            if (result.textAnalyzer.statistics.averageWordLength !== undefined) {
-              fields.push({ label: 'Avg Word Length', value: result.textAnalyzer.statistics.averageWordLength?.toFixed(2) })
-            }
-            if (result.textAnalyzer.statistics.averageWordsPerSentence !== undefined) {
-              fields.push({ label: 'Avg Words per Sentence', value: result.textAnalyzer.statistics.averageWordsPerSentence?.toFixed(2) })
-            }
-          }
-          return fields.filter(f => f.value !== undefined && f.value !== null)
-        }
-
-        // All other sections render as full-height text, not structured fields
         return null
 
       default:
@@ -1671,428 +1598,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  // Helper to wrap errors in OutputTabs format
-  const createErrorTab = (errorMsg) => {
-    return {
-      id: 'error',
-      label: 'Error',
-      content: errorMsg,
-      contentType: 'text',
-    }
-  }
-
-  // Helper to format JSON into a readable, modern layout
-  const formatJsonForDisplay = (data) => {
-    if (typeof data === 'string') {
-      try {
-        data = JSON.parse(data)
-      } catch (e) {
-        return data
-      }
-    }
-
-    const formatValue = (val, indent = 0) => {
-      const spaces = ' '.repeat(indent)
-      if (val === null) return 'null'
-      if (typeof val === 'boolean') return val.toString()
-      if (typeof val === 'number') return val.toString()
-      if (typeof val === 'string') return `"${val}"`
-      if (Array.isArray(val)) {
-        if (val.length === 0) return '[]'
-        const items = val.map(v => formatValue(v, indent + 2))
-        return `[${items.join(', ')}]`
-      }
-      if (typeof val === 'object') {
-        const keys = Object.keys(val)
-        if (keys.length === 0) return '{}'
-        const lines = keys.map(k => {
-          const v = val[k]
-          return `${spaces}  "${k}": ${formatValue(v, indent + 2)}`
-        })
-        return `{\n${lines.join(',\n')}\n${spaces}}`
-      }
-      return String(val)
-    }
-
-    return formatValue(data)
-  }
-
+  // Router for output rendering
   const renderOutput = () => {
-    // Check for top-level errors, but allow tools to handle them internally
-    if (error && !['jwt-decoder', 'sql-formatter', 'js-formatter', 'xml-formatter', 'json-formatter', 'color-converter'].includes(toolId)) {
-      return (
-        <div className={styles.error}>
-          <strong>Error:</strong> {error}
-        </div>
-      )
-    }
-
-    if (!displayResult) {
-      return null
-    }
-
-    // Special handling for SQL Formatter
-    if (toolId === 'sql-formatter' && displayResult.formatted) {
-      return renderSqlFormatterOutput()
-    }
-
-    // Special handling for JavaScript Formatter
-    if (toolId === 'js-formatter' && (displayResult.formatted || displayResult.minified || displayResult.obfuscated || displayResult.errors || displayResult.linting || displayResult.analysis || displayResult.security)) {
-      return renderJsFormatterOutput()
-    }
-
-    // Special handling for XML Formatter
-    if (toolId === 'xml-formatter' && (typeof displayResult === 'string' || displayResult.result || displayResult.formatted)) {
-      return renderXmlFormatterOutput()
-    }
-
-    // Special handling for JSON Formatter
-    if (toolId === 'json-formatter' && (typeof displayResult === 'string' || displayResult.isValid !== undefined)) {
-      return renderJsonFormatterOutput()
-    }
-
-    // Special handling for Color Converter
-    if (toolId === 'color-converter' && displayResult && (displayResult.hex || displayResult.rgb || displayResult.hsl)) {
-      return renderColorConverterOutput()
-    }
-
-    // Special handling for JWT Decoder - handle errors inside tabs
-    if (toolId === 'jwt-decoder') {
-      const tabs = []
-      if (displayResult?.error || error) {
-        tabs.push(createErrorTab(displayResult?.error || error))
-        return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
-      }
-      if (displayResult && displayResult.decoded) {
+    switch (toolId) {
+      case 'js-formatter':
+        return renderJsFormatterOutput()
+      case 'sql-formatter':
+        return renderSqlFormatterOutput()
+      case 'color-converter':
+        return renderColorConverterOutput()
+      case 'jwt-decoder':
         return renderJwtDecoderOutput()
-      }
-      return null
-    }
-
-    // Special handling for text-toolkit sections that render as full-height text
-    if (toolId === 'text-toolkit' && displayResult) {
-      let textContent = null
-      let hasContentForCurrentSection = false
-
-      if (activeToolkitSection === 'findReplace') {
-        hasContentForCurrentSection = !!displayResult.findReplace
-        textContent = displayResult.findReplace
-      } else if (activeToolkitSection === 'slugGenerator') {
-        hasContentForCurrentSection = !!displayResult.slugGenerator
-        textContent = displayResult.slugGenerator
-      } else if (activeToolkitSection === 'reverseText') {
-        hasContentForCurrentSection = !!displayResult.reverseText
-        textContent = displayResult.reverseText
-      } else if (activeToolkitSection === 'removeExtras') {
-        hasContentForCurrentSection = !!displayResult.removeExtras
-        textContent = displayResult.removeExtras
-      } else if (activeToolkitSection === 'whitespaceVisualizer') {
-        hasContentForCurrentSection = !!displayResult.whitespaceVisualizer
-        textContent = displayResult.whitespaceVisualizer
-      } else if (activeToolkitSection === 'sortLines') {
-        hasContentForCurrentSection = !!displayResult.sortLines
-        textContent = displayResult.sortLines
-      }
-
-      // Only render text content if we have it for the current section
-      if (textContent) {
-        return (
-          <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-              {
-                id: 'output',
-                label: 'Output',
-                content: textContent,
-                contentType: 'text',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      // If the current section is a full-height text section but we don't have content for it,
-      // don't render the old structured output - wait for the new result
-      if (!hasContentForCurrentSection && ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)) {
-        return null
-      }
-
-      // Text Diff - show JSON with OutputTabs
-      if (activeToolkitSection === 'textDiff' && displayResult.textDiff) {
-        return (
-          <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult.textDiff,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      // Word Frequency - show JSON with OutputTabs
-      if (activeToolkitSection === 'wordFrequency' && displayResult.wordFrequency) {
-        return (
-          <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult.wordFrequency,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-    }
-
-    // String Reverse - show friendly + JSON tabs
-    if (toolId === 'string-reverse' && displayResult.reversed !== undefined) {
-      const friendlyView = ({ onCopyCard, copiedCardId }) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Original</p>
-              <button className="copy-action" onClick={() => onCopyCard(displayResult.original, 'original')} title="Copy original">
-                {copiedCardId === 'original' ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.original}</code>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reversed</p>
-              <button className="copy-action" onClick={() => onCopyCard(displayResult.reversed, 'reversed')} title="Copy reversed">
-                {copiedCardId === 'reversed' ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.reversed}</code>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Length</p>
-              <button className="copy-action" onClick={() => onCopyCard(displayResult.length, 'length')} title="Copy length">
-                {copiedCardId === 'length' ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <p style={{ margin: '0', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px' }}>{displayResult.length} characters</p>
-          </div>
-        </div>
-      )
-      return <OutputTabs friendlyView={friendlyView} jsonData={displayResult} showCopyButton={true} />
-    }
-
-    // Text Stats - show friendly + JSON tabs
-    if (toolId === 'text-stats' && displayResult.characters !== undefined) {
-      const stats = [
-        { id: 'characters', label: 'Characters', value: displayResult.characters },
-        { id: 'without-spaces', label: 'Without Spaces', value: displayResult.charactersWithoutSpaces },
-        { id: 'words', label: 'Words', value: displayResult.words },
-        { id: 'lines', label: 'Lines', value: displayResult.lines },
-        { id: 'paragraphs', label: 'Paragraphs', value: displayResult.paragraphs },
-        { id: 'sentences', label: 'Sentences', value: displayResult.sentences },
-        { id: 'avg-word-length', label: 'Avg Word Length', value: displayResult.averageWordLength },
-        { id: 'avg-words-per-line', label: 'Avg Words/Line', value: displayResult.averageWordsPerLine },
-      ]
-
-      const friendlyView = ({ onCopyCard, copiedCardId }) => (
-        <div className={styles.structuredOutput}>
-          {stats.map((stat) => (
-            <div key={stat.id} className={styles.copyCard}>
-              <div className={styles.copyCardHeader}>
-                <span className={styles.copyCardLabel}>{stat.label}</span>
-                <button
-                  className="copy-action"
-                  onClick={() => onCopyCard(stat.value, stat.id)}
-                  title={`Copy ${stat.label}`}
-                >
-                  {copiedCardId === stat.id ? '✓' : <FaCopy />}
-                </button>
-              </div>
-              <div className={styles.copyCardValue}>{stat.value}</div>
-            </div>
-          ))}
-        </div>
-      )
-      return <OutputTabs friendlyView={friendlyView} jsonData={displayResult} showCopyButton={true} />
-    }
-
-    if (displayResult?.resizedImage) {
-      return (
-        <div className={styles.imageOutput}>
-          <img src={displayResult.resizedImage} alt="Resized" className={styles.outputImage} />
-          <div className={styles.imageInfo}>
-            <p>Original: {displayResult.originalDimensions.width} x {displayResult.originalDimensions.height}px</p>
-            <p>Resized: {displayResult.newDimensions.width} x {displayResult.newDimensions.height}px</p>
-          </div>
-        </div>
-      )
-    }
-
-    if (typeof displayResult === 'string') {
-      return (
-        <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-            {
-              id: 'formatted',
-              label: 'Output',
-              content: displayResult,
-              contentType: 'text',
-            },
-          ]}
-          showCopyButton={true}
-        />
-      )
-    }
-
-    if (typeof displayResult === 'object') {
-      // Special handling for unit-converter
-      if (toolId === 'unit-converter') {
-        // Show hint for incomplete input states
-        if (displayResult?.status && displayResult.status !== 'ok') {
-          const hints = {
-            'empty': 'Enter a value with a unit, like "100 pounds" or "250 cm"',
-            'incomplete-number-or-unit': 'Keep typing... enter something like "100 pounds"',
-            'unknown-unit': 'Unit not recognized. Try "100 pounds", "250 cm", "5 ft", or "72 F"',
-            'parse-failed': 'Could not parse the input. Try "100 pounds" or "250 cm"'
-          }
-          return (
-            <div className={styles.hint}>
-              {hints[displayResult.status] || 'Keep typing...'}
-            </div>
-          )
-        }
-
-        const unitCards = renderUnitConverterCards()
-        if (unitCards) {
-          return unitCards
-        }
-      }
-
-      // For text-toolkit with full-height text sections, don't show JSON fallback
-      const isFullHeightTextSection = toolId === 'text-toolkit' &&
-        ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)
-
-      if (!isFullHeightTextSection) {
-        const structuredView = renderStructuredOutput()
-        if (structuredView) {
-          return (
-            <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-                {
-                  id: 'formatted',
-                  label: 'Output',
-                  content: structuredView,
-                  contentType: 'component',
-                },
-                {
-                  id: 'json',
-                  label: 'JSON',
-                  content: displayResult,
-                  contentType: 'json',
-                },
-              ]}
-              showCopyButton={true}
-            />
-          )
-        }
-      }
-
-      if (outputType === 'json' || (typeof displayResult === 'object' && !isFullHeightTextSection)) {
-        return (
-          <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      if (displayResult.type === 'table' && Array.isArray(displayResult.data)) {
-        const tableComponent = (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  {Object.keys(displayResult.data[0] || {}).map(key => (
-                    <th key={key}>{key}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {displayResult.data.map((row, idx) => (
-                  <tr key={idx}>
-                    {Object.values(row).map((val, i) => (
-                      <td key={i}>{String(val)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-        return (
-          <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-              {
-                id: 'formatted',
-                label: 'Output',
-                content: tableComponent,
-                contentType: 'component',
-              },
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      return (
-        <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-            {
-              id: 'json',
-              label: 'JSON',
-              content: displayResult,
-              contentType: 'json',
-            },
-          ]}
-          showCopyButton={true}
-        />
-      )
+      case 'json-formatter':
+        return renderJsonFormatterOutput()
+      case 'xml-formatter':
+        return renderXmlFormatterOutput()
+      default:
+        return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: String(displayResult), contentType: 'text' }]} />
     }
   }
 
-  return (
-    <div className={styles.container}>
-      <div className={`${styles.content} ${loading ? styles.isLoading : ''}`}>
-        {renderOutput()}
-      </div>
-    </div>
-  )
+  return renderOutput()
 }
