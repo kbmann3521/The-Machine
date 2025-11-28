@@ -104,6 +104,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       highlightsLayerRef.current.scrollTop = e.target.scrollTop
       highlightsLayerRef.current.scrollLeft = e.target.scrollLeft
     }
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = e.target.scrollTop
+    }
   }
 
   const getErrorInfo = () => {
