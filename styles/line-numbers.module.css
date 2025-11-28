@@ -19,13 +19,13 @@
   font-size: 13px;
   color: var(--color-text-secondary);
   text-align: right;
-  padding: 0 8px;
+  padding: 0 4px;
   white-space: nowrap;
 }
 
 .lineNumber {
   height: 1.5em;
-  padding: 0;
+  padding: 0 2px;
 }
 
 /* Scrollbar styling */
