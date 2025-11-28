@@ -426,7 +426,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       )
       tabs.push({
         id: 'syntax',
-        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '���'})`,
+        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '✗'})`,
         content: syntaxContent,
         contentType: 'component',
       })
@@ -1155,7 +1155,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         </div>
       )
 
-      const repairLabel = diff.length > 0 ? `Repair Info (${diff.length})` : 'Repair Info'
+      const repairLabel = diff.length > 0 ? `Repair Info (${diff.length})` : 'Repair Info (✓)'
       tabs.push({
         id: 'repair-info',
         label: repairLabel,
