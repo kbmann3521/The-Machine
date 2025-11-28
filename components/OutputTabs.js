@@ -355,11 +355,15 @@ export default function OutputTabs({
 
     // Handle plain text content
     if (contentType === 'text') {
+      const textContent = String(content)
       return (
-        <div className={styles.textContent}>
-          <pre className={styles.textCode}>
-            <code>{String(content)}</code>
-          </pre>
+        <div className={styles.codeContentWithLineNumbers}>
+          <LineNumbers content={textContent} />
+          <div className={styles.codeContentWrapper}>
+            <pre className={styles.textCode}>
+              <code>{textContent}</code>
+            </pre>
+          </div>
         </div>
       )
     }
