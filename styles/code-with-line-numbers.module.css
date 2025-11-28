@@ -1,0 +1,55 @@
+.codeContainer {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background-color: var(--color-background-secondary);
+  overflow: hidden;
+}
+
+.contentWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: visible;
+  background-color: transparent;
+  border: none;
+}
+
+.codeBlock code {
+  font-family: 'Courier New', monospace;
+  color: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+/* Scrollbar styling for content */
+.contentWrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.contentWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.contentWrapper::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.contentWrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
