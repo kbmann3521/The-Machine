@@ -417,8 +417,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               />
             </div>
           </div>
-
-            <div className={styles.inputFooter} />
           </div>
         </div>
 
