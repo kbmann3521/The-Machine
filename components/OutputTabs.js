@@ -341,10 +341,19 @@ export default function OutputTabs({
     // Handle JSON content
     if (contentType === 'json' || contentType === 'code') {
       const codeContent = getJsonString()
+      const codeContentRef = useRef(null)
+      const lineNumbersRef = useRef(null)
+
+      const handleCodeScroll = (e) => {
+        if (lineNumbersRef.current) {
+          lineNumbersRef.current.scrollTop = e.target.scrollTop
+        }
+      }
+
       return (
         <div className={styles.codeContentWithLineNumbers}>
-          <LineNumbers content={codeContent} />
-          <div className={styles.codeContentWrapper}>
+          <LineNumbers ref={lineNumbersRef} content={codeContent} />
+          <div className={styles.codeContentWrapper} ref={codeContentRef} onScroll={handleCodeScroll}>
             <pre className={styles.jsonCode}>
               <code>{codeContent}</code>
             </pre>
