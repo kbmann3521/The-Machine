@@ -7,7 +7,9 @@
   border-right: 1px solid var(--color-border);
   user-select: none;
   padding: 12px 0;
-  min-width: 50px;
+  min-width: 32px;
+  width: 32px;
+  flex-shrink: 0;
 }
 
 .lineNumbersList {
