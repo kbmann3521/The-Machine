@@ -368,20 +368,25 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {getErrorInfo().size > 0 ? (
-            <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
-              {renderHighlights()}
+          <div className={styles.textareaWithLineNumbers}>
+            <LineNumbers content={inputText} />
+            <div className={styles.textareaWrapper}>
+              {getErrorInfo().size > 0 ? (
+                <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
+                  {renderHighlights()}
+                </div>
+              ) : null}
+              <textarea
+                ref={textareaRef}
+                className={styles.textarea}
+                value={inputText}
+                onChange={handleTextChange}
+                onScroll={handleScroll}
+                onPaste={handlePaste}
+                placeholder={getPlaceholder()}
+              />
             </div>
-          ) : null}
-          <textarea
-            ref={textareaRef}
-            className={styles.textarea}
-            value={inputText}
-            onChange={handleTextChange}
-            onScroll={handleScroll}
-            onPaste={handlePaste}
-            placeholder={getPlaceholder()}
-          />
+          </div>
 
           <div className={styles.buttonGroup}>
             <button
