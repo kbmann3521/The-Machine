@@ -81,7 +81,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       },
     ]
     const OutputTabs = require('./OutputTabs').default
-    return <OutputTabs tabs={defaultTabs} />
+    return <OutputTabs tabs={defaultTabs} toolCategory={toolCategory} />
   }
 
   // For text-toolkit, check if current section has content
