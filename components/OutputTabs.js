@@ -378,8 +378,8 @@ export default function OutputTabs({
       }
 
       return (
-        <div className={styles.codeContentWithLineNumbers}>
-          <LineNumbers ref={textLineNumbersRef} content={textContent} />
+        <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
+          {showLineNumbers && <LineNumbers ref={textLineNumbersRef} content={textContent} />}
           <div className={styles.codeContentWrapper} ref={textContentRef} onScroll={handleTextScroll}>
             <pre className={styles.textCode}>
               <code>{textContent}</code>
