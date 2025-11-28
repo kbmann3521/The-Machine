@@ -30,6 +30,14 @@
   }
 }
 
+.inputFieldContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  align-items: flex-end;
+}
+
 .inputField {
   position: relative;
   display: flex;
