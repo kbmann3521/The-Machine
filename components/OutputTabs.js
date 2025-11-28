@@ -365,10 +365,19 @@ export default function OutputTabs({
     // Handle plain text content
     if (contentType === 'text') {
       const textContent = String(content)
+      const textContentRef = useRef(null)
+      const textLineNumbersRef = useRef(null)
+
+      const handleTextScroll = (e) => {
+        if (textLineNumbersRef.current) {
+          textLineNumbersRef.current.scrollTop = e.target.scrollTop
+        }
+      }
+
       return (
         <div className={styles.codeContentWithLineNumbers}>
-          <LineNumbers content={textContent} />
-          <div className={styles.codeContentWrapper}>
+          <LineNumbers ref={textLineNumbersRef} content={textContent} />
+          <div className={styles.codeContentWrapper} ref={textContentRef} onScroll={handleTextScroll}>
             <pre className={styles.textCode}>
               <code>{textContent}</code>
             </pre>
