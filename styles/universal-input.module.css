@@ -260,13 +260,14 @@
     font-size: 16px;
   }
 
-  .uploadButton {
-    width: 32px;
-    height: 32px;
+  .uploadImageButton {
+    padding: 8px 14px;
+    font-size: 12px;
+    gap: 6px;
   }
 
-  .uploadIcon {
-    width: 16px;
-    height: 16px;
+  .uploadImageIcon {
+    width: 14px;
+    height: 14px;
   }
 }
