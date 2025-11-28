@@ -15,6 +15,10 @@ export default function OutputTabs({
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
+  const codeLineNumbersRef = useRef(null)
+  const codeContentRef = useRef(null)
+  const textLineNumbersRef = useRef(null)
+  const textContentRef = useRef(null)
 
   // Generate a user-friendly view from JSON data
   const generateFriendlyTab = (jsonContent) => {
