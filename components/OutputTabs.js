@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
+import LineNumbers from './LineNumbers'
 import styles from '../styles/output-tabs.module.css'
 
 export default function OutputTabs({
