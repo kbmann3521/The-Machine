@@ -521,7 +521,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
   const renderSqlFormatterOutput = () => {
@@ -633,7 +633,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
   const renderColorConverterOutput = () => {
@@ -685,7 +685,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       },
     ]
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJwtDecoderOutput = () => {
@@ -699,7 +699,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'text',
         }
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
     }
 
     if (!displayResult || !displayResult.decoded) return null
@@ -714,7 +714,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     ]
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJsonFormatterOutput = () => {
@@ -730,7 +730,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'code',
           },
         ]
-        return <OutputTabs tabs={tabs} showCopyButton={true} />
+        return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
       }
 
       // Regular string output (beautified, minified, sorted, etc.)
@@ -742,7 +742,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'code',
         },
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
     }
 
     // Handle validation results
@@ -814,7 +814,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'component',
         },
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
     }
 
     // Handle other object outputs (defaults to JSON tab)
@@ -826,7 +826,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         contentType: 'json',
       },
     ]
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
   const renderXmlFormatterOutput = () => {
@@ -840,7 +840,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'code',
         },
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
     }
 
     // Handle object output from validate, lint, xpath, to-json, to-yaml
@@ -1180,7 +1180,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           fontSize: '12px',
           fontWeight: '500',
         }}>
-          ✓ No linting issues found
+          �� No linting issues found
         </div>
       ) : (
         <div style={{ padding: '12px' }}>
@@ -1224,7 +1224,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return null
     }
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
   const renderSqlFormatterOutputOld = () => {
@@ -1761,7 +1761,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       const tabs = []
       if (displayResult?.error || error) {
         tabs.push(createErrorTab(displayResult?.error || error))
-        return <OutputTabs tabs={tabs} showCopyButton={true} />
+        return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
       }
       if (displayResult && displayResult.decoded) {
         return renderJwtDecoderOutput()
