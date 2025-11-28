@@ -367,8 +367,6 @@ export default function OutputTabs({
     // Handle plain text content
     if (contentType === 'text') {
       const textContent = String(content)
-      const textContentRef = useRef(null)
-      const textLineNumbersRef = useRef(null)
 
       const handleTextScroll = (e) => {
         if (textLineNumbersRef.current) {
