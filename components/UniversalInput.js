@@ -370,12 +370,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           <div className={styles.instructionLabel}>{getInstructionText()}</div>
         )}
 
-        <div
-          className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
+        <div className={styles.inputFieldContainer}>
           <button
             className={styles.uploadImageButton}
             onClick={openFileDialog}
@@ -390,13 +385,19 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             Upload Image
           </button>
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            accept="image/*"
-            className={styles.fileInput}
-          />
+          <div
+            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*"
+              className={styles.fileInput}
+            />
           <div className={`${styles.textareaWithLineNumbers} ${showLineNumbers ? '' : styles.noLineNumbers}`}>
             {showLineNumbers && <LineNumbers ref={lineNumbersRef} content={inputText} />}
             <div className={styles.textareaWrapper}>
@@ -417,8 +418,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             </div>
           </div>
 
-          <div className={styles.inputFooter}>
-            <div className={styles.charCounter}>{charCount} characters</div>
+            <div className={styles.inputFooter}>
+              <div className={styles.charCounter}>{charCount} characters</div>
+            </div>
           </div>
         </div>
 
