@@ -151,6 +151,39 @@
   opacity: 0.6;
 }
 
+.uploadImageButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  transition: all 0.2s;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.uploadImageButton:hover {
+  background-color: var(--color-background-secondary);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.uploadImageButton:active {
+  background-color: var(--color-border);
+}
+
+.uploadImageIcon {
+  width: 16px;
+  height: 16px;
+}
+
 .charCounter {
   font-size: 11px;
   color: var(--color-text-secondary);
