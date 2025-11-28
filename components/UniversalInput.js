@@ -369,6 +369,29 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
         {getInstructionText() && (
           <div className={styles.instructionLabel}>{getInstructionText()}</div>
         )}
+
+        <button
+          className={styles.uploadImageButton}
+          onClick={openFileDialog}
+          title="Click to upload an image"
+          type="button"
+        >
+          <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Upload Image
+        </button>
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          accept="image/*"
+          className={styles.fileInput}
+        />
+
         <div
           className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
           onDragOver={handleDragOver}
@@ -396,29 +419,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           </div>
 
           <div className={styles.inputFooter}>
-            <div className={styles.buttonGroup}>
-              <button
-                className={styles.uploadButton}
-                onClick={openFileDialog}
-                title="Click to upload an image"
-                type="button"
-              >
-                <svg className={styles.uploadIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-              </button>
-            </div>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="image/*"
-              className={styles.fileInput}
-            />
-
             <div className={styles.charCounter}>{charCount} characters</div>
           </div>
         </div>
