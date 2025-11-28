@@ -92,6 +92,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   if (isEmpty || isTextToolkitWithoutContent) {
     return (
       <OutputTabs
+        toolCategory={toolCategory}
         tabs={[
           {
             id: 'default',
@@ -1797,7 +1798,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (textContent) {
         return (
           <OutputTabs
-            tabs={[
+        toolCategory={toolCategory}
+        tabs={[
               {
                 id: 'output',
                 label: 'Output',
@@ -1820,7 +1822,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (activeToolkitSection === 'textDiff' && displayResult.textDiff) {
         return (
           <OutputTabs
-            tabs={[
+        toolCategory={toolCategory}
+        tabs={[
               {
                 id: 'json',
                 label: 'JSON',
@@ -1837,7 +1840,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (activeToolkitSection === 'wordFrequency' && displayResult.wordFrequency) {
         return (
           <OutputTabs
-            tabs={[
+        toolCategory={toolCategory}
+        tabs={[
               {
                 id: 'json',
                 label: 'JSON',
@@ -1937,7 +1941,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (typeof displayResult === 'string') {
       return (
         <OutputTabs
-          tabs={[
+        toolCategory={toolCategory}
+        tabs={[
             {
               id: 'formatted',
               label: 'Output',
@@ -1983,7 +1988,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         if (structuredView) {
           return (
             <OutputTabs
-              tabs={[
+        toolCategory={toolCategory}
+        tabs={[
                 {
                   id: 'formatted',
                   label: 'Output',
@@ -2006,7 +2012,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (outputType === 'json' || (typeof displayResult === 'object' && !isFullHeightTextSection)) {
         return (
           <OutputTabs
-            tabs={[
+        toolCategory={toolCategory}
+        tabs={[
               {
                 id: 'json',
                 label: 'JSON',
@@ -2044,7 +2051,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )
         return (
           <OutputTabs
-            tabs={[
+        toolCategory={toolCategory}
+        tabs={[
               {
                 id: 'formatted',
                 label: 'Output',
@@ -2065,7 +2073,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       return (
         <OutputTabs
-          tabs={[
+        toolCategory={toolCategory}
+        tabs={[
             {
               id: 'json',
               label: 'JSON',
