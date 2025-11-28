@@ -263,13 +263,13 @@
   }
 
   .uploadImageButton {
-    padding: 8px 14px;
-    font-size: 12px;
-    gap: 6px;
+    padding: 5px 8px;
+    font-size: 10px;
+    gap: 4px;
   }
 
   .uploadImageIcon {
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
   }
 }
