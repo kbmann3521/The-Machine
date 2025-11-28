@@ -418,9 +418,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             </div>
           </div>
 
-            <div className={styles.inputFooter}>
-              <div className={styles.charCounter}>{charCount} characters</div>
-            </div>
+            <div className={styles.inputFooter} />
           </div>
         </div>
 
