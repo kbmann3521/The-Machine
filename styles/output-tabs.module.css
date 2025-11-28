@@ -309,6 +309,10 @@
   background-color: var(--color-background-primary, #fff);
 }
 
+.codeContentWithLineNumbers.codeContentNoLineNumbers {
+  flex-direction: row;
+}
+
 .codeContentWrapper {
   flex: 1;
   display: flex;
