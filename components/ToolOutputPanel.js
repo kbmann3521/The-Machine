@@ -4,10 +4,10 @@ import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
-import { tools } from '../lib/tools'
+import { TOOLS } from '../lib/tools'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
-  const toolCategory = tools[toolId]?.category
+  const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
   const [expandedSection, setExpandedSection] = useState('formatted')
