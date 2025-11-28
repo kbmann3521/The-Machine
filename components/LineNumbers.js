@@ -1,8 +1,24 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import styles from '../styles/line-numbers.module.css'
 
-export default function LineNumbers({ content = '', onScroll = null, lineHeight = 1.5 }) {
+const LineNumbers = forwardRef(({ content = '', onScroll = null, lineHeight = 1.5 }, ref) => {
   const containerRef = useRef(null)
+
+  useImperativeHandle(ref, () => ({
+    scrollTop: (value) => {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = value
+      }
+    },
+    get scrollTop() {
+      return containerRef.current?.scrollTop || 0
+    },
+    set scrollTop(value) {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = value
+      }
+    }
+  }), [])
 
   useEffect(() => {
     if (onScroll) {
@@ -31,4 +47,8 @@ export default function LineNumbers({ content = '', onScroll = null, lineHeight 
       </div>
     </div>
   )
-}
+})
+
+LineNumbers.displayName = 'LineNumbers'
+
+export default LineNumbers
