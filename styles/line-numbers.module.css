@@ -1,0 +1,45 @@
+.lineNumbersContainer {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--color-background-tertiary);
+  border-right: 1px solid var(--color-border);
+  user-select: none;
+  padding: 12px 0;
+  min-width: 50px;
+}
+
+.lineNumbersList {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-align: right;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.lineNumber {
+  height: 1.5em;
+  padding: 0;
+}
+
+/* Scrollbar styling */
+.lineNumbersContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lineNumbersContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lineNumbersContainer::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.lineNumbersContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
