@@ -313,44 +313,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
 
-            {inputErrors.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: '#ef5350',
-                  marginBottom: '8px',
-                  paddingBottom: '8px',
-                  borderBottom: '1px solid rgba(239, 83, 80, 0.2)',
-                }}>
-                  Input Validation Errors (prevents formatting)
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {inputErrors.map((error, idx) => (
-                    <div key={idx} style={{
-                      padding: '12px',
-                      backgroundColor: 'var(--color-background-tertiary)',
-                      border: '1px solid rgba(239, 83, 80, 0.2)',
-                      borderRadius: '4px',
-                    }}>
-                      <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
-                        {error.line !== null && error.column !== null
-                          ? `Line ${error.line}, Column ${error.column}`
-                          : 'General Error'}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                        {error.message}
-                      </div>
-                      {error.category && (
-                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
-                          Category: {error.category}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {renderValidationErrorsUnified(inputErrors, 'Input Validation Errors (prevents formatting)')}
 
             {outputErrors.length > 0 && (
               <div>
