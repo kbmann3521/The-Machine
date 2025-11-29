@@ -248,9 +248,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     }
 
-    // Validation tab - show errors from diagnostics
+    // Validation tab - show input and output errors separately
     if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
-      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+      const inputErrors = displayResult.inputDiagnostics ? displayResult.inputDiagnostics.filter(d => d.type === 'error') : []
+      const outputErrors = displayResult.outputDiagnostics ? displayResult.outputDiagnostics.filter(d => d.type === 'error') : []
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error' && d.category !== 'lint')
 
       if (validationErrors.length > 0) {
         const validationContent = (
@@ -267,30 +269,84 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             }}>
               ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {validationErrors.map((error, idx) => (
-                <div key={idx} style={{
-                  padding: '12px',
-                  backgroundColor: 'var(--color-background-tertiary)',
-                  border: '1px solid rgba(239, 83, 80, 0.2)',
-                  borderRadius: '4px',
+
+            {inputErrors.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#ef5350',
+                  marginBottom: '8px',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid rgba(239, 83, 80, 0.2)',
                 }}>
-                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
-                    {error.line !== null && error.column !== null
-                      ? `Line ${error.line}, Column ${error.column}`
-                      : 'General Error'}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                    {error.message}
-                  </div>
-                  {error.category && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
-                      Category: {error.category}
-                    </div>
-                  )}
+                  Input Validation Errors (prevents formatting)
                 </div>
-              ))}
-            </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {inputErrors.map((error, idx) => (
+                    <div key={idx} style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      border: '1px solid rgba(239, 83, 80, 0.2)',
+                      borderRadius: '4px',
+                    }}>
+                      <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
+                        {error.line !== null && error.column !== null
+                          ? `Line ${error.line}, Column ${error.column}`
+                          : 'General Error'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                        {error.message}
+                      </div>
+                      {error.category && (
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                          Category: {error.category}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {outputErrors.length > 0 && (
+              <div>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#ff9800',
+                  marginBottom: '8px',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid rgba(255, 152, 0, 0.2)',
+                }}>
+                  Output Validation Errors (introduced by formatter)
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {outputErrors.map((error, idx) => (
+                    <div key={idx} style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(255, 152, 0, 0.05)',
+                      border: '1px solid rgba(255, 152, 0, 0.2)',
+                      borderRadius: '4px',
+                    }}>
+                      <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ff9800' }}>
+                        {error.line !== null && error.column !== null
+                          ? `Line ${error.line}, Column ${error.column}`
+                          : 'General Error'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                        {error.message}
+                      </div>
+                      {error.category && (
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                          Category: {error.category}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )
 
