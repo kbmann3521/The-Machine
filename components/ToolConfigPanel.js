@@ -42,6 +42,19 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
   const renderField = field => {
     const value = config[field.id]
+    const isJsFormatterInMinify = tool.toolId === 'js-formatter' && config.mode === 'minify'
+
+    const fieldsToDisableInMinify = [
+      'useSemicolons',
+      'singleQuotes',
+      'bracketSpacing',
+      'indentSize',
+      'trailingComma',
+      'printWidth',
+      'arrowParens',
+    ]
+
+    const isFieldDisabled = isJsFormatterInMinify && fieldsToDisableInMinify.includes(field.id)
 
     switch (field.type) {
       case 'text':
@@ -53,6 +66,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             value={value || ''}
             onChange={e => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder || ''}
+            disabled={isFieldDisabled}
           />
         )
 
@@ -65,6 +79,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             value={value || ''}
             onChange={e => handleFieldChange(field.id, parseInt(e.target.value) || e.target.value)}
             placeholder={field.placeholder || ''}
+            disabled={isFieldDisabled}
           />
         )
 
@@ -77,6 +92,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             onChange={e => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder || ''}
             rows={4}
+            disabled={isFieldDisabled}
           />
         )
 
@@ -87,6 +103,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             className={styles.select}
             value={value || ''}
             onChange={e => handleFieldChange(field.id, e.target.value)}
+            disabled={isFieldDisabled}
           >
             <option value="">Select an option</option>
             {field.options?.map(option => (
@@ -106,6 +123,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 checked={value || false}
                 onChange={e => handleFieldChange(field.id, e.target.checked)}
                 className={styles.toggleInput}
+                disabled={isFieldDisabled}
               />
               <span className={styles.toggleSlider}></span>
               <span>{field.label}</span>
@@ -123,6 +141,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               max={field.max || 100}
               value={value || 0}
               onChange={e => handleFieldChange(field.id, parseInt(e.target.value))}
+              disabled={isFieldDisabled}
             />
             <span className={styles.sliderValue}>{value || 0}</span>
           </div>
