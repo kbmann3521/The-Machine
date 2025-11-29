@@ -201,236 +201,195 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       primaryTabContent = displayResult.obfuscated
     }
 
-    // Add primary tab FIRST
+    // Add primary tab FIRST - only show if isWellFormed is true
     if (primaryTabId && primaryTabContent) {
-      if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
-        tabs.push({
-          id: primaryTabId,
-          label: 'Output',
-          content: primaryTabContent,
-          contentType: 'code',
-        })
+      if (displayResult.isWellFormed) {
+        if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
+          tabs.push({
+            id: primaryTabId,
+            label: 'Output',
+            content: primaryTabContent,
+            contentType: 'code',
+          })
+        }
       } else {
-        // Show placeholder when output is unavailable
-        const placeholderContent = (
-          <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
-            Output will appear here once you run the formatter on valid code.
+        // Show error message when code is not well-formed
+        const errorContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              marginBottom: '12px',
+            }}>
+              Cannot format because code contains errors. Showing original code.
+            </div>
+            <pre style={{
+              backgroundColor: 'var(--color-background-tertiary)',
+              padding: '12px',
+              borderRadius: '4px',
+              overflow: 'auto',
+              fontSize: '12px',
+              fontFamily: 'monospace',
+            }}>
+              <code>{primaryTabContent}</code>
+            </pre>
           </div>
         )
         tabs.push({
           id: primaryTabId,
           label: 'Output',
-          content: placeholderContent,
+          content: errorContent,
           contentType: 'component',
         })
       }
     }
 
-    // Add repair info as a tab (after output) - show if toggle is enabled OR repairs were made
-    const showRepairTab = displayResult.repaired || false
-    if (showRepairTab) {
-      const wasRepaired = displayResult.repaired && displayResult.repaired.wasRepaired
-      const repairs = displayResult.repaired && displayResult.repaired.repairs ? displayResult.repaired.repairs : []
-      const repairCount = repairs.length
-      const hasSyntaxErrors = displayResult.errors && displayResult.errors.status === 'invalid' && displayResult.errors.errors && displayResult.errors.errors.length > 0
+    // Validation tab - show errors from diagnostics
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
 
-      let repairContent = null
-      let tabLabel = 'Repair Info'
-
-      if (wasRepaired && repairCount > 0) {
-        const repairMessage = displayResult.repaired.method === 'prettier'
-          ? '✨ Code was auto-repaired using Prettier recovery'
-          : displayResult.repaired.method === 'babel-recovery'
-          ? '🔧 Code was auto-repaired using Babel error recovery'
-          : displayResult.repaired.method === 'eslint-fix'
-          ? '⚙️ Code was auto-fixed using ESLint'
-          : '🧠 Code was auto-repaired'
-
-        tabLabel = `Repair Info (${repairCount})`
-
-        repairContent = (
-          <div style={{ padding: '12px' }}>
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
             <div style={{
-              marginBottom: '12px',
-              padding: '10px',
-              backgroundColor: 'rgba(76, 175, 80, 0.1)',
-              border: '1px solid rgba(76, 175, 80, 0.3)',
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
               borderRadius: '4px',
-              color: '#4caf50',
+              color: '#ef5350',
               fontSize: '13px',
               fontWeight: '500',
             }}>
-              {repairMessage}
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
-
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--color-text-secondary)',
-              marginBottom: '12px',
-            }}>
-              Total repairs: <strong>{repairCount}</strong>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {repairs.map((repair, idx) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {validationErrors.map((error, idx) => (
                 <div key={idx} style={{
-                  padding: '8px',
+                  padding: '12px',
                   backgroundColor: 'var(--color-background-tertiary)',
+                  border: '1px solid rgba(239, 83, 80, 0.2)',
                   borderRadius: '4px',
-                  borderLeft: '3px solid #4caf50',
-                  fontSize: '11px',
                 }}>
-                  <div style={{ fontWeight: '600', marginBottom: '4px', color: '#4caf50' }}>
-                    Line {repair.lineNumber}
+                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
+                    {error.line !== null && error.column !== null
+                      ? `Line ${error.line}, Column ${error.column}`
+                      : 'General Error'}
                   </div>
-                  <div style={{ marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
-                    <span style={{ fontSize: '10px', opacity: 0.7 }}>before:</span>
-                    <code style={{ display: 'block', padding: '4px 0', color: '#ef5350', fontFamily: 'monospace' }}>
-                      {repair.original || '(empty)'}
-                    </code>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {error.message}
                   </div>
-                  <div style={{ color: 'var(--color-text-secondary)' }}>
-                    <span style={{ fontSize: '10px', opacity: 0.7 }}>after:</span>
-                    <code style={{ display: 'block', padding: '4px 0', color: '#4caf50', fontFamily: 'monospace' }}>
-                      {repair.repaired || '(empty)'}
-                    </code>
-                  </div>
+                  {error.category && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Category: {error.category}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )
-      } else if (!wasRepaired && hasSyntaxErrors) {
-        const firstError = displayResult.errors.errors[0]
-        const errorLine = firstError?.line || 'unknown'
-        const errorMsg = firstError?.message || 'Unknown syntax error'
 
-        tabLabel = 'Repair Info (✗)'
-
-        repairContent = (
-          <div style={{ padding: '12px' }}>
-            <div style={{
-              padding: '10px 12px',
-              borderRadius: '4px',
-              borderLeft: '3px solid #ef5350',
-              backgroundColor: 'rgba(239, 83, 80, 0.1)',
-            }}>
-              <div style={{
-                fontSize: '12px',
-                color: '#ef5350',
-                marginBottom: '4px',
-              }}>
-                <strong>Cannot auto-repair:</strong> JavaScript has a syntax error on line {errorLine}. {errorMsg.includes('comma') || errorMsg.includes('bracket') || errorMsg.includes('token') ? '(likely a missing comma or bracket)' : ''} Please fix the syntax first.
-              </div>
-            </div>
-          </div>
-        )
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
       } else {
-        tabLabel = 'Repair Info ✓'
-
-        repairContent = (
-          <div style={{ padding: '16px' }}>
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px',
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                fontSize: '20px',
-                color: '#4caf50',
-                fontWeight: 'bold',
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
               }}>
-                ✅
-              </div>
-              <div>
-                <div style={{
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: 'var(--color-text-primary)',
-                }}>
-                  No auto-repair needed
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  color: 'var(--color-text-secondary)',
-                  marginTop: '4px',
-                }}>
-                  Your code was already valid and properly formatted.
-                </div>
+                ✓ No validation errors found
               </div>
             </div>
-          </div>
-        )
+          ),
+          contentType: 'component',
+        })
       }
-
-      tabs.push({
-        id: 'repair-info',
-        label: tabLabel,
-        content: repairContent,
-        contentType: 'component',
-      })
     }
 
-    if (displayResult.linting) {
-      const lintContent = (
-        <>
-          {displayResult.linting.warnings && displayResult.linting.warnings.length > 0 ? (
-            <div className={jsStyles.warningsList}>
-              {displayResult.linting.warnings.map((warning, idx) => (
-                <div key={idx} className={`${jsStyles.warning} ${jsStyles[warning.level || 'info']}`}>
-                  <div className={jsStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
-                  <div className={jsStyles.warningMessage}>
-                    {warning.line !== undefined && warning.column !== undefined && (
-                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginRight: '8px' }}>
-                        Line {warning.line}, Column {warning.column}
-                      </span>
-                    )}
-                    {warning.message}
-                    {warning.ruleId && (
-                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginLeft: '8px' }}>
-                        ({warning.ruleId})
-                      </span>
-                    )}
-                  </div>
+    // Linting tab - show warnings from diagnostics
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
+
+      const lintingLabel = lintingWarnings.length === 0 ? 'Linting (✓)' : `Linting (${lintingWarnings.length})`
+      const lintingContent = lintingWarnings.length === 0 ? (
+        <div style={{
+          padding: '16px',
+          backgroundColor: 'rgba(102, 187, 106, 0.1)',
+          border: '1px solid rgba(102, 187, 106, 0.3)',
+          borderRadius: '4px',
+          color: '#66bb6a',
+          fontSize: '13px',
+          fontWeight: '500',
+          textAlign: 'center',
+        }}>
+          ✓ No linting warnings found
+        </div>
+      ) : (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {lintingWarnings.map((warning, idx) => (
+              <div
+                key={idx}
+                style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                  border: '1px solid rgba(255, 167, 38, 0.2)',
+                  borderRadius: '4px',
+                  borderLeft: '3px solid #ffa726',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                  ⚠️ Warning {idx + 1}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className={jsStyles.success}>✓ No linting warnings found!</div>
-          )}
-        </>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                  {warning.message}
+                </div>
+                {warning.line !== null && warning.column !== null && (
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                    Line {warning.line}, Column {warning.column}
+                  </div>
+                )}
+                {warning.ruleId && (
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                    Rule: {warning.ruleId}
+                  </div>
+                )}
+                {warning.category && (
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                    Category: {warning.category}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )
       tabs.push({
         id: 'linting',
-        label: `Linting (${displayResult.linting.total})`,
-        content: lintContent,
-        contentType: 'component',
-      })
-    }
-
-    if (displayResult.errors) {
-      const syntaxContent = (
-        <>
-          {displayResult.errors.status === 'valid' ? (
-            <div className={jsStyles.success}>✓ No syntax errors found!</div>
-          ) : (
-            <div className={jsStyles.errorsList}>
-              {displayResult.errors.errors && displayResult.errors.errors.map((error, idx) => (
-                <div key={idx} className={jsStyles.error}>
-                  <div className={jsStyles.errorMessage}>
-                    <strong>Line {error.line}, Column {error.column}</strong>: {error.message}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )
-      tabs.push({
-        id: 'syntax',
-        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '✗'})`,
-        content: syntaxContent,
+        label: lintingLabel,
+        content: lintingContent,
         contentType: 'component',
       })
     }
@@ -486,35 +445,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'analysis',
         label: 'Analysis',
         content: analysisContent,
-        contentType: 'component',
-      })
-    }
-
-    if (displayResult.security) {
-      const securityContent = (
-        <>
-          <div style={{ marginBottom: '10px' }}>
-            <span className={`${jsStyles.securityBadge} ${jsStyles[displayResult.security.riskLevel || 'safe']}`}>
-              Risk Level: {displayResult.security.riskLevel?.toUpperCase() || 'SAFE'}
-            </span>
-          </div>
-          {displayResult.security.issues && displayResult.security.issues.length > 0 ? (
-            <div className={jsStyles.issuesList}>
-              {displayResult.security.issues.map((issue, idx) => (
-                <div key={idx} className={jsStyles.issueItem}>
-                  <strong>{issue.pattern}</strong> - Severity: {issue.severity}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={jsStyles.success}>✓ No security issues detected!</div>
-          )}
-        </>
-      )
-      tabs.push({
-        id: 'security',
-        label: 'Security',
-        content: securityContent,
         contentType: 'component',
       })
     }
