@@ -863,7 +863,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Primary output: show finalXml only if well-formed
     const primaryXml = displayResult.finalXml || displayResult.cleanedXml || displayResult.formatted || displayResult.result
-    if (primaryXml && displayResult.isWellFormed) {
+
+    // Check if there are validation errors
+    const hasValidationErrors = displayResult.diagnostics && Array.isArray(displayResult.diagnostics)
+      ? displayResult.diagnostics.filter(d => d.type === 'error').length > 0
+      : false
+
+    // Show output if no validation errors and we have content
+    if (primaryXml && !hasValidationErrors) {
       tabs.push({
         id: 'output',
         label: 'Output',
