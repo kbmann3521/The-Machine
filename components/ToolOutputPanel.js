@@ -1003,7 +1003,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+    if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
       const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
 
       if (validationErrors.length > 0) {
