@@ -1084,17 +1084,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
       const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
-      const allLintWarnings = [...lintingWarnings]
 
-      // Also include lintWarnings array if present (backward compatibility)
-      if (displayResult.lintWarnings && Array.isArray(displayResult.lintWarnings)) {
-        allLintWarnings.push(...displayResult.lintWarnings.map(msg =>
-          typeof msg === 'string' ? { type: 'warning', message: msg } : msg
-        ))
-      }
-
-      const lintingLabel = allLintWarnings.length === 0 ? 'Linting (✓)' : `Linting (${allLintWarnings.length})`
-      const lintingContent = allLintWarnings.length === 0 ? (
+      const lintingLabel = lintingWarnings.length === 0 ? 'Linting (✓)' : `Linting (${lintingWarnings.length})`
+      const lintingContent = lintingWarnings.length === 0 ? (
         <div style={{
           padding: '16px',
           backgroundColor: 'rgba(102, 187, 106, 0.1)',
@@ -1110,7 +1102,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       ) : (
         <div style={{ padding: '16px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {allLintWarnings.map((warning, idx) => (
+            {lintingWarnings.map((warning, idx) => (
               <div
                 key={idx}
                 style={{
@@ -1125,7 +1117,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   ⚠️ Warning {idx + 1}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
-                  {typeof warning === 'string' ? warning : warning.message}
+                  {warning.message}
                 </div>
                 {warning.category && (
                   <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
