@@ -861,15 +861,50 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Handle object output from validate, lint, xpath, to-json, to-yaml
     const tabs = []
 
-    // Primary output: show finalXml if valid, otherwise cleanedXml
+    // Primary output: show finalXml only if well-formed
     const primaryXml = displayResult.finalXml || displayResult.cleanedXml || displayResult.formatted || displayResult.result
     if (primaryXml) {
-      tabs.push({
-        id: 'output',
-        label: 'Output',
-        content: primaryXml,
-        contentType: 'code',
-      })
+      if (displayResult.isWellFormed) {
+        tabs.push({
+          id: 'output',
+          label: 'Output',
+          content: primaryXml,
+          contentType: 'code',
+        })
+      } else {
+        // Show error message when XML is not well-formed
+        const errorContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              marginBottom: '12px',
+            }}>
+              Cannot format because code contains errors. Showing original code.
+            </div>
+            <pre style={{
+              backgroundColor: 'var(--color-background-tertiary)',
+              padding: '12px',
+              borderRadius: '4px',
+              overflow: 'auto',
+              fontSize: '12px',
+              fontFamily: 'monospace',
+            }}>
+              <code>{primaryXml}</code>
+            </pre>
+          </div>
+        )
+        tabs.push({
+          id: 'output',
+          label: 'Output',
+          content: errorContent,
+          contentType: 'component',
+        })
+      }
     }
 
     if (displayResult.result && displayResult.result !== primaryXml) {
