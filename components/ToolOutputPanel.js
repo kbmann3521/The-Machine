@@ -1145,11 +1145,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
                     ⚠️ Warning {idx + 1}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
                     {warning.message}
                   </div>
+                  {warning.line !== null && warning.column !== null && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}, Column {warning.column}
+                    </div>
+                  )}
+                  {warning.ruleId && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Rule: {warning.ruleId}
+                    </div>
+                  )}
                   {warning.category && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
                       Category: {warning.category}
                     </div>
                   )}
@@ -1415,7 +1425,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   )}
                   title={`Copy ${conversion.value} ${conversion.toUnitFullPluralized}`}
                 >
-                  {copiedField === `${conversion.value} ${conversion.toUnitFullPluralized}` ? '���' : <FaCopy />}
+                  {copiedField === `${conversion.value} ${conversion.toUnitFullPluralized}` ? '✓' : <FaCopy />}
                 </button>
               </div>
               <div className={styles.copyCardValue}>{conversion.value}</div>
