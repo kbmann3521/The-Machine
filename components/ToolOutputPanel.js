@@ -16,6 +16,49 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
 
+  const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
+    if (!errors || errors.length === 0) return null
+
+    return (
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{
+          fontSize: '12px',
+          fontWeight: '600',
+          color: '#ef5350',
+          marginBottom: '8px',
+          paddingBottom: '8px',
+          borderBottom: '1px solid rgba(239, 83, 80, 0.2)',
+        }}>
+          {sectionTitle}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {errors.map((error, idx) => (
+            <div key={idx} style={{
+              padding: '12px',
+              backgroundColor: 'var(--color-background-tertiary)',
+              border: '1px solid rgba(239, 83, 80, 0.2)',
+              borderRadius: '4px',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
+                {error.line !== null && error.column !== null
+                  ? `Line ${error.line}, Column ${error.column}`
+                  : 'General Error'}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                {error.message}
+              </div>
+              {error.category && (
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                  Category: {error.category}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   const getToolkitSectionKey = (section) => {
     const keyMap = {
       'findReplace': 'findReplace',
