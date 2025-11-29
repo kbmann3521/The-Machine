@@ -113,59 +113,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const getErrorInfo = () => {
-    const errorInfo = new Map()
-
-    if (errorData) {
-      // New structure: use diagnostics array
-      if (errorData.diagnostics && Array.isArray(errorData.diagnostics)) {
-        // Filter for input errors/warnings only (skip output and lint for input highlighting)
-        errorData.diagnostics.forEach(diag => {
-          if (diag.line && (diag.type === 'error' || diag.type === 'warning')) {
-            // Only highlight first error or warning per line
-            if (!errorInfo.has(diag.line)) {
-              errorInfo.set(diag.line, {
-                type: diag.type,
-                column: diag.column !== undefined && diag.column !== null ? diag.column : null,
-                message: diag.message,
-                category: diag.category,
-              })
-            }
-          }
-        })
-        return errorInfo
-      }
-
-      // Fallback to legacy structure for backward compatibility
-      if (errorData.errors && errorData.errors.errors) {
-        errorData.errors.errors.forEach(error => {
-          if (error.line) {
-            if (!errorInfo.has(error.line)) {
-              errorInfo.set(error.line, {
-                type: 'error',
-                column: error.column !== undefined ? error.column : null,
-                message: error.message,
-              })
-            }
-          }
-        })
-      }
-
-      if (errorData.linting && errorData.linting.warnings) {
-        errorData.linting.warnings.forEach(warning => {
-          if (warning.line) {
-            if (!errorInfo.has(warning.line)) {
-              errorInfo.set(warning.line, {
-                type: 'warning',
-                column: warning.column !== undefined ? warning.column : null,
-                message: warning.message,
-              })
-            }
-          }
-        })
-      }
-    }
-
-    return errorInfo
+    return new Map()
   }
 
   const renderHighlights = () => {
