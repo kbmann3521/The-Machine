@@ -1095,6 +1095,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (!isCodeValid) {
         lintingLabel = 'Linting (⊘)'
+        const codeType = toolId === 'js-formatter' ? 'JavaScript' : 'XML'
         lintingContent = (
           <div style={{
             padding: '16px',
@@ -1106,7 +1107,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             fontWeight: '500',
             textAlign: 'center',
           }}>
-            Linting skipped because code is not valid XML.
+            Linting skipped because code is not valid {codeType}.
           </div>
         )
       } else if (lintingWarnings.length === 0) {
@@ -1248,7 +1249,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           <div className={sqlStyles.sqlSection}>
             <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'analysis' ? null : 'analysis')}>
               <span className={sqlStyles.sectionTitle}>Query Analysis</span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'analysis' ? '▼' : '▶'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'analysis' ? '��' : '▶'}</span>
             </div>
             {expandedSection === 'analysis' && (
               <div className={sqlStyles.sectionContent}>
