@@ -1082,7 +1082,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     }
 
-    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+    if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
       const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
 
       const lintingLabel = lintingWarnings.length === 0 ? 'Linting (✓)' : `Linting (${lintingWarnings.length})`
