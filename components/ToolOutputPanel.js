@@ -542,6 +542,218 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
+  const renderYamlFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+    const tabs = []
+
+    // Determine primary output based on mode
+    let primaryTabId = null
+    let primaryTabContent = null
+
+    if (displayResult.formatted !== undefined) {
+      primaryTabId = 'output'
+      primaryTabContent = displayResult.formatted
+    }
+
+    // Add primary tab FIRST - only show if there are no validation errors
+    if (primaryTabId && primaryTabContent) {
+      const hasValidationErrors = displayResult.diagnostics && Array.isArray(displayResult.diagnostics)
+        ? displayResult.diagnostics.filter(d => d.type === 'error').length > 0
+        : false
+
+      if (!hasValidationErrors) {
+        if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
+          tabs.push({
+            id: primaryTabId,
+            label: 'Output',
+            content: primaryTabContent,
+            contentType: 'code',
+          })
+        }
+      } else {
+        const errorContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              marginBottom: '12px',
+            }}>
+              Cannot format because YAML contains errors. Showing original YAML.
+            </div>
+            <pre style={{
+              backgroundColor: 'var(--color-background-tertiary)',
+              padding: '12px',
+              borderRadius: '4px',
+              overflow: 'auto',
+              fontSize: '12px',
+              fontFamily: 'monospace',
+            }}>
+              <code>{primaryTabContent}</code>
+            </pre>
+          </div>
+        )
+        tabs.push({
+          id: primaryTabId,
+          label: 'Output',
+          content: errorContent,
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Validation tab
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'YAML Validation Errors')}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid YAML
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Linting tab - show warnings from diagnostics (if linting is enabled)
+    if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
+      const isYamlValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isYamlValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because YAML is not valid.
+          </div>
+        )
+      } else if (lintingWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintingWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintingWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ Warning {idx + 1}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                  {warning.line !== null && warning.column !== null && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}, Column {warning.column}
+                    </div>
+                  )}
+                  {warning.category && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Category: {warning.category}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      tabs.push({
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
+        contentType: 'component',
+      })
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+  }
+
   const renderSqlFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
