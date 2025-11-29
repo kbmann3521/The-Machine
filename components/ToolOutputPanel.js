@@ -757,6 +757,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
     }
 
+    // Return null if displayResult is not an object
+    if (!displayResult || typeof displayResult !== 'object') return null
+
     // Handle validation results
     if (displayResult.isValid !== undefined) {
       const validationContent = (
