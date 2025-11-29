@@ -52,6 +52,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       'trailingComma',
       'printWidth',
       'arrowParens',
+      'showLinting',
     ]
 
     const isFieldDisabled = isJsFormatterInMinify && fieldsToDisableInMinify.includes(field.id)
