@@ -863,48 +863,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Primary output: show finalXml only if well-formed
     const primaryXml = displayResult.finalXml || displayResult.cleanedXml || displayResult.formatted || displayResult.result
-    if (primaryXml) {
-      if (displayResult.isWellFormed) {
-        tabs.push({
-          id: 'output',
-          label: 'Output',
-          content: primaryXml,
-          contentType: 'code',
-        })
-      } else {
-        // Show error message when XML is not well-formed
-        const errorContent = (
-          <div style={{ padding: '16px' }}>
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'rgba(239, 83, 80, 0.1)',
-              border: '1px solid rgba(239, 83, 80, 0.3)',
-              borderRadius: '4px',
-              color: '#ef5350',
-              fontSize: '13px',
-              marginBottom: '12px',
-            }}>
-              Cannot format because code contains errors. Showing original code.
-            </div>
-            <pre style={{
-              backgroundColor: 'var(--color-background-tertiary)',
-              padding: '12px',
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-            }}>
-              <code>{primaryXml}</code>
-            </pre>
-          </div>
-        )
-        tabs.push({
-          id: 'output',
-          label: 'Output',
-          content: errorContent,
-          contentType: 'component',
-        })
-      }
+    if (primaryXml && displayResult.isWellFormed) {
+      tabs.push({
+        id: 'output',
+        label: 'Output',
+        content: primaryXml,
+        contentType: 'code',
+      })
     }
 
     if (displayResult.result && displayResult.result !== primaryXml) {
@@ -1104,7 +1069,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         tabs.push({
           id: 'validation',
-          label: 'Validation (��)',
+          label: 'Validation (✓)',
           content: (
             <div style={{
               padding: '16px',
