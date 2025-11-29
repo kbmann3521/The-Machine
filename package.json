@@ -57,7 +57,8 @@
     "xmlbuilder2": "^3.0.1",
     "xmldom": "^0.1.31",
     "xpath": "^0.0.34",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "yaml-lint": "^1.7.0"
   },
   "devDependencies": {
     "eslint-config-next": "^14.0.0"
