@@ -116,6 +116,26 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     const errorInfo = new Map()
 
     if (errorData) {
+      // New structure: use diagnostics array
+      if (errorData.diagnostics && Array.isArray(errorData.diagnostics)) {
+        // Filter for input errors/warnings only (skip output and lint for input highlighting)
+        errorData.diagnostics.forEach(diag => {
+          if (diag.line && (diag.type === 'error' || diag.type === 'warning')) {
+            // Only highlight first error or warning per line
+            if (!errorInfo.has(diag.line)) {
+              errorInfo.set(diag.line, {
+                type: diag.type,
+                column: diag.column !== undefined && diag.column !== null ? diag.column : null,
+                message: diag.message,
+                category: diag.category,
+              })
+            }
+          }
+        })
+        return errorInfo
+      }
+
+      // Fallback to legacy structure for backward compatibility
       if (errorData.errors && errorData.errors.errors) {
         errorData.errors.errors.forEach(error => {
           if (error.line) {
