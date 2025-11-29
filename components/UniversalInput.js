@@ -337,6 +337,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                 onScroll={handleScroll}
                 onPaste={handlePaste}
                 placeholder={getPlaceholder()}
+                spellCheck="false"
               />
             </div>
           </div>
