@@ -210,6 +210,16 @@
   line-height: 1;
 }
 
+.toggleInput:disabled + .toggleSlider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleContainer:has(.toggleInput:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .sliderContainer {
   display: flex;
   align-items: center;
