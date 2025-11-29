@@ -185,10 +185,17 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
         const errorChar = line[column] || ''
         const after = line.substring(column + 1)
 
+        // Validation errors: red highlighting
+        const errorBgColor = info.category === 'lint' ? 'rgba(244, 67, 54, 0.3)' : 'rgba(244, 67, 54, 0.4)'
+
         highlights.push(
           <div key={`error-${lineNumber}`} className={styles.errorHighlight}>
             {before}
-            {errorChar && <span style={{ backgroundColor: 'rgba(244, 67, 54, 0.4)', textDecoration: 'wavy underline' }}>{errorChar}</span>}
+            {errorChar && <span style={{
+              backgroundColor: errorBgColor,
+              textDecoration: info.category === 'lint' ? 'underline' : 'wavy underline red',
+              textDecorationColor: '#f44336'
+            }}>{errorChar}</span>}
             {after}
           </div>
         )
@@ -198,10 +205,15 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
         const warnChar = line[column] || ''
         const after = line.substring(column + 1)
 
+        // Linting warnings: orange/yellow highlighting
         highlights.push(
           <div key={`warning-${lineNumber}`} className={styles.warningHighlight}>
             {before}
-            {warnChar && <span style={{ backgroundColor: 'rgba(255, 193, 7, 0.4)' }}>{warnChar}</span>}
+            {warnChar && <span style={{
+              backgroundColor: 'rgba(255, 193, 7, 0.4)',
+              textDecoration: 'wavy underline',
+              textDecorationColor: '#ffc107'
+            }}>{warnChar}</span>}
             {after}
           </div>
         )
