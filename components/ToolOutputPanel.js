@@ -331,7 +331,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   {outputErrors.map((error, idx) => (
                     <div key={idx} style={{
                       padding: '12px',
-                      backgroundColor: 'rgba(255, 152, 0, 0.05)',
+                      backgroundColor: 'var(--color-background-tertiary)',
                       border: '1px solid rgba(255, 152, 0, 0.2)',
                       borderRadius: '4px',
                     }}>
