@@ -117,64 +117,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   }
 
   const renderHighlights = () => {
-    const errorInfo = getErrorInfo()
-    if (errorInfo.size === 0) return null
-
-    const lines = inputText.split('\n')
-    const highlights = []
-
-    lines.forEach((line, index) => {
-      const lineNumber = index + 1
-      const info = errorInfo.get(lineNumber)
-
-      if (info?.type === 'error') {
-        const column = info.column !== null ? Math.max(0, info.column - 1) : 0
-        const before = line.substring(0, column)
-        const errorChar = line[column] || ''
-        const after = line.substring(column + 1)
-
-        // Validation errors: red highlighting
-        const errorBgColor = info.category === 'lint' ? 'rgba(244, 67, 54, 0.3)' : 'rgba(244, 67, 54, 0.4)'
-
-        highlights.push(
-          <div key={`error-${lineNumber}`} className={styles.errorHighlight}>
-            {before}
-            {errorChar && <span style={{
-              backgroundColor: errorBgColor,
-              textDecoration: info.category === 'lint' ? 'underline' : 'wavy underline red',
-              textDecorationColor: '#f44336'
-            }}>{errorChar}</span>}
-            {after}
-          </div>
-        )
-      } else if (info?.type === 'warning') {
-        const column = info.column !== null ? Math.max(0, info.column - 1) : 0
-        const before = line.substring(0, column)
-        const warnChar = line[column] || ''
-        const after = line.substring(column + 1)
-
-        // Linting warnings: orange/yellow highlighting
-        highlights.push(
-          <div key={`warning-${lineNumber}`} className={styles.warningHighlight}>
-            {before}
-            {warnChar && <span style={{
-              backgroundColor: 'rgba(255, 193, 7, 0.4)',
-              textDecoration: 'wavy underline',
-              textDecorationColor: '#ffc107'
-            }}>{warnChar}</span>}
-            {after}
-          </div>
-        )
-      } else {
-        highlights.push(
-          <div key={`line-${lineNumber}`} className={styles.highlightLine}>
-            {line}
-          </div>
-        )
-      }
-    })
-
-    return highlights
+    return null
   }
 
   const handleImageFile = (file) => {
