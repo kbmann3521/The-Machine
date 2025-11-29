@@ -1049,30 +1049,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             }}>
               ✗ {validationErrors.length} XML Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {validationErrors.map((error, idx) => (
-                <div key={idx} style={{
-                  padding: '12px',
-                  backgroundColor: 'var(--color-background-tertiary)',
-                  border: '1px solid rgba(239, 83, 80, 0.2)',
-                  borderRadius: '4px',
-                }}>
-                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
-                    {error.line !== null && error.column !== null
-                      ? `Line ${error.line}, Column ${error.column}`
-                      : 'General Error'}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
-                    {error.message}
-                  </div>
-                  {error.category && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                      Category: {error.category}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            {renderValidationErrorsUnified(validationErrors, 'Input Validation Errors (prevents formatting)')}
           </div>
         )
 
@@ -1438,7 +1415,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   )}
                   title={`Copy ${conversion.value} ${conversion.toUnitFullPluralized}`}
                 >
-                  {copiedField === `${conversion.value} ${conversion.toUnitFullPluralized}` ? '✓' : <FaCopy />}
+                  {copiedField === `${conversion.value} ${conversion.toUnitFullPluralized}` ? '���' : <FaCopy />}
                 </button>
               </div>
               <div className={styles.copyCardValue}>{conversion.value}</div>
