@@ -1095,7 +1095,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (!isCodeValid) {
         lintingLabel = 'Linting (⊘)'
-        const codeType = toolId === 'js-formatter' ? 'JavaScript' : 'XML'
         lintingContent = (
           <div style={{
             padding: '16px',
@@ -1107,7 +1106,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             fontWeight: '500',
             textAlign: 'center',
           }}>
-            Linting skipped because code is not valid {codeType}.
+            Linting skipped because code is not valid {toolId === 'js-formatter' ? 'JavaScript' : 'XML'}.
           </div>
         )
       } else if (lintingWarnings.length === 0) {
