@@ -915,16 +915,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 key={idx}
                 style={{
                   padding: '12px',
-                  backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                  border: '1px solid rgba(255, 193, 7, 0.3)',
-                  borderRadius: '5px',
-                  color: 'var(--color-text-primary)',
+                  backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                  border: '1px solid rgba(255, 167, 38, 0.2)',
+                  borderRadius: '4px',
+                  borderLeft: '3px solid #ffa726',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
-                  Warning {idx + 1}
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ffa726' }}>
+                  ⚠️ Warning {idx + 1}
                 </div>
-                <div style={{ fontSize: '13px' }}>{warning}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>{warning}</div>
               </div>
             ))}
           </div>
@@ -947,16 +947,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 key={idx}
                 style={{
                   padding: '12px',
-                  backgroundColor: 'rgba(239, 83, 80, 0.15)',
-                  border: '1px solid rgba(239, 83, 80, 0.3)',
-                  borderRadius: '5px',
-                  color: '#ef5350',
+                  backgroundColor: 'var(--color-background-tertiary)',
+                  border: '1px solid rgba(239, 83, 80, 0.2)',
+                  borderRadius: '4px',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
                   Error {idx + 1}
                 </div>
-                <div style={{ fontSize: '13px' }}>{error}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>{error}</div>
               </div>
             ))}
           </div>
@@ -1303,7 +1302,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           <div className={sqlStyles.sqlSection}>
             <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'parseTree' ? null : 'parseTree')}>
               <span className={sqlStyles.sectionTitle}>Parse Tree</span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'parseTree' ? '▼' : '▶'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'parseTree' ? '▼' : '���'}</span>
             </div>
             {expandedSection === 'parseTree' && (
               <div className={sqlStyles.sectionContent}>
