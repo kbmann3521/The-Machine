@@ -751,6 +751,53 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
             {renderValidationErrorsUnified(validationErrors, 'SQL Validation Errors')}
+
+            {displayResult.compatibleDialects && displayResult.compatibleDialects.length > 0 && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(0, 0, 0, 0.1)' }}>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#ff9800',
+                  marginBottom: '12px',
+                }}>
+                  💡 Valid for these dialects:
+                </div>
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}>
+                  {displayResult.compatibleDialects.map((dialect) => {
+                    const dialectLabels = {
+                      postgresql: 'PostgreSQL',
+                      mysql: 'MySQL',
+                      tsql: 'SQL Server',
+                      sqlite: 'SQLite',
+                      mariadb: 'MariaDB',
+                      plsql: 'Oracle',
+                      bigquery: 'BigQuery',
+                      redshift: 'Redshift'
+                    }
+                    return (
+                      <div
+                        key={dialect}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: 'rgba(102, 187, 106, 0.15)',
+                          border: '1px solid rgba(102, 187, 106, 0.3)',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          color: '#2e7d32',
+                          fontWeight: '500',
+                        }}
+                      >
+                        {dialectLabels[dialect] || dialect}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )
 
