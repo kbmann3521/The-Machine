@@ -4,7 +4,7 @@ import { TOOLS } from '../../../lib/tools'
 // Cache visibility map with TTL
 let cachedVisibilityMap = null
 let cacheTimestamp = 0
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL = 30 * 1000 // 30 seconds
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
