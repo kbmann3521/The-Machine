@@ -2102,6 +2102,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     switch (toolId) {
       case 'js-formatter':
         return renderJsFormatterOutput()
+      case 'css-formatter':
+        return renderCssFormatterOutput()
       case 'sql-formatter':
         return renderSqlFormatterOutput()
       case 'color-converter':
