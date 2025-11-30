@@ -43,8 +43,9 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   const renderField = field => {
     const value = config[field.id]
     const isJsFormatterInMinify = tool.toolId === 'js-formatter' && config.mode === 'minify'
+    const isCssFormatterInMinify = tool.toolId === 'css-formatter' && config.mode === 'minify'
 
-    const fieldsToDisableInMinify = [
+    const jsFormatterDisabledFields = [
       'useSemicolons',
       'singleQuotes',
       'bracketSpacing',
@@ -55,7 +56,14 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       'showLinting',
     ]
 
-    const isFieldDisabled = isJsFormatterInMinify && fieldsToDisableInMinify.includes(field.id)
+    const cssFormatterDisabledFields = [
+      'indentSize',
+      'showLinting',
+    ]
+
+    const isFieldDisabled =
+      (isJsFormatterInMinify && jsFormatterDisabledFields.includes(field.id)) ||
+      (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id))
 
     switch (field.type) {
       case 'text':
