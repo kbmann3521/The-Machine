@@ -1084,117 +1084,79 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderJsonFormatterOutput = () => {
-    // Handle string output (beautified, minified, or error messages)
-    if (typeof displayResult === 'string') {
-      // Check if it's an error message
-      if (displayResult.startsWith('Error:')) {
-        const tabs = [
-          {
-            id: 'error',
-            label: 'Error',
-            content: displayResult,
-            contentType: 'code',
-          },
-        ]
-        return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
-      }
-
-      // Regular string output (beautified, minified, sorted, etc.)
-      const tabs = [
-        {
-          id: 'formatted',
-          label: 'Output',
-          content: displayResult,
-          contentType: 'code',
-        },
-      ]
-      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
-    }
-
-    // Return null if displayResult is not an object
     if (!displayResult || typeof displayResult !== 'object') return null
 
-    // Handle validation results
-    if (displayResult.isValid !== undefined) {
-      const validationContent = (
-        <div style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <div style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: displayResult.isValid ? '#4caf50' : '#f44336'
-            }}>
-              {displayResult.isValid ? '✓ Valid' : '✗ Invalid'}
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-              {displayResult.message}
-            </div>
-          </div>
-          {displayResult.size !== undefined && (
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-              <strong>Size:</strong> {displayResult.size} bytes
-            </div>
-          )}
-          {displayResult.lines !== undefined && (
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-              <strong>Lines:</strong> {displayResult.lines}
-            </div>
-          )}
-          {displayResult.error && (
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'rgba(244, 67, 54, 0.1)',
-              border: '1px solid rgba(244, 67, 54, 0.3)',
-              borderRadius: '5px',
-              marginTop: '12px',
-              color: '#f44336',
-              fontSize: '13px'
-            }}>
-              <div style={{ fontWeight: '600', marginBottom: '4px' }}>Error Details:</div>
-              <div>{displayResult.error}</div>
-              {displayResult.position && (
-                <div style={{ marginTop: '8px', fontSize: '12px' }}>
-                  <strong>Position:</strong> {displayResult.position}
-                </div>
-              )}
-              {displayResult.snippet && (
-                <div style={{
-                  marginTop: '8px',
-                  padding: '8px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  borderRadius: '3px',
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  overflow: 'auto'
-                }}>
-                  <strong>Context:</strong> ...{displayResult.snippet}...
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )
+    const tabs = []
 
-      const tabs = [
-        {
-          id: 'validation',
-          label: `Validation (${displayResult.isValid ? '✓' : '✗'})`,
-          content: validationContent,
-          contentType: 'component',
-        },
-      ]
-      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    // Add primary output tab first - only show if validation passed
+    if (displayResult.formatted && !displayResult.hideOutput) {
+      tabs.push({
+        id: 'formatted',
+        label: 'Output',
+        content: typeof displayResult.formatted === 'string' ? displayResult.formatted : JSON.stringify(displayResult.formatted, null, 2),
+        contentType: 'code',
+      })
     }
 
-    // Handle other object outputs (defaults to JSON tab)
-    const tabs = [
-      {
-        id: 'json',
-        label: 'JSON',
-        content: displayResult,
-        contentType: 'json',
-      },
-    ]
+    // Validation tab - show validation errors and status
+    if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'JSON Validation Errors')}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid JSON
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    if (tabs.length === 0) return null
+
     return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
   }
 
