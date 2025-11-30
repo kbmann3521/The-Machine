@@ -1086,6 +1086,54 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderJsonFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
+    // Special handling for compress mode
+    if (displayResult._compressMode) {
+      const compressData = [
+        { label: 'Original Size', value: `${displayResult.originalSize} bytes`, key: 'originalSize' },
+        { label: 'Compressed Size', value: `${displayResult.compressedSize} bytes`, key: 'compressedSize' },
+        { label: 'Compression Ratio', value: `${displayResult.ratio}%`, key: 'ratio' },
+        { label: 'Original (minified)', value: displayResult.original, key: 'original' },
+        { label: 'Compressed (Base64)', value: displayResult.compressed, key: 'compressed' },
+      ]
+
+      const friendlyView = ({ onCopyCard, copiedCardId }) => (
+        <div className={styles.structuredOutput}>
+          {compressData.map((item, idx) => (
+            <div key={idx} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{item.label}</span>
+                <button
+                  className="copy-action"
+                  onClick={() => onCopyCard(item.value, item.key)}
+                  title={`Copy ${item.label}`}
+                >
+                  {copiedCardId === item.key ? '✓' : <FaCopy />}
+                </button>
+              </div>
+              <div className={styles.copyCardValue} style={{
+                wordBreak: ['original', 'compressed'].includes(item.key) ? 'break-all' : 'normal',
+                maxHeight: ['original', 'compressed'].includes(item.key) ? '200px' : 'auto',
+                overflowY: ['original', 'compressed'].includes(item.key) ? 'auto' : 'visible',
+              }}>
+                {item.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+
+      const tabs = [
+        {
+          id: 'compress',
+          label: 'Results',
+          content: friendlyView,
+          contentType: 'component',
+        },
+      ]
+
+      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    }
+
     const tabs = []
 
     // Add primary output tab first - only show if validation passed
