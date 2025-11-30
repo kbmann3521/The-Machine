@@ -555,13 +555,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       primaryTabContent = displayResult.formatted
     }
 
-    // Add primary tab FIRST - only show if there are no validation errors
+    // Add primary tab FIRST - only show if isWellFormed is true
     if (primaryTabId && primaryTabContent) {
-      const hasValidationErrors = displayResult.diagnostics && Array.isArray(displayResult.diagnostics)
-        ? displayResult.diagnostics.filter(d => d.type === 'error').length > 0
-        : false
-
-      if (!hasValidationErrors) {
+      if (displayResult.isWellFormed) {
         if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
           tabs.push({
             id: primaryTabId,
