@@ -800,7 +800,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Linting tab - show warnings from diagnostics (if linting is enabled)
     if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
-      const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.category === 'lint')
       const isCssValid = displayResult.isWellFormed !== false
 
       let lintingLabel = 'Linting'
