@@ -843,48 +843,35 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         lintingContent = (
           <div style={{ padding: '16px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {lintingWarnings.map((warning, idx) => {
-                const isError = warning.type === 'error'
-                const bgColor = isError
-                  ? 'rgba(239, 83, 80, 0.1)'
-                  : 'rgba(255, 167, 38, 0.1)'
-                const borderColor = isError
-                  ? 'rgba(239, 83, 80, 0.2)'
-                  : 'rgba(255, 167, 38, 0.2)'
-                const borderLeftColor = isError ? '#ef5350' : '#ffa726'
-                const labelColor = isError ? '#ef5350' : '#ffa726'
-                const icon = isError ? '❌' : '⚠️'
-
-                return (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: '12px',
-                      backgroundColor: bgColor,
-                      border: `1px solid ${borderColor}`,
-                      borderRadius: '4px',
-                      borderLeft: `3px solid ${borderLeftColor}`,
-                    }}
-                  >
-                    <div style={{ fontSize: '12px', color: labelColor, marginBottom: '4px', fontWeight: '600' }}>
-                      {icon} {isError ? 'Error' : 'Warning'} {idx + 1}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                      {warning.message}
-                    </div>
-                    {warning.line && (
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
-                        Line {warning.line}{warning.column ? `, Column ${warning.column}` : ''}
-                      </div>
-                    )}
-                    {warning.rule && (
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
-                        Rule: <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>{warning.rule}</code>
-                      </div>
-                    )}
+              {lintingWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ Warning {idx + 1}
                   </div>
-                )
-              })}
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                  {warning.line && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}{warning.column ? `, Column ${warning.column}` : ''}
+                    </div>
+                  )}
+                  {warning.rule && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Rule: <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>{warning.rule}</code>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )
