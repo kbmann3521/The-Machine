@@ -788,8 +788,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                       redshift: 'Redshift'
                     }
                     return (
-                      <div
+                      <button
                         key={dialect}
+                        onClick={() => handleDialectChange(dialect)}
                         style={{
                           padding: '6px 12px',
                           backgroundColor: 'rgba(102, 187, 106, 0.15)',
@@ -798,10 +799,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                           fontSize: '12px',
                           color: '#2e7d32',
                           fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = 'rgba(102, 187, 106, 0.25)'
+                          e.target.style.borderColor = 'rgba(102, 187, 106, 0.5)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'rgba(102, 187, 106, 0.15)'
+                          e.target.style.borderColor = 'rgba(102, 187, 106, 0.3)'
                         }}
                       >
                         {dialectLabels[dialect] || dialect}
-                      </div>
+                      </button>
                     )
                   })}
                 </div>
