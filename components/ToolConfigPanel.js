@@ -454,14 +454,24 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
         <div className={styles.fieldsContainer}>
-          {tool.configSchema.map(field => (
-            <div key={field.id} className={styles.field}>
-              <label className={styles.fieldLabel} htmlFor={field.id}>
-                {field.label}
-              </label>
-              {renderField(field)}
-            </div>
-          ))}
+          {tool.configSchema.map(field => {
+            // Check if field should be visible based on visibleWhen condition
+            if (field.visibleWhen) {
+              const { field: conditionField, value: conditionValue } = field.visibleWhen
+              if (config[conditionField] !== conditionValue) {
+                return null
+              }
+            }
+
+            return (
+              <div key={field.id} className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor={field.id}>
+                  {field.label}
+                </label>
+                {renderField(field)}
+              </div>
+            )
+          })}
         </div>
       )}
 
