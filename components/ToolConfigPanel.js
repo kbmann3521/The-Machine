@@ -65,14 +65,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       (isJsFormatterInMinify && jsFormatterDisabledFields.includes(field.id)) ||
       (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id))
 
-    // Check if field should be visible based on visibleWhen condition
-    if (field.visibleWhen) {
-      const { field: conditionField, value: conditionValue } = field.visibleWhen
-      if (config[conditionField] !== conditionValue) {
-        return null
-      }
-    }
-
     switch (field.type) {
       case 'text':
         return (
