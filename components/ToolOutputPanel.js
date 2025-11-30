@@ -6,7 +6,7 @@ import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import { TOOLS } from '../lib/tools'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -15,6 +15,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+
+  const handleDialectChange = (dialect) => {
+    if (onConfigChange) {
+      onConfigChange({
+        ...configOptions,
+        language: dialect
+      })
+    }
+  }
 
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
     if (!errors || errors.length === 0) return null
