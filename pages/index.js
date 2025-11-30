@@ -614,6 +614,8 @@ export default function Home() {
                   error={error}
                   toolId={selectedTool?.toolId}
                   activeToolkitSection={activeToolkitSection}
+                  configOptions={configOptions}
+                  onConfigChange={setConfigOptions}
                 />
               </div>
             </div>
