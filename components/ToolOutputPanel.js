@@ -555,48 +555,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       primaryTabContent = displayResult.formatted
     }
 
-    // Add primary tab FIRST - only show if isWellFormed is true
-    if (primaryTabId && primaryTabContent) {
-      if (displayResult.isWellFormed) {
-        if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
-          tabs.push({
-            id: primaryTabId,
-            label: 'Output',
-            content: primaryTabContent,
-            contentType: 'code',
-          })
-        }
-      } else {
-        const errorContent = (
-          <div style={{ padding: '16px' }}>
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'rgba(239, 83, 80, 0.1)',
-              border: '1px solid rgba(239, 83, 80, 0.3)',
-              borderRadius: '4px',
-              color: '#ef5350',
-              fontSize: '13px',
-              marginBottom: '12px',
-            }}>
-              Cannot format because YAML contains errors. Showing original YAML.
-            </div>
-            <pre style={{
-              backgroundColor: 'var(--color-background-tertiary)',
-              padding: '12px',
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-            }}>
-              <code>{primaryTabContent}</code>
-            </pre>
-          </div>
-        )
+    // Add primary tab FIRST - only show if hideOutput is false
+    if (primaryTabId && primaryTabContent && !displayResult.hideOutput) {
+      if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
         tabs.push({
           id: primaryTabId,
           label: 'Output',
-          content: errorContent,
-          contentType: 'component',
+          content: primaryTabContent,
+          contentType: 'code',
         })
       }
     }
