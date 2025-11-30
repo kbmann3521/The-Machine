@@ -721,7 +721,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = []
 
-    if (displayResult.formatted) {
+    // Add primary output tab first - only show if validation passed
+    if (displayResult.formatted && !displayResult.hideOutput) {
       tabs.push({
         id: 'formatted',
         label: 'Output',
@@ -730,30 +731,136 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (displayResult.lint) {
-      const lintContent = (
-        <>
-          {displayResult.lint.warnings && displayResult.lint.warnings.length > 0 ? (
-            <div className={sqlStyles.warningsList}>
-              {displayResult.lint.warnings.map((warning, idx) => (
-                <div key={idx} className={`${sqlStyles.warning} ${sqlStyles[warning.level || 'info']}`}>
-                  <div className={sqlStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
-                  <div className={sqlStyles.warningMessage}>{warning.message}</div>
-                  {warning.suggestion && (
-                    <div className={sqlStyles.warningSuggestion}>💡 {warning.suggestion}</div>
-                  )}
+    // Validation tab - show validation errors and status
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'SQL Validation Errors')}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid SQL
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Linting tab - show warnings from diagnostics (if linting is enabled)
+    if (displayResult.showLinting && displayResult.lint) {
+      const lintWarnings = displayResult.lint.warnings || []
+      const isCodeValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isCodeValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because SQL is not valid.
+          </div>
+        )
+      } else if (lintWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ {(warning.level || 'warning').toUpperCase()}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className={sqlStyles.success}>✓ No lint warnings found!</div>
-          )}
-        </>
-      )
+          </div>
+        )
+      }
+
       tabs.push({
-        id: 'lint',
-        label: `Lint (${displayResult.lint.total})`,
-        content: lintContent,
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
         contentType: 'component',
       })
     }
