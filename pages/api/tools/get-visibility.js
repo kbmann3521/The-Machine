@@ -11,8 +11,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Return cached result if available and not expired
-  if (cachedVisibilityMap && Date.now() - cacheTimestamp < CACHE_TTL) {
+  // Check for cache-busting parameter (bypass cache if present)
+  const bypassCache = req.query.nocache === 'true'
+
+  // Return cached result if available and not expired (unless cache-busting is requested)
+  if (!bypassCache && cachedVisibilityMap && Date.now() - cacheTimestamp < CACHE_TTL) {
     return res.status(200).json({ visibilityMap: cachedVisibilityMap })
   }
 
