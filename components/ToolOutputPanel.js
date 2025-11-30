@@ -740,59 +740,61 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Validation tab - show validation errors and status
-    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
-      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+    if (displayResult.showValidation !== false) {
+      if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+        const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
 
-      if (validationErrors.length > 0) {
-        const validationContent = (
-          <div style={{ padding: '16px' }}>
-            <div style={{
-              marginBottom: '16px',
-              padding: '12px',
-              backgroundColor: 'rgba(239, 83, 80, 0.1)',
-              border: '1px solid rgba(239, 83, 80, 0.3)',
-              borderRadius: '4px',
-              color: '#ef5350',
-              fontSize: '13px',
-              fontWeight: '500',
-            }}>
-              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
-            </div>
-            {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
-          </div>
-        )
-
-        tabs.push({
-          id: 'validation',
-          label: `Validation (${validationErrors.length})`,
-          content: validationContent,
-          contentType: 'component',
-        })
-      } else {
-        tabs.push({
-          id: 'validation',
-          label: 'Validation (✓)',
-          content: (
-            <div style={{
-              padding: '16px',
-              textAlign: 'center',
-              color: 'var(--color-text-secondary)',
-            }}>
+        if (validationErrors.length > 0) {
+          const validationContent = (
+            <div style={{ padding: '16px' }}>
               <div style={{
+                marginBottom: '16px',
                 padding: '12px',
-                backgroundColor: 'rgba(102, 187, 106, 0.1)',
-                border: '1px solid rgba(102, 187, 106, 0.3)',
+                backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                border: '1px solid rgba(239, 83, 80, 0.3)',
                 borderRadius: '4px',
-                color: '#66bb6a',
+                color: '#ef5350',
                 fontSize: '13px',
                 fontWeight: '500',
               }}>
-                ✓ Valid CSS
+                ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
               </div>
+              {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
             </div>
-          ),
-          contentType: 'component',
-        })
+          )
+
+          tabs.push({
+            id: 'validation',
+            label: `Validation (${validationErrors.length})`,
+            content: validationContent,
+            contentType: 'component',
+          })
+        } else {
+          tabs.push({
+            id: 'validation',
+            label: 'Validation (✓)',
+            content: (
+              <div style={{
+                padding: '16px',
+                textAlign: 'center',
+                color: 'var(--color-text-secondary)',
+              }}>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                  border: '1px solid rgba(102, 187, 106, 0.3)',
+                  borderRadius: '4px',
+                  color: '#66bb6a',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}>
+                  ✓ Valid CSS
+                </div>
+              </div>
+            ),
+            contentType: 'component',
+          })
+        }
       }
     }
 
