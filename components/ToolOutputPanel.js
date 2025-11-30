@@ -1087,13 +1087,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
 
     // Special handling for compress mode
-    if (displayResult._compressMode) {
+    if (displayResult.formatted && displayResult.formatted._compressMode) {
       const compressData = [
-        { label: 'Original Size', value: `${displayResult.originalSize} bytes`, key: 'originalSize' },
-        { label: 'Compressed Size', value: `${displayResult.compressedSize} bytes`, key: 'compressedSize' },
-        { label: 'Compression Ratio', value: `${displayResult.ratio}%`, key: 'ratio' },
-        { label: 'Original (minified)', value: displayResult.original, key: 'original' },
-        { label: 'Compressed (Base64)', value: displayResult.compressed, key: 'compressed' },
+        { label: 'Original Size', value: `${displayResult.formatted.originalSize} bytes`, key: 'originalSize' },
+        { label: 'Compressed Size', value: `${displayResult.formatted.compressedSize} bytes`, key: 'compressedSize' },
+        { label: 'Compression Ratio', value: `${displayResult.formatted.ratio}%`, key: 'ratio' },
+        { label: 'Original (minified)', value: displayResult.formatted.original, key: 'original' },
+        { label: 'Compressed (Base64)', value: displayResult.formatted.compressed, key: 'compressed' },
       ]
 
       const friendlyView = ({ onCopyCard, copiedCardId }) => (
