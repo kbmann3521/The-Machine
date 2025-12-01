@@ -308,7 +308,6 @@
   .leftPanel {
     border-right: 1px solid var(--color-border);
     border-bottom: none;
-    max-height: 750px;
     padding: 20px;
   }
 
