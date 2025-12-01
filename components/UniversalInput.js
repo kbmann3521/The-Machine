@@ -89,7 +89,24 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     return staticPlaceholders[selectedTool.toolId] || "Type or paste content here..."
   }
 
-  const [inputText, setInputText] = useState('')
+  const [inputText, setInputText] = useState(() => {
+    // Auto-populate formatter tools with their examples for line number visibility
+    const formatterTools = new Set([
+      'js-formatter',
+      'json-formatter',
+      'xml-formatter',
+      'html-formatter',
+      'markdown-html-formatter',
+      'markdown-html-converter',
+      'css-formatter',
+      'sql-formatter',
+      'yaml-formatter',
+    ])
+    if (selectedTool && formatterTools.has(selectedTool.toolId)) {
+      return getToolExample(selectedTool.toolId, configOptions || {}) || ''
+    }
+    return ''
+  })
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [charCount, setCharCount] = useState(0)
