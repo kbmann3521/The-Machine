@@ -352,8 +352,12 @@ export default function OutputTabs({
       const codeContent = getJsonString()
 
       const handleCodeScroll = (e) => {
-        if (codeLineNumbersRef.current && codeLineNumbersRef.current.containerRef) {
-          codeLineNumbersRef.current.containerRef.scrollTop = e.target.scrollTop
+        if (codeLineNumbersRef.current) {
+          // Use the exposed scrollTop setter from LineNumbers useImperativeHandle
+          const lineNumContainer = codeLineNumbersRef.current.parentElement?.querySelector('[class*="lineNumbersContainer"]')
+          if (lineNumContainer) {
+            lineNumContainer.scrollTop = e.target.scrollTop
+          }
         }
       }
 
