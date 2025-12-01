@@ -352,8 +352,8 @@ export default function OutputTabs({
       const codeContent = getJsonString()
 
       const handleCodeScroll = (e) => {
-        if (codeLineNumbersRef.current) {
-          codeLineNumbersRef.current.scrollTop = e.target.scrollTop
+        if (codeLineNumbersRef.current && codeLineNumbersRef.current.containerRef) {
+          codeLineNumbersRef.current.containerRef.scrollTop = e.target.scrollTop
         }
       }
 
