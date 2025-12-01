@@ -1,7 +1,15 @@
-import React, { useState, useRef } from 'react'
+import { useState, useRef } from 'react'
+import CodeMirror from '@uiw/react-codemirror'
+import { javascript } from '@codemirror/lang-javascript'
+import { markdown } from '@codemirror/lang-markdown'
+import { html } from '@codemirror/lang-html'
+import { css } from '@codemirror/lang-css'
+import { xml } from '@codemirror/lang-xml'
+import { json } from '@codemirror/lang-json'
+import { sql } from '@codemirror/lang-sql'
+import { python } from '@codemirror/lang-python'
+import { yaml } from '@codemirror/lang-yaml'
 import styles from '../styles/universal-input.module.css'
-import LineNumbers from './LineNumbers'
-import SyntaxHighlighter from './SyntaxHighlighter'
 
 export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
   const getPlaceholder = () => {
@@ -36,6 +44,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'timestamp-converter': 'Paste a Unix timestamp or date to convert formats',
       'csv-json-converter': 'Paste CSV data from Excel or spreadsheets to convert to JSON',
       'markdown-html-converter': 'Paste Markdown or HTML content to convert between formats',
+      'markdown-html-formatter': 'Paste Markdown or HTML content to convert and format',
       'xml-formatter': 'Paste XML data or configuration to format and validate',
       'yaml-formatter': 'Paste YAML config file to format and check syntax',
       'url-toolkit': 'Paste a URL to parse, validate, normalize, or manipulate',
@@ -49,87 +58,67 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'whitespace-visualizer': 'Paste text to visualize tabs, spaces, and line breaks',
       'ascii-unicode-converter': 'Paste text to convert between ASCII and Unicode formats',
       'punycode-converter': 'Paste an international domain name to convert to punycode',
-      'binary-converter': 'Paste a binary, hex, or octal number to convert formats',
-      'rot13-cipher': 'Paste text to apply ROT13 cipher for simple obfuscation',
-      'caesar-cipher': 'Paste text to apply Caesar cipher with custom shift',
-      'css-formatter': 'Paste minified CSS code to format and indent properly',
-      'sql-formatter': 'Paste a SQL query to format and improve readability',
-      'http-status-lookup': 'Enter an HTTP status code (e.g., 404, 500) to see what it means',
-      'mime-type-lookup': 'Enter a file extension (e.g., .jpg, .pdf) to find its MIME type',
-      'http-header-parser': 'Paste HTTP headers from a request or response to analyze',
-      'uuid-validator': 'Paste a UUID to validate format and version',
-      'json-path-extractor': 'Paste JSON data to extract and navigate with JSONPath expressions',
-      'image-to-base64': 'Upload an image to convert to base64 for embedding in HTML/CSS',
-      'svg-optimizer': 'Paste SVG code to optimize and reduce file size',
-      'unit-converter': 'Enter a value with unit (e.g., 5km, 100lb, 32°C) to convert',
-      'number-formatter': 'Enter a number to format with separators, decimals, or notation',
-      'timezone-converter': 'Enter a time (e.g., 2:30 PM, 14:30) to convert between timezones',
-      'base-converter': 'Enter a number to convert between decimal, binary, hex, octal',
-      'math-evaluator': 'Paste a math expression (e.g., (10 + 5) * 2) to calculate result',
-      'keyword-extractor': 'Paste an article or text to automatically extract key topics',
-      'cron-tester': 'Paste a cron expression to test schedule and see next run times',
-      'file-size-converter': 'Enter a file size (e.g., 1024MB, 5GB) to convert units',
-      'js-formatter': 'Paste JavaScript code to format, beautify, or minify',
-      'html-minifier': 'Paste HTML code to minify and reduce file size',
-      'email-validator': 'Enter an email address to validate format and syntax',
-      'ip-validator': 'Enter an IP address (IPv4 or IPv6) to validate format',
-      'ip-to-integer': 'Paste an IP address to convert to its integer representation',
-      'integer-to-ip': 'Paste an integer to convert to an IP address',
-      'ip-range-calculator': 'Paste an IP with CIDR notation (e.g., 192.168.1.0/24) to analyze',
-      'markdown-linter': 'Paste Markdown content to check for formatting issues and lint errors',
-      'ip-address-toolkit': 'Enter an IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888) to analyze',
+      'binary-converter': 'Paste a number to convert between bases (binary, hex, octal, decimal)',
+      'rot13-cipher': 'Paste text to apply or remove ROT13 encryption',
+      'caesar-cipher': 'Paste text to apply Caesar cipher encryption',
+      'css-formatter': 'Paste CSS code to format and beautify it',
+      'sql-formatter': 'Paste SQL queries to format and validate',
+      'http-status-lookup': 'Enter HTTP status code to see what it means',
+      'mime-type-lookup': 'Enter file extension or content type to lookup MIME type',
+      'http-header-parser': 'Paste HTTP headers to parse and analyze',
+      'uuid-validator': 'Paste a UUID to validate format and detect version',
+      'json-path-extractor': 'Paste JSON to extract data using JSONPath expressions',
+      'image-to-base64': 'Upload an image to convert to base64',
+      'svg-optimizer': 'Paste or upload SVG code to optimize',
+      'unit-converter': 'Enter a value with unit to convert',
+      'number-formatter': 'Paste numbers to format with separators or scientific notation',
+      'timezone-converter': 'Paste a time and timezone to convert',
+      'base-converter': 'Enter a number to convert between bases',
+      'math-evaluator': 'Paste a math expression to evaluate',
+      'keyword-extractor': 'Paste an article or text to extract keywords',
+      'cron-tester': 'Paste a cron expression to test and preview schedule',
+      'file-size-converter': 'Enter a file size to convert between units',
+      'js-formatter': 'Paste JavaScript code to format or minify',
+      'email-validator': 'Paste email addresses to validate format',
+      'ip-validator': 'Paste IP addresses to validate',
+      'ip-integer-converter': 'Paste IP address or integer to convert',
+      'markdown-linter': 'Paste Markdown to check for formatting issues',
     }
 
     return staticPlaceholders[selectedTool.toolId] || "Type or paste content here..."
   }
+
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [charCount, setCharCount] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef(null)
-  const textareaRef = useRef(null)
-  const highlightsLayerRef = useRef(null)
-  const lineNumbersRef = useRef(null)
-  const syntaxHighlightLayerRef = useRef(null)
 
-  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
-  const showLineNumbers = selectedTool && codeRelatedCategories.includes(selectedTool.category)
-
-  const handleTextChange = (e) => {
-    const text = e.target.value
-    setInputText(text)
-    setCharCount(text.length)
-    onInputChange(text)
+  const getLanguage = () => {
+    if (!selectedTool) return undefined
+    
+    const languageMap = {
+      'js-formatter': javascript(),
+      'javascript-minifier': javascript(),
+      'json-formatter': json(),
+      'xml-formatter': xml(),
+      'html-formatter': html(),
+      'markdown-html-formatter': markdown(),
+      'markdown-html-converter': markdown(),
+      'css-formatter': css(),
+      'sql-formatter': sql(),
+      'yaml-formatter': yaml(),
+      'python-formatter': python(),
+    }
+    
+    return languageMap[selectedTool.toolId]
   }
 
-
-  const handleScroll = (e) => {
-    const scrollTop = e.target.scrollTop
-    const scrollLeft = e.target.scrollLeft
-
-    if (syntaxHighlightLayerRef.current) {
-      // Scroll syntax highlighting layer to match textarea scroll
-      syntaxHighlightLayerRef.current.scrollTop = scrollTop
-      syntaxHighlightLayerRef.current.scrollLeft = scrollLeft
-    }
-    if (highlightsLayerRef.current) {
-      // Scroll highlights layer to match textarea scroll
-      highlightsLayerRef.current.scrollTop = scrollTop
-      highlightsLayerRef.current.scrollLeft = scrollLeft
-    }
-    if (lineNumbersRef.current?.element) {
-      // Sync line numbers scroll with textarea scroll
-      lineNumbersRef.current.element.scrollTop = scrollTop
-    }
-  }
-
-  const getErrorInfo = () => {
-    return new Map()
-  }
-
-  const renderHighlights = () => {
-    return null
+  const handleTextChange = (value) => {
+    setInputText(value)
+    setCharCount(value.length)
+    onInputChange(value)
   }
 
   const handleImageFile = (file) => {
@@ -172,57 +161,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
   }
 
-  const handlePaste = (e) => {
-    e.preventDefault()
-
-    const items = e.clipboardData?.items
-    let hasImage = false
-
-    if (items) {
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith('image/')) {
-          const file = items[i].getAsFile()
-          if (file) {
-            handleImageFile(file)
-            hasImage = true
-          }
-          break
-        }
-      }
-    }
-
-    if (!hasImage) {
-      const pastedText = e.clipboardData?.getData('text') || ''
-      if (pastedText) {
-        const textarea = textareaRef.current
-        if (textarea) {
-          // Get current text and cursor position
-          const currentText = textarea.value
-          const cursorStart = textarea.selectionStart
-          const cursorEnd = textarea.selectionEnd
-
-          // Insert pasted text at cursor position (replace selection if text is selected)
-          const newText = currentText.slice(0, cursorStart) + pastedText + currentText.slice(cursorEnd)
-
-          setInputText(newText)
-          setCharCount(newText.length)
-          onInputChange(newText)
-
-          // Move cursor to after the pasted text
-          setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = cursorStart + pastedText.length
-            textarea.focus()
-          }, 0)
-        } else {
-          // Fallback if ref is not available
-          setInputText(pastedText)
-          setCharCount(pastedText.length)
-          onInputChange(pastedText)
-        }
-      }
-    }
-  }
-
   const removeImage = () => {
     setImagePreview(null)
     setInputImage(null)
@@ -255,6 +193,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'timestamp-converter': 'Convert between Unix timestamps and human-readable dates',
       'csv-json-converter': 'Transform CSV spreadsheet data to JSON format',
       'markdown-html-converter': 'Convert between Markdown and HTML markup',
+      'markdown-html-formatter': 'Format and convert between Markdown and HTML',
       'xml-formatter': 'Validate and format XML with proper structure',
       'yaml-formatter': 'Format YAML configuration files with correct indentation',
       'url-toolkit': 'Parse, validate, normalize, and manipulate URLs with advanced features',
@@ -333,39 +272,30 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               accept="image/*"
               className={styles.fileInput}
             />
-          <div className={`${styles.textareaWithLineNumbers} ${showLineNumbers ? '' : styles.noLineNumbers}`}>
-            {showLineNumbers && (
-              <LineNumbers
-                ref={lineNumbersRef}
-                content={inputText || getPlaceholder()}
-              />
-            )}
-            <div className={styles.textareaWrapper}>
-              {inputText && (
-                <div ref={syntaxHighlightLayerRef} className={styles.syntaxHighlightLayer}>
-                  <SyntaxHighlighter
-                    code={inputText}
-                    toolId={selectedTool?.toolId}
-                  />
-                </div>
-              )}
-              {getErrorInfo().size > 0 ? (
-                <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
-                  {renderHighlights()}
-                </div>
-              ) : null}
-              <textarea
-                ref={textareaRef}
-                className={styles.textarea}
+            <div className={styles.codeMirrorWrapper}>
+              <CodeMirror
                 value={inputText}
                 onChange={handleTextChange}
-                onScroll={handleScroll}
-                onPaste={handlePaste}
                 placeholder={getPlaceholder()}
-                spellCheck="false"
+                extensions={[getLanguage()].filter(Boolean)}
+                className={styles.codeMirror}
+                height="100%"
+                theme="dark"
+                basicSetup={{
+                  lineNumbers: true,
+                  foldGutter: false,
+                  dropCursor: true,
+                  allowMultipleSelections: true,
+                  indentOnInput: true,
+                  bracketMatching: true,
+                  closeBrackets: true,
+                  autocompletion: false,
+                  rectangularSelection: true,
+                  highlightSelectionMatches: true,
+                  searchKeymap: true,
+                }}
               />
             </div>
-          </div>
           </div>
         </div>
 
@@ -382,7 +312,11 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                 ✕
               </button>
             </div>
-            <img src={imagePreview} alt="Preview" className={styles.previewImage} />
+            <img
+              src={imagePreview}
+              alt="preview"
+              className={styles.previewImage}
+            />
           </div>
         )}
       </div>
