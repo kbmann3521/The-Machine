@@ -897,11 +897,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
 
-    // Add primary output tab first - only show if validation passed
+    // Add primary output tab first - always show formatted result
     if (displayResult.formatted && !displayResult.hideOutput) {
       tabs.push({
         id: 'formatted',
-        label: 'Output',
+        label: 'OUTPUT',
         content: displayResult.formatted,
         contentType: 'codemirror',
       })
@@ -941,7 +941,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         tabs.push({
           id: 'validation',
-          label: 'Validation (✓)',
+          label: 'Validation (��)',
           content: (
             <div style={{
               padding: '16px',
