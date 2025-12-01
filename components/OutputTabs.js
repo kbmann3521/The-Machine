@@ -352,12 +352,10 @@ export default function OutputTabs({
       const codeContent = getJsonString()
 
       const handleCodeScroll = (e) => {
-        if (codeLineNumbersRef.current) {
-          // Use the exposed scrollTop setter from LineNumbers useImperativeHandle
-          const lineNumContainer = codeLineNumbersRef.current.parentElement?.querySelector('[class*="lineNumbersContainer"]')
-          if (lineNumContainer) {
-            lineNumContainer.scrollTop = e.target.scrollTop
-          }
+        // Sync line numbers scroll with code content scroll
+        const lineNumbersElement = document.querySelector('[class*="lineNumbersContainer"]')
+        if (lineNumbersElement) {
+          lineNumbersElement.scrollTop = e.target.scrollTop
         }
       }
 
