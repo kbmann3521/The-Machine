@@ -112,13 +112,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
   }
 
-  const handleTextChange = (e) => {
-    const text = e.target.value
-    setInputText(text)
-    setCharCount(text.length)
-    onInputChange(text)
-  }
-
 
   const handleScroll = (e) => {
     const scrollLeft = e.target.scrollLeft
