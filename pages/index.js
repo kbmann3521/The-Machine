@@ -118,11 +118,12 @@ export default function Home() {
       // First, try to fetch tool metadata from Supabase
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 4000) // 4 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
         const response = await fetch('/api/tools/get-metadata', {
           signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
+          cache: 'force-cache',
         })
         clearTimeout(timeoutId)
 
@@ -141,9 +142,11 @@ export default function Home() {
               }
             })
           }
+        } else {
+          console.warn('Tool metadata endpoint returned non-200 status:', response.status)
         }
       } catch (error) {
-        console.debug('Tool metadata fetch failed, using local fallback:', error?.message)
+        console.warn('Tool metadata fetch failed, will use local fallback:', error?.message || String(error))
       }
 
       // If no tools from Supabase, use local TOOLS as fallback
