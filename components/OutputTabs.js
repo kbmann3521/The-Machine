@@ -353,9 +353,8 @@ export default function OutputTabs({
 
       const handleCodeScroll = (e) => {
         // Sync line numbers scroll with code content scroll
-        const lineNumbersElement = document.querySelector('[class*="lineNumbersContainer"]')
-        if (lineNumbersElement) {
-          lineNumbersElement.scrollTop = e.target.scrollTop
+        if (codeLineNumbersRef.current?.element) {
+          codeLineNumbersRef.current.element.scrollTop = e.target.scrollTop
         }
       }
 
