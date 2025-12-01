@@ -190,6 +190,24 @@ export default function Home() {
       setSelectedTool(tool)
       setAdvancedMode(true) // User manually selected - exit auto-detect
 
+      // Clear previous tool's input and output
+      setInputText('')
+      setInputImage(null)
+      setImagePreview(null)
+      setOutputResult(null)
+      setError(null)
+      setPreviousInputLength(0)
+
+      // Clear any pending API calls
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
+        loadingTimerRef.current = null
+      }
+      setLoading(false)
+
       // Initialize config for the selected tool
       const initialConfig = {}
       if (tool?.configSchema) {
