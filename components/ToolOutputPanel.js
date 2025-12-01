@@ -739,8 +739,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    // Validation tab - always show if diagnostics exist and validation is enabled
-    if (true) {
+    // Validation tab - show if enabled
+    if (displayResult.showValidation !== false) {
       const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
         : []
