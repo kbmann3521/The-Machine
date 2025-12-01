@@ -226,13 +226,16 @@ export default function Home() {
     []
   )
 
-  const handleInputChange = useCallback((text, image, preview) => {
+  const handleInputChange = useCallback((text, image, preview, isPaste = false) => {
     const isAddition = text.length > previousInputLength
 
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
     setPreviousInputLength(text.length)
+
+    // Track if this input was a paste
+    lastInputWasPasteRef.current = isPaste
 
     if (selectedToolRef.current && text) {
     }
@@ -243,6 +246,12 @@ export default function Home() {
 
     // Skip prediction and output clearing when input is empty
     if (!text.trim()) {
+      setLoading(false)
+      return
+    }
+
+    // Only run prediction if text was ADDED, not when deleting
+    if (!isAddition) {
       setLoading(false)
       return
     }
