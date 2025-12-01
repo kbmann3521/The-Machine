@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import Prism from 'prismjs'
 import 'prismjs/themes/prism-tomorrow.css'
-import styles from '../styles/syntax-highlighter.module.css'
 
 // Map tool types/IDs to Prism language codes
 const TOOL_LANGUAGE_MAP = {
@@ -31,16 +30,11 @@ const TOOL_LANGUAGE_MAP = {
   'r-formatter': 'r',
   'swift-formatter': 'swift',
   'kotlin-formatter': 'kotlin',
-  'escape-unescape': 'javascript',
-  'base64-converter': 'text',
-  'url-converter': 'text',
-  'html-entities-converter': 'html',
-  'csv-json-converter': 'json',
 }
 
-export default function SyntaxHighlighter({ 
-  code = '', 
-  language = 'text', 
+export default function SyntaxHighlighter({
+  code = '',
+  language = 'text',
   toolId = null,
   className = '',
 }) {
@@ -54,12 +48,12 @@ export default function SyntaxHighlighter({
 
   // Validate language is supported by Prism
   const validLanguages = [
-    'javascript', 'json', 'css', 'scss', 'markup', 'html', 'xml', 
-    'yaml', 'sql', 'markdown', 'python', 'php', 'java', 'cpp', 
-    'csharp', 'ruby', 'go', 'rust', 'typescript', 'bash', 'lua', 
+    'javascript', 'json', 'css', 'scss', 'markup', 'html', 'xml',
+    'yaml', 'sql', 'markdown', 'python', 'php', 'java', 'cpp',
+    'csharp', 'ruby', 'go', 'rust', 'typescript', 'bash', 'lua',
     'r', 'swift', 'kotlin', 'text'
   ]
-  
+
   if (!validLanguages.includes(lang)) {
     lang = 'text'
   }
@@ -71,10 +65,30 @@ export default function SyntaxHighlighter({
   }, [code, lang])
 
   return (
-    <pre className={`${styles.preWrapper} ${className}`}>
-      <code 
+    <pre
+      style={{
+        margin: 0,
+        padding: '12px',
+        background: 'transparent',
+        fontSize: '13px',
+        lineHeight: '1.5',
+        fontFamily: "'Courier New', monospace",
+        width: '100%',
+        boxSizing: 'border-box',
+        overflow: 'auto',
+      }}
+    >
+      <code
         ref={codeRef}
-        className={`${styles.codeBlock} language-${lang}`}
+        className={`language-${lang} ${className}`}
+        style={{
+          margin: 0,
+          padding: 0,
+          fontSize: '13px',
+          lineHeight: '1.5',
+          fontFamily: "'Courier New', monospace",
+          whiteSpace: 'pre',
+        }}
       >
         {code}
       </code>
