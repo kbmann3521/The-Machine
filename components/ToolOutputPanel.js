@@ -729,8 +729,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
 
-    // Add primary output tab - always show formatted result
-    if (displayResult.formatted) {
+    // Add primary output tab - always show formatted result unless hideOutput is set
+    if (displayResult.formatted !== undefined) {
       tabs.push({
         id: 'formatted',
         label: 'Output',
@@ -739,8 +739,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    // Validation tab - show if enabled
-    if (displayResult.showValidation !== false) {
+    // Validation tab - always show if diagnostics exist and validation is enabled
+    if (true) {
       const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
         : []
