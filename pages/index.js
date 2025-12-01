@@ -234,6 +234,12 @@ export default function Home() {
       clearTimeout(debounceTimerRef.current)
     }
 
+    // Skip prediction and output clearing when input is empty
+    if (!text.trim()) {
+      setLoading(false)
+      return
+    }
+
     debounceTimerRef.current = setTimeout(() => {
       setError(null)
       setOutputResult(null)
