@@ -190,11 +190,10 @@ export default function Home() {
       setSelectedTool(tool)
       setAdvancedMode(true) // User manually selected - exit auto-detect
 
-      // Clear previous tool's input and output
+      // Clear previous tool's input but NOT output (ToolOutputPanel handles the transition)
       setInputText('')
       setInputImage(null)
       setImagePreview(null)
-      setOutputResult(null)
       setError(null)
       setPreviousInputLength(0)
 
