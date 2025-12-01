@@ -2276,6 +2276,130 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
+      case 'text-toolkit':
+        // Handle different text toolkit sections
+        if (activeToolkitSection === 'wordCounter' && displayResult?.wordCounter) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'wordCounter',
+                label: 'Word Counter',
+                content: displayResult.wordCounter,
+                contentType: 'fields'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'wordFrequency' && displayResult?.wordFrequency) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'wordFrequency',
+                label: 'Word Frequency',
+                content: displayResult.wordFrequency,
+                contentType: 'fields'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'reverseText' && displayResult?.reverseText) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'reverseText',
+                label: 'Reverse Text',
+                content: displayResult.reverseText,
+                contentType: 'text'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'caseConverter' && displayResult?.caseConverter) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'caseConverter',
+                label: 'Case Converter',
+                content: displayResult.caseConverter,
+                contentType: 'text'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'removeExtras' && displayResult?.removeExtras) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'removeExtras',
+                label: 'Remove Extras',
+                content: displayResult.removeExtras,
+                contentType: 'text'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'whitespaceVisualizer' && displayResult?.whitespaceVisualizer) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'whitespaceVisualizer',
+                label: 'Whitespace Visualizer',
+                content: displayResult.whitespaceVisualizer,
+                contentType: 'text'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'slugGenerator' && displayResult?.slugGenerator) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'slugGenerator',
+                label: 'Slug Generator',
+                content: displayResult.slugGenerator,
+                contentType: 'text'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'sortLines' && displayResult?.sortLines) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'sortLines',
+                label: 'Sort Lines',
+                content: displayResult.sortLines,
+                contentType: 'text'
+              }]}
+            />
+          )
+        } else if (activeToolkitSection === 'findReplace' && displayResult?.findReplace) {
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'findReplace',
+                label: 'Find & Replace',
+                content: displayResult.findReplace,
+                contentType: 'text'
+              }]}
+            />
+          )
+        } else {
+          // Default - show all toolkit data
+          return (
+            <OutputTabs
+              toolCategory={toolCategory}
+              tabs={[{
+                id: 'all',
+                label: 'Output',
+                content: JSON.stringify(displayResult, null, 2),
+                contentType: 'json'
+              }]}
+            />
+          )
+        }
       case 'js-formatter':
         return renderJsFormatterOutput()
       case 'css-formatter':
