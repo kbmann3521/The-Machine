@@ -10,7 +10,6 @@
   min-width: 32px;
   width: 32px;
   flex-shrink: 0;
-  flex: 1;
 }
 
 .lineNumbersList {
