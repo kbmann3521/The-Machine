@@ -8,7 +8,7 @@ import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import IPToolkitConfigPanel from '../components/IPToolkitConfigPanel'
 import { FaCircleInfo } from 'react-icons/fa6'
-import { TOOLS, autoDetectToolConfig, getToolExample } from '../lib/tools'
+import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
@@ -118,11 +118,12 @@ export default function Home() {
       // First, try to fetch tool metadata from Supabase
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 4000) // 4 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
         const response = await fetch('/api/tools/get-metadata', {
           signal: controller.signal,
           headers: { 'Content-Type': 'application/json' },
+          cache: 'force-cache',
         })
         clearTimeout(timeoutId)
 
@@ -141,9 +142,11 @@ export default function Home() {
               }
             })
           }
+        } else {
+          console.warn('Tool metadata endpoint returned non-200 status:', response.status)
         }
       } catch (error) {
-        console.debug('Tool metadata fetch failed, using local fallback:', error?.message)
+        console.warn('Tool metadata fetch failed, will use local fallback:', error?.message || String(error))
       }
 
       // If no tools from Supabase, use local TOOLS as fallback
@@ -175,6 +178,11 @@ export default function Home() {
     }
 
     initializeTools()
+
+    // Set up auto-refresh every 30 seconds to pick up Supabase changes
+    const refreshInterval = setInterval(initializeTools, 30000)
+
+    return () => clearInterval(refreshInterval)
   }, [])
 
   const handleSelectTool = useCallback(
@@ -203,16 +211,6 @@ export default function Home() {
     setPreviousInputLength(text.length)
 
     if (selectedToolRef.current && text) {
-      // Skip auto-detection for JSON formatter - beautify is always the default
-      if (selectedToolRef.current.toolId !== 'json-formatter') {
-        const detectedConfig = autoDetectToolConfig(selectedToolRef.current.toolId, text)
-        if (detectedConfig) {
-          setConfigOptions(prevConfig => ({
-            ...prevConfig,
-            ...detectedConfig,
-          }))
-        }
-      }
     }
 
     if (debounceTimerRef.current) {
@@ -331,30 +329,22 @@ export default function Home() {
               setRemoveExtrasConfig(updatedConfig)
             }
 
-            // Set up initial config for the top tool
-            const initialConfig = {}
-            if (topTool?.configSchema) {
-              topTool.configSchema.forEach(field => {
-                initialConfig[field.id] = field.default || ''
-              })
+            // Only reset config if the tool has changed
+            if (selectedTool?.toolId !== topTool?.toolId) {
+              // Set up initial config for the top tool
+              const initialConfig = {}
+              if (topTool?.configSchema) {
+                topTool.configSchema.forEach(field => {
+                  initialConfig[field.id] = field.default || ''
+                })
+              }
+              setConfigOptions(initialConfig)
             }
 
-            // Use suggested config from API, or fall back to local auto-detection
-            if (topTool?.suggestedConfig) {
-              Object.assign(initialConfig, topTool.suggestedConfig)
-              // Apply activeToolkitSection if specified for text-toolkit
-              if (topTool.toolId === 'text-toolkit' && topTool.suggestedConfig.activeToolkitSection) {
-                setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
-              }
-            } else if (topTool.toolId !== 'json-formatter') {
-              // Skip auto-detection for JSON formatter - beautify is always the default
-              const detectedConfig = autoDetectToolConfig(topTool.toolId, text)
-              if (detectedConfig) {
-                Object.assign(initialConfig, detectedConfig)
-              }
+            // Apply activeToolkitSection if specified for text-toolkit
+            if (topTool.toolId === 'text-toolkit' && topTool?.suggestedConfig?.activeToolkitSection) {
+              setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
             }
-
-            setConfigOptions(initialConfig)
           }
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
@@ -632,6 +622,8 @@ export default function Home() {
                   error={error}
                   toolId={selectedTool?.toolId}
                   activeToolkitSection={activeToolkitSection}
+                  configOptions={configOptions}
+                  onConfigChange={setConfigOptions}
                 />
               </div>
             </div>

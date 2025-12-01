@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react'
 import styles from '../styles/universal-input.module.css'
+import LineNumbers from './LineNumbers'
+import SyntaxHighlighter from './SyntaxHighlighter'
 
 export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
   const getPlaceholder = () => {
@@ -88,6 +90,11 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const fileInputRef = useRef(null)
   const textareaRef = useRef(null)
   const highlightsLayerRef = useRef(null)
+  const lineNumbersRef = useRef(null)
+  const syntaxHighlightLayerRef = useRef(null)
+
+  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
+  const showLineNumbers = selectedTool && codeRelatedCategories.includes(selectedTool.category)
 
   const handleTextChange = (e) => {
     const text = e.target.value
@@ -96,74 +103,30 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     onInputChange(text)
   }
 
-  const getErrorLines = () => {
-    const lineTypes = new Map()
-
-    if (errorData) {
-      if (errorData.errors && errorData.errors.errors) {
-        errorData.errors.errors.forEach(error => {
-          if (error.line) {
-            if (!lineTypes.has(error.line)) {
-              lineTypes.set(error.line, 'error')
-            }
-          }
-        })
-      }
-
-      if (errorData.linting && errorData.linting.warnings) {
-        errorData.linting.warnings.forEach(warning => {
-          if (warning.line) {
-            if (!lineTypes.has(warning.line) || lineTypes.get(warning.line) === 'warning') {
-              lineTypes.set(warning.line, 'warning')
-            }
-          }
-        })
-      }
-    }
-
-    return lineTypes
-  }
 
   const handleScroll = (e) => {
-    if (highlightsLayerRef.current) {
-      highlightsLayerRef.current.scrollTop = e.target.scrollTop
-      highlightsLayerRef.current.scrollLeft = e.target.scrollLeft
+    const scrollLeft = e.target.scrollLeft
+    const scrollTop = e.target.scrollTop
+
+    if (syntaxHighlightLayerRef.current) {
+      // Shift syntax highlighting layer to match textarea scroll using transform
+      syntaxHighlightLayerRef.current.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`
     }
+    if (highlightsLayerRef.current) {
+      // Shift highlights layer to match textarea scroll using transform
+      highlightsLayerRef.current.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`
+    }
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = e.target.scrollTop
+    }
+  }
+
+  const getErrorInfo = () => {
+    return new Map()
   }
 
   const renderHighlights = () => {
-    const lineTypes = getErrorLines()
-    if (lineTypes.size === 0) return null
-
-    const lines = inputText.split('\n')
-    const highlights = []
-
-    lines.forEach((line, index) => {
-      const lineNumber = index + 1
-      const lineType = lineTypes.get(lineNumber)
-
-      if (lineType === 'error') {
-        highlights.push(
-          <div key={`error-${lineNumber}`} className={styles.errorHighlight}>
-            {line}
-          </div>
-        )
-      } else if (lineType === 'warning') {
-        highlights.push(
-          <div key={`warning-${lineNumber}`} className={styles.warningHighlight}>
-            {line}
-          </div>
-        )
-      } else {
-        highlights.push(
-          <div key={`line-${lineNumber}`} className={styles.highlightLine}>
-            {line}
-          </div>
-        )
-      }
-    })
-
-    return highlights
+    return null
   }
 
   const handleImageFile = (file) => {
@@ -338,51 +301,69 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
         {getInstructionText() && (
           <div className={styles.instructionLabel}>{getInstructionText()}</div>
         )}
-        <div
-          className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          {getErrorLines().size > 0 ? (
-            <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
-              {renderHighlights()}
+
+        <div className={styles.inputFieldContainer}>
+          <button
+            className={styles.uploadImageButton}
+            onClick={openFileDialog}
+            title="Click to upload an image"
+            type="button"
+          >
+            <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload Image
+          </button>
+
+          <div
+            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*"
+              className={styles.fileInput}
+            />
+          <div className={`${styles.textareaWithLineNumbers} ${showLineNumbers ? '' : styles.noLineNumbers}`}>
+            {showLineNumbers && (
+              <LineNumbers
+                ref={lineNumbersRef}
+                content={inputText || getPlaceholder()}
+              />
+            )}
+            <div className={styles.textareaWrapper}>
+              {inputText && (
+                <div ref={syntaxHighlightLayerRef} className={styles.syntaxHighlightLayer}>
+                  <SyntaxHighlighter
+                    code={inputText}
+                    toolId={selectedTool?.toolId}
+                  />
+                </div>
+              )}
+              {getErrorInfo().size > 0 ? (
+                <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
+                  {renderHighlights()}
+                </div>
+              ) : null}
+              <textarea
+                ref={textareaRef}
+                className={styles.textarea}
+                value={inputText}
+                onChange={handleTextChange}
+                onScroll={handleScroll}
+                onPaste={handlePaste}
+                placeholder={getPlaceholder()}
+                spellCheck="false"
+              />
             </div>
-          ) : null}
-          <textarea
-            ref={textareaRef}
-            className={styles.textarea}
-            value={inputText}
-            onChange={handleTextChange}
-            onScroll={handleScroll}
-            onPaste={handlePaste}
-            placeholder={getPlaceholder()}
-          />
-
-          <div className={styles.buttonGroup}>
-            <button
-              className={styles.uploadButton}
-              onClick={openFileDialog}
-              title="Click to upload an image"
-              type="button"
-            >
-              <svg className={styles.uploadIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-            </button>
           </div>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            accept="image/*"
-            className={styles.fileInput}
-          />
-
-          <div className={styles.charCounter}>{charCount} characters</div>
+          </div>
         </div>
 
         {imagePreview && (

@@ -42,6 +42,28 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
   const renderField = field => {
     const value = config[field.id]
+    const isJsFormatterInMinify = tool.toolId === 'js-formatter' && config.mode === 'minify'
+    const isCssFormatterInMinify = tool.toolId === 'css-formatter' && config.mode === 'minify'
+
+    const jsFormatterDisabledFields = [
+      'useSemicolons',
+      'singleQuotes',
+      'bracketSpacing',
+      'indentSize',
+      'trailingComma',
+      'printWidth',
+      'arrowParens',
+      'showLinting',
+    ]
+
+    const cssFormatterDisabledFields = [
+      'indentSize',
+      'showLinting',
+    ]
+
+    const isFieldDisabled =
+      (isJsFormatterInMinify && jsFormatterDisabledFields.includes(field.id)) ||
+      (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id))
 
     switch (field.type) {
       case 'text':
@@ -53,6 +75,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             value={value || ''}
             onChange={e => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder || ''}
+            disabled={isFieldDisabled}
           />
         )
 
@@ -65,6 +88,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             value={value || ''}
             onChange={e => handleFieldChange(field.id, parseInt(e.target.value) || e.target.value)}
             placeholder={field.placeholder || ''}
+            disabled={isFieldDisabled}
           />
         )
 
@@ -77,6 +101,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             onChange={e => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder || ''}
             rows={4}
+            disabled={isFieldDisabled}
           />
         )
 
@@ -87,6 +112,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             className={styles.select}
             value={value || ''}
             onChange={e => handleFieldChange(field.id, e.target.value)}
+            disabled={isFieldDisabled}
           >
             <option value="">Select an option</option>
             {field.options?.map(option => (
@@ -106,6 +132,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 checked={value || false}
                 onChange={e => handleFieldChange(field.id, e.target.checked)}
                 className={styles.toggleInput}
+                disabled={isFieldDisabled}
               />
               <span className={styles.toggleSlider}></span>
               <span>{field.label}</span>
@@ -123,6 +150,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               max={field.max || 100}
               value={value || 0}
               onChange={e => handleFieldChange(field.id, parseInt(e.target.value))}
+              disabled={isFieldDisabled}
             />
             <span className={styles.sliderValue}>{value || 0}</span>
           </div>
@@ -418,14 +446,24 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
         <div className={styles.fieldsContainer}>
-          {tool.configSchema.map(field => (
-            <div key={field.id} className={styles.field}>
-              <label className={styles.fieldLabel} htmlFor={field.id}>
-                {field.label}
-              </label>
-              {renderField(field)}
-            </div>
-          ))}
+          {tool.configSchema.map(field => {
+            // Check if field should be visible based on visibleWhen condition
+            if (field.visibleWhen) {
+              const { field: conditionField, value: conditionValue } = field.visibleWhen
+              if (config[conditionField] !== conditionValue) {
+                return null
+              }
+            }
+
+            return (
+              <div key={field.id} className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor={field.id}>
+                  {field.label}
+                </label>
+                {renderField(field)}
+              </div>
+            )
+          })}
         </div>
       )}
 

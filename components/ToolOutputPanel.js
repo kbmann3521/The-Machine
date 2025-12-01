@@ -4,8 +4,10 @@ import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
+import { TOOLS } from '../lib/tools'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange }) {
+  const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
   const [expandedSection, setExpandedSection] = useState('formatted')
@@ -13,6 +15,58 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+
+  const handleDialectChange = (dialect) => {
+    if (onConfigChange) {
+      onConfigChange({
+        ...configOptions,
+        language: dialect
+      })
+    }
+  }
+
+  const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
+    if (!errors || errors.length === 0) return null
+
+    return (
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{
+          fontSize: '12px',
+          fontWeight: '600',
+          color: '#ef5350',
+          marginBottom: '8px',
+          paddingBottom: '8px',
+          borderBottom: '1px solid rgba(239, 83, 80, 0.2)',
+        }}>
+          {sectionTitle}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {errors.map((error, idx) => (
+            <div key={idx} style={{
+              padding: '12px',
+              backgroundColor: 'var(--color-background-tertiary)',
+              border: '1px solid rgba(239, 83, 80, 0.2)',
+              borderRadius: '4px',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
+                {error.line !== null && error.column !== null
+                  ? `Line ${error.line}, Column ${error.column}`
+                  : 'General Error'}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                {error.message}
+              </div>
+              {error.category && (
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                  Category: {error.category}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   const getToolkitSectionKey = (section) => {
     const keyMap = {
@@ -79,7 +133,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       },
     ]
     const OutputTabs = require('./OutputTabs').default
-    return <OutputTabs tabs={defaultTabs} />
+    return <OutputTabs tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
   }
 
   // For text-toolkit, check if current section has content
@@ -90,6 +144,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   if (isEmpty || isTextToolkitWithoutContent) {
     return (
       <OutputTabs
+        toolCategory={toolCategory}
         tabs={[
           {
             id: 'default',
@@ -181,7 +236,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
-
     const tabs = []
 
     // Determine the primary output type based on which field exists
@@ -199,90 +253,240 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       primaryTabContent = displayResult.obfuscated
     }
 
-    // Add primary tab
+    // Add primary tab FIRST - only show if isWellFormed is true
     if (primaryTabId && primaryTabContent) {
-      if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
-        tabs.push({
-          id: primaryTabId,
-          label: 'Output',
-          content: primaryTabContent,
-          contentType: 'code',
-        })
+      if (displayResult.isWellFormed) {
+        if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
+          tabs.push({
+            id: primaryTabId,
+            label: 'Output',
+            content: primaryTabContent,
+            contentType: 'code',
+          })
+        }
       } else {
-        // Show placeholder when output is unavailable
-        const placeholderContent = (
-          <div style={{ padding: '16px', color: 'var(--color-text-secondary)', fontSize: '13px' }}>
-            Output will appear here once you run the formatter on valid code.
+        // Show error message when code is not well-formed
+        const errorContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              marginBottom: '12px',
+            }}>
+              Cannot format because code contains errors. Showing original code.
+            </div>
+            <pre style={{
+              backgroundColor: 'var(--color-background-tertiary)',
+              padding: '12px',
+              borderRadius: '4px',
+              overflow: 'auto',
+              fontSize: '12px',
+              fontFamily: 'monospace',
+            }}>
+              <code>{primaryTabContent}</code>
+            </pre>
           </div>
         )
         tabs.push({
           id: primaryTabId,
           label: 'Output',
-          content: placeholderContent,
+          content: errorContent,
           contentType: 'component',
         })
       }
     }
 
-    if (displayResult.linting) {
-      const lintContent = (
-        <>
-          {displayResult.linting.warnings && displayResult.linting.warnings.length > 0 ? (
-            <div className={jsStyles.warningsList}>
-              {displayResult.linting.warnings.map((warning, idx) => (
-                <div key={idx} className={`${jsStyles.warning} ${jsStyles[warning.level || 'info']}`}>
-                  <div className={jsStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
-                  <div className={jsStyles.warningMessage}>
-                    {warning.line !== undefined && warning.column !== undefined && (
-                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginRight: '8px' }}>
-                        Line {warning.line}, Column {warning.column}
-                      </span>
-                    )}
-                    {warning.message}
-                    {warning.ruleId && (
-                      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginLeft: '8px' }}>
-                        ({warning.ruleId})
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+    // Validation tab - show input and output errors separately
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const inputErrors = displayResult.inputDiagnostics ? displayResult.inputDiagnostics.filter(d => d.type === 'error') : []
+      const outputErrors = displayResult.outputDiagnostics ? displayResult.outputDiagnostics.filter(d => d.type === 'error') : []
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error' && d.category !== 'lint')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
-          ) : (
-            <div className={jsStyles.success}>✓ No linting warnings found!</div>
-          )}
-        </>
-      )
-      tabs.push({
-        id: 'linting',
-        label: `Linting (${displayResult.linting.total})`,
-        content: lintContent,
-        contentType: 'component',
-      })
+
+            {renderValidationErrorsUnified(inputErrors, 'Input Validation Errors (prevents formatting)')}
+
+            {outputErrors.length > 0 && (
+              <div>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#ff9800',
+                  marginBottom: '8px',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid rgba(255, 152, 0, 0.2)',
+                }}>
+                  Output Validation Errors (introduced by formatter)
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {outputErrors.map((error, idx) => (
+                    <div key={idx} style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      border: '1px solid rgba(255, 152, 0, 0.2)',
+                      borderRadius: '4px',
+                    }}>
+                      <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ff9800' }}>
+                        {error.line !== null && error.column !== null
+                          ? `Line ${error.line}, Column ${error.column}`
+                          : 'General Error'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                        {error.message}
+                      </div>
+                      {error.category && (
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                          Category: {error.category}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ No validation errors found
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
     }
 
-    if (displayResult.errors) {
-      const syntaxContent = (
-        <>
-          {displayResult.errors.status === 'valid' ? (
-            <div className={jsStyles.success}>✓ No syntax errors found!</div>
-          ) : (
-            <div className={jsStyles.errorsList}>
-              {displayResult.errors.errors && displayResult.errors.errors.map((error, idx) => (
-                <div key={idx} className={jsStyles.error}>
-                  <div className={jsStyles.errorMessage}>
-                    <strong>Line {error.line}, Column {error.column}</strong>: {error.message}
+    // Linting tab - show warnings from diagnostics (if linting is enabled)
+    if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
+      const isCodeValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isCodeValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because code is not valid JavaScript.
+          </div>
+        )
+      } else if (lintingWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintingWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintingWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ Warning {idx + 1}
                   </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                  {warning.line !== null && warning.column !== null && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}, Column {warning.column}
+                    </div>
+                  )}
+                  {warning.ruleId && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Rule: {warning.ruleId}
+                    </div>
+                  )}
+                  {warning.category && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Category: {warning.category}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          )}
-        </>
-      )
+          </div>
+        )
+      }
+
       tabs.push({
-        id: 'syntax',
-        label: `Syntax (${displayResult.errors.status === 'valid' ? '✓' : '✗'})`,
-        content: syntaxContent,
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
         contentType: 'component',
       })
     }
@@ -342,46 +546,365 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (displayResult.security) {
-      const securityContent = (
-        <>
-          <div style={{ marginBottom: '10px' }}>
-            <span className={`${jsStyles.securityBadge} ${jsStyles[displayResult.security.riskLevel || 'safe']}`}>
-              Risk Level: {displayResult.security.riskLevel?.toUpperCase() || 'SAFE'}
-            </span>
+    if (tabs.length === 0) return null
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderYamlFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+    const tabs = []
+
+    // Determine primary output based on mode
+    let primaryTabId = null
+    let primaryTabContent = null
+
+    if (displayResult.formatted !== undefined) {
+      primaryTabId = 'output'
+      primaryTabContent = displayResult.formatted
+    }
+
+    // Add primary tab FIRST - only show if hideOutput is false
+    if (primaryTabId && primaryTabContent && !displayResult.hideOutput) {
+      if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
+        tabs.push({
+          id: primaryTabId,
+          label: 'Output',
+          content: primaryTabContent,
+          contentType: 'code',
+        })
+      }
+    }
+
+    // Validation tab
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'YAML Validation Errors')}
           </div>
-          {displayResult.security.issues && displayResult.security.issues.length > 0 ? (
-            <div className={jsStyles.issuesList}>
-              {displayResult.security.issues.map((issue, idx) => (
-                <div key={idx} className={jsStyles.issueItem}>
-                  <strong>{issue.pattern}</strong> - Severity: {issue.severity}
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid YAML
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Linting tab - show warnings from diagnostics (if linting is enabled)
+    if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
+      const isYamlValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isYamlValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because YAML is not valid.
+          </div>
+        )
+      } else if (lintingWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintingWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintingWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ Warning {idx + 1}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                  {warning.line !== null && warning.column !== null && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}, Column {warning.column}
+                    </div>
+                  )}
+                  {warning.category && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Category: {warning.category}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          ) : (
-            <div className={jsStyles.success}>✓ No security issues detected!</div>
-          )}
-        </>
-      )
+          </div>
+        )
+      }
+
       tabs.push({
-        id: 'security',
-        label: 'Security',
-        content: securityContent,
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
         contentType: 'component',
       })
     }
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
-  const renderSqlFormatterOutput = () => {
+  const renderMarkdownFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
-
     const tabs = []
 
-    if (displayResult.formatted) {
+    // Add primary output tab - always show formatted result unless hideOutput is set
+    if (displayResult.formatted !== undefined) {
+      // Determine language based on convert mode
+      let language = 'markup' // default to HTML
+      if (configOptions?.convertTo === 'markdown') {
+        language = 'markdown'
+      }
+
+      tabs.push({
+        id: 'formatted',
+        label: 'Output',
+        content: displayResult.formatted,
+        contentType: 'code',
+        language: language,
+      })
+    }
+
+    // Validation tab - show if enabled
+    if (displayResult.showValidation !== false) {
+      const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+        ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+        : []
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'Markdown/HTML Validation Errors')}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid Content
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Linting tab - show if enabled and content is valid
+    if (displayResult.showLinting !== false) {
+      const lintingWarnings = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+        ? displayResult.diagnostics.filter(d => d.category === 'lint')
+        : []
+      const isValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because content is not valid.
+          </div>
+        )
+      } else if (lintingWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintingWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintingWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ Warning {idx + 1}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                  {warning.line && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}{warning.column ? `, Column ${warning.column}` : ''}
+                    </div>
+                  )}
+                  {warning.rule && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Rule: <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>{warning.rule}</code>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      tabs.push({
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
+        contentType: 'component',
+      })
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderCssFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+    const tabs = []
+
+    // Add primary output tab first - only show if validation passed
+    if (displayResult.formatted && !displayResult.hideOutput) {
       tabs.push({
         id: 'formatted',
         label: 'Output',
@@ -390,30 +913,360 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (displayResult.lint) {
-      const lintContent = (
-        <>
-          {displayResult.lint.warnings && displayResult.lint.warnings.length > 0 ? (
-            <div className={sqlStyles.warningsList}>
-              {displayResult.lint.warnings.map((warning, idx) => (
-                <div key={idx} className={`${sqlStyles.warning} ${sqlStyles[warning.level || 'info']}`}>
-                  <div className={sqlStyles.warningLevel}>{(warning.level || 'info').toUpperCase()}</div>
-                  <div className={sqlStyles.warningMessage}>{warning.message}</div>
-                  {warning.suggestion && (
-                    <div className={sqlStyles.warningSuggestion}>💡 {warning.suggestion}</div>
+    // Validation tab - show validation errors and status
+    if (displayResult.showValidation !== false) {
+      const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+        ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+        : []
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid CSS
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Linting tab - show warnings from diagnostics (if linting is enabled)
+    if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.category === 'lint')
+      const isCssValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isCssValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because CSS is not valid.
+          </div>
+        )
+      } else if (lintingWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintingWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintingWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ Warning {idx + 1}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                  {warning.line && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}{warning.column ? `, Column ${warning.column}` : ''}
+                    </div>
+                  )}
+                  {warning.rule && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Rule: <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>{warning.rule}</code>
+                    </div>
                   )}
                 </div>
               ))}
             </div>
-          ) : (
-            <div className={sqlStyles.success}>✓ No lint warnings found!</div>
-          )}
-        </>
-      )
+          </div>
+        )
+      }
+
       tabs.push({
-        id: 'lint',
-        label: `Lint (${displayResult.lint.total})`,
-        content: lintContent,
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
+        contentType: 'component',
+      })
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderSqlFormatterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
+    const tabs = []
+
+    // Add primary output tab first - only show if validation passed
+    if (displayResult.formatted && !displayResult.hideOutput) {
+      tabs.push({
+        id: 'formatted',
+        label: 'Output',
+        content: displayResult.formatted,
+        contentType: 'code',
+      })
+    }
+
+    // Validation tab - show validation errors and status
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'SQL Validation Errors')}
+
+            {displayResult.compatibleDialects && displayResult.compatibleDialects.length > 0 && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(0, 0, 0, 0.1)' }}>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#ff9800',
+                  marginBottom: '12px',
+                }}>
+                  💡 Valid for these dialects:
+                </div>
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}>
+                  {displayResult.compatibleDialects.map((dialect) => {
+                    const dialectLabels = {
+                      postgresql: 'PostgreSQL',
+                      mysql: 'MySQL',
+                      tsql: 'SQL Server',
+                      sqlite: 'SQLite',
+                      mariadb: 'MariaDB',
+                      plsql: 'Oracle',
+                      bigquery: 'BigQuery',
+                      redshift: 'Redshift'
+                    }
+                    return (
+                      <button
+                        key={dialect}
+                        onClick={() => handleDialectChange(dialect)}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: 'rgba(102, 187, 106, 0.15)',
+                          border: '1px solid rgba(102, 187, 106, 0.3)',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          color: '#2e7d32',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = 'rgba(102, 187, 106, 0.25)'
+                          e.target.style.borderColor = 'rgba(102, 187, 106, 0.5)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'rgba(102, 187, 106, 0.15)'
+                          e.target.style.borderColor = 'rgba(102, 187, 106, 0.3)'
+                        }}
+                      >
+                        {dialectLabels[dialect] || dialect}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid SQL
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Linting tab - show warnings from diagnostics (if linting is enabled)
+    if (displayResult.showLinting && displayResult.lint) {
+      const lintWarnings = displayResult.lint.warnings || []
+      const isCodeValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isCodeValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because SQL is not valid.
+          </div>
+        )
+      } else if (lintWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ {(warning.level || 'warning').toUpperCase()}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      tabs.push({
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
         contentType: 'component',
       })
     }
@@ -485,7 +1338,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderColorConverterOutput = () => {
@@ -537,7 +1390,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       },
     ]
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJwtDecoderOutput = () => {
@@ -551,7 +1404,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'text',
         }
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
     }
 
     if (!displayResult || !displayResult.decoded) return null
@@ -566,119 +1419,132 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     ]
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJsonFormatterOutput = () => {
-    // Handle string output (beautified, minified, or error messages)
-    if (typeof displayResult === 'string') {
-      // Check if it's an error message
-      if (displayResult.startsWith('Error:')) {
-        const tabs = [
-          {
-            id: 'error',
-            label: 'Error',
-            content: displayResult,
-            contentType: 'code',
-          },
-        ]
-        return <OutputTabs tabs={tabs} showCopyButton={true} />
-      }
+    if (!displayResult || typeof displayResult !== 'object') return null
 
-      // Regular string output (beautified, minified, sorted, etc.)
-      const tabs = [
-        {
-          id: 'formatted',
-          label: 'Output',
-          content: displayResult,
-          contentType: 'code',
-        },
+    // Special handling for compress mode
+    if (displayResult.formatted && displayResult.formatted._compressMode) {
+      const compressData = [
+        { label: 'Original Size', value: `${displayResult.formatted.originalSize} bytes`, key: 'originalSize' },
+        { label: 'Compressed Size', value: `${displayResult.formatted.compressedSize} bytes`, key: 'compressedSize' },
+        { label: 'Compression Ratio', value: `${displayResult.formatted.ratio}%`, key: 'ratio' },
+        { label: 'Original (minified)', value: displayResult.formatted.original, key: 'original' },
+        { label: 'Compressed (Base64)', value: displayResult.formatted.compressed, key: 'compressed' },
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
-    }
 
-    // Handle validation results
-    if (displayResult.isValid !== undefined) {
-      const validationContent = (
-        <div style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <div style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: displayResult.isValid ? '#4caf50' : '#f44336'
-            }}>
-              {displayResult.isValid ? '✓ Valid' : '✗ Invalid'}
+      const friendlyView = ({ onCopyCard, copiedCardId }) => (
+        <div className={styles.structuredOutput}>
+          {compressData.map((item, idx) => (
+            <div key={idx} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{item.label}</span>
+                <button
+                  className="copy-action"
+                  onClick={() => onCopyCard(item.value, item.key)}
+                  title={`Copy ${item.label}`}
+                >
+                  {copiedCardId === item.key ? '✓' : <FaCopy />}
+                </button>
+              </div>
+              <div className={styles.copyCardValue} style={{
+                wordBreak: ['original', 'compressed'].includes(item.key) ? 'break-all' : 'normal',
+                maxHeight: ['original', 'compressed'].includes(item.key) ? '200px' : 'auto',
+                overflowY: ['original', 'compressed'].includes(item.key) ? 'auto' : 'visible',
+              }}>
+                {item.value}
+              </div>
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-              {displayResult.message}
-            </div>
-          </div>
-          {displayResult.size !== undefined && (
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-              <strong>Size:</strong> {displayResult.size} bytes
-            </div>
-          )}
-          {displayResult.lines !== undefined && (
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-              <strong>Lines:</strong> {displayResult.lines}
-            </div>
-          )}
-          {displayResult.error && (
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'rgba(244, 67, 54, 0.1)',
-              border: '1px solid rgba(244, 67, 54, 0.3)',
-              borderRadius: '5px',
-              marginTop: '12px',
-              color: '#f44336',
-              fontSize: '13px'
-            }}>
-              <div style={{ fontWeight: '600', marginBottom: '4px' }}>Error Details:</div>
-              <div>{displayResult.error}</div>
-              {displayResult.position && (
-                <div style={{ marginTop: '8px', fontSize: '12px' }}>
-                  <strong>Position:</strong> {displayResult.position}
-                </div>
-              )}
-              {displayResult.snippet && (
-                <div style={{
-                  marginTop: '8px',
-                  padding: '8px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  borderRadius: '3px',
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  overflow: 'auto'
-                }}>
-                  <strong>Context:</strong> ...{displayResult.snippet}...
-                </div>
-              )}
-            </div>
-          )}
+          ))}
         </div>
       )
 
       const tabs = [
         {
-          id: 'validation',
-          label: `Validation (${displayResult.isValid ? '��' : '✗'})`,
-          content: validationContent,
+          id: 'compress',
+          label: 'Results',
+          content: friendlyView,
           contentType: 'component',
         },
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
+
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
     }
 
-    // Handle other object outputs (defaults to JSON tab)
-    const tabs = [
-      {
-        id: 'json',
-        label: 'JSON',
-        content: displayResult,
-        contentType: 'json',
-      },
-    ]
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    const tabs = []
+
+    // Add primary output tab first - only show if validation passed
+    if (displayResult.formatted && !displayResult.hideOutput) {
+      tabs.push({
+        id: 'formatted',
+        label: 'Output',
+        content: typeof displayResult.formatted === 'string' ? displayResult.formatted : JSON.stringify(displayResult.formatted, null, 2),
+        contentType: 'code',
+      })
+    }
+
+    // Validation tab - show validation errors and status
+    if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'JSON Validation Errors')}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid JSON
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    if (tabs.length === 0) return null
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderXmlFormatterOutput = () => {
@@ -692,13 +1558,34 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'code',
         },
       ]
-      return <OutputTabs tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
     }
+
+    // Return null if displayResult is not an object
+    if (!displayResult || typeof displayResult !== 'object') return null
 
     // Handle object output from validate, lint, xpath, to-json, to-yaml
     const tabs = []
 
-    if (displayResult.result) {
+    // Primary output: show finalXml only if well-formed
+    const primaryXml = displayResult.finalXml || displayResult.cleanedXml || displayResult.formatted || displayResult.result
+
+    // Check if there are validation errors
+    const hasValidationErrors = displayResult.diagnostics && Array.isArray(displayResult.diagnostics)
+      ? displayResult.diagnostics.filter(d => d.type === 'error').length > 0
+      : false
+
+    // Show output if no validation errors and we have content
+    if (primaryXml && !hasValidationErrors) {
+      tabs.push({
+        id: 'output',
+        label: 'Output',
+        content: primaryXml,
+        contentType: 'code',
+      })
+    }
+
+    if (displayResult.result && displayResult.result !== primaryXml) {
       tabs.push({
         id: 'result',
         label: 'Result',
@@ -707,10 +1594,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (displayResult.formatted) {
+    if (displayResult.formatted && displayResult.formatted !== primaryXml) {
       tabs.push({
         id: 'formatted',
-        label: 'Output',
+        label: 'Formatted',
         content: displayResult.formatted,
         contentType: 'code',
       })
@@ -725,16 +1612,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 key={idx}
                 style={{
                   padding: '12px',
-                  backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                  border: '1px solid rgba(255, 193, 7, 0.3)',
-                  borderRadius: '5px',
-                  color: 'var(--color-text-primary)',
+                  backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                  border: '1px solid rgba(255, 167, 38, 0.2)',
+                  borderRadius: '4px',
+                  borderLeft: '3px solid #ffa726',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
-                  Warning {idx + 1}
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ffa726' }}>
+                  ⚠️ Warning {idx + 1}
                 </div>
-                <div style={{ fontSize: '13px' }}>{warning}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>{warning}</div>
               </div>
             ))}
           </div>
@@ -757,16 +1644,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 key={idx}
                 style={{
                   padding: '12px',
-                  backgroundColor: 'rgba(239, 83, 80, 0.15)',
-                  border: '1px solid rgba(239, 83, 80, 0.3)',
-                  borderRadius: '5px',
-                  color: '#ef5350',
+                  backgroundColor: 'var(--color-background-tertiary)',
+                  border: '1px solid rgba(239, 83, 80, 0.2)',
+                  borderRadius: '4px',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
                   Error {idx + 1}
                 </div>
-                <div style={{ fontSize: '13px' }}>{error}</div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>{error}</div>
               </div>
             ))}
           </div>
@@ -841,11 +1727,159 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} XML Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'Input Validation Errors (prevents formatting)')}
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ No validation errors found
+              </div>
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const lintingWarnings = displayResult.diagnostics.filter(d => d.type === 'warning')
+      const isCodeValid = displayResult.isWellFormed !== false
+
+      let lintingLabel = 'Linting'
+      let lintingContent = null
+
+      if (!isCodeValid) {
+        lintingLabel = 'Linting (⊘)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: '#9e9e9e',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            Linting skipped because code is not valid {toolId === 'js-formatter' ? 'JavaScript' : 'XML'}.
+          </div>
+        )
+      } else if (lintingWarnings.length === 0) {
+        lintingLabel = 'Linting (✓)'
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(102, 187, 106, 0.1)',
+            border: '1px solid rgba(102, 187, 106, 0.3)',
+            borderRadius: '4px',
+            color: '#66bb6a',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'center',
+          }}>
+            ✓ No linting warnings found
+          </div>
+        )
+      } else {
+        lintingLabel = `Linting (${lintingWarnings.length})`
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {lintingWarnings.map((warning, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                    border: '1px solid rgba(255, 167, 38, 0.2)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid #ffa726',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                    ⚠️ Warning {idx + 1}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    {warning.message}
+                  </div>
+                  {warning.line !== null && warning.column !== null && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Line {warning.line}, Column {warning.column}
+                    </div>
+                  )}
+                  {warning.ruleId && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                      Rule: {warning.ruleId}
+                    </div>
+                  )}
+                  {warning.category && (
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                      Category: {warning.category}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      tabs.push({
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
+        contentType: 'component',
+      })
+    }
+
+
     if (tabs.length === 0) {
       return null
     }
 
-    return <OutputTabs tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderSqlFormatterOutputOld = () => {
@@ -882,7 +1916,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <span className={sqlStyles.sectionTitle}>
                 Lint Warnings ({displayResult.lint.total})
               </span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '��'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'lint' ? '▼' : '▶'}</span>
             </div>
             {expandedSection === 'lint' && (
               <div className={sqlStyles.sectionContent}>
@@ -911,7 +1945,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           <div className={sqlStyles.sqlSection}>
             <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'analysis' ? null : 'analysis')}>
               <span className={sqlStyles.sectionTitle}>Query Analysis</span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'analysis' ? '▼' : '▶'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'analysis' ? '��' : '▶'}</span>
             </div>
             {expandedSection === 'analysis' && (
               <div className={sqlStyles.sectionContent}>
@@ -965,7 +1999,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           <div className={sqlStyles.sqlSection}>
             <div className={sqlStyles.sectionHeader} onClick={() => setExpandedSection(expandedSection === 'parseTree' ? null : 'parseTree')}>
               <span className={sqlStyles.sectionTitle}>Parse Tree</span>
-              <span className={sqlStyles.sectionToggle}>{expandedSection === 'parseTree' ? '▼' : '▶'}</span>
+              <span className={sqlStyles.sectionToggle}>{expandedSection === 'parseTree' ? '▼' : '���'}</span>
             </div>
             {expandedSection === 'parseTree' && (
               <div className={sqlStyles.sectionContent}>
@@ -1227,64 +2261,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
           ].filter(f => f.value !== undefined && f.value !== null)
         }
-
-        // Case Converter - show as structured fields
-        if (activeToolkitSection === 'caseConverter' && result.caseConverter && typeof result.caseConverter === 'object') {
-          const fields = []
-          if (result.caseConverter.uppercase) {
-            fields.push({ label: 'UPPERCASE', value: result.caseConverter.uppercase })
-          }
-          if (result.caseConverter.lowercase) {
-            fields.push({ label: 'lowercase', value: result.caseConverter.lowercase })
-          }
-          if (result.caseConverter.titleCase) {
-            fields.push({ label: 'Title Case', value: result.caseConverter.titleCase })
-          }
-          if (result.caseConverter.sentenceCase) {
-            fields.push({ label: 'Sentence case', value: result.caseConverter.sentenceCase })
-          }
-          return fields.filter(f => f.value !== undefined && f.value !== null)
-        }
-
-
-        // Text Analyzer - show as structured fields
-        if (activeToolkitSection === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
-          const fields = []
-          if (result.textAnalyzer.readability) {
-            if (result.textAnalyzer.readability.readabilityLevel) {
-              fields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
-            }
-            if (result.textAnalyzer.readability.fleschReadingEase !== undefined) {
-              fields.push({ label: 'Flesch Reading Ease', value: result.textAnalyzer.readability.fleschReadingEase })
-            }
-            if (result.textAnalyzer.readability.fleschKincaidGrade !== undefined) {
-              fields.push({ label: 'Flesch-Kincaid Grade', value: result.textAnalyzer.readability.fleschKincaidGrade })
-            }
-          }
-          if (result.textAnalyzer.statistics) {
-            if (result.textAnalyzer.statistics.words !== undefined) {
-              fields.push({ label: 'Words', value: result.textAnalyzer.statistics.words })
-            }
-            if (result.textAnalyzer.statistics.characters !== undefined) {
-              fields.push({ label: 'Characters', value: result.textAnalyzer.statistics.characters })
-            }
-            if (result.textAnalyzer.statistics.sentences !== undefined) {
-              fields.push({ label: 'Sentences', value: result.textAnalyzer.statistics.sentences })
-            }
-            if (result.textAnalyzer.statistics.lines !== undefined) {
-              fields.push({ label: 'Lines', value: result.textAnalyzer.statistics.lines })
-            }
-            if (result.textAnalyzer.statistics.averageWordLength !== undefined) {
-              fields.push({ label: 'Avg Word Length', value: result.textAnalyzer.statistics.averageWordLength?.toFixed(2) })
-            }
-            if (result.textAnalyzer.statistics.averageWordsPerSentence !== undefined) {
-              fields.push({ label: 'Avg Words per Sentence', value: result.textAnalyzer.statistics.averageWordsPerSentence?.toFixed(2) })
-            }
-          }
-          return fields.filter(f => f.value !== undefined && f.value !== null)
-        }
-
-        // All other sections render as full-height text, not structured fields
         return null
 
       default:
@@ -1292,420 +2268,35 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  // Helper to wrap errors in OutputTabs format
-  const createErrorTab = (errorMsg) => {
-    return {
-      id: 'error',
-      label: 'Error',
-      content: errorMsg,
-      contentType: 'text',
-    }
-  }
-
-  // Helper to format JSON into a readable, modern layout
-  const formatJsonForDisplay = (data) => {
-    if (typeof data === 'string') {
-      try {
-        data = JSON.parse(data)
-      } catch (e) {
-        return data
-      }
-    }
-
-    const formatValue = (val, indent = 0) => {
-      const spaces = ' '.repeat(indent)
-      if (val === null) return 'null'
-      if (typeof val === 'boolean') return val.toString()
-      if (typeof val === 'number') return val.toString()
-      if (typeof val === 'string') return `"${val}"`
-      if (Array.isArray(val)) {
-        if (val.length === 0) return '[]'
-        const items = val.map(v => formatValue(v, indent + 2))
-        return `[${items.join(', ')}]`
-      }
-      if (typeof val === 'object') {
-        const keys = Object.keys(val)
-        if (keys.length === 0) return '{}'
-        const lines = keys.map(k => {
-          const v = val[k]
-          return `${spaces}  "${k}": ${formatValue(v, indent + 2)}`
-        })
-        return `{\n${lines.join(',\n')}\n${spaces}}`
-      }
-      return String(val)
-    }
-
-    return formatValue(data)
-  }
-
+  // Router for output rendering
   const renderOutput = () => {
-    // Check for top-level errors, but allow tools to handle them internally
-    if (error && !['jwt-decoder', 'sql-formatter', 'js-formatter', 'xml-formatter', 'json-formatter', 'color-converter'].includes(toolId)) {
-      return (
-        <div className={styles.error}>
-          <strong>Error:</strong> {error}
-        </div>
-      )
-    }
-
-    if (!displayResult) {
-      return null
-    }
-
-    // Special handling for SQL Formatter
-    if (toolId === 'sql-formatter' && displayResult.formatted) {
-      return renderSqlFormatterOutput()
-    }
-
-    // Special handling for JavaScript Formatter
-    if (toolId === 'js-formatter' && (displayResult.formatted || displayResult.minified || displayResult.obfuscated || displayResult.errors || displayResult.linting || displayResult.analysis || displayResult.security)) {
-      return renderJsFormatterOutput()
-    }
-
-    // Special handling for XML Formatter
-    if (toolId === 'xml-formatter' && (typeof displayResult === 'string' || displayResult.result || displayResult.formatted)) {
-      return renderXmlFormatterOutput()
-    }
-
-    // Special handling for JSON Formatter
-    if (toolId === 'json-formatter' && (typeof displayResult === 'string' || displayResult.isValid !== undefined)) {
-      return renderJsonFormatterOutput()
-    }
-
-    // Special handling for Color Converter
-    if (toolId === 'color-converter' && displayResult && (displayResult.hex || displayResult.rgb || displayResult.hsl)) {
-      return renderColorConverterOutput()
-    }
-
-    // Special handling for JWT Decoder - handle errors inside tabs
-    if (toolId === 'jwt-decoder') {
-      const tabs = []
-      if (displayResult?.error || error) {
-        tabs.push(createErrorTab(displayResult?.error || error))
-        return <OutputTabs tabs={tabs} showCopyButton={true} />
-      }
-      if (displayResult && displayResult.decoded) {
+    switch (toolId) {
+      case 'js-formatter':
+        return renderJsFormatterOutput()
+      case 'css-formatter':
+        return renderCssFormatterOutput()
+      case 'markdown-html-formatter':
+        return renderMarkdownFormatterOutput()
+      case 'sql-formatter':
+        return renderSqlFormatterOutput()
+      case 'color-converter':
+        return renderColorConverterOutput()
+      case 'jwt-decoder':
         return renderJwtDecoderOutput()
-      }
-      return null
-    }
-
-    // Special handling for text-toolkit sections that render as full-height text
-    if (toolId === 'text-toolkit' && displayResult) {
-      let textContent = null
-      let hasContentForCurrentSection = false
-
-      if (activeToolkitSection === 'findReplace') {
-        hasContentForCurrentSection = !!displayResult.findReplace
-        textContent = displayResult.findReplace
-      } else if (activeToolkitSection === 'slugGenerator') {
-        hasContentForCurrentSection = !!displayResult.slugGenerator
-        textContent = displayResult.slugGenerator
-      } else if (activeToolkitSection === 'reverseText') {
-        hasContentForCurrentSection = !!displayResult.reverseText
-        textContent = displayResult.reverseText
-      } else if (activeToolkitSection === 'removeExtras') {
-        hasContentForCurrentSection = !!displayResult.removeExtras
-        textContent = displayResult.removeExtras
-      } else if (activeToolkitSection === 'whitespaceVisualizer') {
-        hasContentForCurrentSection = !!displayResult.whitespaceVisualizer
-        textContent = displayResult.whitespaceVisualizer
-      } else if (activeToolkitSection === 'sortLines') {
-        hasContentForCurrentSection = !!displayResult.sortLines
-        textContent = displayResult.sortLines
-      }
-
-      // Only render text content if we have it for the current section
-      if (textContent) {
-        return (
-          <OutputTabs
-            tabs={[
-              {
-                id: 'output',
-                label: 'Output',
-                content: textContent,
-                contentType: 'text',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      // If the current section is a full-height text section but we don't have content for it,
-      // don't render the old structured output - wait for the new result
-      if (!hasContentForCurrentSection && ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)) {
-        return null
-      }
-
-      // Text Diff - show JSON with OutputTabs
-      if (activeToolkitSection === 'textDiff' && displayResult.textDiff) {
-        return (
-          <OutputTabs
-            tabs={[
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult.textDiff,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      // Word Frequency - show JSON with OutputTabs
-      if (activeToolkitSection === 'wordFrequency' && displayResult.wordFrequency) {
-        return (
-          <OutputTabs
-            tabs={[
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult.wordFrequency,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-    }
-
-    // String Reverse - show friendly + JSON tabs
-    if (toolId === 'string-reverse' && displayResult.reversed !== undefined) {
-      const friendlyView = ({ onCopyCard, copiedCardId }) => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Original</p>
-              <button className="copy-action" onClick={() => onCopyCard(displayResult.original, 'original')} title="Copy original">
-                {copiedCardId === 'original' ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.original}</code>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Reversed</p>
-              <button className="copy-action" onClick={() => onCopyCard(displayResult.reversed, 'reversed')} title="Copy reversed">
-                {copiedCardId === 'reversed' ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <code style={{ display: 'block', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px', wordBreak: 'break-all' }}>{displayResult.reversed}</code>
-          </div>
-          <div style={{ padding: '12px', backgroundColor: 'rgba(0, 0, 0, 0.02)', borderRadius: '4px', border: '1px solid var(--color-border, #ddd)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <p style={{ margin: '0', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary, #666)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Length</p>
-              <button className="copy-action" onClick={() => onCopyCard(displayResult.length, 'length')} title="Copy length">
-                {copiedCardId === 'length' ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <p style={{ margin: '0', padding: '8px', fontFamily: 'Courier New, monospace', fontSize: '13px' }}>{displayResult.length} characters</p>
-          </div>
-        </div>
-      )
-      return <OutputTabs friendlyView={friendlyView} jsonData={displayResult} showCopyButton={true} />
-    }
-
-    // Text Stats - show friendly + JSON tabs
-    if (toolId === 'text-stats' && displayResult.characters !== undefined) {
-      const stats = [
-        { id: 'characters', label: 'Characters', value: displayResult.characters },
-        { id: 'without-spaces', label: 'Without Spaces', value: displayResult.charactersWithoutSpaces },
-        { id: 'words', label: 'Words', value: displayResult.words },
-        { id: 'lines', label: 'Lines', value: displayResult.lines },
-        { id: 'paragraphs', label: 'Paragraphs', value: displayResult.paragraphs },
-        { id: 'sentences', label: 'Sentences', value: displayResult.sentences },
-        { id: 'avg-word-length', label: 'Avg Word Length', value: displayResult.averageWordLength },
-        { id: 'avg-words-per-line', label: 'Avg Words/Line', value: displayResult.averageWordsPerLine },
-      ]
-
-      const friendlyView = ({ onCopyCard, copiedCardId }) => (
-        <div className={styles.structuredOutput}>
-          {stats.map((stat) => (
-            <div key={stat.id} className={styles.copyCard}>
-              <div className={styles.copyCardHeader}>
-                <span className={styles.copyCardLabel}>{stat.label}</span>
-                <button
-                  className="copy-action"
-                  onClick={() => onCopyCard(stat.value, stat.id)}
-                  title={`Copy ${stat.label}`}
-                >
-                  {copiedCardId === stat.id ? '✓' : <FaCopy />}
-                </button>
-              </div>
-              <div className={styles.copyCardValue}>{stat.value}</div>
-            </div>
-          ))}
-        </div>
-      )
-      return <OutputTabs friendlyView={friendlyView} jsonData={displayResult} showCopyButton={true} />
-    }
-
-    if (displayResult?.resizedImage) {
-      return (
-        <div className={styles.imageOutput}>
-          <img src={displayResult.resizedImage} alt="Resized" className={styles.outputImage} />
-          <div className={styles.imageInfo}>
-            <p>Original: {displayResult.originalDimensions.width} x {displayResult.originalDimensions.height}px</p>
-            <p>Resized: {displayResult.newDimensions.width} x {displayResult.newDimensions.height}px</p>
-          </div>
-        </div>
-      )
-    }
-
-    if (typeof displayResult === 'string') {
-      return (
-        <OutputTabs
-          tabs={[
-            {
-              id: 'formatted',
-              label: 'Output',
-              content: displayResult,
-              contentType: 'text',
-            },
-          ]}
-          showCopyButton={true}
-        />
-      )
-    }
-
-    if (typeof displayResult === 'object') {
-      // Special handling for unit-converter
-      if (toolId === 'unit-converter') {
-        // Show hint for incomplete input states
-        if (displayResult?.status && displayResult.status !== 'ok') {
-          const hints = {
-            'empty': 'Enter a value with a unit, like "100 pounds" or "250 cm"',
-            'incomplete-number-or-unit': 'Keep typing... enter something like "100 pounds"',
-            'unknown-unit': 'Unit not recognized. Try "100 pounds", "250 cm", "5 ft", or "72 F"',
-            'parse-failed': 'Could not parse the input. Try "100 pounds" or "250 cm"'
-          }
-          return (
-            <div className={styles.hint}>
-              {hints[displayResult.status] || 'Keep typing...'}
-            </div>
-          )
+      case 'json-formatter':
+        return renderJsonFormatterOutput()
+      case 'xml-formatter':
+        return renderXmlFormatterOutput()
+      case 'yaml-formatter':
+        return renderYamlFormatterOutput()
+      default:
+        if (typeof displayResult === 'string') {
+          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: displayResult, contentType: 'text' }]} />
+        } else {
+          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'json', label: 'JSON', content: JSON.stringify(displayResult, null, 2), contentType: 'json' }]} />
         }
-
-        const unitCards = renderUnitConverterCards()
-        if (unitCards) {
-          return unitCards
-        }
-      }
-
-      // For text-toolkit with full-height text sections, don't show JSON fallback
-      const isFullHeightTextSection = toolId === 'text-toolkit' &&
-        ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection)
-
-      if (!isFullHeightTextSection) {
-        const structuredView = renderStructuredOutput()
-        if (structuredView) {
-          return (
-            <OutputTabs
-              tabs={[
-                {
-                  id: 'formatted',
-                  label: 'Output',
-                  content: structuredView,
-                  contentType: 'component',
-                },
-                {
-                  id: 'json',
-                  label: 'JSON',
-                  content: displayResult,
-                  contentType: 'json',
-                },
-              ]}
-              showCopyButton={true}
-            />
-          )
-        }
-      }
-
-      if (outputType === 'json' || (typeof displayResult === 'object' && !isFullHeightTextSection)) {
-        return (
-          <OutputTabs
-            tabs={[
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      if (displayResult.type === 'table' && Array.isArray(displayResult.data)) {
-        const tableComponent = (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  {Object.keys(displayResult.data[0] || {}).map(key => (
-                    <th key={key}>{key}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {displayResult.data.map((row, idx) => (
-                  <tr key={idx}>
-                    {Object.values(row).map((val, i) => (
-                      <td key={i}>{String(val)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-        return (
-          <OutputTabs
-            tabs={[
-              {
-                id: 'formatted',
-                label: 'Output',
-                content: tableComponent,
-                contentType: 'component',
-              },
-              {
-                id: 'json',
-                label: 'JSON',
-                content: displayResult,
-                contentType: 'json',
-              },
-            ]}
-            showCopyButton={true}
-          />
-        )
-      }
-
-      return (
-        <OutputTabs
-          tabs={[
-            {
-              id: 'json',
-              label: 'JSON',
-              content: displayResult,
-              contentType: 'json',
-            },
-          ]}
-          showCopyButton={true}
-        />
-      )
     }
   }
 
-  return (
-    <div className={styles.container}>
-      <div className={`${styles.content} ${loading ? styles.isLoading : ''}`}>
-        {renderOutput()}
-      </div>
-    </div>
-  )
+  return renderOutput()
 }

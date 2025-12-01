@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
+import LineNumbers from './LineNumbers'
+import SyntaxHighlighter from './SyntaxHighlighter'
 import styles from '../styles/output-tabs.module.css'
 
 export default function OutputTabs({
@@ -9,11 +11,19 @@ export default function OutputTabs({
   showCopyButton = false,
   title = 'Output',
   onCopyCard = null,
+  toolCategory = null,
+  toolId = null,
 }) {
+  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
+  const showLineNumbers = codeRelatedCategories.includes(toolCategory)
   const [activeTab, setActiveTab] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
+  const codeLineNumbersRef = useRef(null)
+  const codeContentRef = useRef(null)
+  const textLineNumbersRef = useRef(null)
+  const textContentRef = useRef(null)
 
   // Generate a user-friendly view from JSON data
   const generateFriendlyTab = (jsonContent) => {
@@ -216,7 +226,9 @@ export default function OutputTabs({
   if (tabConfig && tabConfig.length === 1 && tabConfig[0].contentType === 'json') {
     const friendlyTab = generateFriendlyTab(tabConfig[0].content)
     if (friendlyTab) {
-      finalTabConfig = [friendlyTab, ...tabConfig]
+      // Change the JSON tab label to "JSON" when showing friendly view
+      const jsonTab = { ...tabConfig[0], label: 'JSON' }
+      finalTabConfig = [friendlyTab, jsonTab]
     }
   }
 
@@ -339,22 +351,61 @@ export default function OutputTabs({
 
     // Handle JSON content
     if (contentType === 'json' || contentType === 'code') {
+      const codeContent = getJsonString()
+
+      const handleCodeScroll = (e) => {
+        // Sync line numbers scroll with code content scroll
+        if (codeLineNumbersRef.current?.element) {
+          codeLineNumbersRef.current.element.scrollTop = e.target.scrollTop
+        }
+      }
+
+      // Determine language from tab config or toolId
+      let language = activeTabConfig.language || 'text'
+      if (!language || language === 'text') {
+        if (toolId === 'json-formatter') language = 'json'
+        else if (toolId === 'js-formatter') language = 'javascript'
+        else if (toolId === 'css-formatter') language = 'css'
+        else if (toolId === 'html-formatter' || toolId === 'markdown-html-formatter') language = 'markup'
+        else if (toolId === 'xml-formatter') language = 'markup'
+        else if (toolId === 'yaml-formatter') language = 'yaml'
+        else if (toolId === 'sql-formatter') language = 'sql'
+        else if (contentType === 'json') language = 'json'
+      }
+
       return (
-        <div className={styles.jsonContent}>
-          <pre className={styles.jsonCode}>
-            <code>{getJsonString()}</code>
-          </pre>
+        <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
+          {showLineNumbers && <LineNumbers ref={codeLineNumbersRef} content={codeContent} />}
+          <div className={styles.codeContentWrapper} ref={codeContentRef} onScroll={handleCodeScroll}>
+            <SyntaxHighlighter
+              code={codeContent}
+              language={language}
+              toolId={toolId}
+              className={styles.jsonCode}
+            />
+          </div>
         </div>
       )
     }
 
     // Handle plain text content
     if (contentType === 'text') {
+      const textContent = String(content)
+
+      const handleTextScroll = (e) => {
+        if (textLineNumbersRef.current?.element) {
+          textLineNumbersRef.current.element.scrollTop = e.target.scrollTop
+        }
+      }
+
       return (
-        <div className={styles.textContent}>
-          <pre className={styles.textCode}>
-            <code>{String(content)}</code>
-          </pre>
+        <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
+          {showLineNumbers && <LineNumbers ref={textLineNumbersRef} content={textContent} />}
+          <div className={styles.codeContentWrapper} ref={textContentRef} onScroll={handleTextScroll}>
+            <pre className={styles.textCode}>
+              <code>{textContent}</code>
+            </pre>
+          </div>
         </div>
       )
     }

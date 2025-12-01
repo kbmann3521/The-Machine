@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: ['*.fly.dev', '*.builder.codes'],
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Mark server-only packages as external to prevent bundling warnings
