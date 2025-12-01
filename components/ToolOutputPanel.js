@@ -1475,7 +1475,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: typeof displayResult.formatted === 'string' ? displayResult.formatted : JSON.stringify(displayResult.formatted, null, 2),
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
