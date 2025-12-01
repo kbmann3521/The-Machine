@@ -87,6 +87,21 @@
   line-height: 1.5 !important;
 }
 
+.simpleTextarea {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 0 0 6px 6px;
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+}
+
 .uploadImageButton {
   display: flex;
   align-items: center;
