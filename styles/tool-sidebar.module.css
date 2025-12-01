@@ -136,15 +136,6 @@
   box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.15);
 }
 
-.toolItem.topMatch {
-  animation: none;
-}
-
-@media (max-width: 991px) {
-  .toolItem.topMatch {
-    animation: slideInTool 0.6s cubic-bezier(0.4, 0, 0.2, 1), highlightPulse 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
-  }
-}
 
 .toolRank {
   display: none;
