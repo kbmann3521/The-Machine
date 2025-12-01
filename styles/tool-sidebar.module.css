@@ -44,7 +44,6 @@
   border-radius: 6px;
   background-color: var(--color-background-primary);
   color: var(--color-text-primary);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
 }
 
