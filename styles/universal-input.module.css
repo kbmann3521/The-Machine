@@ -155,7 +155,7 @@
   line-height: 1.5;
   color: var(--color-text-primary);
   position: relative;
-  z-index: 2;
+  z-index: 3;
   box-sizing: border-box;
   caret-color: var(--color-text-primary);
 }
