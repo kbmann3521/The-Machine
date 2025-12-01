@@ -107,35 +107,20 @@
 }
 
 .resizeHandle {
-  width: 100%;
-  height: 10px;
-  background: linear-gradient(180deg, transparent 0%, var(--color-border) 45%, var(--color-border) 55%, transparent 100%);
-  cursor: ns-resize;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: se-resize;
   user-select: none;
-  transition: background 0.2s;
-  border-radius: 0 0 6px 6px;
-  flex-shrink: 0;
-  position: relative;
-  margin-top: auto;
+  background-image: linear-gradient(135deg, transparent 0%, transparent 50%, var(--color-border) 50%, var(--color-border) 100%);
+  border-radius: 0 0 6px 0;
+  transition: background-color 0.2s;
 }
 
 .resizeHandle:hover {
-  background: linear-gradient(180deg, transparent 0%, #0066cc 45%, #0066cc 55%, transparent 100%);
-}
-
-.resizeHandle::before {
-  content: '';
-  width: 32px;
-  height: 4px;
-  background-color: var(--color-border);
-  border-radius: 2px;
-}
-
-.resizeHandle:hover::before {
-  background-color: #0066cc;
+  background-image: linear-gradient(135deg, transparent 0%, transparent 50%, #0066cc 50%, #0066cc 100%);
 }
 
 .uploadImageButton {
