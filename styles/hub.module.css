@@ -111,24 +111,12 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   scrollbar-gutter: stable;
-  animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   contain: layout style;
   min-height: 0;
 }
 
 .leftPanel::-webkit-scrollbar {
   display: none;
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 .inputSection {
