@@ -95,10 +95,12 @@
 
 .tabContent {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 
 .tabContentFull {
@@ -122,6 +124,8 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  flex: 1;
+  min-height: 0;
 }
 
 .dataSection {
