@@ -572,7 +572,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: primaryTabId,
           label: 'Output',
           content: primaryTabContent,
-          contentType: 'code',
+          contentType: 'codemirror',
         })
       }
     }
