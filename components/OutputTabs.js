@@ -391,8 +391,8 @@ export default function OutputTabs({
       const textContent = String(content)
 
       const handleTextScroll = (e) => {
-        if (textLineNumbersRef.current) {
-          textLineNumbersRef.current.scrollTop = e.target.scrollTop
+        if (textLineNumbersRef.current?.element) {
+          textLineNumbersRef.current.element.scrollTop = e.target.scrollTop
         }
       }
 
