@@ -226,7 +226,9 @@ export default function OutputTabs({
   if (tabConfig && tabConfig.length === 1 && tabConfig[0].contentType === 'json') {
     const friendlyTab = generateFriendlyTab(tabConfig[0].content)
     if (friendlyTab) {
-      finalTabConfig = [friendlyTab, ...tabConfig]
+      // Change the JSON tab label to "JSON" when showing friendly view
+      const jsonTab = { ...tabConfig[0], label: 'JSON' }
+      finalTabConfig = [friendlyTab, jsonTab]
     }
   }
 
