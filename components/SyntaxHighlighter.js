@@ -2,6 +2,16 @@ import { useEffect, useRef } from 'react'
 import Prism from 'prismjs'
 import 'prismjs/themes/prism-tomorrow.css'
 
+// Load common language components on client side only
+if (typeof window !== 'undefined') {
+  require('prismjs/components/prism-javascript')
+  require('prismjs/components/prism-json')
+  require('prismjs/components/prism-css')
+  require('prismjs/components/prism-markup')
+  require('prismjs/components/prism-yaml')
+  require('prismjs/components/prism-sql')
+}
+
 // Map tool types/IDs to Prism language codes
 const TOOL_LANGUAGE_MAP = {
   'js-formatter': 'javascript',
