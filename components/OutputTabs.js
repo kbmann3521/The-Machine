@@ -357,16 +357,18 @@ export default function OutputTabs({
         }
       }
 
-      // Determine language from toolId
-      let language = 'text'
-      if (toolId === 'json-formatter') language = 'json'
-      else if (toolId === 'js-formatter') language = 'javascript'
-      else if (toolId === 'css-formatter') language = 'css'
-      else if (toolId === 'html-formatter' || toolId === 'markdown-html-formatter') language = 'markup'
-      else if (toolId === 'xml-formatter') language = 'markup'
-      else if (toolId === 'yaml-formatter') language = 'yaml'
-      else if (toolId === 'sql-formatter') language = 'sql'
-      else if (contentType === 'json') language = 'json'
+      // Determine language from tab config or toolId
+      let language = activeTabConfig.language || 'text'
+      if (!language || language === 'text') {
+        if (toolId === 'json-formatter') language = 'json'
+        else if (toolId === 'js-formatter') language = 'javascript'
+        else if (toolId === 'css-formatter') language = 'css'
+        else if (toolId === 'html-formatter' || toolId === 'markdown-html-formatter') language = 'markup'
+        else if (toolId === 'xml-formatter') language = 'markup'
+        else if (toolId === 'yaml-formatter') language = 'yaml'
+        else if (toolId === 'sql-formatter') language = 'sql'
+        else if (contentType === 'json') language = 'json'
+      }
 
       return (
         <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
