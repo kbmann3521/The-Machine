@@ -2283,7 +2283,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'yaml-formatter':
         return renderYamlFormatterOutput()
       default:
-        return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: String(displayResult), contentType: 'text' }]} />
+        const defaultContent = typeof displayResult === 'string' ? displayResult : JSON.stringify(displayResult, null, 2)
+        return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: defaultContent, contentType: 'text' }]} />
     }
   }
 
