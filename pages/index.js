@@ -333,15 +333,17 @@ export default function Home() {
           // Only Supabase controls visibility
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
 
-          // Auto-select the best match tool ONLY on input addition when not in advanced mode
+          // Auto-select the best match tool ONLY on paste, once, when not in advanced mode
           if (toolsWithMetadata.length > 0) {
             const topTool = toolsWithMetadata[0]
             // Only auto-select if:
-            // 1. Input was added (not deleted) AND
-            // 2. Not in advanced mode (user hasn't manually selected a tool)
-            if (isAddition && !advancedMode) {
-              console.log('Auto-selecting:', topTool.name)
+            // 1. Content was pasted (not typed) AND
+            // 2. Auto-selection hasn't been done yet AND
+            // 3. Not in advanced mode (user hasn't manually selected a tool)
+            if (lastInputWasPasteRef.current && !autoSelectionDoneRef.current && !advancedMode) {
+              console.log('Auto-selecting on paste:', topTool.name)
               setSelectedTool(topTool)
+              autoSelectionDoneRef.current = true // Disable future auto-selection
             }
 
             // Check for text cleaning issues
