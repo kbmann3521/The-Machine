@@ -548,7 +548,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderYamlFormatterOutput = () => {
@@ -722,7 +722,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderMarkdownFormatterOutput = () => {
@@ -889,7 +889,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderCssFormatterOutput = () => {
@@ -1054,7 +1054,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderSqlFormatterOutput = () => {
@@ -1331,7 +1331,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderColorConverterOutput = () => {
@@ -1383,7 +1383,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       },
     ]
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJwtDecoderOutput = () => {
@@ -1397,7 +1397,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'text',
         }
       ]
-      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
     }
 
     if (!displayResult || !displayResult.decoded) return null
@@ -1412,7 +1412,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     ]
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJsonFormatterOutput = () => {
@@ -1463,7 +1463,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         },
       ]
 
-      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
     }
 
     const tabs = []
@@ -1537,7 +1537,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderXmlFormatterOutput = () => {
@@ -1551,7 +1551,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'code',
         },
       ]
-      return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
     }
 
     // Return null if displayResult is not an object
@@ -1872,7 +1872,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return null
     }
 
-    return <OutputTabs toolCategory={toolCategory} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderSqlFormatterOutputOld = () => {
