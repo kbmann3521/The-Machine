@@ -2511,7 +2511,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'json'
           })
         } else {
-          // Text-based toolkit sections (reverseText, caseConverter, etc.)
+          // Text-based toolkit sections
           const textContent = displayResult?.[activeToolkitSection]
           if (textContent && typeof textContent === 'string') {
             tabs.push({
@@ -2520,6 +2520,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               content: textContent,
               contentType: 'text'
             })
+            // Add JSON tab for slug generator, reverse text, and clean text
+            if (['slugGenerator', 'reverseText', 'removeExtras'].includes(activeToolkitSection)) {
+              tabs.push({
+                id: 'json',
+                label: 'JSON',
+                content: JSON.stringify({ result: textContent }, null, 2),
+                contentType: 'json'
+              })
+            }
           } else {
             // Fallback for non-string content
             tabs.push({
