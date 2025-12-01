@@ -2276,41 +2276,65 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
-      case 'text-toolkit':
-        // Handle different text toolkit sections - structured fields use renderStructuredOutput, text use OutputTabs
-        if (activeToolkitSection === 'wordCounter' || activeToolkitSection === 'wordFrequency') {
-          // Structured field output - use renderStructuredOutput
-          const structuredOutput = renderStructuredOutput()
-          if (structuredOutput) return structuredOutput
+      case 'text-toolkit': {
+        const tabs = []
+
+        if (activeToolkitSection === 'wordCounter' && displayResult?.wordCounter) {
+          // Word Counter - show structured fields as main output, plus JSON
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: renderStructuredOutput(),
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.wordCounter, null, 2),
+            contentType: 'json'
+          })
+        } else if (activeToolkitSection === 'wordFrequency' && displayResult?.wordFrequency) {
+          // Word Frequency - show structured fields as main output, plus JSON
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: renderStructuredOutput(),
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.wordFrequency, null, 2),
+            contentType: 'json'
+          })
+        } else {
+          // Text-based toolkit sections (reverseText, caseConverter, etc.)
+          const textContent = displayResult?.[activeToolkitSection]
+          if (textContent && typeof textContent === 'string') {
+            tabs.push({
+              id: 'output',
+              label: 'OUTPUT',
+              content: textContent,
+              contentType: 'text'
+            })
+          } else {
+            // Fallback for non-string content
+            tabs.push({
+              id: 'output',
+              label: 'OUTPUT',
+              content: typeof textContent === 'object' ? JSON.stringify(textContent, null, 2) : String(textContent),
+              contentType: 'text'
+            })
+          }
         }
-        // Text-based toolkit sections
-        const textContent = displayResult?.[activeToolkitSection]
-        if (textContent) {
-          const contentLabel = activeToolkitSection.charAt(0).toUpperCase() + activeToolkitSection.slice(1).replace(/([A-Z])/g, ' $1')
-          return (
-            <OutputTabs
-              toolCategory={toolCategory}
-              tabs={[{
-                id: activeToolkitSection,
-                label: contentLabel,
-                content: textContent,
-                contentType: 'text'
-              }]}
-            />
-          )
-        }
-        // Default - show all toolkit data
+
         return (
           <OutputTabs
             toolCategory={toolCategory}
-            tabs={[{
-              id: 'all',
-              label: 'Output',
-              content: JSON.stringify(displayResult, null, 2),
-              contentType: 'json'
-            }]}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
           />
         )
+      }
       case 'js-formatter':
         return renderJsFormatterOutput()
       case 'css-formatter':
