@@ -106,8 +106,8 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
 
   const handleScroll = (e) => {
     if (syntaxHighlightLayerRef.current) {
-      syntaxHighlightLayerRef.current.scrollTop = e.target.scrollTop
-      syntaxHighlightLayerRef.current.scrollLeft = e.target.scrollLeft
+      // Use transform to shift the syntax highlighting layer to match textarea scroll
+      syntaxHighlightLayerRef.current.style.transform = `translate(-${e.target.scrollLeft}px, -${e.target.scrollTop}px)`
     }
     if (highlightsLayerRef.current) {
       highlightsLayerRef.current.scrollTop = e.target.scrollTop
