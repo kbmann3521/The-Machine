@@ -94,7 +94,53 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const [imagePreview, setImagePreview] = useState(null)
   const [charCount, setCharCount] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [inputHeight, setInputHeight] = useState(300)
+  const [isResizing, setIsResizing] = useState(false)
   const fileInputRef = useRef(null)
+  const inputFieldRef = useRef(null)
+  const startYRef = useRef(0)
+  const startHeightRef = useRef(0)
+
+  // Load saved height from localStorage on mount
+  useEffect(() => {
+    const savedHeight = localStorage.getItem('inputBoxHeight')
+    if (savedHeight) {
+      const height = Math.max(300, Math.min(600, parseInt(savedHeight, 10)))
+      setInputHeight(height)
+    }
+  }, [])
+
+  // Handle resize start
+  const handleResizeStart = (e) => {
+    setIsResizing(true)
+    startYRef.current = e.clientY
+    startHeightRef.current = inputHeight
+  }
+
+  // Handle resize move
+  useEffect(() => {
+    if (!isResizing) return
+
+    const handleMouseMove = (e) => {
+      const delta = e.clientY - startYRef.current
+      const newHeight = Math.max(300, Math.min(600, startHeightRef.current + delta))
+      setInputHeight(newHeight)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      // Save to localStorage when resize is complete
+      localStorage.setItem('inputBoxHeight', inputHeight.toString())
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing, inputHeight])
 
   const getLanguage = () => {
     if (!selectedTool) return undefined
