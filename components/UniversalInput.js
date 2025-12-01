@@ -330,17 +330,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             />
             {selectedTool && isScriptingLanguageTool(selectedTool.toolId) ? (
               <div className={styles.codeMirrorWrapper} onPaste={handlePaste}>
-                {!inputText && (
-                  <div className={styles.placeholderLineNumbers}>
-                    {getPlaceholder()
-                      .split('\n')
-                      .map((_, idx) => (
-                        <div key={idx} className={styles.placeholderLineNumber}>
-                          {idx + 1}
-                        </div>
-                      ))}
-                  </div>
-                )}
                 <CodeMirror
                   value={inputText}
                   onChange={handleTextChange}
@@ -350,7 +339,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                   height="100%"
                   theme="dark"
                   basicSetup={{
-                    lineNumbers: false,
+                    lineNumbers: true,
                     foldGutter: false,
                     dropCursor: true,
                     allowMultipleSelections: true,
