@@ -10,6 +10,7 @@ if (typeof window !== 'undefined') {
   require('prismjs/components/prism-markup')
   require('prismjs/components/prism-yaml')
   require('prismjs/components/prism-sql')
+  require('prismjs/components/prism-markdown')
 }
 
 // Map tool types/IDs to Prism language codes
