@@ -307,10 +307,12 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           </button>
 
           <div
-            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
+            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''} ${isResizing ? styles.resizing : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            ref={inputFieldRef}
+            style={{ height: inputHeight + 'px' }}
           >
             <input
               type="file"
@@ -352,6 +354,11 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                 className={styles.simpleTextarea}
               />
             )}
+            <div
+              className={styles.resizeHandle}
+              onMouseDown={handleResizeStart}
+              title="Drag to resize input box"
+            />
           </div>
         </div>
 
