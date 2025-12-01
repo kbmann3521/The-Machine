@@ -729,8 +729,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
 
-    // Add primary output tab first - only show if validation passed
-    if (displayResult.formatted && !displayResult.hideOutput) {
+    // Add primary output tab - always show formatted result
+    if (displayResult.formatted) {
       tabs.push({
         id: 'formatted',
         label: 'Output',
@@ -739,7 +739,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    // Validation tab - show validation errors and status
+    // Validation tab - show if enabled
     if (displayResult.showValidation !== false) {
       const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
@@ -798,9 +798,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
     }
 
-    // Linting tab - show warnings from diagnostics (if linting is enabled)
-    if (displayResult.showLinting && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
-      const lintingWarnings = displayResult.diagnostics.filter(d => d.category === 'lint')
+    // Linting tab - show if enabled and content is valid
+    if (displayResult.showLinting !== false) {
+      const lintingWarnings = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+        ? displayResult.diagnostics.filter(d => d.category === 'lint')
+        : []
       const isValid = displayResult.isWellFormed !== false
 
       let lintingLabel = 'Linting'
