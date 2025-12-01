@@ -108,19 +108,43 @@
 
 .resizeHandle {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 20px;
-  height: 20px;
+  bottom: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
   cursor: se-resize;
   user-select: none;
-  background-image: linear-gradient(135deg, transparent 0%, transparent 50%, var(--color-border) 50%, var(--color-border) 100%);
-  border-radius: 0 0 6px 0;
-  transition: background-color 0.2s;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  transition: all 0.2s ease;
 }
 
-.resizeHandle:hover {
-  background-image: linear-gradient(135deg, transparent 0%, transparent 50%, #0066cc 50%, #0066cc 100%);
+.resizeHandle::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg,
+    transparent 0%,
+    transparent 45%,
+    var(--color-text-secondary) 45%,
+    var(--color-text-secondary) 100%);
+  border-radius: 0 0 2px 0;
+  transition: all 0.2s ease;
+  opacity: 0.5;
+}
+
+.resizeHandle:hover::after {
+  background: linear-gradient(135deg,
+    transparent 0%,
+    transparent 45%,
+    #0066cc 45%,
+    #0066cc 100%);
+  opacity: 1;
+  box-shadow: -1px -1px 3px rgba(0, 102, 204, 0.3);
 }
 
 .uploadImageButton {
