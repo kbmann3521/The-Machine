@@ -5,10 +5,8 @@ const LineNumbers = forwardRef(({ content = '', onScroll = null, lineHeight = 1.
   const containerRef = useRef(null)
 
   useImperativeHandle(ref, () => ({
-    scrollTop: (value) => {
-      if (containerRef.current) {
-        containerRef.current.scrollTop = value
-      }
+    get element() {
+      return containerRef.current
     },
     get scrollTop() {
       return containerRef.current?.scrollTop || 0
