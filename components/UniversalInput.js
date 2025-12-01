@@ -330,28 +330,39 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             />
             {selectedTool && isScriptingLanguageTool(selectedTool.toolId) ? (
               <div className={styles.codeMirrorWrapper} onPaste={handlePaste}>
+                {!inputText && (
+                  <div className={styles.placeholderLineNumbers}>
+                    {getPlaceholder()
+                      .split('\n')
+                      .map((_, idx) => (
+                        <div key={idx} className={styles.placeholderLineNumber}>
+                          {idx + 1}
+                        </div>
+                      ))}
+                  </div>
+                )}
                 <CodeMirror
-                value={inputText}
-                onChange={handleTextChange}
-                placeholder={getPlaceholder()}
-                extensions={[getLanguage()].filter(Boolean)}
-                className={`${styles.codeMirror} ${!inputText ? styles.codeMirrorEmpty : ''}`}
-                height="100%"
-                theme="dark"
-                basicSetup={{
-                  lineNumbers: true,
-                  foldGutter: false,
-                  dropCursor: true,
-                  allowMultipleSelections: true,
-                  indentOnInput: true,
-                  bracketMatching: true,
-                  closeBrackets: true,
-                  autocompletion: false,
-                  rectangularSelection: true,
-                  highlightSelectionMatches: true,
-                  searchKeymap: true,
-                }}
-              />
+                  value={inputText}
+                  onChange={handleTextChange}
+                  placeholder={getPlaceholder()}
+                  extensions={[getLanguage()].filter(Boolean)}
+                  className={styles.codeMirror}
+                  height="100%"
+                  theme="dark"
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: false,
+                    dropCursor: true,
+                    allowMultipleSelections: true,
+                    indentOnInput: true,
+                    bracketMatching: true,
+                    closeBrackets: true,
+                    autocompletion: false,
+                    rectangularSelection: true,
+                    highlightSelectionMatches: true,
+                    searchKeymap: true,
+                  }}
+                />
               </div>
             ) : (
               <textarea
