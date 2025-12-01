@@ -275,19 +275,11 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-  overflow-y: scroll;
   width: 100%;
   box-sizing: border-box;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  scrollbar-gutter: stable;
   background-color: var(--color-background-secondary);
   contain: layout style;
   min-height: 0;
-}
-
-.rightPanel::-webkit-scrollbar {
-  display: none;
 }
 
 .outputSection {
