@@ -2381,6 +2381,49 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             content: JSON.stringify(displayResult.textAnalyzer, null, 2),
             contentType: 'json'
           })
+        } else if (activeToolkitSection === 'caseConverter' && displayResult?.caseConverter) {
+          // Case Converter - show friendly view, plus JSON
+          const caseConverterData = displayResult.caseConverter
+          const friendlyViewContent = (
+            <div className={styles.caseConverterView}>
+              {caseConverterData.uppercase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Uppercase</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.uppercase}</div>
+                </div>
+              )}
+              {caseConverterData.lowercase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Lowercase</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.lowercase}</div>
+                </div>
+              )}
+              {caseConverterData.titleCase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Title Case</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.titleCase}</div>
+                </div>
+              )}
+              {caseConverterData.sentenceCase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Sentence Case</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.sentenceCase}</div>
+                </div>
+              )}
+            </div>
+          )
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: friendlyViewContent,
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.caseConverter, null, 2),
+            contentType: 'json'
+          })
         } else {
           // Text-based toolkit sections (reverseText, caseConverter, etc.)
           const textContent = displayResult?.[activeToolkitSection]
