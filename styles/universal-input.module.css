@@ -68,120 +68,14 @@
   border-color: #0066cc;
 }
 
-.textareaWithLineNumbers {
+.codeMirrorWrapper {
   display: flex;
   width: 100%;
   flex: 1;
   overflow: hidden;
   min-height: 160px;
   max-height: 280px;
-}
-
-.textareaWithLineNumbers.noLineNumbers {
-  border-radius: 6px;
-}
-
-.textareaWrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
-
-.syntaxHighlightLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  pointer-events: none;
-  z-index: 0;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.syntaxHighlightLayer::-webkit-scrollbar {
-  display: none;
-}
-
-.highlightsLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 12px 12px 0 12px;
-  overflow: auto;
-  pointer-events: none;
-  font-family: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  color: transparent;
-  z-index: 1;
-  box-sizing: border-box;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.highlightsLayer::-webkit-scrollbar {
-  display: none;
-}
-
-.highlightLine {
-  height: 1.5em;
-  background-color: transparent;
-}
-
-.errorHighlight {
-  height: 1.5em;
-  background-color: rgba(239, 68, 68, 0.15);
-  border-left: 3px solid #ef4444;
-  padding-left: 6px;
-  margin-left: -6px;
-}
-
-.warningHighlight {
-  height: 1.5em;
-  background-color: rgba(255, 167, 38, 0.1);
-  border-left: 3px solid #ffa726;
-  padding-left: 6px;
-  margin-left: -6px;
-}
-
-.textarea {
-  flex: 1;
-  min-height: 160px;
-  max-height: 280px;
-  padding: 12px;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  border: none;
-  border-radius: 0;
-  resize: none;
-  outline: none;
-  background-color: transparent;
-  line-height: 1.5;
-  color: transparent;
-  position: relative;
-  z-index: 3;
-  box-sizing: border-box;
-  caret-color: #0066cc;
-}
-
-.textarea::selection {
-  background-color: rgba(0, 102, 204, 0.3);
-}
-
-.textarea::placeholder {
-  color: var(--color-text-secondary);
-  opacity: 0.6;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.5;
+  border-radius: 0 0 6px 6px;
 }
 
 .uploadImageButton {
