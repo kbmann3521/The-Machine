@@ -1549,7 +1549,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: 'formatted',
           label: 'Output',
           content: displayResult,
-          contentType: 'code',
+          contentType: 'codemirror',
         },
       ]
       return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
@@ -1575,7 +1575,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'output',
         label: 'Output',
         content: primaryXml,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
@@ -1584,7 +1584,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'result',
         label: 'Result',
         content: displayResult.result,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
@@ -1593,7 +1593,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Formatted',
         content: displayResult.formatted,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
