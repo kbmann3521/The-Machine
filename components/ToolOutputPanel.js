@@ -732,18 +732,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Add primary output tab - always show formatted result unless hideOutput is set
     if (displayResult.formatted !== undefined) {
-      // Determine language based on convert mode
-      let language = 'markup' // default to HTML
-      if (configOptions?.convertTo === 'markdown') {
-        language = 'markdown'
-      }
-
       tabs.push({
         id: 'formatted',
         label: 'Output',
         content: displayResult.formatted,
-        contentType: 'code',
-        language: language,
+        contentType: 'codemirror',
       })
     }
 
