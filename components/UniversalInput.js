@@ -300,7 +300,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                 extensions={[getLanguage()].filter(Boolean)}
                 className={styles.codeMirror}
                 height="100%"
-                theme="dark"
+                theme={customTheme}
                 basicSetup={{
                   lineNumbers: true,
                   foldGutter: false,
