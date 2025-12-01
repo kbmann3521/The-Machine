@@ -166,7 +166,13 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const handleTextChange = (value) => {
     setInputText(value)
     setCharCount(value.length)
-    onInputChange(value)
+    const isPaste = isPasteRef.current
+    isPasteRef.current = false // Reset after use
+    onInputChange(value, null, null, isPaste)
+  }
+
+  const handlePaste = (e) => {
+    isPasteRef.current = true
   }
 
   const handleImageFile = (file) => {
