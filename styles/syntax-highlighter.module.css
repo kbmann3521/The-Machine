@@ -19,24 +19,23 @@
   white-space: pre;
 }
 
-/* Prism token colors for light theme (overrides) */
-@media (prefers-color-scheme: light) {
-  .preWrapper {
-    background-color: #f5f5f5;
-  }
-
-  .codeBlock {
-    color: #333;
-  }
+/* Override Prism token colors for consistency */
+:global(.token.keyword) {
+  color: inherit;
 }
 
-/* Prism token colors for dark theme (default Tomorrow theme) */
-@media (prefers-color-scheme: dark) {
-  .preWrapper {
-    background-color: #1d1f21;
-  }
+:global(.token.string) {
+  color: inherit;
+}
 
-  .codeBlock {
-    color: #c5c8c6;
-  }
+:global(.token.function) {
+  color: inherit;
+}
+
+:global(.token.number) {
+  color: inherit;
+}
+
+:global(.token.operator) {
+  color: inherit;
 }
