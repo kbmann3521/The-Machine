@@ -59,8 +59,51 @@ export default function SyntaxHighlighter({
   }
 
   useEffect(() => {
-    if (codeRef.current && code) {
-      Prism.highlightElement(codeRef.current)
+    // Dynamically load language components only on client side
+    if (typeof window !== 'undefined') {
+      const loadLanguageComponent = async () => {
+        try {
+          switch (lang) {
+            case 'javascript':
+            case 'typescript':
+            case 'json':
+            case 'css':
+            case 'scss':
+            case 'markup':
+            case 'html':
+            case 'xml':
+            case 'yaml':
+            case 'sql':
+            case 'markdown':
+            case 'python':
+            case 'php':
+            case 'java':
+            case 'cpp':
+            case 'csharp':
+            case 'ruby':
+            case 'go':
+            case 'rust':
+            case 'bash':
+            case 'lua':
+            case 'r':
+            case 'swift':
+            case 'kotlin':
+              await import(`prismjs/components/prism-${lang}`)
+              break
+            default:
+              break
+          }
+        } catch (e) {
+          // Language component not available, will use text highlighting
+          console.debug(`Prism component for ${lang} not found`)
+        }
+      }
+
+      loadLanguageComponent().then(() => {
+        if (codeRef.current && code) {
+          Prism.highlightElement(codeRef.current)
+        }
+      })
     }
   }, [code, lang])
 
