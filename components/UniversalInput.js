@@ -105,20 +105,19 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
 
 
   const handleScroll = (e) => {
-    const scrollLeft = e.target.scrollLeft
     const scrollTop = e.target.scrollTop
 
     if (syntaxHighlightLayerRef.current) {
       // Shift syntax highlighting layer to match textarea scroll using transform
-      syntaxHighlightLayerRef.current.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`
+      syntaxHighlightLayerRef.current.style.transform = `translateY(-${scrollTop}px)`
     }
     if (highlightsLayerRef.current) {
       // Shift highlights layer to match textarea scroll using transform
-      highlightsLayerRef.current.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`
+      highlightsLayerRef.current.style.transform = `translateY(-${scrollTop}px)`
     }
     if (lineNumbersRef.current?.element) {
       // Sync line numbers scroll with textarea scroll
-      lineNumbersRef.current.element.scrollTop = e.target.scrollTop
+      lineNumbersRef.current.element.scrollTop = scrollTop
     }
   }
 
