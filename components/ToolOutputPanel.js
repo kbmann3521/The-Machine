@@ -2399,11 +2399,66 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'json'
           })
         } else if (activeToolkitSection === 'textAnalyzer' && displayResult?.textAnalyzer) {
-          // Text Analyzer - show structured fields as main output, plus JSON
+          // Text Analyzer - show cards for readability and statistics, plus JSON
+          const analyzerData = displayResult.textAnalyzer
+          const analyzerViewContent = (
+            <div className={styles.textAnalyzerView}>
+              {analyzerData.readability && (
+                <div className={styles.analyzerSection}>
+                  <h3 className={styles.analyzerSectionTitle}>Readability</h3>
+                  <div className={styles.analyzerCardsGrid}>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Reading Level</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.readability.readabilityLevel}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Flesch Reading Ease</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschReadingEase}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Flesch-Kincaid Grade</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschKincaidGrade}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {analyzerData.statistics && (
+                <div className={styles.analyzerSection}>
+                  <h3 className={styles.analyzerSectionTitle}>Text Statistics</h3>
+                  <div className={styles.analyzerCardsGrid}>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Words</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.words}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Characters</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.characters}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Sentences</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.sentences}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Lines</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.lines}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Avg Word Length</span>
+                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordLength || 0).toFixed(2)}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Avg Words per Sentence</span>
+                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordsPerSentence || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
           tabs.push({
             id: 'output',
             label: 'OUTPUT',
-            content: renderStructuredOutput(),
+            content: analyzerViewContent,
             contentType: 'component'
           })
           tabs.push({
