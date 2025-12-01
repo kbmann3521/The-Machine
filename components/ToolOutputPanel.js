@@ -149,7 +149,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         tabs={[
           {
             id: 'default',
-            label: 'Output',
+            label: 'OUTPUT',
             content: 'Run the tool to see output here',
             contentType: 'text',
           },
@@ -260,7 +260,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
           tabs.push({
             id: primaryTabId,
-            label: 'Output',
+            label: 'OUTPUT',
             content: primaryTabContent,
             contentType: 'codemirror',
           })
