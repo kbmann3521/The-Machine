@@ -2287,7 +2287,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       case 'text-toolkit':
         // Word Counter
-        if (activeToolkitSection === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
+        if (section === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
           return [
             { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
             { label: 'Character Count', value: String(result.wordCounter.characterCount || 0) },
@@ -2298,7 +2298,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           ].filter(f => f.value !== undefined && f.value !== null)
         }
         // Word Frequency
-        if (activeToolkitSection === 'wordFrequency' && result.wordFrequency && typeof result.wordFrequency === 'object') {
+        if (section === 'wordFrequency' && result.wordFrequency && typeof result.wordFrequency === 'object') {
           const fields = []
           if (result.wordFrequency.totalUniqueWords !== undefined) fields.push({ label: 'Total Unique Words', value: String(result.wordFrequency.totalUniqueWords) })
           if (result.wordFrequency.totalWords !== undefined) fields.push({ label: 'Total Words', value: String(result.wordFrequency.totalWords) })
@@ -2308,7 +2308,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           return fields.filter(f => f.value !== undefined && f.value !== null)
         }
         // Text Analyzer
-        if (activeToolkitSection === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
+        if (section === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
           const analyzerFields = []
           if (result.textAnalyzer.readability) {
             analyzerFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
