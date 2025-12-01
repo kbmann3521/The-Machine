@@ -2307,6 +2307,24 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           }
           return fields.filter(f => f.value !== undefined && f.value !== null)
         }
+        // Text Analyzer
+        if (activeToolkitSection === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
+          const analyzerFields = []
+          if (result.textAnalyzer.readability) {
+            analyzerFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
+            analyzerFields.push({ label: 'Flesch Reading Ease', value: String(result.textAnalyzer.readability.fleschReadingEase) })
+            analyzerFields.push({ label: 'Flesch-Kincaid Grade', value: String(result.textAnalyzer.readability.fleschKincaidGrade) })
+          }
+          if (result.textAnalyzer.statistics) {
+            analyzerFields.push({ label: 'Words', value: String(result.textAnalyzer.statistics.words) })
+            analyzerFields.push({ label: 'Characters', value: String(result.textAnalyzer.statistics.characters) })
+            analyzerFields.push({ label: 'Sentences', value: String(result.textAnalyzer.statistics.sentences) })
+            analyzerFields.push({ label: 'Lines', value: String(result.textAnalyzer.statistics.lines) })
+            analyzerFields.push({ label: 'Avg Word Length', value: String((result.textAnalyzer.statistics.averageWordLength || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Avg Words per Sentence', value: String((result.textAnalyzer.statistics.averageWordsPerSentence || 0).toFixed(2)) })
+          }
+          return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
+        }
         // All other sections render as text in OutputTabs, not structured fields
         return null
 
@@ -2347,6 +2365,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             id: 'json',
             label: 'JSON',
             content: JSON.stringify(displayResult.wordFrequency, null, 2),
+            contentType: 'json'
+          })
+        } else if (activeToolkitSection === 'textAnalyzer' && displayResult?.textAnalyzer) {
+          // Text Analyzer - show structured fields as main output, plus JSON
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: renderStructuredOutput(),
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.textAnalyzer, null, 2),
             contentType: 'json'
           })
         } else {
