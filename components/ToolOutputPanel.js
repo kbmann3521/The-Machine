@@ -2353,12 +2353,60 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderXmlFormatterOutput()
       case 'yaml-formatter':
         return renderYamlFormatterOutput()
-      default:
-        if (typeof displayResult === 'string') {
-          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: displayResult, contentType: 'text' }]} />
+      default: {
+        const tabs = []
+
+        // Try to render structured fields first (for tools like text-analyzer)
+        const structuredFields = renderStructuredOutput()
+        if (structuredFields) {
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: structuredFields,
+            contentType: 'component'
+          })
+          // Add JSON tab for object results
+          if (typeof displayResult === 'object' && displayResult !== null) {
+            tabs.push({
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            })
+          }
+        } else if (typeof displayResult === 'string') {
+          // String output
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: displayResult,
+            contentType: 'text'
+          })
+        } else if (typeof displayResult === 'object' && displayResult !== null) {
+          // Object output - show as JSON
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          })
         } else {
-          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'json', label: 'JSON', content: JSON.stringify(displayResult, null, 2), contentType: 'json' }]} />
+          // Fallback
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: String(displayResult),
+            contentType: 'text'
+          })
         }
+
+        return (
+          <OutputTabs
+            toolCategory={toolCategory}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+          />
+        )
+      }
     }
   }
 
