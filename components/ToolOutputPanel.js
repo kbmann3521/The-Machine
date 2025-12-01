@@ -2266,6 +2266,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderJsFormatterOutput()
       case 'css-formatter':
         return renderCssFormatterOutput()
+      case 'markdown-html-formatter':
+        return renderMarkdownFormatterOutput()
       case 'sql-formatter':
         return renderSqlFormatterOutput()
       case 'color-converter':
