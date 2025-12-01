@@ -329,7 +329,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               className={styles.fileInput}
             />
             {selectedTool && isScriptingLanguageTool(selectedTool.toolId) ? (
-              <div className={styles.codeMirrorWrapper}>
+              <div className={styles.codeMirrorWrapper} onPaste={handlePaste}>
                 <CodeMirror
                   value={inputText}
                   onChange={handleTextChange}
@@ -357,6 +357,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               <textarea
                 value={inputText}
                 onChange={(e) => handleTextChange(e.target.value)}
+                onPaste={handlePaste}
                 placeholder={getPlaceholder()}
                 className={styles.simpleTextarea}
               />
