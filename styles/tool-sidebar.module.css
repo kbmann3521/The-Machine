@@ -150,12 +150,10 @@
   font-size: 16px;
   color: var(--color-text-secondary);
   flex-shrink: 0;
-  transition: color 0.4s ease, transform 0.3s ease;
 }
 
 .toolItem:hover .toolIcon {
   color: #0066cc;
-  transform: scale(1.1);
 }
 
 .toolItem.selected .toolIcon {
