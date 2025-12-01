@@ -350,7 +350,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                   height="100%"
                   theme="dark"
                   basicSetup={{
-                    lineNumbers: true,
+                    lineNumbers: false,
                     foldGutter: false,
                     dropCursor: true,
                     allowMultipleSelections: true,
