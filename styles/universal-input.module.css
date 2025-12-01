@@ -153,11 +153,15 @@
   outline: none;
   background-color: transparent;
   line-height: 1.5;
-  color: var(--color-text-primary);
-  opacity: 0;
+  color: transparent;
   position: relative;
   z-index: 3;
   box-sizing: border-box;
+  caret-color: #0066cc;
+}
+
+.textarea::selection {
+  background-color: rgba(0, 102, 204, 0.3);
 }
 
 .textarea::placeholder {
