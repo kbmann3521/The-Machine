@@ -306,8 +306,12 @@
 
 .jsonContent {
   padding: 16px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: auto;
   background-color: var(--color-background-primary, #fff);
+  flex: 1;
+  min-height: 0;
+  height: 100%;
 }
 
 .codeContentWithLineNumbers {
