@@ -2169,7 +2169,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderStructuredOutput = () => {
-    const fieldsToShow = getDisplayFields(toolId, displayResult)
+    const fieldsToShow = getDisplayFields(toolId, displayResult, activeToolkitSection)
     if (!fieldsToShow || fieldsToShow.length === 0) return null
 
     return (
@@ -2198,7 +2198,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
-  const getDisplayFields = (toolId, result) => {
+  const getDisplayFields = (toolId, result, section) => {
     if (!result || typeof result !== 'object') return null
 
     if (toolId === 'unit-converter') return null
