@@ -1,21 +1,2 @@
-.preWrapper {
-  margin: 0 !important;
-  padding: 12px !important;
-  background-color: transparent;
-  border-radius: 0;
-  overflow-x: visible;
-  font-size: 13px;
-  line-height: 1.5;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.codeBlock {
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-text-primary);
-  white-space: pre;
-}
+/* Prism theme is imported directly in SyntaxHighlighter component */
+/* Inline styles are used for better control and consistency */
