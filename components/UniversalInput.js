@@ -9,6 +9,7 @@ import { json } from '@codemirror/lang-json'
 import { sql } from '@codemirror/lang-sql'
 import { python } from '@codemirror/lang-python'
 import { yaml } from '@codemirror/lang-yaml'
+import { isScriptingLanguageTool } from '../lib/tools'
 import styles from '../styles/universal-input.module.css'
 
 export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
