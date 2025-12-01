@@ -439,11 +439,17 @@ export default function OutputTabs({
       )
     }
 
+    const jsonContent = JSON.stringify(content, null, 2)
     return (
-      <div className={styles.jsonContent}>
-        <pre className={styles.jsonCode}>
-          <code>{JSON.stringify(content, null, 2)}</code>
-        </pre>
+      <div className={`${styles.codeContentWithLineNumbers} ${styles.codeContentNoLineNumbers}`}>
+        <div className={styles.codeContentWrapper}>
+          <SyntaxHighlighter
+            code={jsonContent}
+            language="json"
+            toolId={toolId}
+            className={styles.jsonCode}
+          />
+        </div>
       </div>
     )
   }
