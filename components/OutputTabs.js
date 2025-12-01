@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import LineNumbers from './LineNumbers'
+import SyntaxHighlighter from './SyntaxHighlighter'
 import styles from '../styles/output-tabs.module.css'
 
 export default function OutputTabs({
@@ -11,6 +12,7 @@ export default function OutputTabs({
   title = 'Output',
   onCopyCard = null,
   toolCategory = null,
+  toolId = null,
 }) {
   const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
   const showLineNumbers = codeRelatedCategories.includes(toolCategory)
