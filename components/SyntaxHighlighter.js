@@ -87,7 +87,7 @@ export default function SyntaxHighlighter({
         width: '100%',
         height: '100%',
         boxSizing: 'border-box',
-        overflow: 'auto',
+        overflow: 'hidden',
         whiteSpace: 'pre-wrap',
         wordWrap: 'break-word',
       }}
