@@ -92,6 +92,15 @@
   line-height: 1.5 !important;
 }
 
+.codeMirrorEmpty :global(.cm-lineNumbers) {
+  opacity: 0.4;
+}
+
+.codeMirrorEmpty :global(.cm-lineNumber) {
+  color: var(--color-text-secondary, #999);
+  opacity: 0.5;
+}
+
 .simpleTextarea {
   width: 100%;
   height: 100%;
