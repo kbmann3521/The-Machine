@@ -98,6 +98,12 @@
   overflow: auto;
   pointer-events: none;
   z-index: 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.syntaxHighlightLayer::-webkit-scrollbar {
+  display: none;
 }
 
 .highlightsLayer {
