@@ -336,7 +336,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             )}
             <div className={styles.textareaWrapper}>
               {inputText && (
-                <div className={styles.syntaxHighlightLayer}>
+                <div ref={syntaxHighlightLayerRef} className={styles.syntaxHighlightLayer}>
                   <SyntaxHighlighter
                     code={inputText}
                     toolId={selectedTool?.toolId}
