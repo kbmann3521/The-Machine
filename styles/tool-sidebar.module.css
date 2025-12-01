@@ -50,7 +50,6 @@
 .searchInput::placeholder {
   color: var(--color-text-secondary);
   opacity: 0.6;
-  transition: opacity 0.25s ease;
 }
 
 .searchInput:hover {
