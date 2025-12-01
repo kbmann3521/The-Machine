@@ -14,34 +14,34 @@
   line-height: 1.5 !important;
 }
 
-:global(.cm-editor) {
+.editor :global(.cm-editor) {
   background-color: var(--color-background-secondary, #1e1e1e) !important;
   color: var(--color-text-primary, #e0e0e0) !important;
   height: 100% !important;
 }
 
-:global(.cm-gutters) {
+.editor :global(.cm-gutters) {
   background-color: var(--color-background-tertiary, #2d2d2d) !important;
   border-right: 1px solid var(--color-border, #3d3d3d) !important;
 }
 
-:global(.cm-linenumber) {
+.editor :global(.cm-linenumber) {
   color: var(--color-text-secondary, #888) !important;
   min-width: 3em !important;
 }
 
-:global(.cm-cursor) {
+.editor :global(.cm-cursor) {
   border-left-color: var(--color-text-primary, #e0e0e0) !important;
 }
 
-:global(.cm-selectionBackground) {
+.editor :global(.cm-selectionBackground) {
   background-color: rgba(0, 102, 204, 0.3) !important;
 }
 
-:global(.cm-activeLine) {
+.editor :global(.cm-activeLine) {
   background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-:global(.cm-activeLineGutter) {
+.editor :global(.cm-activeLineGutter) {
   background-color: rgba(255, 255, 255, 0.03) !important;
 }
