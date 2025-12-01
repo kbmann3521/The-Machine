@@ -335,6 +335,15 @@ export default function OutputTabs({
 
     const { contentType, content, actions } = activeTabConfig
 
+    // Handle CodeMirror content
+    if (contentType === 'codemirror') {
+      return (
+        <div className={styles.codeMirrorOutputContainer}>
+          <CodeMirrorOutput code={content} toolId={toolId} readOnly={true} />
+        </div>
+      )
+    }
+
     // Handle component/function content (e.g., friendlyView)
     if (contentType === 'component') {
       if (typeof content === 'function') {
