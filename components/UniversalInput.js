@@ -117,8 +117,8 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       highlightsLayerRef.current.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`
     }
     if (lineNumbersRef.current?.element) {
-      // Shift line numbers container to match textarea scroll using transform (vertical only)
-      lineNumbersRef.current.element.style.transform = `translateY(-${scrollTop}px)`
+      // Sync line numbers scroll with textarea scroll
+      lineNumbersRef.current.element.scrollTop = scrollTop
     }
   }
 
