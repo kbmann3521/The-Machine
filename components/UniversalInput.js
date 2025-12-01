@@ -325,6 +325,13 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           <div className={`${styles.textareaWithLineNumbers} ${showLineNumbers ? '' : styles.noLineNumbers}`}>
             {showLineNumbers && <LineNumbers ref={lineNumbersRef} content={inputText} />}
             <div className={styles.textareaWrapper}>
+              <div className={styles.syntaxHighlightLayer}>
+                <SyntaxHighlighter
+                  code={inputText}
+                  toolId={selectedTool?.toolId}
+                  className={styles.syntaxHighlight}
+                />
+              </div>
               {getErrorInfo().size > 0 ? (
                 <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
                   {renderHighlights()}
