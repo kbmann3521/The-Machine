@@ -19,24 +19,3 @@
   color: var(--color-text-primary);
   white-space: pre;
 }
-
-/* Override Prism token colors for consistency */
-:global(.token.keyword) {
-  color: inherit;
-}
-
-:global(.token.string) {
-  color: inherit;
-}
-
-:global(.token.function) {
-  color: inherit;
-}
-
-:global(.token.number) {
-  color: inherit;
-}
-
-:global(.token.operator) {
-  color: inherit;
-}
