@@ -96,20 +96,11 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
   const showLineNumbers = selectedTool && codeRelatedCategories.includes(selectedTool.category)
 
-  // Reset scroll position when text changes
   const handleTextChange = (e) => {
     const text = e.target.value
     setInputText(text)
     setCharCount(text.length)
     onInputChange(text)
-
-    // Reset transforms when content changes
-    if (syntaxHighlightLayerRef.current) {
-      syntaxHighlightLayerRef.current.style.transform = 'translate(0, 0)'
-    }
-    if (highlightsLayerRef.current) {
-      highlightsLayerRef.current.style.transform = 'translate(0, 0)'
-    }
   }
 
 
