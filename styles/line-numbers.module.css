@@ -1,8 +1,7 @@
 .lineNumbersContainer {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   background-color: var(--color-background-tertiary);
   border-right: 1px solid var(--color-border);
   user-select: none;
@@ -10,6 +9,7 @@
   min-width: 32px;
   width: 32px;
   flex-shrink: 0;
+  will-change: transform;
 }
 
 .lineNumbersList {
