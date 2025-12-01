@@ -2244,7 +2244,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ].filter(f => f.value !== undefined && f.value !== null)
 
       case 'text-toolkit':
-        // Word Counter - show as structured fields
+        // Word Counter
         if (activeToolkitSection === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
           return [
             { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
@@ -2255,6 +2255,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
           ].filter(f => f.value !== undefined && f.value !== null)
         }
+        // Word Frequency
+        if (activeToolkitSection === 'wordFrequency' && result.wordFrequency && typeof result.wordFrequency === 'object') {
+          const fields = []
+          if (result.wordFrequency.totalUniqueWords !== undefined) fields.push({ label: 'Total Unique Words', value: String(result.wordFrequency.totalUniqueWords) })
+          if (result.wordFrequency.totalWords !== undefined) fields.push({ label: 'Total Words', value: String(result.wordFrequency.totalWords) })
+          if (result.wordFrequency.frequency && typeof result.wordFrequency.frequency === 'object') {
+            fields.push({ label: 'Frequency Map', value: JSON.stringify(result.wordFrequency.frequency, null, 2) })
+          }
+          return fields.filter(f => f.value !== undefined && f.value !== null)
+        }
+        // All other sections render as text in OutputTabs, not structured fields
         return null
 
       default:
