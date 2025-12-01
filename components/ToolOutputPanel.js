@@ -4,7 +4,8 @@ import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
-import { TOOLS } from '../lib/tools'
+import CodeMirrorOutput from './CodeMirrorOutput'
+import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange }) {
   const toolCategory = TOOLS[toolId]?.category
