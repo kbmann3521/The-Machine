@@ -207,7 +207,6 @@
   cursor: pointer;
   font-size: 14px;
   flex-shrink: 0;
-  transition: all 0.25s ease;
   opacity: 0.6;
 }
 
