@@ -167,7 +167,6 @@
   border-radius: 6px;
   background-color: var(--color-background-primary);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 16px;
   color: var(--color-text-secondary);
   margin: auto 0 auto auto;
