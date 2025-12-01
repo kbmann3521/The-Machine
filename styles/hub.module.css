@@ -32,20 +32,10 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   scrollbar-gutter: stable;
-  animation: fadeInContent 0.5s ease-out;
 }
 
 .mainContent::-webkit-scrollbar {
   display: none;
-}
-
-@keyframes fadeInContent {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 .header {
@@ -60,18 +50,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  animation: slideDownHeader 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideDownHeader {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .header h1 {
@@ -102,16 +80,6 @@
   min-height: 0;
 }
 
-@keyframes slideInContent {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 .toolContainer {
   display: grid;
@@ -130,16 +98,6 @@
   min-height: 0;
 }
 
-@keyframes scaleInContainer {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
 .leftPanel {
   display: flex;
