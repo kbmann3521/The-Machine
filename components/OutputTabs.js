@@ -357,13 +357,27 @@ export default function OutputTabs({
         }
       }
 
+      // Determine language from toolId
+      let language = 'text'
+      if (toolId === 'json-formatter') language = 'json'
+      else if (toolId === 'js-formatter') language = 'javascript'
+      else if (toolId === 'css-formatter') language = 'css'
+      else if (toolId === 'html-formatter' || toolId === 'markdown-html-formatter') language = 'markup'
+      else if (toolId === 'xml-formatter') language = 'markup'
+      else if (toolId === 'yaml-formatter') language = 'yaml'
+      else if (toolId === 'sql-formatter') language = 'sql'
+      else if (contentType === 'json') language = 'json'
+
       return (
         <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
           {showLineNumbers && <LineNumbers ref={codeLineNumbersRef} content={codeContent} />}
           <div className={styles.codeContentWrapper} ref={codeContentRef} onScroll={handleCodeScroll}>
-            <pre className={styles.jsonCode}>
-              <code>{codeContent}</code>
-            </pre>
+            <SyntaxHighlighter
+              code={codeContent}
+              language={language}
+              toolId={toolId}
+              className={styles.jsonCode}
+            />
           </div>
         </div>
       )
