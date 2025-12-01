@@ -160,7 +160,12 @@ export default function Home() {
       }
 
       // Filter out tools with show_in_recommendations = false
-      const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+      let visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+
+      // Ensure selected tool is always in the visible list
+      if (selectedToolRef.current && !visibleTools.find(t => t.toolId === selectedToolRef.current.toolId)) {
+        visibleTools = [selectedToolRef.current, ...visibleTools]
+      }
 
       // Sync visibility map from tool metadata
       const newVisibilityMap = {}
