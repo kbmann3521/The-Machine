@@ -9,27 +9,7 @@ import { json } from '@codemirror/lang-json'
 import { sql } from '@codemirror/lang-sql'
 import { python } from '@codemirror/lang-python'
 import { yaml } from '@codemirror/lang-yaml'
-import { EditorView } from '@codemirror/view'
-import { tags as t } from '@lezer/highlight'
-import { createTheme } from '@uiw/codemirror-themes'
 import styles from '../styles/universal-input.module.css'
-
-// Custom dark theme for CodeMirror
-const customTheme = createTheme({
-  theme: 'dark',
-  settings: {
-    background: '#1e1e1e',
-    foreground: '#e0e0e0',
-    caret: '#0066cc',
-    selection: 'rgba(0, 102, 204, 0.3)',
-    selectionMatch: 'rgba(0, 102, 204, 0.2)',
-    lineHighlight: 'rgba(0, 102, 204, 0.05)',
-    gutterBackground: '#2d2d2d',
-    gutterForeground: '#888',
-    gutterBorder: '#444',
-  },
-  styles: [],
-})
 
 export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
   const getPlaceholder = () => {
