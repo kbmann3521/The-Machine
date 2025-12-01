@@ -153,9 +153,9 @@
   outline: none;
   background-color: transparent;
   line-height: 1.5;
-  color: var(--color-text-primary);
+  color: rgba(255, 255, 255, 0.3);
   position: relative;
-  z-index: 2;
+  z-index: 3;
   box-sizing: border-box;
 }
 
