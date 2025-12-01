@@ -134,19 +134,8 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
       )
     }
 
-    // Move selected tool to the top
-    if (selectedTool) {
-      const selectedIndex = tools.findIndex(tool => tool.toolId === selectedTool.toolId)
-      if (selectedIndex > 0) {
-        const reordered = [...tools]
-        const [selected] = reordered.splice(selectedIndex, 1)
-        reordered.unshift(selected)
-        return reordered
-      }
-    }
-
     return tools
-  }, [predictedTools, searchQuery, selectedTool])
+  }, [predictedTools, searchQuery])
 
   const topMatch = filteredTools[0]
 
