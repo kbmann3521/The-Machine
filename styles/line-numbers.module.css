@@ -21,6 +21,7 @@
   text-align: right;
   padding: 0 4px;
   white-space: nowrap;
+  min-height: 100%;
 }
 
 .lineNumber {
