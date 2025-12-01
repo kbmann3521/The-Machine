@@ -92,13 +92,32 @@
   line-height: 1.5 !important;
 }
 
-.codeMirrorEmpty :global(.cm-lineNumbers) {
+.placeholderLineNumbers {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background-color: transparent;
+  font-size: 13px !important;
+  font-family: 'Courier New', monospace !important;
+  line-height: 1.5 !important;
+  color: var(--color-text-secondary);
   opacity: 0.4;
+  user-select: none;
+  z-index: 1;
 }
 
-.codeMirrorEmpty :global(.cm-lineNumber) {
-  color: var(--color-text-secondary, #999);
-  opacity: 0.5;
+.placeholderLineNumber {
+  padding: 0 8px;
+  text-align: right;
+  height: 1.5em;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .simpleTextarea {
