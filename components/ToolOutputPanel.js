@@ -2354,11 +2354,42 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'json'
           })
         } else if (activeToolkitSection === 'wordFrequency' && displayResult?.wordFrequency) {
-          // Word Frequency - show structured fields as main output, plus JSON
+          // Word Frequency - show copy cards for each word, plus JSON
+          const wordFreqData = displayResult.wordFrequency
+          const frequencyViewContent = (
+            <div className={styles.wordFrequencyView}>
+              {wordFreqData.totalUniqueWords !== undefined && (
+                <div className={styles.frequencyHeader}>
+                  <div className={styles.frequencyStat}>
+                    <span className={styles.frequencyLabel}>Total Unique Words</span>
+                    <span className={styles.frequencyValue}>{wordFreqData.totalUniqueWords}</span>
+                  </div>
+                  <div className={styles.frequencyStat}>
+                    <span className={styles.frequencyLabel}>Total Words</span>
+                    <span className={styles.frequencyValue}>{wordFreqData.totalWords}</span>
+                  </div>
+                </div>
+              )}
+              <div className={styles.frequencyCardsContainer}>
+                {wordFreqData.frequency && Array.isArray(wordFreqData.frequency) && wordFreqData.frequency.length > 0 ? (
+                  wordFreqData.frequency.map((item, idx) => (
+                    <div key={idx} className={styles.frequencyCard}>
+                      <div className={styles.frequencyCardHeader}>
+                        <span className={styles.frequencyCardWord}>{item.word}</span>
+                        <span className={styles.frequencyCardCount}>{item.count}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.noData}>No frequency data available</div>
+                )}
+              </div>
+            </div>
+          )
           tabs.push({
             id: 'output',
             label: 'OUTPUT',
-            content: renderStructuredOutput(),
+            content: frequencyViewContent,
             contentType: 'component'
           })
           tabs.push({
