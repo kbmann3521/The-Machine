@@ -94,7 +94,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const [imagePreview, setImagePreview] = useState(null)
   const [charCount, setCharCount] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
-  const [inputHeight, setInputHeight] = useState(300)
+  const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
@@ -106,7 +106,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   useEffect(() => {
     const savedHeight = localStorage.getItem('inputBoxHeight')
     if (savedHeight) {
-      const height = Math.max(300, Math.min(600, parseInt(savedHeight, 10)))
+      const height = Math.max(255, Math.min(510, parseInt(savedHeight, 10)))
       setInputHeight(height)
     }
   }, [])
@@ -124,7 +124,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
 
     const handleMouseMove = (e) => {
       const delta = e.clientY - startYRef.current
-      const newHeight = Math.max(300, Math.min(600, startHeightRef.current + delta))
+      const newHeight = Math.max(255, Math.min(510, startHeightRef.current + delta))
       setInputHeight(newHeight)
     }
 
