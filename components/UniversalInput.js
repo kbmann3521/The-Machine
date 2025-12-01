@@ -111,27 +111,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
   }, [])
 
-  // Auto-populate formatter tools with their examples for line number visibility
-  useEffect(() => {
-    const formatterTools = new Set([
-      'js-formatter',
-      'json-formatter',
-      'xml-formatter',
-      'html-formatter',
-      'markdown-html-formatter',
-      'markdown-html-converter',
-      'css-formatter',
-      'sql-formatter',
-      'yaml-formatter',
-    ])
-    if (selectedTool && formatterTools.has(selectedTool.toolId) && !inputText) {
-      const example = getToolExample(selectedTool.toolId, configOptions || {})
-      if (example) {
-        setInputText(example)
-      }
-    }
-  }, [selectedTool?.toolId])
-
   // Handle resize start
   const handleResizeStart = (e) => {
     setIsResizing(true)
