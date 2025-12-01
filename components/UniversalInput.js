@@ -100,6 +100,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const inputFieldRef = useRef(null)
   const startYRef = useRef(0)
   const startHeightRef = useRef(0)
+  const isPasteRef = useRef(false)
 
   // Load saved height from localStorage on mount
   useEffect(() => {
