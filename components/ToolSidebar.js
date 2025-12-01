@@ -139,66 +139,20 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
 
   const topMatch = filteredTools[0]
 
-  // FLIP animation on desktop
+  // Position tracking (animations disabled)
   useEffect(() => {
-    // Only animate on desktop
-    if (typeof window !== 'undefined' && window.innerWidth <= 991) {
-      return
-    }
-
-    // requestAnimationFrame ensures this runs after the DOM has been updated
     requestAnimationFrame(() => {
       const newPositions = {}
-      const animations = []
-
-      // Get new positions and calculate deltas
       filteredTools.forEach((tool) => {
         const el = itemRefs.current[tool.toolId]
         if (!el) return
-
         const rect = el.getBoundingClientRect()
         newPositions[tool.toolId] = {
           top: rect.top,
           left: rect.left,
           height: rect.height,
         }
-
-        const oldPos = prevPositionsRef.current[tool.toolId]
-        if (oldPos) {
-          const deltaY = oldPos.top - rect.top
-          const deltaX = oldPos.left - rect.left
-
-          if (Math.abs(deltaY) > 0.5 || Math.abs(deltaX) > 0.5) {
-            animations.push({ el, deltaX, deltaY })
-          }
-        }
       })
-
-      // Apply transforms and animations
-      if (animations.length > 0) {
-        // Apply initial transforms without transition
-        animations.forEach(({ el }) => {
-          el.style.transition = 'none'
-        })
-
-        requestAnimationFrame(() => {
-          animations.forEach(({ el, deltaX, deltaY }) => {
-            el.style.transform = `translate(${deltaX}px, ${deltaY}px)`
-          })
-
-          // Force reflow
-          void (animations[0].el?.offsetHeight)
-
-          // Apply transition and animate back to origin
-          requestAnimationFrame(() => {
-            animations.forEach(({ el }) => {
-              el.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
-              el.style.transform = 'translate(0, 0)'
-            })
-          })
-        })
-      }
-
       prevPositionsRef.current = newPositions
     })
   }, [filteredTools])
