@@ -2293,7 +2293,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         if (typeof displayResult === 'string') {
           return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: displayResult, contentType: 'text' }]} />
         } else {
-          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: JSON.stringify(displayResult, null, 2), contentType: 'json' }]} />
+          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'json', label: 'JSON', content: JSON.stringify(displayResult, null, 2), contentType: 'json' }]} />
         }
     }
   }
