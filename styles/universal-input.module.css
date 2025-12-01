@@ -94,11 +94,16 @@
   top: 0;
   left: 0;
   width: 100%;
-  min-height: 100%;
-  overflow: visible;
+  height: 100%;
+  overflow: auto;
   pointer-events: none;
   z-index: 0;
-  will-change: transform;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.syntaxHighlightLayer::-webkit-scrollbar {
+  display: none;
 }
 
 .highlightsLayer {
