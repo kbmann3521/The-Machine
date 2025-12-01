@@ -273,30 +273,39 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               accept="image/*"
               className={styles.fileInput}
             />
-            <div className={styles.codeMirrorWrapper}>
-              <CodeMirror
+            {selectedTool && isScriptingLanguageTool(selectedTool.toolId) ? (
+              <div className={styles.codeMirrorWrapper}>
+                <CodeMirror
+                  value={inputText}
+                  onChange={handleTextChange}
+                  placeholder={getPlaceholder()}
+                  extensions={[getLanguage()].filter(Boolean)}
+                  className={styles.codeMirror}
+                  height="100%"
+                  theme="dark"
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: false,
+                    dropCursor: true,
+                    allowMultipleSelections: true,
+                    indentOnInput: true,
+                    bracketMatching: true,
+                    closeBrackets: true,
+                    autocompletion: false,
+                    rectangularSelection: true,
+                    highlightSelectionMatches: true,
+                    searchKeymap: true,
+                  }}
+                />
+              </div>
+            ) : (
+              <textarea
                 value={inputText}
-                onChange={handleTextChange}
+                onChange={(e) => handleTextChange(e.target.value)}
                 placeholder={getPlaceholder()}
-                extensions={[getLanguage()].filter(Boolean)}
-                className={styles.codeMirror}
-                height="100%"
-                theme="dark"
-                basicSetup={{
-                  lineNumbers: true,
-                  foldGutter: false,
-                  dropCursor: true,
-                  allowMultipleSelections: true,
-                  indentOnInput: true,
-                  bracketMatching: true,
-                  closeBrackets: true,
-                  autocompletion: false,
-                  rectangularSelection: true,
-                  highlightSelectionMatches: true,
-                  searchKeymap: true,
-                }}
+                className={styles.simpleTextarea}
               />
-            </div>
+            )}
           </div>
         </div>
 
