@@ -929,7 +929,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Validation tab - show validation errors and status
-    if (displayResult.showValidation !== false && tabs.length > 0) {
+    if (displayResult.showValidation !== false) {
       const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
         : []
