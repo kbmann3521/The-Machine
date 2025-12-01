@@ -76,6 +76,7 @@
 
 .codeMirrorWrapper {
   display: flex;
+  position: relative;
   width: 100%;
   flex: 1;
   overflow-y: auto;
