@@ -1069,7 +1069,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: displayResult.formatted,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
