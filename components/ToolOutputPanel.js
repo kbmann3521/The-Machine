@@ -897,18 +897,39 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
 
-    // Add primary output tab first - always show formatted result
-    if (displayResult.formatted && !displayResult.hideOutput) {
+    // Add primary output tab FIRST - always show formatted result (or error message if not available)
+    if (displayResult.formatted) {
       tabs.push({
         id: 'formatted',
         label: 'OUTPUT',
         content: displayResult.formatted,
         contentType: 'codemirror',
       })
+    } else if (displayResult.error) {
+      // Show error message in OUTPUT tab if formatting failed
+      tabs.push({
+        id: 'formatted',
+        label: 'OUTPUT',
+        content: (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+            }}>
+              {displayResult.error}
+            </div>
+          </div>
+        ),
+        contentType: 'component',
+      })
     }
 
     // Validation tab - show validation errors and status
-    if (displayResult.showValidation !== false) {
+    if (displayResult.showValidation !== false && tabs.length > 0) {
       const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
         : []
@@ -941,7 +962,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         tabs.push({
           id: 'validation',
-          label: 'Validation (��)',
+          label: 'Validation (✓)',
           content: (
             <div style={{
               padding: '16px',
