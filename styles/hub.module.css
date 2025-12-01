@@ -309,6 +309,14 @@
   flex-direction: column;
   min-height: 0;
   contain: layout style;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-gutter: stable;
+}
+
+.outputSection::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes slideIn {
