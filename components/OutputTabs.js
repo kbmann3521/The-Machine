@@ -234,31 +234,18 @@ export default function OutputTabs({
     }
   }
 
-  // Reset active tab when tool changes (toolId prop change)
-  useEffect(() => {
-    setActiveTab(null)
-  }, [toolId])
-
-  // Initialize active tab when tabs config changes
+  // Initialize active tab when tabs config changes or tool changes
   useEffect(() => {
     if (!finalTabConfig || finalTabConfig.length === 0) {
       setActiveTab(null)
       return
     }
 
-    // If no tab is selected, always prefer 'output' tab, otherwise use first tab
-    if (!activeTab) {
-      const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
-      setActiveTab(outputTab ? outputTab.id : finalTabConfig[0].id)
-      return
-    }
-
-    // If current active tab is not in config, prefer 'output' tab or fall back to first
-    if (!finalTabConfig.find(t => t.id === activeTab)) {
-      const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
-      setActiveTab(outputTab ? outputTab.id : finalTabConfig[0].id)
-    }
-  }, [tabs]) // Depend on input tabs prop
+    // Always prefer 'output' or 'formatted' tab, otherwise use first tab
+    const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
+    const preferredTab = outputTab ? outputTab.id : finalTabConfig[0].id
+    setActiveTab(preferredTab)
+  }, [finalTabConfig, toolId]) // Depend on finalTabConfig AND toolId
 
   if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
