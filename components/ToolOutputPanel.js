@@ -94,6 +94,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setIsFirstLoad(true)
       setPreviousResult(null)
       setPreviousToolkitSection(null)
+      setExpandedSection('formatted')
     }
   }, [toolId, previousToolId])
 
