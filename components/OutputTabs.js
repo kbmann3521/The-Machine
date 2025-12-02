@@ -22,7 +22,6 @@ export default function OutputTabs({
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
-  const [tabVersion, setTabVersion] = useState(0)
   const codeLineNumbersRef = useRef(null)
   const codeContentRef = useRef(null)
   const textLineNumbersRef = useRef(null)
