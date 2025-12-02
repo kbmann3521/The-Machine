@@ -244,9 +244,9 @@ export default function OutputTabs({
   if (finalTabConfig.length > 1) {
     const outputTabIndex = finalTabConfig.findIndex(t => t.id === 'output' || t.id === 'formatted')
     if (outputTabIndex > 0) {
-      // Move output tab to position 0
-      const [outputTab] = finalTabConfig.splice(outputTabIndex, 1)
-      finalTabConfig.unshift(outputTab)
+      // Move output tab to position 0 without mutating original array
+      const outputTab = finalTabConfig[outputTabIndex]
+      finalTabConfig = [outputTab, ...finalTabConfig.filter((_, i) => i !== outputTabIndex)]
     }
   }
 
