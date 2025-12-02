@@ -26,7 +26,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
 
     const staticPlaceholders = {
-      'image-resizer': 'Upload an image (PNG, JPG, etc.) to resize for web or social media',
       'text-toolkit': 'Paste your article, blog post, or essay for complete text analysis',
       'word-counter': 'Paste your essay, article, or document to count words and characters',
       'case-converter': 'Paste text to convert between uppercase, lowercase, title case, etc.',
@@ -226,7 +225,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     if (!selectedTool) return null
 
     const instructions = {
-      'image-resizer': 'Upload an image to resize for web, mobile, or social media',
       'word-counter': 'Get detailed statistics on words, characters, and readability',
       'case-converter': 'Transform text case for titles, code, or any style you need',
       'find-replace': 'Search and replace with plain text or regex patterns',
