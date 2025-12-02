@@ -277,10 +277,9 @@ export default function OutputTabs({
   if (userSelectedTabId && finalTabConfig.some(t => t.id === userSelectedTabId)) {
     currentActiveTab = userSelectedTabId
   } else {
-    // No valid user selection - always use OUTPUT/FORMATTED tab
-    // (guaranteed to exist and be first due to code above)
-    const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
-    currentActiveTab = outputTab?.id
+    // No valid user selection - always use first tab
+    // (guaranteed to be OUTPUT/FORMATTED due to reordering above)
+    currentActiveTab = finalTabConfig[0]?.id
   }
   const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
