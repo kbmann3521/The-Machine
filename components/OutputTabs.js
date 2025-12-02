@@ -236,6 +236,16 @@ export default function OutputTabs({
     }
   }
 
+  // Ensure OUTPUT/FORMATTED tab is always first
+  if (finalTabConfig && finalTabConfig.length > 1) {
+    const outputTabIndex = finalTabConfig.findIndex(t => t.id === 'output' || t.id === 'formatted')
+    if (outputTabIndex > 0) {
+      // Move output tab to the front
+      const outputTab = finalTabConfig[outputTabIndex]
+      finalTabConfig = [outputTab, ...finalTabConfig.filter((_, i) => i !== outputTabIndex)]
+    }
+  }
+
   // Reset user selection flag when tool changes
   useEffect(() => {
     if (toolId !== prevToolIdRef.current) {
