@@ -55,7 +55,6 @@ const toolIcons = {
   'timezone-converter': FaClock,
   'base-converter': FaCode,
   'math-evaluator': FaCalculator,
-  'keyword-extractor': FaSearch,
   'cron-tester': FaClock,
   'file-size-converter': FaRuler,
   'js-formatter': FaCode,
