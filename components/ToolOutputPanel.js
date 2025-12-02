@@ -143,7 +143,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
-  if (isEmpty || isTextToolkitWithoutContent || isTransitioning) {
+  if (isEmpty || isTextToolkitWithoutContent) {
     return (
       <OutputTabs
         key={toolId}
@@ -153,7 +153,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           {
             id: 'output',
             label: 'OUTPUT',
-            content: isTransitioning ? '' : 'Run the tool to see output here',
+            content: 'Run the tool to see output here',
             contentType: 'text',
           },
         ]}
