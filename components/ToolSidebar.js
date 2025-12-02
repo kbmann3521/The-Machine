@@ -17,7 +17,6 @@ const toolIcons = {
   'html-formatter': FaCode,
   'json-formatter': FaCode,
   'reverse-text': FaRotateRight,
-  'slug-generator': FaSlug,
   'regex-tester': BsRegex,
   'timestamp-converter': FaClock,
   'csv-json-converter': FaFileExcel,
