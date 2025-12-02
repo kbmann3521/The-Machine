@@ -97,8 +97,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setPreviousResult(null)
       setPreviousToolkitSection(null)
       setExpandedSection('formatted')
-      // Wait a frame then exit transition state
-      const timer = setTimeout(() => setIsTransitioning(false), 0)
+      // Exit transition state after we have new data
+      const timer = setTimeout(() => setIsTransitioning(false), 50)
       return () => clearTimeout(timer)
     }
   }, [toolId, previousToolId])
