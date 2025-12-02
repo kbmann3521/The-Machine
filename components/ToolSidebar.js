@@ -74,42 +74,8 @@ const getScoreLabel = (similarity) => {
 
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [markedForDeletion, setMarkedForDeletion] = useState({})
-  const [markingTool, setMarkingTool] = useState(null)
   const itemRefs = useRef({})
   const prevPositionsRef = useRef({})
-
-  const handleMarkForDelete = async (e, toolId, currentMarked) => {
-    e.stopPropagation()
-    e.preventDefault()
-
-    setMarkingTool(toolId)
-    const newMarked = !currentMarked
-
-    try {
-      const response = await fetch('/api/tools/mark-for-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          toolId,
-          marked: newMarked,
-        }),
-      })
-
-      if (response.ok) {
-        setMarkedForDeletion(prev => ({
-          ...prev,
-          [toolId]: newMarked,
-        }))
-      } else {
-        console.error('Failed to mark tool for deletion')
-      }
-    } catch (error) {
-      console.error('Error marking tool for deletion:', error)
-    } finally {
-      setMarkingTool(null)
-    }
-  }
 
   const filteredTools = useMemo(() => {
     let tools = predictedTools
