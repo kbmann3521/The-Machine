@@ -88,13 +88,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [result, loading])
 
+  const [isTransitioning, setIsTransitioning] = React.useState(false)
   React.useEffect(() => {
     if (toolId !== previousToolId) {
+      setIsTransitioning(true)
       setPreviousToolId(toolId)
       setIsFirstLoad(true)
       setPreviousResult(null)
       setPreviousToolkitSection(null)
       setExpandedSection('formatted')
+      // Wait a frame then exit transition state
+      const timer = setTimeout(() => setIsTransitioning(false), 0)
+      return () => clearTimeout(timer)
     }
   }, [toolId, previousToolId])
 
