@@ -145,19 +145,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   if (isEmpty || isTextToolkitWithoutContent) {
     return (
-      <OutputTabs
-        key={toolId}
-        toolCategory={toolCategory}
-        toolId={toolId}
-        tabs={[
-          {
-            id: 'output',
-            label: 'OUTPUT',
-            content: 'Run the tool to see output here',
-            contentType: 'text',
-          },
-        ]}
-      />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#888' }}>
+        <p>Enter input to see results</p>
+      </div>
     )
   }
 
