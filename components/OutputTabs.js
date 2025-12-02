@@ -240,23 +240,23 @@ export default function OutputTabs({
     return null
   }
 
-  // Initialize activeTab on first render and when tool changes
+  // When tool changes, reset the active tab so it defaults to output
   useEffect(() => {
-    // If tool changed, reset user selection and set to output tab
     if (toolId !== prevToolIdRef.current) {
       prevToolIdRef.current = toolId
       userSelectedTabRef.current = false
+      setActiveTab(null)
     }
+  }, [toolId])
 
-    // If no active tab selected, pick the output tab by default
-    if (!activeTab) {
-      const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
-      setActiveTab(outputTab ? outputTab.id : finalTabConfig[0].id)
-    }
-  }, [finalTabConfig, toolId])
+  // Get the default tab (OUTPUT/FORMATTED or first tab)
+  const getDefaultTab = () => {
+    const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
+    return outputTab ? outputTab.id : (finalTabConfig[0]?.id || null)
+  }
 
   // Determine which tab is currently active
-  const currentActiveTab = activeTab || finalTabConfig[0]?.id
+  const currentActiveTab = activeTab || getDefaultTab()
   const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
   const getJsonString = () => {
