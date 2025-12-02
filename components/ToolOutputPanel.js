@@ -143,15 +143,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
-  // Don't render output tabs until we have actual output ready
-  // This prevents flashing "null" or showing incomplete data
-  if (!displayResult) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#888' }}>
-        <p>Processing...</p>
-      </div>
-    )
-  }
 
   const handleCopy = async () => {
     let textToCopy = ''
