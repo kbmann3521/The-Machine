@@ -44,7 +44,7 @@ const DEFAULT_TEST_CASES = [
   { input: '550e8400-e29b-41d4-a716-446655440000', expected: 'uuid-validator' },
   { input: 'john@example.com', expected: 'email-validator' },
   { input: 'application/json', expected: 'mime-type-lookup' },
-  { input: '# Hello World', expected: 'markdown-html-converter' },
+  { input: '# Hello World', expected: 'markdown-html-formatter' },
 ]
 
 export default function TestDetection() {
