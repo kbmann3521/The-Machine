@@ -491,6 +491,7 @@ export default function Home() {
           finalConfig = {
             ...config,
             validateIP: ipToolkitConfig.validateIP !== false,
+            ipVersion: ipToolkitConfig.ipVersion || 'auto',
             normalize: ipToolkitConfig.normalize || false,
             ipToInteger: ipToolkitConfig.ipToInteger || false,
             privatePublic: ipToolkitConfig.privatePublic || false,
