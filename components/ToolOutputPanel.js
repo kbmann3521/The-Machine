@@ -125,12 +125,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return <Base64Output result={displayResult} />
     }
 
-    // No placeholder - wait for user input
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#888' }}>
-        <p>Upload an image to see results</p>
-      </div>
-    )
+    // Default placeholder with OutputTabs design
+    const defaultTabs = [
+      {
+        id: 'output',
+        label: 'Output',
+        content: 'Upload an image to see results',
+        contentType: 'text',
+      },
+    ]
+    const OutputTabs = require('./OutputTabs').default
+    return <OutputTabs key={toolId} tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
   }
 
   // For text-toolkit, check if current section has content
