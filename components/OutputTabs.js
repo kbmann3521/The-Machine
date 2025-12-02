@@ -248,14 +248,24 @@ export default function OutputTabs({
   }, [toolId])
 
   // Determine which tab to show:
-  // 1. If user explicitly selected a tab, show that
-  // 2. Otherwise, prefer OUTPUT/FORMATTED tab
+  // 1. Try to use user-selected tab, but ONLY if it exists in current finalTabConfig
+  // 2. If not found or not selected, prefer OUTPUT/FORMATTED tab
   // 3. Fallback to first tab
-  let currentActiveTab = userSelectedTabId
-  if (!currentActiveTab) {
+  const getValidActiveTab = () => {
+    // Check if user's selected tab exists in current config
+    if (userSelectedTabId && finalTabConfig.some(t => t.id === userSelectedTabId)) {
+      return userSelectedTabId
+    }
+    // Find OUTPUT or FORMATTED tab
     const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
-    currentActiveTab = outputTab ? outputTab.id : (finalTabConfig[0]?.id || null)
+    if (outputTab) {
+      return outputTab.id
+    }
+    // Fallback to first tab
+    return finalTabConfig[0]?.id || null
   }
+
+  const currentActiveTab = getValidActiveTab()
   const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
   const getJsonString = () => {
