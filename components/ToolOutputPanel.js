@@ -2220,16 +2220,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ].filter(f => f.value)
 
 
-      case 'url-parser':
-        return [
-          { label: 'Protocol', value: result.protocol },
-          { label: 'Host', value: result.host },
-          { label: 'Port', value: result.port },
-          { label: 'Path', value: result.path },
-          { label: 'Query', value: result.query },
-          { label: 'Fragment', value: result.fragment },
-        ].filter(f => f.value)
-
       case 'base64-converter':
         return [
           { label: 'Result', value: result },

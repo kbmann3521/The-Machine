@@ -27,7 +27,6 @@ const toolIcons = {
   'xml-formatter': FaCode,
   'yaml-formatter': FaCode,
   'url-toolkit': FaGlobe,
-  'url-parser': FaGlobe,
   'jwt-decoder': FaTicket,
   'text-diff-checker': FaExchangeAlt,
   'color-converter': FaPalette,
