@@ -424,7 +424,20 @@ export default function Home() {
       try {
         let textToUse = inputText || ''
 
-        // Don't run tool if there's no actual user input
+        // If no input, try to get an example/placeholder for any tool
+        if (!textToUse && !imagePreview) {
+          const example = getToolExample(tool.toolId, config)
+          if (example) {
+            textToUse = example
+          } else {
+            // No input and no example available - don't run the tool
+            setToolLoading(false)
+            setOutputResult(null)
+            return
+          }
+        }
+
+        // If still no input and no image, don't run the tool
         if (!textToUse && !imagePreview) {
           setToolLoading(false)
           setOutputResult(null)
