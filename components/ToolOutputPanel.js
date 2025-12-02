@@ -147,9 +147,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return (
       <OutputTabs
         toolCategory={toolCategory}
+        toolId={toolId}
         tabs={[
           {
-            id: 'default',
+            id: 'output',
             label: 'OUTPUT',
             content: 'Run the tool to see output here',
             contentType: 'text',
