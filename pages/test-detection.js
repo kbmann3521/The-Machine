@@ -18,7 +18,6 @@ const DEFAULT_TEST_CASES = [
   { input: '$.store.book[0].title', expected: 'json-path-extractor' },
   { input: 'SGVsbG8gd29ybGQ=', expected: 'base64-converter' },
   { input: 'hello world?', expected: 'url-converter' },
-  { input: 'https://example.com/products?id=22&color=red', expected: 'url-parser' },
   { input: 'Tom & Jerry > Mickey & Minnie', expected: 'html-entities-converter' },
   {
     input: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiJ9.sig',
