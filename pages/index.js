@@ -653,6 +653,7 @@ export default function Home() {
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
                 <ToolOutputPanel
+                  key={selectedTool?.toolId}
                   result={outputResult}
                   outputType={selectedTool?.outputType}
                   loading={toolLoading}
