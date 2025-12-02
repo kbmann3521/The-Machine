@@ -240,17 +240,6 @@ export default function OutputTabs({
     return null
   }
 
-  // CRITICAL: Reorder tabs to ALWAYS put OUTPUT/FORMATTED first
-  // This ensures the default tab is always OUTPUT, preventing flashes to validation/json
-  if (finalTabConfig.length > 1) {
-    const outputTabIndex = finalTabConfig.findIndex(t => t.id === 'output' || t.id === 'formatted')
-    if (outputTabIndex > 0) {
-      // Move output tab to position 0 without mutating original array
-      const outputTab = finalTabConfig[outputTabIndex]
-      finalTabConfig = [outputTab, ...finalTabConfig.filter((_, i) => i !== outputTabIndex)]
-    }
-  }
-
   // When tool changes, reset user selection so it defaults back to output
   useEffect(() => {
     if (toolId !== prevToolIdRef.current) {
@@ -259,16 +248,17 @@ export default function OutputTabs({
     }
   }, [toolId])
 
-  // Determine which tab to show:
-  // Since finalTabConfig[0] is GUARANTEED to be OUTPUT/FORMATTED tab (reordered above),
-  // we just use the user's selection if it exists and is valid, otherwise use first tab
+  // Determine which tab to show
+  // Always prefer OUTPUT/FORMATTED unless user explicitly selected something else
   let currentActiveTab = null
+
+  // If user selected a tab, use it only if it still exists
   if (userSelectedTabId && finalTabConfig.some(t => t.id === userSelectedTabId)) {
-    // User selected a tab that exists - use it
     currentActiveTab = userSelectedTabId
   } else {
-    // No valid user selection - use first tab (which is OUTPUT due to reordering)
-    currentActiveTab = finalTabConfig[0]?.id
+    // No valid user selection - find OUTPUT/FORMATTED or use first tab
+    const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
+    currentActiveTab = outputTab?.id || finalTabConfig[0]?.id
   }
   const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
