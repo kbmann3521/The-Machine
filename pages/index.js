@@ -527,8 +527,8 @@ export default function Home() {
 
   useEffect(() => {
     if (selectedTool) {
-      const hasExample = getToolExample(selectedTool.toolId, configOptions)
-      if (inputText || hasExample || imagePreview) {
+      // Only auto-run if user has provided actual input (no placeholder data)
+      if (inputText || imagePreview) {
         autoRunTool(selectedTool, configOptions)
       }
     }
