@@ -26,6 +26,8 @@ export default function OutputTabs({
   const codeContentRef = useRef(null)
   const textLineNumbersRef = useRef(null)
   const textContentRef = useRef(null)
+  const userSelectedTabRef = useRef(false)
+  const prevToolIdRef = useRef(toolId)
 
   // Generate a user-friendly view from JSON data
   const generateFriendlyTab = (jsonContent) => {
