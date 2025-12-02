@@ -12,7 +12,6 @@ const toolIcons = {
   'word-counter': FaHashtag,
   'case-converter': FaLettercase,
   'find-replace': FaSearch,
-  'remove-extras': FaCopy,
   'text-analyzer': FaBarChart,
   'base64-converter': FaCode,
   'url-converter': FaLink,
