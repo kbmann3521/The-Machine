@@ -13,7 +13,6 @@ const toolIcons = {
   'regex-tester': BsRegex,
   'timestamp-converter': FaClock,
   'csv-json-converter': FaFileExcel,
-  'markdown-html-converter': FaMarkdown,
   'markdown-html-formatter': FaMarkdown,
   'xml-formatter': FaCode,
   'yaml-formatter': FaCode,
