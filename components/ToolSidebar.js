@@ -17,7 +17,6 @@ const toolIcons = {
   'url-converter': FaLink,
   'html-entities-converter': FaTag,
   'html-formatter': FaCode,
-  'plain-text-stripper': FaCopy,
   'json-formatter': FaCode,
   'reverse-text': FaRotateRight,
   'slug-generator': FaSlug,

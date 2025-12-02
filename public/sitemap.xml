@@ -61,12 +61,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.pioneerwebtools.com/?tool=plain-text-stripper</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.pioneerwebtools.com/?tool=json-formatter</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
