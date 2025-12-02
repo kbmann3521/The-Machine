@@ -2250,8 +2250,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const getDisplayFields = (toolId, result, section) => {
     if (!result || typeof result !== 'object') return null
 
-    if (toolId === 'unit-converter') return null
-
     switch (toolId) {
       case 'color-converter':
         return [
