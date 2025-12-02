@@ -231,7 +231,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'regex-tester': 'Test regex patterns and see all matches highlighted',
       'timestamp-converter': 'Convert between Unix timestamps and human-readable dates',
       'csv-json-converter': 'Transform CSV spreadsheet data to JSON format',
-      'markdown-html-converter': 'Convert between Markdown and HTML markup',
       'markdown-html-formatter': 'Format and convert between Markdown and HTML',
       'xml-formatter': 'Validate and format XML with proper structure',
       'yaml-formatter': 'Format YAML configuration files with correct indentation',
