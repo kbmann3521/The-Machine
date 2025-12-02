@@ -2572,6 +2572,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return (
           <OutputTabs
             toolCategory={toolCategory}
+            toolId={toolId}
             tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
           />
         )
