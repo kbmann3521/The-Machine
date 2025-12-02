@@ -2275,16 +2275,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         }
         return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
 
-      case 'word-counter':
-        return [
-          { label: 'Word Count', value: String(result.wordCount || 0) },
-          { label: 'Character Count', value: String(result.characterCount || 0) },
-          { label: 'Character Count (no spaces)', value: String(result.characterCountNoSpaces || 0) },
-          { label: 'Sentence Count', value: String(result.sentenceCount || 0) },
-          { label: 'Line Count', value: String(result.lineCount || 0) },
-          { label: 'Paragraph Count', value: String(result.paragraphCount || 0) },
-        ].filter(f => f.value !== undefined && f.value !== null)
-
       case 'text-toolkit':
         // Word Counter
         if (section === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
