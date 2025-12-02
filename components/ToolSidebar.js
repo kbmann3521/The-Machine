@@ -31,7 +31,6 @@ const toolIcons = {
   'color-converter': FaPalette,
   'checksum-calculator': ImCalculator,
   'escape-unescape': FaQuoteLeft,
-  'sort-lines': FaArrowsAltH,
   'whitespace-visualizer': FaEye,
   'ascii-unicode-converter': FaFont,
   'binary-converter': FaToggleOn,
