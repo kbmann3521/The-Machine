@@ -548,7 +548,7 @@ export default function Home() {
         autoRunTool(selectedTool, configOptions)
       }
     }
-  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview, activeToolkitSection])
+  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview, activeToolkitSection, ipToolkitConfig])
 
 
   return (
