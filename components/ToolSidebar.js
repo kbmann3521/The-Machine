@@ -139,18 +139,13 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
             const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
             const isSelected = selectedTool?.toolId === tool.toolId
 
-            const isMarked = markedForDeletion[tool.toolId] || tool.markForDelete || false
-            const isMarking = markingTool === tool.toolId
-
             return (
               <article
                 key={tool.toolId}
                 ref={(el) => setItemRef(tool.toolId, el)}
                 className={`${styles.toolItem} ${
                   isSelected ? styles.selected : ''
-                } ${isTopMatch && !searchQuery ? styles.topMatch : ''} ${
-                  isMarked ? styles.markedForDeletion : ''
-                }`}
+                } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
                 onClick={() => onSelectTool(tool)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
                 role="button"
