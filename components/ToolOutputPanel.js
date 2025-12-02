@@ -128,7 +128,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Default placeholder with OutputTabs design
     const defaultTabs = [
       {
-        id: 'default',
+        id: 'output',
         label: 'Output',
         content: 'Upload an image to see results',
         contentType: 'text',
