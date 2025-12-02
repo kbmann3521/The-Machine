@@ -12,17 +12,10 @@ import { yaml } from '@codemirror/lang-yaml'
 import { isScriptingLanguageTool } from '../lib/tools'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
+export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, errorData = null }) {
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type your text here... drag & drop or paste an image (Ctrl+V)"
-    }
-
-    if (getToolExample && selectedTool?.toolId) {
-      const example = getToolExample(selectedTool.toolId, configOptions)
-      if (example) {
-        return example
-      }
     }
 
     const staticPlaceholders = {
