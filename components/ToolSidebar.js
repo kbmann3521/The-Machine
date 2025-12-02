@@ -54,9 +54,6 @@ const toolIcons = {
   'file-size-converter': FaRuler,
   'js-formatter': FaCode,
   'email-validator': FaEnvelope,
-  'ip-validator': FaNetworkWired,
-  'ip-integer-converter': FaNetworkWired,
-  'ip-range-calculator': FaNetworkWired,
   'ip-address-toolkit': FaNetworkWired,
 }
 
