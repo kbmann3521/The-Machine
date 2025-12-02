@@ -173,21 +173,6 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                     {(tool.similarity * 100).toFixed(0)}%
                   </span>
                 </div>
-                <button
-                  className={`${styles.markDeleteBtn} ${isMarked ? styles.marked : ''}`}
-                  onClick={(e) => handleMarkForDelete(e, tool.toolId, isMarked)}
-                  disabled={isMarking}
-                  title={isMarked ? 'Marked for deletion' : 'Mark for deletion'}
-                  aria-label={`Mark ${tool.name} for deletion`}
-                >
-                  {isMarking ? (
-                    <span className={styles.spinner} />
-                  ) : isMarked ? (
-                    <FaCheck />
-                  ) : (
-                    <FaTrash />
-                  )}
-                </button>
               </article>
             )
           })}
