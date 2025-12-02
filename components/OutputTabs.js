@@ -236,35 +236,26 @@ export default function OutputTabs({
     }
   }
 
-  // Ensure OUTPUT/FORMATTED tab is always first
-  if (finalTabConfig && finalTabConfig.length > 1) {
-    const outputTabIndex = finalTabConfig.findIndex(t => t.id === 'output' || t.id === 'formatted')
-    if (outputTabIndex > 0) {
-      // Move output tab to the front
-      const outputTab = finalTabConfig[outputTabIndex]
-      finalTabConfig = [outputTab, ...finalTabConfig.filter((_, i) => i !== outputTabIndex)]
-    }
-  }
-
-  // Reset user selection flag when tool changes
-  useEffect(() => {
-    if (toolId !== prevToolIdRef.current) {
-      userSelectedTabRef.current = false
-      prevToolIdRef.current = toolId
-      // Immediately set to output tab when tool changes
-      if (finalTabConfig && finalTabConfig.length > 0) {
-        const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
-        setActiveTab(outputTab ? outputTab.id : finalTabConfig[0].id)
-      }
-    }
-  }, [toolId, finalTabConfig])
-
   if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
   }
 
-  // Ensure activeTab is set
-  const currentActiveTab = activeTab || finalTabConfig[0]?.id
+  // Reset activeTab and flag when tool changes
+  useEffect(() => {
+    if (toolId !== prevToolIdRef.current) {
+      prevToolIdRef.current = toolId
+      userSelectedTabRef.current = false
+      setActiveTab(null) // Reset to unset state so it will default on next render
+    }
+  }, [toolId])
+
+  // Determine which tab should be shown
+  // Prefer user-selected tab, otherwise default to OUTPUT/FORMATTED, otherwise first tab
+  let currentActiveTab = activeTab
+  if (!currentActiveTab) {
+    const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
+    currentActiveTab = outputTab ? outputTab.id : finalTabConfig[0].id
+  }
   const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
   const getJsonString = () => {
