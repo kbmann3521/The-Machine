@@ -460,11 +460,12 @@ export default function OutputTabs({
       <div className={styles.outputTabsContainer}>
         <div className={styles.tabsHeader}>
           <div className={styles.tabs}>
-            {finalTabConfig.map(tab => (
+            {finalTabConfig.map((tab, idx) => (
               <button
                 key={tab.id}
                 className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
                 onClick={() => setUserSelectedTabId(tab.id)}
+                disabled={!activeTabConfig}
               >
                 {tab.label}
               </button>
