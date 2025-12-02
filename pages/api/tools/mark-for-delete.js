@@ -121,9 +121,15 @@ export default async function handler(req, res) {
     )
 
     // Update the mark_for_delete flag in database
+    // Also set show_in_recommendations to false when marking for deletion
+    const updateData = { mark_for_delete: marked }
+    if (marked) {
+      updateData.show_in_recommendations = false
+    }
+
     const { data, error } = await supabase
       .from('tools')
-      .update({ mark_for_delete: marked })
+      .update(updateData)
       .eq('id', toolId)
       .select()
 
