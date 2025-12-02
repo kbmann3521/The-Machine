@@ -185,11 +185,6 @@ export default function Home() {
     }
 
     initializeTools()
-
-    // Set up auto-refresh every 30 seconds to pick up Supabase changes
-    const refreshInterval = setInterval(initializeTools, 30000)
-
-    return () => clearInterval(refreshInterval)
   }, [])
 
   const handleSelectTool = useCallback(
