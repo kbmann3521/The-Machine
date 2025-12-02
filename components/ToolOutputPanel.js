@@ -1464,8 +1464,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = [
       {
-        id: 'friendly',
-        label: 'Formats',
+        id: 'output',
+        label: 'OUTPUT',
         content: friendlyView,
         contentType: 'component',
       },
