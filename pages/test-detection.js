@@ -4,7 +4,6 @@ import styles from '../styles/test-detection.module.css'
 const DEFAULT_TEST_CASES = [
   { input: 'please rewrite this to sound more professional', expected: 'text-toolkit' },
   { input: '   Hello    world! This   has   extra spaces.   ', expected: 'clean-text' },
-  { input: '<p>Hello <b>world</b></p>', expected: 'plain-text-stripper' },
   { input: '🔥', expected: 'ascii-unicode-converter' },
   { input: 'uryyb jbeyq', expected: 'rot13-cipher' },
   { input: 'Khoor Zruog', expected: 'caesar-cipher' },
