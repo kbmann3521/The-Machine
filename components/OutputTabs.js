@@ -249,19 +249,27 @@ export default function OutputTabs({
 
   // Determine which tab to show:
   // 1. Try to use user-selected tab, but ONLY if it exists in current finalTabConfig
-  // 2. If not found or not selected, prefer OUTPUT/FORMATTED tab
-  // 3. Fallback to first tab
+  // 2. If not found or not selected, prefer OUTPUT/FORMATTED tab (never default to validation)
+  // 3. Fallback to first non-validation, non-linting, non-json tab
+  // 4. Last resort: first tab
   const getValidActiveTab = () => {
     // Check if user's selected tab exists in current config
     if (userSelectedTabId && finalTabConfig.some(t => t.id === userSelectedTabId)) {
       return userSelectedTabId
     }
-    // Find OUTPUT or FORMATTED tab
+    // Find OUTPUT or FORMATTED tab (these are the primary output tabs)
     const outputTab = finalTabConfig.find(t => t.id === 'output' || t.id === 'formatted')
     if (outputTab) {
       return outputTab.id
     }
-    // Fallback to first tab
+    // Fallback: Find first tab that's NOT a secondary/metadata tab
+    const nonMetadataTab = finalTabConfig.find(t =>
+      !['validation', 'linting', 'json'].includes(t.id)
+    )
+    if (nonMetadataTab) {
+      return nonMetadataTab.id
+    }
+    // Last resort: first tab
     return finalTabConfig[0]?.id || null
   }
 
