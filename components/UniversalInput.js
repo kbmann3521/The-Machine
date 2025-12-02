@@ -27,7 +27,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
 
     const staticPlaceholders = {
       'text-toolkit': 'Paste your article, blog post, or essay for complete text analysis',
-      'word-counter': 'Paste your essay, article, or document to count words and characters',
       'case-converter': 'Paste text to convert between uppercase, lowercase, title case, etc.',
       'find-replace': 'Paste text and configure search patterns to find and replace',
       'text-analyzer': 'Paste text to analyze readability, word frequency, and writing metrics',
@@ -225,7 +224,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     if (!selectedTool) return null
 
     const instructions = {
-      'word-counter': 'Get detailed statistics on words, characters, and readability',
       'case-converter': 'Transform text case for titles, code, or any style you need',
       'find-replace': 'Search and replace with plain text or regex patterns',
       'text-analyzer': 'Analyze readability scores, word frequency, and writing quality',

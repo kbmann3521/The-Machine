@@ -8,7 +8,6 @@ import styles from '../styles/tool-sidebar.module.css'
 const toolIcons = {
   'text-toolkit': FaFont,
   'image-toolkit': FaImage,
-  'word-counter': FaHashtag,
   'case-converter': FaLettercase,
   'find-replace': FaSearch,
   'text-analyzer': FaBarChart,
