@@ -239,6 +239,17 @@ export default function OutputTabs({
     return null
   }
 
+  // CRITICAL: Reorder tabs to ALWAYS put OUTPUT/FORMATTED first
+  // This ensures the default tab is always OUTPUT, preventing flashes to validation/json
+  if (finalTabConfig.length > 1) {
+    const outputTabIndex = finalTabConfig.findIndex(t => t.id === 'output' || t.id === 'formatted')
+    if (outputTabIndex > 0) {
+      // Move output tab to position 0
+      const [outputTab] = finalTabConfig.splice(outputTabIndex, 1)
+      finalTabConfig.unshift(outputTab)
+    }
+  }
+
   // When tool changes, reset user selection so it defaults back to output
   useEffect(() => {
     if (toolId !== prevToolIdRef.current) {
