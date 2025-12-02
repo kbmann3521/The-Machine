@@ -239,6 +239,28 @@ export default function OutputTabs({
     return null
   }
 
+  // CRITICAL: Ensure OUTPUT/FORMATTED tab always exists and is FIRST
+  // This prevents flashing validation/json tabs when switching tools
+  const hasOutputTab = finalTabConfig.some(t => t.id === 'output' || t.id === 'formatted')
+  if (!hasOutputTab && finalTabConfig.length > 0) {
+    // Add output tab as first tab if it doesn't exist
+    const firstTab = finalTabConfig[0]
+    const outputTab = {
+      id: 'output',
+      label: 'OUTPUT',
+      content: firstTab.content,
+      contentType: firstTab.contentType
+    }
+    finalTabConfig = [outputTab, ...finalTabConfig]
+  } else if (hasOutputTab) {
+    // If output exists but isn't first, move it to first
+    const outputIdx = finalTabConfig.findIndex(t => t.id === 'output' || t.id === 'formatted')
+    if (outputIdx > 0) {
+      const [outputTab] = finalTabConfig.splice(outputIdx, 1)
+      finalTabConfig.unshift(outputTab)
+    }
+  }
+
   // When tool changes, reset user selection so it defaults back to output
   useEffect(() => {
     if (toolId !== prevToolIdRef.current) {
