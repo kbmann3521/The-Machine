@@ -146,6 +146,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   if (isEmpty || isTextToolkitWithoutContent) {
     return (
       <OutputTabs
+        key={toolId}
         toolCategory={toolCategory}
         toolId={toolId}
         tabs={[
