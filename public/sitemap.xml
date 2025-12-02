@@ -295,30 +295,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.pioneerwebtools.com/?tool=ip-validator</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=ip-to-integer</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=integer-to-ip</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=ip-range-calculator</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.pioneerwebtools.com/?tool=markdown-linter</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
