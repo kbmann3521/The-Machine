@@ -39,7 +39,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'regex-tester': 'Paste text and test regular expression patterns',
       'timestamp-converter': 'Paste a Unix timestamp or date to convert formats',
       'csv-json-converter': 'Paste CSV data from Excel or spreadsheets to convert to JSON',
-      'markdown-html-converter': 'Paste Markdown or HTML content to convert between formats',
       'markdown-html-formatter': 'Paste Markdown or HTML content to convert and format',
       'xml-formatter': 'Paste XML data or configuration to format and validate',
       'yaml-formatter': 'Paste YAML config file to format and check syntax',
