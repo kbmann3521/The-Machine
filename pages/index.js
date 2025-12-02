@@ -587,7 +587,6 @@ export default function Home() {
                   onImageChange={handleImageChange}
                   selectedTool={selectedTool}
                   configOptions={configOptions}
-                  getToolExample={getToolExample}
                   errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
                 />
               </div>
