@@ -2592,6 +2592,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderXmlFormatterOutput()
       case 'yaml-formatter':
         return renderYamlFormatterOutput()
+      case 'unit-converter':
+        return renderUnitConverterOutput()
       default: {
         const tabs = []
 
