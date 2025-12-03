@@ -8,25 +8,25 @@ export default function Base64Output({ result }) {
       {
         id: 'placeholder',
         label: 'Preview',
-        content: 'Upload an image to see Base64 preview',
+        content: 'No preview available',
         contentType: 'text',
       },
       {
         id: 'base64-placeholder',
         label: 'Base64 String',
-        content: '[base64-encoded-image-data]',
+        content: '',
         contentType: 'code',
       },
       {
         id: 'uri-placeholder',
         label: 'Data URI',
-        content: 'data:image/jpeg;base64,[encoded-data]',
+        content: '',
         contentType: 'code',
       },
       {
         id: 'html-placeholder',
         label: 'HTML Embed',
-        content: '<img src="data:image/jpeg;base64,[encoded-data]" alt="Embedded Image" />',
+        content: '',
         contentType: 'code',
       },
     ]
