@@ -66,7 +66,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
   const prevPositionsRef = useRef({})
 
   const filteredTools = useMemo(() => {
-    let tools = predictedTools
+    let tools = [...predictedTools].sort((a, b) => a.name.localeCompare(b.name))
 
     // Filter by search query
     if (searchQuery.trim()) {
