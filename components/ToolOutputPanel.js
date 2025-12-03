@@ -125,11 +125,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       {
         id: 'json',
         label: 'JSON',
-        content: '{}',
-        contentType: 'json',
+        content: 'null',
+        contentType: 'text',
       },
     ]
-    return <OutputTabs key={toolId} tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={true} />
+    return <OutputTabs tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
   // Special handling for image-toolkit - show OutputTabs even when empty
