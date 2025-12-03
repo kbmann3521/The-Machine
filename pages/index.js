@@ -538,7 +538,7 @@ export default function Home() {
         clearTimeout(toolDebounceTimerRef.current)
       }
     }
-  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig, autoRunTool])
+  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig])
 
 
   return (
