@@ -110,7 +110,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const shouldUsePreviousResult = (toolId === previousToolId) &&
     (toolId !== 'text-toolkit' || activeToolkitSection === previousToolkitSection)
 
-  const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
+  // If result is explicitly null (no input), always show waiting state - don't use previous result
+  const displayResult = result === null ? null : (shouldUsePreviousResult ? (result || previousResult) : result)
   const isEmpty = !displayResult && !loading && !error
 
   // Special handling for image-toolkit - show OutputTabs even when empty
