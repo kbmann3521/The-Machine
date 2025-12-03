@@ -227,9 +227,11 @@ export default function Home() {
       clearTimeout(debounceTimerRef.current)
     }
 
-    // Skip prediction and output clearing when input is empty
+    // When input is cleared/empty, reset output to waiting state
     if (!text.trim()) {
       setLoading(false)
+      setOutputResult(null)
+      setError(null)
       return
     }
 
