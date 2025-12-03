@@ -149,7 +149,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       {
         id: 'output',
         label: 'Output',
-        content: 'Upload an image to see results',
+        content: 'Waiting for results...',
         contentType: 'text',
       },
     ]
