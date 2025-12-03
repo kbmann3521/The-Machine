@@ -139,12 +139,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
-  if (isEmpty || isTextToolkitWithoutContent) {
+  // Show placeholder when no result (waiting for input, not loading)
+  if (!displayResult) {
     const placeholderTabs = [
       {
         id: 'output',
         label: 'OUTPUT',
-        content: 'Waiting for results...',
+        content: 'Waiting for input...',
         contentType: 'text',
       },
       {
@@ -157,13 +158,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
-  // When there's no result, show waiting state with tabs
-  if (!displayResult) {
+  // Text toolkit without content for specific sections
+  if (isTextToolkitWithoutContent) {
     const placeholderTabs = [
       {
         id: 'output',
         label: 'OUTPUT',
-        content: 'Waiting for input...',
+        content: 'Waiting for results...',
         contentType: 'text',
       },
       {
