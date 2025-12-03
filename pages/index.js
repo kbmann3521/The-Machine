@@ -522,8 +522,7 @@ export default function Home() {
 
   useEffect(() => {
     if (selectedTool) {
-      const hasExample = getToolExample(selectedTool.toolId, configOptions)
-      if (inputText || hasExample || imagePreview) {
+      if (inputText || imagePreview) {
         autoRunTool(selectedTool, configOptions)
       }
     }
