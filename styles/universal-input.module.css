@@ -237,6 +237,38 @@
   background-color: rgba(239, 83, 80, 0.1);
 }
 
+.detectedToolsInsideInput {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: var(--color-background-tertiary);
+  border-top: 1px solid var(--color-border);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.detectedToolButton {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: transparent;
+  border: 1px solid currentColor;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.detectedToolButton:hover {
+  background-color: currentColor;
+  color: var(--color-background-primary);
+}
+
+.detectedToolButton:active {
+  opacity: 0.8;
+}
+
 .fileInput {
   display: none;
 }
