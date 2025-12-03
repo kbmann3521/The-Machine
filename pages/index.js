@@ -60,7 +60,6 @@ export default function Home() {
   const [ipToolkitConfig, setIpToolkitConfig] = useState({})
 
   const debounceTimerRef = useRef(null)
-  const toolDebounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
   const loadingTimerRef = useRef(null)
   const visibilityMapRef = useRef({})
