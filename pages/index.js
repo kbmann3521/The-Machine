@@ -512,31 +512,17 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
-  // Run tool when tool is selected, or debounce when input changes
+  // Run tool when tool is selected or input changes (real-time updates)
   useEffect(() => {
     if (!selectedTool) return
 
-    // Clear any pending tool execution
-    if (toolDebounceTimerRef.current) {
-      clearTimeout(toolDebounceTimerRef.current)
-    }
-
-    // If there's input, debounce the tool execution
+    // If there's input, run tool immediately for real-time feedback
     if (inputText || imagePreview) {
-      // Debounce for 300ms to allow user to keep typing without re-running tool constantly
-      toolDebounceTimerRef.current = setTimeout(() => {
-        autoRunTool(selectedTool, configOptions)
-      }, 300)
+      autoRunTool(selectedTool, configOptions)
     } else {
       // No input - clear output immediately
       setOutputResult(null)
       setError(null)
-    }
-
-    return () => {
-      if (toolDebounceTimerRef.current) {
-        clearTimeout(toolDebounceTimerRef.current)
-      }
     }
   }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig])
 
