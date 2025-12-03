@@ -38,6 +38,12 @@
   align-items: flex-end;
 }
 
+.buttonGroup {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .inputField {
   position: relative;
   display: flex;
