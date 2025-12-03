@@ -220,6 +220,17 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     fileInputRef.current?.click()
   }
 
+  const handleLoadExample = () => {
+    if (!selectedTool || !getToolExample) return
+
+    const example = getToolExample(selectedTool.toolId, configOptions)
+    if (example) {
+      setInputText(example)
+      setCharCount(example.length)
+      onInputChange(example, null, null, false)
+    }
+  }
+
   const getInstructionText = () => {
     if (!selectedTool) return null
 
