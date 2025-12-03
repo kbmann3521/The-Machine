@@ -8,6 +8,8 @@ import { json } from '@codemirror/lang-json'
 import { sql } from '@codemirror/lang-sql'
 import { python } from '@codemirror/lang-python'
 import { yaml } from '@codemirror/lang-yaml'
+import { useTheme } from '../lib/ThemeContext'
+import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/code-mirror-output.module.css'
 
 const getLanguageExtension = (toolId) => {
@@ -26,6 +28,8 @@ const getLanguageExtension = (toolId) => {
 }
 
 export default function CodeMirrorOutput({ code, toolId, readOnly = true }) {
+  const { theme } = useTheme()
+
   if (!code) return null
 
   const codeString = typeof code === 'string' ? code : JSON.stringify(code, null, 2)
@@ -36,10 +40,9 @@ export default function CodeMirrorOutput({ code, toolId, readOnly = true }) {
         value={codeString}
         onChange={() => {}}
         editable={!readOnly}
-        extensions={[getLanguageExtension(toolId)].filter(Boolean)}
+        extensions={[getLanguageExtension(toolId), ...createCustomTheme(theme)].filter(Boolean)}
         className={styles.editor}
         height="100%"
-        theme="dark"
         basicSetup={{
           lineNumbers: true,
           foldGutter: false,
