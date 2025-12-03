@@ -10,9 +10,13 @@ import { sql } from '@codemirror/lang-sql'
 import { python } from '@codemirror/lang-python'
 import { yaml } from '@codemirror/lang-yaml'
 import { isScriptingLanguageTool } from '../lib/tools'
+import { useTheme } from '../lib/ThemeContext'
+import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/universal-input.module.css'
 
 export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
+  const { theme } = useTheme()
+
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type your text here... drag & drop or paste an image (Ctrl+V)"
@@ -314,10 +318,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                   value={inputText}
                   onChange={handleTextChange}
                   placeholder={getPlaceholder()}
-                  extensions={[getLanguage()].filter(Boolean)}
+                  extensions={[getLanguage(), ...createCustomTheme(theme)].filter(Boolean)}
                   className={styles.codeMirror}
                   height="100%"
-                  theme="dark"
                   basicSetup={{
                     lineNumbers: true,
                     foldGutter: false,
