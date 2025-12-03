@@ -160,14 +160,23 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
-  // Don't render output tabs until we have actual output ready
-  // This prevents flashing "null" or showing incomplete data
+  // When there's no result, show waiting state with tabs
   if (!displayResult) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#888' }}>
-        <p>Processing...</p>
-      </div>
-    )
+    const placeholderTabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: 'Waiting for input...',
+        contentType: 'text',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: 'null',
+        contentType: 'text',
+      },
+    ]
+    return <OutputTabs tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
   const handleCopy = async () => {
