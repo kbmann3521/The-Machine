@@ -508,14 +508,15 @@ export default function Home() {
     if (!selectedTool) return
 
     // If there's input, run tool immediately for real-time feedback
-    if (inputText || imagePreview) {
+    if (inputText.trim() || imagePreview) {
       autoRunTool(selectedTool, configOptions)
     } else {
-      // No input - clear output immediately
+      // No input - clear both output and error immediately with no intermediate state
       setOutputResult(null)
       setError(null)
+      setToolLoading(false)
     }
-  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig])
+  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig, autoRunTool])
 
 
   return (
