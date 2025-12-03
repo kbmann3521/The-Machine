@@ -192,6 +192,11 @@ export default function Home() {
       setSelectedTool(tool)
       setAdvancedMode(true) // User manually selected - exit auto-detect
 
+      // Reset output when switching tools to prevent showing previous tool's output
+      setOutputResult(null)
+      setError(null)
+      setToolLoading(false)
+
       // Initialize config for the selected tool
       const initialConfig = {}
       if (tool?.configSchema) {
