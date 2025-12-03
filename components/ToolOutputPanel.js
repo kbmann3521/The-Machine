@@ -7,7 +7,7 @@ import OutputTabs from './OutputTabs'
 import CodeMirrorOutput from './CodeMirrorOutput'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputHasContent }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
