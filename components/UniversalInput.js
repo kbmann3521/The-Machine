@@ -396,6 +396,29 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
           </div>
         </div>
 
+        {predictedTools.length > 0 && inputText && (
+          <div className={styles.detectedToolsInsideInput}>
+            {predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
+              const hue = tool.similarity * 120
+              const saturation = tool.similarity * 70
+              const lightness = 50 + (1 - tool.similarity) * 25
+              const toolColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`
+              return (
+                <button
+                  key={tool.toolId}
+                  className={styles.detectedToolButton}
+                  style={{ color: toolColor, borderColor: toolColor }}
+                  onClick={() => onSelectTool(tool)}
+                  type="button"
+                  title={`Switch to ${tool.name}`}
+                >
+                  {tool.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {imagePreview && (
           <div className={styles.imagePreview}>
             <div className={styles.previewHeader}>
