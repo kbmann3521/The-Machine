@@ -318,7 +318,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                   value={inputText}
                   onChange={handleTextChange}
                   placeholder={getPlaceholder()}
-                  extensions={[getLanguage(), ...createCustomTheme(theme)].filter(Boolean)}
+                  extensions={[getLanguage(), ...createCustomTheme(theme)]}
                   className={styles.codeMirror}
                   height="100%"
                   basicSetup={{

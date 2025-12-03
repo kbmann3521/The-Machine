@@ -40,7 +40,7 @@ export default function CodeMirrorOutput({ code, toolId, readOnly = true }) {
         value={codeString}
         onChange={() => {}}
         editable={!readOnly}
-        extensions={[getLanguageExtension(toolId), ...createCustomTheme(theme)].filter(Boolean)}
+        extensions={[getLanguageExtension(toolId), ...createCustomTheme(theme)]}
         className={styles.editor}
         height="100%"
         basicSetup={{
