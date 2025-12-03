@@ -509,7 +509,7 @@ export default function Home() {
 
     // If there's input, run tool immediately for real-time feedback
     if (inputText.trim() || imagePreview) {
-      autoRunTool(selectedTool, configOptions)
+      autoRunTool(selectedTool, configOptions, inputText, imagePreview)
     } else {
       // No input - clear both output and error immediately with no intermediate state
       setOutputResult(null)
