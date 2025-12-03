@@ -121,12 +121,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return <Base64Output result={displayResult} />
     }
 
-    // Default placeholder with OutputTabs design
+    // Default blank state with OutputTabs design
     const defaultTabs = [
       {
         id: 'output',
         label: 'Output',
-        content: 'Waiting for results...',
+        content: '',
         contentType: 'text',
       },
     ]
