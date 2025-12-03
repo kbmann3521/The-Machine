@@ -425,7 +425,8 @@ export default function Home() {
         let textToUse = inputText || ''
 
         // If no input, try to get an example/placeholder for any tool
-        if (!textToUse && !imagePreview) {
+        const skipExampleTools = ['base64-converter', 'base-converter']
+        if (!textToUse && !imagePreview && !skipExampleTools.includes(tool.toolId)) {
           const example = getToolExample(tool.toolId, config)
           if (example) {
             textToUse = example
