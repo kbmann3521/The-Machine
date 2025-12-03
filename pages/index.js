@@ -465,7 +465,7 @@ export default function Home() {
           body: JSON.stringify({
             toolId: tool.toolId,
             inputText: textToUse,
-            inputImage: imagePreview,
+            inputImage: imageInput,
             config: finalConfig,
           }),
         })
