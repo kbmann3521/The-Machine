@@ -242,9 +242,6 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      setError(null)
-      setOutputResult(null)
-
       // Clear any existing loading timer
       if (loadingTimerRef.current) {
         clearTimeout(loadingTimerRef.current)
