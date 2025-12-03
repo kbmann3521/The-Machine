@@ -438,10 +438,15 @@ export default function Home() {
           }
         }
 
-        // If still no input and no image, don't run the tool
+        // If still no input and no image, don't run the tool (but show placeholder for certain tools)
         if (!textToUse && !imagePreview) {
           setToolLoading(false)
-          setOutputResult(null)
+          if (skipExampleTools.includes(tool.toolId)) {
+            // Show tabs but with placeholder message
+            setOutputResult({ __isPlaceholder: true })
+          } else {
+            setOutputResult(null)
+          }
           return
         }
 
