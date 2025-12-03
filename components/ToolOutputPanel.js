@@ -153,7 +153,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         contentType: 'text',
       },
     ]
-    const OutputTabs = require('./OutputTabs').default
     return <OutputTabs key={toolId} tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
   }
 
