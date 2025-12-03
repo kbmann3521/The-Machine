@@ -19,19 +19,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
 
   const getPlaceholder = () => {
     if (!selectedTool) {
-      return "Type your text here... drag & drop or paste an image (Ctrl+V)"
+      return "Type or paste content here..."
     }
-
-    const skipExampleTools = ['base64-converter', 'base-converter']
-
-    if (getToolExample && selectedTool?.toolId && !skipExampleTools.includes(selectedTool.toolId)) {
-      const example = getToolExample(selectedTool.toolId, configOptions)
-      if (example) {
-        return example
-      }
-    }
-
-    return ""
+    return "Type or paste content here..."
   }
 
   const [inputText, setInputText] = useState('')
