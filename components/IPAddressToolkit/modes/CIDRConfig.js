@@ -31,7 +31,7 @@ export default function CIDRConfig({ configState, setConfigState }) {
         <label className={styles.configLabel}>Base Network</label>
         <input
           type="text"
-          placeholder="e.g., 192.168.0.0/16"
+          placeholder=""
           value={configState.baseNetwork || ''}
           onChange={e => handleChange('baseNetwork', e.target.value)}
           className={styles.input}

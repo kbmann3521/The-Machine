@@ -52,7 +52,7 @@ export default function BulkOutput({ result }) {
       {/* Placeholder Content */}
       <div className={styles.emptyOutput}>
         <p className={styles.emptyOutputText}>
-          Enter IP addresses and click "Run Bulk Processing" to see results here
+          No results yet
         </p>
       </div>
 
