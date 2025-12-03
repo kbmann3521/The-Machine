@@ -211,6 +211,32 @@
   background-color: #003d7a;
 }
 
+.clearInputButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.clearInputButton:hover {
+  background-color: var(--color-border);
+  border-color: #ef5350;
+  color: #ef5350;
+}
+
+.clearInputButton:active {
+  background-color: rgba(239, 83, 80, 0.1);
+}
+
 .fileInput {
   display: none;
 }
