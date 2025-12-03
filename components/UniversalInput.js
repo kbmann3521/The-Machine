@@ -231,6 +231,14 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
   }
 
+  const handleClearInput = () => {
+    setInputText('')
+    setCharCount(0)
+    setInputImage(null)
+    setImagePreview(null)
+    onInputChange('', null, null, false)
+  }
+
   const getInstructionText = () => {
     if (!selectedTool) return null
 
