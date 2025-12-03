@@ -19,7 +19,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   if (!tool) {
     return (
       <div className={styles.container}>
-        <p className={styles.placeholder}>Select a tool to configure</p>
+        <p className={styles.placeholder}></p>
       </div>
     )
   }

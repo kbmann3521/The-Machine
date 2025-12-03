@@ -23,7 +23,7 @@ export default function ImageToolkit({ result, config, onParamsChange }) {
     if (!result) {
       return (
         <div className={styles.placeholder}>
-          <p>Configure the tool and upload an image to see results</p>
+          <p>No results yet</p>
         </div>
       )
     }

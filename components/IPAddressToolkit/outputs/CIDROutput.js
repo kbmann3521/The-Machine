@@ -52,7 +52,7 @@ export default function CIDROutput({ result }) {
       {/* Placeholder Content */}
       <div className={styles.emptyOutput}>
         <p className={styles.emptyOutputText}>
-          Enter a base network and click "Run Subnetting" to see results here
+          No results yet
         </p>
       </div>
 
