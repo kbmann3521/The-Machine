@@ -424,9 +424,8 @@ export default function Home() {
       try {
         let textToUse = inputText || ''
 
-        // If no input, try to get an example/placeholder for any tool
-        const skipExampleTools = ['base64-converter', 'base-converter']
-        if (!textToUse && !imagePreview && !skipExampleTools.includes(tool.toolId)) {
+        // If no input, try to get an example for any tool
+        if (!textToUse && !imagePreview) {
           const example = getToolExample(tool.toolId, config)
           if (example) {
             textToUse = example
@@ -438,15 +437,10 @@ export default function Home() {
           }
         }
 
-        // If still no input and no image, don't run the tool (but show placeholder for certain tools)
+        // If still no input and no image, don't run the tool
         if (!textToUse && !imagePreview) {
           setToolLoading(false)
-          if (skipExampleTools.includes(tool.toolId)) {
-            // Show tabs but with placeholder message
-            setOutputResult({ __isPlaceholder: true })
-          } else {
-            setOutputResult(null)
-          }
+          setOutputResult(null)
           return
         }
 
