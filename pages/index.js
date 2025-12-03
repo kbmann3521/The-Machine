@@ -394,16 +394,16 @@ export default function Home() {
   )
 
   const autoRunTool = useCallback(
-    async (tool, config) => {
+    async (tool, config, textInput = inputText, imageInput = imagePreview) => {
       if (!tool) return
 
       setToolLoading(true)
 
       try {
-        let textToUse = inputText || ''
+        let textToUse = textInput || ''
 
         // If no input and no image, don't run the tool
-        if (!textToUse && !imagePreview) {
+        if (!textToUse && !imageInput) {
           setToolLoading(false)
           setOutputResult(null)
           return
