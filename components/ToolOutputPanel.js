@@ -113,6 +113,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
   const isEmpty = !displayResult && !loading && !error
 
+  // Special handling for tools with placeholder (no input yet)
+  if (displayResult?.__isPlaceholder) {
+    const placeholderTabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: 'Enter input to see results',
+        contentType: 'text',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: '{}',
+        contentType: 'json',
+      },
+    ]
+    return <OutputTabs key={toolId} tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={true} />
+  }
+
   // Special handling for image-toolkit - show OutputTabs even when empty
   if (toolId === 'image-toolkit') {
     if (displayResult?.mode === 'resize') {
