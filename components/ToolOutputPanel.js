@@ -166,7 +166,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       {
         id: 'output',
         label: 'OUTPUT',
-        content: 'Enter input to see results',
+        content: 'Waiting for results...',
         contentType: 'text',
       },
       {
