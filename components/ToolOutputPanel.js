@@ -162,11 +162,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
   if (isEmpty || isTextToolkitWithoutContent) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#888' }}>
-        <p>Enter input to see results</p>
-      </div>
-    )
+    const placeholderTabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: 'Enter input to see results',
+        contentType: 'text',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: 'null',
+        contentType: 'text',
+      },
+    ]
+    return <OutputTabs tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
   // Don't render output tabs until we have actual output ready
