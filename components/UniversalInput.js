@@ -328,6 +328,16 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                 Load Example
               </button>
             )}
+            {inputText && (
+              <button
+                className={styles.clearInputButton}
+                onClick={handleClearInput}
+                title="Clear all input and output"
+                type="button"
+              >
+                Clear Input
+              </button>
+            )}
           </div>
 
           <div
