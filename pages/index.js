@@ -658,6 +658,7 @@ export default function Home() {
                   activeToolkitSection={activeToolkitSection}
                   configOptions={configOptions}
                   onConfigChange={setConfigOptions}
+                  inputHasContent={!!inputText.trim() || !!imagePreview}
                 />
               </div>
             </div>
