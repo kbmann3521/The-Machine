@@ -511,19 +511,12 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
-  // Run tool when a new tool is selected (if input exists)
+  // Run tool when tool is selected, config changes, or significant input change
   useEffect(() => {
     if (selectedTool && (inputText || imagePreview)) {
       autoRunTool(selectedTool, configOptions)
     }
-  }, [selectedTool])
-
-  // Re-run tool when config, toolkit section, or image changes (not on every text input change)
-  useEffect(() => {
-    if (selectedTool && (inputText || imagePreview)) {
-      autoRunTool(selectedTool, configOptions)
-    }
-  }, [configOptions, activeToolkitSection, ipToolkitConfig, imagePreview])
+  }, [selectedTool, configOptions, activeToolkitSection, ipToolkitConfig, imagePreview])
 
 
   return (
