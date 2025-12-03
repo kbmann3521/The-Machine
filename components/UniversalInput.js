@@ -22,7 +22,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       return "Type your text here... drag & drop or paste an image (Ctrl+V)"
     }
 
-    if (getToolExample && selectedTool?.toolId) {
+    const skipExampleTools = ['base64-converter', 'base-converter']
+
+    if (getToolExample && selectedTool?.toolId && !skipExampleTools.includes(selectedTool.toolId)) {
       const example = getToolExample(selectedTool.toolId, configOptions)
       if (example) {
         return example
