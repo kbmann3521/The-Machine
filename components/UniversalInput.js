@@ -31,59 +31,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       }
     }
 
-    const staticPlaceholders = {
-      'text-toolkit': 'Paste your article, blog post, or essay for complete text analysis',
-      'case-converter': 'Paste text to convert between uppercase, lowercase, title case, etc.',
-      'find-replace': 'Paste text and configure search patterns to find and replace',
-      'text-analyzer': 'Paste text to analyze readability, word frequency, and writing metrics',
-      'base64-converter': '',
-      'url-converter': 'Paste a URL or encoded string to convert formats',
-      'html-entities-converter': 'Paste HTML content to encode or decode special characters',
-      'html-formatter': 'Paste messy HTML code to format and indent properly',
-      'json-formatter': 'Paste JSON from an API or config file to format and validate',
-      'reverse-text': 'Paste text to reverse character order',
-      'regex-tester': 'Paste text and test regular expression patterns',
-      'timestamp-converter': 'Paste a Unix timestamp or date to convert formats',
-      'csv-json-converter': 'Paste CSV data from Excel or spreadsheets to convert to JSON',
-      'markdown-html-formatter': 'Paste Markdown or HTML content to convert and format',
-      'xml-formatter': 'Paste XML data or configuration to format and validate',
-      'yaml-formatter': 'Paste YAML config file to format and check syntax',
-      'url-toolkit': 'Paste a URL to parse, validate, normalize, or manipulate',
-      'jwt-decoder': 'Paste a JWT token from your app to decode and inspect claims',
-      'text-diff-checker': 'Paste your original text in the main field to compare versions',
-      'color-converter': 'Paste a color value (hex, RGB, HSL, etc.) to convert formats',
-      'checksum-calculator': 'Paste text to generate MD5, SHA1, SHA256 checksums',
-      'escape-unescape': 'Paste text or escaped strings to convert encoding',
-      'whitespace-visualizer': 'Paste text to visualize tabs, spaces, and line breaks',
-      'ascii-unicode-converter': 'Paste text to convert between ASCII and Unicode formats',
-      'punycode-converter': 'Paste an international domain name to convert to punycode',
-      'binary-converter': 'Paste a number to convert between bases (binary, hex, octal, decimal)',
-      'rot13-cipher': 'Paste text to apply or remove ROT13 encryption',
-      'caesar-cipher': 'Paste text to apply Caesar cipher encryption',
-      'css-formatter': 'Paste CSS code to format and beautify it',
-      'sql-formatter': 'Paste SQL queries to format and validate',
-      'http-status-lookup': 'Enter HTTP status code to see what it means',
-      'mime-type-lookup': 'Enter file extension or content type to lookup MIME type',
-      'http-header-parser': 'Paste HTTP headers to parse and analyze',
-      'uuid-validator': 'Paste a UUID to validate format and detect version',
-      'json-path-extractor': 'Paste JSON to extract data using JSONPath expressions',
-      'image-to-base64': 'Upload an image to convert to base64',
-      'svg-optimizer': 'Paste or upload SVG code to optimize',
-      'unit-converter': 'Enter a value with unit to convert',
-      'number-formatter': 'Paste numbers to format with separators or scientific notation',
-      'timezone-converter': 'Paste a time and timezone to convert',
-      'base-converter': '',
-      'math-evaluator': 'Paste a math expression to evaluate',
-      'cron-tester': 'Paste a cron expression to test and preview schedule',
-      'file-size-converter': 'Enter a file size to convert between units',
-      'js-formatter': 'Paste JavaScript code to format or minify',
-      'email-validator': 'Paste email addresses to validate format',
-      'ip-validator': 'Paste IP addresses to validate',
-      'ip-integer-converter': 'Paste IP address or integer to convert',
-      'markdown-linter': 'Paste Markdown to check for formatting issues',
-    }
-
-    return staticPlaceholders[selectedTool.toolId] || "Type or paste content here..."
+    return ""
   }
 
   const [inputText, setInputText] = useState('')
