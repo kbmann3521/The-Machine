@@ -177,23 +177,23 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs tabs={loadingTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
-  // Text toolkit without content for specific sections
+  // Text toolkit without content for specific sections - show blank
   if (isTextToolkitWithoutContent) {
-    const placeholderTabs = [
+    const emptyTabs = [
       {
         id: 'output',
         label: 'OUTPUT',
-        content: 'Waiting for results...',
+        content: '',
         contentType: 'text',
       },
       {
         id: 'json',
         label: 'JSON',
-        content: 'null',
+        content: '',
         contentType: 'text',
       },
     ]
-    return <OutputTabs tabs={placeholderTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
+    return <OutputTabs tabs={emptyTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
   const handleCopy = async () => {
