@@ -584,25 +584,9 @@ export default function Home() {
                   configOptions={configOptions}
                   getToolExample={getToolExample}
                   errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
+                  predictedTools={predictedTools}
+                  onSelectTool={handleSelectTool}
                 />
-                {predictedTools.length > 0 && (
-                  <div className={styles.detectedToolsSection}>
-                    <p className={styles.detectedToolsLabel}>Detected Tools:</p>
-                    <div className={styles.detectedToolsList}>
-                      {predictedTools.map(tool => {
-                        const hue = tool.similarity * 120
-                        const saturation = tool.similarity * 70
-                        const lightness = 50 + (1 - tool.similarity) * 25
-                        const toolColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`
-                        return (
-                          <span key={tool.toolId} className={styles.detectedTool} style={{ color: toolColor }}>
-                            {tool.name}
-                          </span>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {selectedTool && (
