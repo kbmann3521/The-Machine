@@ -185,6 +185,32 @@
   height: 12px;
 }
 
+.loadExampleButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background-color: #0066cc;
+  border: 1px solid #0066cc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: #ffffff;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.loadExampleButton:hover {
+  background-color: #0052a3;
+  border-color: #0052a3;
+  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
+}
+
+.loadExampleButton:active {
+  background-color: #003d7a;
+}
+
 .fileInput {
   display: none;
 }
