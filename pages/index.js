@@ -227,14 +227,6 @@ export default function Home() {
       clearTimeout(debounceTimerRef.current)
     }
 
-    // When input is cleared/empty, reset output to waiting state
-    if (!text.trim()) {
-      setLoading(false)
-      setOutputResult(null)
-      setError(null)
-      return
-    }
-
     // Only run prediction if text was ADDED, not when deleting
     if (!isAddition) {
       setLoading(false)
