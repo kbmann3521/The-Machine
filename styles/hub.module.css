@@ -445,6 +445,9 @@
   .leftPanel,
   .rightPanel {
     padding: 12px;
+    overflow-x: auto;
+    overflow-y: auto;
+    min-width: 0;
   }
 
   .sidebarOverlay {
