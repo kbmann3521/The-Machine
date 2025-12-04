@@ -188,23 +188,31 @@ export default function Home() {
   }, [])
 
   const handleSelectTool = useCallback(
-    (tool) => {
+    (tool, isAutoDetect = false) => {
+      // Only reset output if tool is actually changing, not on auto-detection of the same tool
+      const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
+
       setSelectedTool(tool)
-      setAdvancedMode(true) // User manually selected - exit auto-detect
 
-      // Reset output when switching tools to prevent showing previous tool's output
-      setOutputResult(null)
-      setError(null)
-      setToolLoading(false)
-
-      // Initialize config for the selected tool
-      const initialConfig = {}
-      if (tool?.configSchema) {
-        tool.configSchema.forEach(field => {
-          initialConfig[field.id] = field.default || ''
-        })
+      if (!isAutoDetect) {
+        setAdvancedMode(true) // User manually selected - exit auto-detect
       }
-      setConfigOptions(initialConfig)
+
+      // Only reset output when switching to a different tool
+      if (toolChanged) {
+        setOutputResult(null)
+        setError(null)
+        setToolLoading(false)
+
+        // Initialize config for the selected tool
+        const initialConfig = {}
+        if (tool?.configSchema) {
+          tool.configSchema.forEach(field => {
+            initialConfig[field.id] = field.default || ''
+          })
+        }
+        setConfigOptions(initialConfig)
+      }
     },
     []
   )
