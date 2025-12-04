@@ -330,6 +330,25 @@
   background-color: rgba(0, 0, 0, 0.02);
   border-radius: 4px;
   line-height: 1.4;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) rgba(0, 0, 0, 0.1);
+}
+
+.signatureValue::-webkit-scrollbar {
+  width: 4px;
+}
+
+.signatureValue::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.signatureValue::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.signatureValue::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.15);
 }
 
 .friendlySection {
