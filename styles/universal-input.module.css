@@ -35,7 +35,14 @@
   flex-direction: column;
   gap: 6px;
   width: 100%;
-  align-items: flex-end;
+}
+
+.buttonsWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
 }
 
 .buttonGroup {
