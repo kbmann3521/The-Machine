@@ -84,6 +84,20 @@ export default function Home() {
     selectedToolRef.current = selectedTool
   }, [selectedTool])
 
+  // Persist IP Toolkit mode to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ipToolkitMode', ipToolkitMode)
+    }
+  }, [ipToolkitMode])
+
+  // Persist IP Toolkit config to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ipToolkitConfig', JSON.stringify(ipToolkitConfig))
+    }
+  }, [ipToolkitConfig])
+
   // Fast local classification using heuristics (no API call)
   // Only detects strong signals; backend handles nuanced detection
   const fastLocalClassification = useCallback((text) => {
