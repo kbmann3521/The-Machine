@@ -193,6 +193,7 @@ export default function Home() {
       const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
 
       setSelectedTool(tool)
+      selectedToolRef.current = tool  // Update ref for next comparison
 
       if (!isAutoDetect) {
         setAdvancedMode(true) // User manually selected - exit auto-detect
