@@ -134,7 +134,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   // Special handling for ASCII/Unicode Converter - show summary card and table in OUTPUT tab
-  if (toolId === 'ascii-unicode-converter' && displayResult?.conversions) {
+  if (toolId === 'ascii-unicode-converter' && displayResult && typeof displayResult === 'object' && displayResult.conversions) {
     const outputContent = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
         {/* Copy card with code sequence */}
