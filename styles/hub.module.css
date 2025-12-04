@@ -28,13 +28,26 @@
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-gutter: stable;
 }
 
 .mainContent::-webkit-scrollbar {
-  display: none;
+  width: 4px;
+}
+
+.mainContent::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.mainContent::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.mainContent::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .header {
@@ -112,25 +125,26 @@
   contain: layout style;
 }
 
+.leftPanel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
 .leftPanel::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .leftPanel::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .leftPanel::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
+  background-color: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 .leftPanel::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-text-secondary);
-}
-
-.leftPanel::-webkit-scrollbar {
-  display: none;
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .inputSection {
@@ -230,6 +244,26 @@
   min-height: 0;
   height: 100%;
   overflow: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.rightPanel::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.rightPanel::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.rightPanel::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.rightPanel::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .outputSection {
@@ -240,13 +274,26 @@
   min-height: 0;
   contain: layout style;
   overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-gutter: stable;
 }
 
 .outputSection::-webkit-scrollbar {
-  display: none;
+  width: 4px;
+}
+
+.outputSection::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.outputSection::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.outputSection::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .footer {
@@ -376,8 +423,10 @@
   .leftPanel,
   .rightPanel {
     padding: 15px;
-    overflow-y: visible;
+    overflow-y: auto;
     max-height: none;
+    min-width: 0;
+    overflow-x: auto;
   }
 
   .toolContainer {
@@ -443,6 +492,9 @@
   .leftPanel,
   .rightPanel {
     padding: 12px;
+    overflow-x: auto;
+    overflow-y: auto;
+    min-width: 0;
   }
 
   .sidebarOverlay {

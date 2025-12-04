@@ -4,6 +4,7 @@ import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
+import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import IPToolkitConfigPanel from '../components/IPToolkitConfigPanel'
@@ -56,8 +57,21 @@ export default function Home() {
     removeDuplicateLines: false,
   })
   const [previousInputLength, setPreviousInputLength] = useState(0)
-  const [ipToolkitMode, setIpToolkitMode] = useState('single-ip')
-  const [ipToolkitConfig, setIpToolkitConfig] = useState({})
+
+  // Load IP Toolkit config from localStorage
+  const [ipToolkitMode, setIpToolkitMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('ipToolkitMode') || 'single-ip'
+    }
+    return 'single-ip'
+  })
+  const [ipToolkitConfig, setIpToolkitConfig] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ipToolkitConfig')
+      return saved ? JSON.parse(saved) : {}
+    }
+    return {}
+  })
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -69,6 +83,20 @@ export default function Home() {
   useEffect(() => {
     selectedToolRef.current = selectedTool
   }, [selectedTool])
+
+  // Persist IP Toolkit mode to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ipToolkitMode', ipToolkitMode)
+    }
+  }, [ipToolkitMode])
+
+  // Persist IP Toolkit config to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ipToolkitConfig', JSON.stringify(ipToolkitConfig))
+    }
+  }, [ipToolkitConfig])
 
   // Fast local classification using heuristics (no API call)
   // Only detects strong signals; backend handles nuanced detection
@@ -389,14 +417,7 @@ export default function Home() {
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
           }
         } else if (tool.toolId === 'ip-address-toolkit') {
-          finalConfig = {
-            ...config,
-            validateIP: ipToolkitConfig.validateIP !== false,
-            ipVersion: ipToolkitConfig.ipVersion || 'auto',
-            normalize: ipToolkitConfig.normalize || false,
-            ipToInteger: ipToolkitConfig.ipToInteger || false,
-            privatePublic: ipToolkitConfig.privatePublic || false,
-          }
+          finalConfig = config
         }
 
         const response = await fetch('/api/tools/run', {
@@ -464,7 +485,8 @@ export default function Home() {
 
     const runTool = async () => {
       // Use the actual input from ref, not state which may be batched/stale
-      await autoRunTool(selectedTool, configOptions, actualInput, imagePreview)
+      const config = selectedTool?.toolId === 'ip-address-toolkit' ? ipToolkitConfig : configOptions
+      await autoRunTool(selectedTool, config, actualInput, imagePreview)
     }
 
     runTool()
@@ -473,7 +495,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, imagePreview, configOptions, autoRunTool, inputChangeKey])
+  }, [selectedTool, imagePreview, configOptions, ipToolkitConfig, autoRunTool, inputChangeKey])
 
 
   return (
@@ -535,7 +557,7 @@ export default function Home() {
                 />
               </div>
 
-              {selectedTool && (
+              {selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' && (
                 <>
                   <div className={styles.toolHeader}>
                     <div>
@@ -555,47 +577,70 @@ export default function Home() {
                   </div>
 
                   <div className={styles.configSection}>
-                    {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                      <IPToolkitConfigPanel activeMode={ipToolkitMode} onModeChange={setIpToolkitMode} currentConfig={ipToolkitConfig} onConfigChange={setIpToolkitConfig} />
-                    ) : (
-                      <ToolConfigPanel
-                        tool={selectedTool}
-                        onConfigChange={handleConfigChange}
-                        loading={toolLoading}
-                        onRegenerate={handleRegenerate}
-                        currentConfig={configOptions}
-                        activeToolkitSection={activeToolkitSection}
-                        onToolkitSectionChange={setActiveToolkitSection}
-                        findReplaceConfig={findReplaceConfig}
-                        onFindReplaceConfigChange={setFindReplaceConfig}
-                        diffConfig={diffConfig}
-                        onDiffConfigChange={setDiffConfig}
-                        sortLinesConfig={sortLinesConfig}
-                        onSortLinesConfigChange={setSortLinesConfig}
-                        removeExtrasConfig={removeExtrasConfig}
-                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                      />
-                    )}
+                    <ToolConfigPanel
+                      tool={selectedTool}
+                      onConfigChange={handleConfigChange}
+                      loading={toolLoading}
+                      onRegenerate={handleRegenerate}
+                      currentConfig={configOptions}
+                      activeToolkitSection={activeToolkitSection}
+                      onToolkitSectionChange={setActiveToolkitSection}
+                      findReplaceConfig={findReplaceConfig}
+                      onFindReplaceConfigChange={setFindReplaceConfig}
+                      diffConfig={diffConfig}
+                      onDiffConfigChange={setDiffConfig}
+                      sortLinesConfig={sortLinesConfig}
+                      onSortLinesConfigChange={setSortLinesConfig}
+                      removeExtrasConfig={removeExtrasConfig}
+                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                    />
                   </div>
                 </>
+              )}
+
+              {selectedTool?.toolId === 'ip-address-toolkit' && (
+                <div className={styles.toolHeader}>
+                  <div>
+                    <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
+                    {selectedTool.description && (
+                      <p className={styles.toolDescription}>{selectedTool.description}</p>
+                    )}
+                  </div>
+                  <button
+                    className={styles.descriptionToggle}
+                    onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                    aria-label="Toggle tool description"
+                    title="View tool description"
+                  >
+                    <FaCircleInfo className={styles.descriptionIcon} />
+                  </button>
+                </div>
               )}
             </div>
 
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
-                <ToolOutputPanel
-                  key={selectedTool?.toolId}
-                  result={outputResult}
-                  outputType={selectedTool?.outputType}
-                  loading={toolLoading}
-                  error={error}
-                  toolId={selectedTool?.toolId}
-                  activeToolkitSection={activeToolkitSection}
-                  configOptions={configOptions}
-                  onConfigChange={setConfigOptions}
-                  inputText={inputText}
-                  imagePreview={imagePreview}
-                />
+                {selectedTool?.toolId === 'ip-address-toolkit' ? (
+                  <IPToolkitOutputPanel
+                    key={selectedTool?.toolId}
+                    activeMode={ipToolkitMode}
+                    result={outputResult}
+                  />
+                ) : (
+                  <ToolOutputPanel
+                    key={selectedTool?.toolId}
+                    result={outputResult}
+                    outputType={selectedTool?.outputType}
+                    loading={toolLoading}
+                    error={error}
+                    toolId={selectedTool?.toolId}
+                    activeToolkitSection={activeToolkitSection}
+                    configOptions={configOptions}
+                    onConfigChange={setConfigOptions}
+                    inputText={inputText}
+                    imagePreview={imagePreview}
+                  />
+                )}
               </div>
             </div>
           </div>
