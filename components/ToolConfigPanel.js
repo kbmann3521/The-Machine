@@ -1,20 +1,39 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import styles from '../styles/tool-config.module.css'
 
 export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
   const [config, setConfig] = useState({})
+  const previousToolIdRef = useRef(null)
 
   useEffect(() => {
     if (tool?.configSchema) {
-      const initialConfig = {}
-      tool.configSchema.forEach(field => {
-        initialConfig[field.id] = field.default || ''
-      })
-      // Merge with currentConfig (which includes suggestedConfig from API)
-      const mergedConfig = { ...initialConfig, ...currentConfig }
-      setConfig(mergedConfig)
+      // Only reset config if the tool ID actually changed, not just the object reference
+      const toolIdChanged = previousToolIdRef.current !== tool.toolId
+      previousToolIdRef.current = tool.toolId
+
+      if (toolIdChanged) {
+        // Tool changed - initialize with defaults
+        const initialConfig = {}
+        tool.configSchema.forEach(field => {
+          initialConfig[field.id] = field.default || ''
+        })
+        // Merge with currentConfig (which includes suggestedConfig from API)
+        const mergedConfig = { ...initialConfig, ...currentConfig }
+        setConfig(mergedConfig)
+      } else {
+        // Same tool - only update config if currentConfig changed
+        // This prevents resetting user selections when tool object reference changes
+        setConfig(prevConfig => {
+          const initialConfig = {}
+          tool.configSchema.forEach(field => {
+            initialConfig[field.id] = field.default || ''
+          })
+          const mergedConfig = { ...initialConfig, ...currentConfig }
+          return mergedConfig
+        })
+      }
     }
-  }, [tool, currentConfig])
+  }, [tool?.toolId, currentConfig])
 
   if (!tool) {
     return (
