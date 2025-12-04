@@ -356,6 +356,26 @@
   flex: 1;
   min-height: 0;
   height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.jsonContent::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.jsonContent::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.jsonContent::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.jsonContent::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .codeContentWithLineNumbers {
