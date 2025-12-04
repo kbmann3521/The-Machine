@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
-import LineNumbers from './LineNumbers'
 import SyntaxHighlighter from './SyntaxHighlighter'
 import CodeMirrorOutput from './CodeMirrorOutput'
 import { isScriptingLanguageTool } from '../lib/tools'
@@ -16,15 +15,11 @@ export default function OutputTabs({
   toolCategory = null,
   toolId = null,
 }) {
-  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
-  const showLineNumbers = codeRelatedCategories.includes(toolCategory)
   const [userSelectedTabId, setUserSelectedTabId] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
-  const codeLineNumbersRef = useRef(null)
   const codeContentRef = useRef(null)
-  const textLineNumbersRef = useRef(null)
   const textContentRef = useRef(null)
   const prevToolIdRef = useRef(toolId)
 
