@@ -523,7 +523,7 @@ export default function Home() {
       setOutputResult(null)
       setError(null)
     }
-  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig])
+  }, [selectedTool, inputText, imagePreview])
 
 
   return (
