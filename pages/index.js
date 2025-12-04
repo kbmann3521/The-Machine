@@ -517,17 +517,13 @@ export default function Home() {
   useEffect(() => {
     if (!selectedTool) return
 
-    const runCheck = async () => {
-      if (inputText.trim() || imagePreview) {
-        await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-      } else {
-        setOutputResult(null)
-        setError(null)
-      }
+    if (inputText.trim() || imagePreview) {
+      autoRunTool(selectedTool, configOptions, inputText, imagePreview)
+    } else {
+      setOutputResult(null)
+      setError(null)
     }
-
-    runCheck()
-  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig, autoRunTool])
+  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig])
 
 
   return (
