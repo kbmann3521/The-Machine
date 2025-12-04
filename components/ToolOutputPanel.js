@@ -142,17 +142,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Show blank tabs when no result
   if (!displayResult) {
+    const waitingMessage = isInputEmpty ? 'Waiting for input...' : ''
     const blankTabs = [
       {
         id: 'output',
         label: 'OUTPUT',
-        content: '',
+        content: waitingMessage,
         contentType: 'text',
       },
       {
         id: 'json',
         label: 'JSON',
-        content: '',
+        content: waitingMessage,
         contentType: 'text',
       },
     ]
