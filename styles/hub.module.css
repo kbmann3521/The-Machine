@@ -376,8 +376,10 @@
   .leftPanel,
   .rightPanel {
     padding: 15px;
-    overflow-y: visible;
+    overflow-y: auto;
     max-height: none;
+    min-width: 0;
+    overflow-x: auto;
   }
 
   .toolContainer {
