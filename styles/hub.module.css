@@ -34,7 +34,7 @@
 }
 
 .mainContent::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .mainContent::-webkit-scrollbar-track {
@@ -131,7 +131,7 @@
 }
 
 .leftPanel::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .leftPanel::-webkit-scrollbar-track {
@@ -249,8 +249,8 @@
 }
 
 .rightPanel::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .rightPanel::-webkit-scrollbar-track {
@@ -280,7 +280,7 @@
 }
 
 .outputSection::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .outputSection::-webkit-scrollbar-track {

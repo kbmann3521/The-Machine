@@ -106,8 +106,8 @@
 }
 
 .tabContent::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .tabContent::-webkit-scrollbar-track {
@@ -151,8 +151,8 @@
 }
 
 .friendlyContent::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .friendlyContent::-webkit-scrollbar-track {
@@ -399,8 +399,8 @@
 }
 
 .jsonContent::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .jsonContent::-webkit-scrollbar-track {
@@ -436,8 +436,8 @@
 }
 
 .codeContentWrapper::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .codeContentWrapper::-webkit-scrollbar-track {
@@ -463,8 +463,8 @@
 }
 
 .textContent::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .textContent::-webkit-scrollbar-track {
@@ -529,7 +529,7 @@
 }
 
 .errorContent::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .errorContent::-webkit-scrollbar-track {
