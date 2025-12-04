@@ -24,6 +24,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
+  const [inputChangeKey, setInputChangeKey] = useState(0)
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
   const [findReplaceConfig, setFindReplaceConfig] = useState({
