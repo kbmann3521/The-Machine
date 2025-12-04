@@ -95,6 +95,26 @@
   overflow-x: hidden;
   min-height: 0;
   border-radius: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.codeMirrorWrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.codeMirrorWrapper::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.codeMirrorWrapper::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.codeMirrorWrapper::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .codeMirror {
