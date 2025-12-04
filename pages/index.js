@@ -211,19 +211,13 @@ export default function Home() {
     []
   )
 
-  const handleInputChange = useCallback((text, image, preview, isPaste = false) => {
+  const handleInputChange = useCallback((text, image, preview) => {
     const isAddition = text.length > previousInputLength
 
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
     setPreviousInputLength(text.length)
-
-    // Track if this input was a paste
-    lastInputWasPasteRef.current = isPaste
-
-    if (selectedToolRef.current && text) {
-    }
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
