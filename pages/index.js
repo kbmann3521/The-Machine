@@ -513,7 +513,7 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
-  // Run tool in real-time as input changes
+  // Run tool when input text or image changes (real-time)
   useEffect(() => {
     if (!selectedTool) return
 
@@ -523,7 +523,14 @@ export default function Home() {
       setOutputResult(null)
       setError(null)
     }
-  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig])
+  }, [selectedTool, inputText, imagePreview])
+
+  // Re-run tool when config or toolkit section changes
+  useEffect(() => {
+    if (!selectedTool || (!inputText.trim() && !imagePreview)) return
+
+    autoRunTool(selectedTool, configOptions, inputText, imagePreview)
+  }, [configOptions, activeToolkitSection, ipToolkitConfig])
 
 
   return (
