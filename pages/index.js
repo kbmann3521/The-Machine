@@ -356,16 +356,20 @@ export default function Home() {
               setRemoveExtrasConfig(updatedConfig)
             }
 
-            // Always reset config for the selected tool, even if it's the same tool
-            // This ensures config from previous tools doesn't carry over
-            const initialConfig = {}
-            if (topTool?.configSchema) {
-              topTool.configSchema.forEach(field => {
-                initialConfig[field.id] = field.default || ''
-              })
+            // Only reset config if the top recommended tool is different from the currently selected tool
+            // This prevents overwriting the user's config when they've already selected a different tool
+            if (selectedTool?.toolId !== topTool?.toolId) {
+              const initialConfig = {}
+              if (topTool?.configSchema) {
+                topTool.configSchema.forEach(field => {
+                  initialConfig[field.id] = field.default || ''
+                })
+              }
+              console.log('[predictTools] Top tool changed. Resetting config for', topTool.toolId, ':', initialConfig)
+              setConfigOptions(initialConfig)
+            } else {
+              console.log('[predictTools] Top tool is same as selected. Keeping existing config.')
             }
-            console.log('[predictTools] Resetting config for', topTool.toolId, ':', initialConfig)
-            setConfigOptions(initialConfig)
 
             // Apply activeToolkitSection if specified for text-toolkit
             if (topTool.toolId === 'text-toolkit' && topTool?.suggestedConfig?.activeToolkitSection) {
