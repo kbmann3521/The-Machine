@@ -2372,52 +2372,52 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (!fullOutput || !breakdown) return null
 
-    const copyCardContent = (
-      <div className={styles.copyCard}>
-        <div className={styles.copyCardHeader}>
-          <div className={styles.copyCardTitle}>
-            {mode === 'toCode' ? 'Character Codes' : 'Converted Text'}
+    const outputContent = (
+      <div className={styles.asciiOutputContainer}>
+        <div className={styles.copyCard}>
+          <div className={styles.copyCardHeader}>
+            <span className={styles.copyCardLabel}>
+              {mode === 'toCode' ? 'Character Codes' : 'Converted Text'}
+            </span>
+            <button
+              className="copy-action"
+              onClick={() => handleCopyField(fullOutput, 'ascii-output')}
+              title="Copy output"
+            >
+              {copiedField === 'ascii-output' ? '✓' : <FaCopy />}
+            </button>
           </div>
-          <button
-            className={styles.copyButton}
-            onClick={() => handleCopyField(fullOutput, 'ascii-output')}
-            title="Copy output"
-          >
-            {copiedField === 'ascii-output' ? '✓ Copied' : <FaCopy />}
-          </button>
+          <div className={styles.copyCardValue}>
+            {fullOutput}
+          </div>
         </div>
-        <div className={styles.copyCardContent}>
-          {fullOutput}
-        </div>
-      </div>
-    )
 
-    const tableContent = (
-      <div className={styles.asciiTableContainer}>
-        <table className={styles.asciiTable}>
-          <thead>
-            <tr>
-              <th className={styles.asciiTableHeader}>
-                {mode === 'toCode' ? 'Character' : 'Code'}
-              </th>
-              <th className={styles.asciiTableHeader}>
-                {mode === 'toCode' ? 'Code' : 'Character'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {breakdown.map((item, idx) => (
-              <tr key={idx} className={styles.asciiTableRow}>
-                <td className={styles.asciiTableCell}>
-                  {mode === 'toCode' ? item.char : item.code}
-                </td>
-                <td className={styles.asciiTableCell}>
-                  {mode === 'toCode' ? item.code : item.char}
-                </td>
+        <div className={styles.asciiTableContainer}>
+          <table className={styles.asciiTable}>
+            <thead>
+              <tr>
+                <th className={styles.asciiTableHeader}>
+                  {mode === 'toCode' ? 'Character' : 'Code'}
+                </th>
+                <th className={styles.asciiTableHeader}>
+                  {mode === 'toCode' ? 'Code' : 'Character'}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {breakdown.map((item, idx) => (
+                <tr key={idx} className={styles.asciiTableRow}>
+                  <td className={styles.asciiTableCell}>
+                    {mode === 'toCode' ? item.char : item.code}
+                  </td>
+                  <td className={styles.asciiTableCell}>
+                    {mode === 'toCode' ? item.code : item.char}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     )
 
@@ -2428,12 +2428,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           {
             id: 'output',
             label: 'OUTPUT',
-            content: (
-              <div className={styles.asciiOutputContainer}>
-                {copyCardContent}
-                {tableContent}
-              </div>
-            ),
+            content: outputContent,
             contentType: 'component'
           },
           {
