@@ -94,22 +94,6 @@ export default function Home() {
   }, [])
 
   // Detect text cleaning issues in the input
-  const detectCleanTextIssues = useCallback((text) => {
-    if (!text || typeof text !== 'string') return null
-
-    const issues = {
-      hasExcessiveSpaces: /  +/.test(text), // Multiple consecutive spaces
-      hasBlankLines: /\n\s*\n/.test(text), // Multiple newlines with optional whitespace
-      hasMixedWhitespace: /[\t\u00A0\u2003]/.test(text), // Tabs, non-breaking spaces, em spaces
-      hasExcessiveLineBreaks: /\n\n\n/.test(text), // 3+ consecutive newlines
-    }
-
-    // Return true if ANY cleaning issue is detected
-    const hasIssues = Object.values(issues).some(issue => issue)
-
-    return hasIssues ? issues : null
-  }, [])
-
   useEffect(() => {
     const initializeTools = async () => {
       let allTools = []
