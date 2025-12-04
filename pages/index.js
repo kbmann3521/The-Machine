@@ -580,6 +580,9 @@ export default function Home() {
                   <div className={styles.toolHeader}>
                     <div>
                       <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
+                      {selectedTool.description && (
+                        <p className={styles.toolDescription}>{selectedTool.description}</p>
+                      )}
                     </div>
                     <button
                       className={styles.descriptionToggle}
