@@ -363,20 +363,8 @@ export default function Home() {
                 })
               }
               setConfigOptions(initialConfig)
-            } else if (selectedTool?.toolId === topTool?.toolId) {
-              // Same tool - ensure config has values from schema defaults if empty
-              setConfigOptions(prevConfig => {
-                const hasValues = Object.values(prevConfig).some(v => v !== '' && v !== undefined)
-                if (!hasValues && topTool?.configSchema) {
-                  const initialConfig = {}
-                  topTool.configSchema.forEach(field => {
-                    initialConfig[field.id] = field.default || ''
-                  })
-                  return initialConfig
-                }
-                return prevConfig
-              })
             }
+            // If same tool, don't touch config at all
 
             // Apply activeToolkitSection if specified for text-toolkit
             if (topTool.toolId === 'text-toolkit' && topTool?.suggestedConfig?.activeToolkitSection) {
