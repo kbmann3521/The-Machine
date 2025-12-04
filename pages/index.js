@@ -54,7 +54,6 @@ export default function Home() {
     removeTimestamps: false,
     removeDuplicateLines: false,
   })
-  const [advancedMode, setAdvancedMode] = useState(false)
   const [previousInputLength, setPreviousInputLength] = useState(0)
   const [ipToolkitMode, setIpToolkitMode] = useState('single-ip')
   const [ipToolkitConfig, setIpToolkitConfig] = useState({})
