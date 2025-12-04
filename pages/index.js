@@ -209,6 +209,9 @@ export default function Home() {
     setImagePreview(preview)
     setPreviousInputLength(text.length)
 
+    // Increment key to trigger effect on EVERY input change, bypassing batching
+    setInputChangeKey(prev => prev + 1)
+
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
