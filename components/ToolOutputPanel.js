@@ -1499,19 +1499,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderJwtDecoderOutput = () => {
-    // If there's an error, add an error tab
-    if (displayResult?.error) {
-      const tabs = [
-        {
-          id: 'error',
-          label: 'Error',
-          content: displayResult.error,
-          contentType: 'text',
-        }
-      ]
-      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
-    }
-
     if (!displayResult || !displayResult.decoded) return null
 
     // Use OutputTabs with JSON-only tab, let it auto-generate the friendly view
