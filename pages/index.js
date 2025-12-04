@@ -435,9 +435,11 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
-  // Clear output when input becomes empty - runs first to ensure immediate clearing
+  // Clear output immediately when input is empty
+  // This effect runs synchronously and fires before tool execution
   useEffect(() => {
-    if (!inputText || !inputText.trim()) {
+    const isCurrentlyEmpty = !inputText || inputText.trim() === ''
+    if (isCurrentlyEmpty) {
       setOutputResult(null)
       setError(null)
     }
@@ -447,16 +449,17 @@ export default function Home() {
   useEffect(() => {
     if (!selectedTool) return
 
+    // Don't run tool if input is empty
+    const isEmpty = !inputText || inputText.trim() === ''
+    if (isEmpty && !imagePreview) {
+      return
+    }
+
     // Create an abort controller to cancel previous requests if a new one comes in
     const abortController = new AbortController()
 
     const runTool = async () => {
-      if (inputText.trim() || imagePreview) {
-        await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-      } else {
-        setOutputResult(null)
-        setError(null)
-      }
+      await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
     }
 
     runTool()
@@ -465,7 +468,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, inputText, imagePreview, configOptions])
+  }, [selectedTool, inputText, imagePreview, configOptions, autoRunTool])
 
 
   return (
