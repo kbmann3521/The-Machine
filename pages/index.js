@@ -57,8 +57,21 @@ export default function Home() {
     removeDuplicateLines: false,
   })
   const [previousInputLength, setPreviousInputLength] = useState(0)
-  const [ipToolkitMode, setIpToolkitMode] = useState('single-ip')
-  const [ipToolkitConfig, setIpToolkitConfig] = useState({})
+
+  // Load IP Toolkit config from localStorage
+  const [ipToolkitMode, setIpToolkitMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('ipToolkitMode') || 'single-ip'
+    }
+    return 'single-ip'
+  })
+  const [ipToolkitConfig, setIpToolkitConfig] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ipToolkitConfig')
+      return saved ? JSON.parse(saved) : {}
+    }
+    return {}
+  })
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
