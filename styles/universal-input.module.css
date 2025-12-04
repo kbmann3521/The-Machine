@@ -273,22 +273,22 @@
   font-weight: 500;
   padding: 6px 12px;
   border-radius: 18px;
-  background-color: rgba(0, 102, 204, 0.12);
-  border: 1.5px solid currentColor;
+  background-color: #0066cc;
+  border: 1.5px solid #0066cc;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
-  color: inherit;
+  color: white;
 }
 
 .detectedToolButton:hover {
-  background-color: currentColor;
-  color: white !important;
+  background-color: #0052a3;
+  border-color: #0052a3;
   font-weight: 600;
 }
 
 .detectedToolButton:active {
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 .fileInput {
