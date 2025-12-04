@@ -435,6 +435,14 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
+  // Clear output when input becomes empty - runs first to ensure immediate clearing
+  useEffect(() => {
+    if (!inputText || !inputText.trim()) {
+      setOutputResult(null)
+      setError(null)
+    }
+  }, [inputText])
+
   // Run tool in real-time as input or config changes
   useEffect(() => {
     if (!selectedTool) return
