@@ -248,7 +248,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       },
     ]
 
-    return <OutputTabs key={toolId} tabs={tabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
+    // Return OutputTabs but ensure key is unique to prevent caching issues
+    return (
+      <OutputTabs
+        key={`${toolId}-${displayResult.summary || 'empty'}`}
+        tabs={tabs}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={false}
+      />
+    )
   }
 
   // For text-toolkit, check if current section has content
