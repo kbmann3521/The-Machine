@@ -159,21 +159,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Text toolkit without content for specific sections - show blank
   if (isTextToolkitWithoutContent) {
-    const emptyTabs = [
-      {
-        id: 'output',
-        label: 'OUTPUT',
-        content: '',
-        contentType: 'text',
-      },
-      {
-        id: 'json',
-        label: 'JSON',
-        content: '',
-        contentType: 'text',
-      },
-    ]
-    return <OutputTabs tabs={emptyTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
+    return null
   }
 
   const handleCopy = async () => {
