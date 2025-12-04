@@ -21,6 +21,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
 
+  // Universal error handler for all tools
+  if (displayResult?.error) {
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: displayResult.error,
+        contentType: 'error',
+      }
+    ]
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={false} />
+  }
+
   const handleDialectChange = (dialect) => {
     if (onConfigChange) {
       onConfigChange({
