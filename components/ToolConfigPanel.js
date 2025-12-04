@@ -110,11 +110,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
           <select
             key={field.id}
             className={styles.select}
-            value={value || ''}
+            value={value || field.default || ''}
             onChange={e => handleFieldChange(field.id, e.target.value)}
             disabled={isFieldDisabled}
           >
-            <option value="">Select an option</option>
+            {!field.hideEmptyOption && <option value="">Select an option</option>}
             {field.options?.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
