@@ -557,7 +557,7 @@ export default function Home() {
                 />
               </div>
 
-              {selectedTool && (
+              {selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' && (
                 <>
                   <div className={styles.toolHeader}>
                     <div>
@@ -577,29 +577,44 @@ export default function Home() {
                   </div>
 
                   <div className={styles.configSection}>
-                    {selectedTool?.toolId === 'ip-address-toolkit' ? (
-                      <IPToolkitConfigPanel activeMode={ipToolkitMode} onModeChange={setIpToolkitMode} currentConfig={ipToolkitConfig} onConfigChange={setIpToolkitConfig} />
-                    ) : (
-                      <ToolConfigPanel
-                        tool={selectedTool}
-                        onConfigChange={handleConfigChange}
-                        loading={toolLoading}
-                        onRegenerate={handleRegenerate}
-                        currentConfig={configOptions}
-                        activeToolkitSection={activeToolkitSection}
-                        onToolkitSectionChange={setActiveToolkitSection}
-                        findReplaceConfig={findReplaceConfig}
-                        onFindReplaceConfigChange={setFindReplaceConfig}
-                        diffConfig={diffConfig}
-                        onDiffConfigChange={setDiffConfig}
-                        sortLinesConfig={sortLinesConfig}
-                        onSortLinesConfigChange={setSortLinesConfig}
-                        removeExtrasConfig={removeExtrasConfig}
-                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                      />
-                    )}
+                    <ToolConfigPanel
+                      tool={selectedTool}
+                      onConfigChange={handleConfigChange}
+                      loading={toolLoading}
+                      onRegenerate={handleRegenerate}
+                      currentConfig={configOptions}
+                      activeToolkitSection={activeToolkitSection}
+                      onToolkitSectionChange={setActiveToolkitSection}
+                      findReplaceConfig={findReplaceConfig}
+                      onFindReplaceConfigChange={setFindReplaceConfig}
+                      diffConfig={diffConfig}
+                      onDiffConfigChange={setDiffConfig}
+                      sortLinesConfig={sortLinesConfig}
+                      onSortLinesConfigChange={setSortLinesConfig}
+                      removeExtrasConfig={removeExtrasConfig}
+                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                    />
                   </div>
                 </>
+              )}
+
+              {selectedTool?.toolId === 'ip-address-toolkit' && (
+                <div className={styles.toolHeader}>
+                  <div>
+                    <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
+                    {selectedTool.description && (
+                      <p className={styles.toolDescription}>{selectedTool.description}</p>
+                    )}
+                  </div>
+                  <button
+                    className={styles.descriptionToggle}
+                    onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                    aria-label="Toggle tool description"
+                    title="View tool description"
+                  >
+                    <FaCircleInfo className={styles.descriptionIcon} />
+                  </button>
+                </div>
               )}
             </div>
 
