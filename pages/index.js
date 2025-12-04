@@ -24,6 +24,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
+  const [inputChangeKey, setInputChangeKey] = useState(0)
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
   const [findReplaceConfig, setFindReplaceConfig] = useState({
@@ -54,7 +55,6 @@ export default function Home() {
     removeTimestamps: false,
     removeDuplicateLines: false,
   })
-  const [advancedMode, setAdvancedMode] = useState(false)
   const [previousInputLength, setPreviousInputLength] = useState(0)
   const [ipToolkitMode, setIpToolkitMode] = useState('single-ip')
   const [ipToolkitConfig, setIpToolkitConfig] = useState({})
@@ -64,8 +64,7 @@ export default function Home() {
   const loadingTimerRef = useRef(null)
   const visibilityMapRef = useRef({})
   const previousClassificationRef = useRef(null)
-  const lastInputWasPasteRef = useRef(false)
-  const autoSelectionDoneRef = useRef(false)
+  const currentInputRef = useRef('')
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
@@ -97,22 +96,6 @@ export default function Home() {
   }, [])
 
   // Detect text cleaning issues in the input
-  const detectCleanTextIssues = useCallback((text) => {
-    if (!text || typeof text !== 'string') return null
-
-    const issues = {
-      hasExcessiveSpaces: /  +/.test(text), // Multiple consecutive spaces
-      hasBlankLines: /\n\s*\n/.test(text), // Multiple newlines with optional whitespace
-      hasMixedWhitespace: /[\t\u00A0\u2003]/.test(text), // Tabs, non-breaking spaces, em spaces
-      hasExcessiveLineBreaks: /\n\n\n/.test(text), // 3+ consecutive newlines
-    }
-
-    // Return true if ANY cleaning issue is detected
-    const hasIssues = Object.values(issues).some(issue => issue)
-
-    return hasIssues ? issues : null
-  }, [])
-
   useEffect(() => {
     const initializeTools = async () => {
       let allTools = []
@@ -189,15 +172,13 @@ export default function Home() {
 
   const handleSelectTool = useCallback(
     (tool) => {
+      // Only reset output if tool is actually changing
+      const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
+
       setSelectedTool(tool)
-      setAdvancedMode(true) // User manually selected - exit auto-detect
+      selectedToolRef.current = tool  // Update ref for next comparison
 
-      // Reset output when switching tools to prevent showing previous tool's output
-      setOutputResult(null)
-      setError(null)
-      setToolLoading(false)
-
-      // Initialize config for the selected tool
+      // Initialize config for the selected tool (always, not just on change)
       const initialConfig = {}
       if (tool?.configSchema) {
         tool.configSchema.forEach(field => {
@@ -205,26 +186,41 @@ export default function Home() {
         })
       }
       setConfigOptions(initialConfig)
+
+      // Only reset output when switching to a different tool
+      if (toolChanged) {
+        setOutputResult(null)
+        setError(null)
+        setToolLoading(false)
+      }
     },
     []
   )
 
-  const handleInputChange = useCallback((text, image, preview, isPaste = false) => {
+  const handleInputChange = useCallback((text, image, preview) => {
     const isAddition = text.length > previousInputLength
+    const isEmpty = !text || text.trim() === ''
+
+    // Update the ref to track actual input value (not state, which may lag)
+    currentInputRef.current = text
 
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
     setPreviousInputLength(text.length)
 
-    // Track if this input was a paste
-    lastInputWasPasteRef.current = isPaste
-
-    if (selectedToolRef.current && text) {
-    }
+    // Increment key to trigger effect on EVERY input change, bypassing batching
+    setInputChangeKey(prev => prev + 1)
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
+    }
+
+    // Clear output immediately if input is empty based on actual value, not state
+    if (isEmpty) {
+      setOutputResult(null)
+      setError(null)
+      setLoading(false)
     }
 
     // Only run prediction if text was ADDED, not when deleting
@@ -306,61 +302,6 @@ export default function Home() {
           // Filter out tools with show_in_recommendations = false
           // Only Supabase controls visibility
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
-
-          // Auto-select the best match tool ONLY on paste, once, when not in advanced mode
-          if (toolsWithMetadata.length > 0) {
-            const topTool = toolsWithMetadata[0]
-            // Only auto-select if:
-            // 1. Content was pasted (not typed) AND
-            // 2. Auto-selection hasn't been done yet AND
-            // 3. Not in advanced mode (user hasn't manually selected a tool)
-            if (lastInputWasPasteRef.current && !autoSelectionDoneRef.current && !advancedMode) {
-              console.log('Auto-selecting on paste:', topTool.name)
-              setSelectedTool(topTool)
-              autoSelectionDoneRef.current = true // Disable future auto-selection
-            }
-
-            // Check for text cleaning issues
-            const cleanTextIssues = detectCleanTextIssues(text)
-
-            // If top tool is Text Toolkit and there are cleaning issues, auto-switch to removeExtras
-            if (topTool.toolId === 'text-toolkit' && cleanTextIssues) {
-              setActiveToolkitSection('removeExtras')
-
-              // Pre-enable relevant cleaning options based on detected issues
-              const updatedConfig = { ...removeExtrasConfig }
-              if (cleanTextIssues.hasExcessiveSpaces) {
-                updatedConfig.compressSpaces = true
-              }
-              if (cleanTextIssues.hasBlankLines) {
-                updatedConfig.removeBlankLines = true
-              }
-              if (cleanTextIssues.hasMixedWhitespace) {
-                updatedConfig.normalizeWhitespace = true
-              }
-              if (cleanTextIssues.hasExcessiveLineBreaks) {
-                updatedConfig.removeBlankLines = true
-              }
-              setRemoveExtrasConfig(updatedConfig)
-            }
-
-            // Only reset config if the tool has changed
-            if (selectedTool?.toolId !== topTool?.toolId) {
-              // Set up initial config for the top tool
-              const initialConfig = {}
-              if (topTool?.configSchema) {
-                topTool.configSchema.forEach(field => {
-                  initialConfig[field.id] = field.default || ''
-                })
-              }
-              setConfigOptions(initialConfig)
-            }
-
-            // Apply activeToolkitSection if specified for text-toolkit
-            if (topTool.toolId === 'text-toolkit' && topTool?.suggestedConfig?.activeToolkitSection) {
-              setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
-            }
-          }
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
           // Silently fail - the app will continue with the existing tool list
@@ -379,7 +320,7 @@ export default function Home() {
 
       predictTools()
     }, 300)
-  }, [fastLocalClassification, selectedTool, advancedMode, detectCleanTextIssues, previousInputLength])
+  }, [fastLocalClassification, previousInputLength])
 
   const handleImageChange = useCallback((image, preview) => {
     setInputImage(image)
@@ -405,7 +346,6 @@ export default function Home() {
         // If no input and no image, don't run the tool
         if (!textToUse && !imageInput) {
           setToolLoading(false)
-          setOutputResult(null)
           return
         }
 
@@ -494,7 +434,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig]
+    []
   )
 
   const handleRegenerate = useCallback(() => {
@@ -503,17 +443,37 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
-  // Run tool in real-time as input changes
+  // Run tool in real-time as input or config changes
   useEffect(() => {
     if (!selectedTool) return
 
-    if (inputText.trim() || imagePreview) {
-      autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-    } else {
+    // Always use the actual current input value from ref, not the batched state
+    const actualInput = currentInputRef.current
+    const isEmpty = !actualInput || actualInput.trim() === ''
+
+    // If actual input is empty, clear output immediately and stop
+    if (isEmpty && !imagePreview) {
       setOutputResult(null)
       setError(null)
+      setLoading(false)
+      return
     }
-  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig, autoRunTool])
+
+    // Create an abort controller to cancel previous requests if a new one comes in
+    const abortController = new AbortController()
+
+    const runTool = async () => {
+      // Use the actual input from ref, not state which may be batched/stale
+      await autoRunTool(selectedTool, configOptions, actualInput, imagePreview)
+    }
+
+    runTool()
+
+    // Cleanup: cancel any pending requests if the effect re-runs
+    return () => {
+      abortController.abort()
+    }
+  }, [selectedTool, imagePreview, configOptions, autoRunTool, inputChangeKey])
 
 
   return (
@@ -633,6 +593,8 @@ export default function Home() {
                   activeToolkitSection={activeToolkitSection}
                   configOptions={configOptions}
                   onConfigChange={setConfigOptions}
+                  inputText={inputText}
+                  imagePreview={imagePreview}
                 />
               </div>
             </div>

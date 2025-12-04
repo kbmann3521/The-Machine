@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
-import LineNumbers from './LineNumbers'
 import SyntaxHighlighter from './SyntaxHighlighter'
 import CodeMirrorOutput from './CodeMirrorOutput'
 import { isScriptingLanguageTool } from '../lib/tools'
@@ -16,15 +15,11 @@ export default function OutputTabs({
   toolCategory = null,
   toolId = null,
 }) {
-  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
-  const showLineNumbers = codeRelatedCategories.includes(toolCategory)
   const [userSelectedTabId, setUserSelectedTabId] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
-  const codeLineNumbersRef = useRef(null)
   const codeContentRef = useRef(null)
-  const textLineNumbersRef = useRef(null)
   const textContentRef = useRef(null)
   const prevToolIdRef = useRef(toolId)
 
@@ -386,12 +381,6 @@ export default function OutputTabs({
     if (contentType === 'json' || contentType === 'code') {
       const codeContent = getJsonString()
 
-      const handleCodeScroll = (e) => {
-        // Sync line numbers scroll with code content scroll
-        if (codeLineNumbersRef.current?.element) {
-          codeLineNumbersRef.current.element.scrollTop = e.target.scrollTop
-        }
-      }
 
       // Determine language from tab config or toolId
       let language = activeTabConfig.language || 'text'
@@ -407,9 +396,8 @@ export default function OutputTabs({
       }
 
       return (
-        <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
-          {showLineNumbers && <LineNumbers ref={codeLineNumbersRef} content={codeContent} />}
-          <div className={styles.codeContentWrapper} ref={codeContentRef} onScroll={handleCodeScroll}>
+        <div className={styles.codeContentWithLineNumbers}>
+          <div className={styles.codeContentWrapper} ref={codeContentRef}>
             <SyntaxHighlighter
               code={codeContent}
               language={language}
@@ -421,20 +409,22 @@ export default function OutputTabs({
       )
     }
 
+    // Handle error content
+    if (contentType === 'error') {
+      return (
+        <div className={styles.errorContent}>
+          <div className={styles.errorMessage}>{String(content)}</div>
+        </div>
+      )
+    }
+
     // Handle plain text content
     if (contentType === 'text') {
       const textContent = String(content)
 
-      const handleTextScroll = (e) => {
-        if (textLineNumbersRef.current?.element) {
-          textLineNumbersRef.current.element.scrollTop = e.target.scrollTop
-        }
-      }
-
       return (
-        <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
-          {showLineNumbers && <LineNumbers ref={textLineNumbersRef} content={textContent} />}
-          <div className={styles.codeContentWrapper} ref={textContentRef} onScroll={handleTextScroll}>
+        <div className={styles.codeContentWithLineNumbers}>
+          <div className={styles.codeContentWrapper} ref={textContentRef}>
             <pre className={styles.textCode}>
               <code>{textContent}</code>
             </pre>

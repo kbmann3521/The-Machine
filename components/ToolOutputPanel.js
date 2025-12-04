@@ -7,7 +7,7 @@ import OutputTabs from './OutputTabs'
 import CodeMirrorOutput from './CodeMirrorOutput'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -16,6 +16,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+
+  // If input is empty, treat as no result - render blank state
+  const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
+  const displayResult = isInputEmpty ? null : result
 
   const handleDialectChange = (dialect) => {
     if (onConfigChange) {
@@ -106,9 +110,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
 
-  // Use result directly - if null (no input), show waiting state
-  const displayResult = result
-
   // Special handling for image-toolkit - show OutputTabs even when empty
   if (toolId === 'image-toolkit') {
     if (displayResult?.mode === 'resize') {
@@ -133,6 +134,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs key={toolId} tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
   }
 
+
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
@@ -140,17 +142,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Show blank tabs when no result
   if (!displayResult) {
+    const waitingMessage = isInputEmpty ? 'Waiting for input...' : ''
     const blankTabs = [
       {
         id: 'output',
         label: 'OUTPUT',
-        content: '',
+        content: waitingMessage,
         contentType: 'text',
       },
       {
         id: 'json',
         label: 'JSON',
-        content: '',
+        content: waitingMessage,
         contentType: 'text',
       },
     ]
@@ -1483,19 +1486,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderJwtDecoderOutput = () => {
-    // If there's an error, add an error tab
-    if (displayResult?.error) {
-      const tabs = [
-        {
-          id: 'error',
-          label: 'Error',
-          content: displayResult.error,
-          contentType: 'text',
-        }
-      ]
-      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
-    }
-
     if (!displayResult || !displayResult.decoded) return null
 
     // Use OutputTabs with JSON-only tab, let it auto-generate the friendly view
@@ -2364,6 +2354,145 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const renderAsciiUnicodeOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+        />
+      )
+    }
+
+    const { fullOutput, breakdown, original, mode } = displayResult
+
+    const hasResults = breakdown && breakdown.length > 0
+
+    const outputContent = (
+      <div className={styles.asciiOutputContainer}>
+        {hasResults && (
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>
+                {mode === 'toCode' ? 'Character Codes' : 'Converted Text'}
+              </span>
+              <button
+                className="copy-action"
+                onClick={() => handleCopyField(fullOutput, 'ascii-output')}
+                title="Copy output"
+              >
+                {copiedField === 'ascii-output' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue}>
+              {fullOutput}
+            </div>
+          </div>
+        )}
+
+        {hasResults ? (
+          <div className={styles.asciiTableContainer}>
+            <table className={styles.asciiTable}>
+              <thead>
+                <tr>
+                  <th className={styles.asciiTableHeader}>
+                    {mode === 'toCode' ? 'Character' : 'Code'}
+                  </th>
+                  <th className={styles.asciiTableHeader}>
+                    {mode === 'toCode' ? 'Code' : 'Character'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {breakdown.map((item, idx) => (
+                  <tr key={idx} className={styles.asciiTableRow}>
+                    <td className={styles.asciiTableCell}>
+                      {mode === 'toCode' ? item.char : item.code}
+                    </td>
+                    <td className={styles.asciiTableCell}>
+                      {mode === 'toCode' ? item.code : item.char}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>
+            {mode === 'toCode'
+              ? 'Enter text to convert to character codes'
+              : 'Enter space or comma-separated numbers (e.g., "72, 105, 33")'}
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+      />
+    )
+  }
+
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
@@ -2601,6 +2730,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderYamlFormatterOutput()
       case 'unit-converter':
         return renderUnitConverterOutput()
+      case 'ascii-unicode-converter':
+        return renderAsciiUnicodeOutput()
       default: {
         const tabs = []
 
@@ -2659,6 +2790,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )
       }
     }
+  }
+
+  // Universal error handler for all tools - check after all hooks have been called
+  if (displayResult?.error) {
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: displayResult.error,
+        contentType: 'error',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      }
+    ]
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={false} />
   }
 
   return renderOutput()

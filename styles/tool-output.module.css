@@ -656,6 +656,51 @@
   border: 1px solid var(--color-border);
 }
 
+/* ASCII/Unicode Converter Output */
+
+.asciiOutputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+}
+
+.asciiTableContainer {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.asciiTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.asciiTableHeader {
+  padding: 10px 12px;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.asciiTableRow {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.asciiTableRow:last-child {
+  border-bottom: none;
+}
+
+.asciiTableCell {
+  padding: 10px 12px;
+  color: var(--color-text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+
 /* Unit converter now uses same structured output grid as other tools */
 
 @media (max-width: 1024px) {

@@ -327,3 +327,7 @@ input[type="file"] {
 }
 
 /* Copy card styles moved to tool-output.module.css as .copyCard, .copyCardHeader, .copyCardLabel, .copyCardValue */
+
+/* Global Error Message Styles */
+/* Consistent error styling across all tools and output panels */
+/* See output-tabs.module.css for .errorMessage styling with theme support */
