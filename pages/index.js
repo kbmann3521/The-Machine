@@ -199,6 +199,10 @@ export default function Home() {
 
   const handleInputChange = useCallback((text, image, preview) => {
     const isAddition = text.length > previousInputLength
+    const isEmpty = !text || text.trim() === ''
+
+    // Update the ref to track actual input value (not state, which may lag)
+    currentInputRef.current = text
 
     setInputText(text)
     setInputImage(image)
@@ -207,6 +211,13 @@ export default function Home() {
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
+    }
+
+    // Clear output immediately if input is empty based on actual value, not state
+    if (isEmpty) {
+      setOutputResult(null)
+      setError(null)
+      setLoading(false)
     }
 
     // Only run prediction if text was ADDED, not when deleting
