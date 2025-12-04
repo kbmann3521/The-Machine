@@ -101,6 +101,26 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.tabContent::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tabContent::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.tabContent::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.tabContent::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .tabContentFull {
