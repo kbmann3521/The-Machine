@@ -248,10 +248,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       },
     ]
 
-    // Return OutputTabs but ensure key is unique to prevent caching issues
+    // Return OutputTabs - use stable key based on toolId only
     return (
       <OutputTabs
-        key={`${toolId}-${displayResult.summary || 'empty'}`}
+        key={toolId}
         tabs={tabs}
         toolCategory={toolCategory}
         toolId={toolId}
