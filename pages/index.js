@@ -378,7 +378,7 @@ export default function Home() {
       }
 
       predictTools()
-    }, 100)
+    }, 300)
   }, [fastLocalClassification, selectedTool, advancedMode, detectCleanTextIssues, previousInputLength])
 
   const handleImageChange = useCallback((image, preview) => {
