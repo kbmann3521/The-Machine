@@ -191,7 +191,6 @@ export default function Home() {
     (tool, isAutoDetect = false) => {
       // Only reset output if tool is actually changing, not on auto-detection of the same tool
       const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
-      console.log('[handleSelectTool] Selecting', tool?.toolId, 'Previous:', selectedToolRef.current?.toolId)
 
       setSelectedTool(tool)
       selectedToolRef.current = tool  // Update ref for next comparison
@@ -207,7 +206,6 @@ export default function Home() {
           initialConfig[field.id] = field.default || ''
         })
       }
-      console.log('[handleSelectTool] Setting config to:', initialConfig)
       setConfigOptions(initialConfig)
 
       // Only reset output when switching to a different tool
