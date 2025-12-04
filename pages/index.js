@@ -447,10 +447,11 @@ export default function Home() {
     const actualInput = currentInputRef.current
     const isEmpty = !actualInput || actualInput.trim() === ''
 
-    // If actual input is empty, clear output immediately
+    // If actual input is empty, clear output immediately and stop
     if (isEmpty && !imagePreview) {
       setOutputResult(null)
       setError(null)
+      setLoading(false)
       return
     }
 
@@ -468,7 +469,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, inputText, imagePreview, configOptions, autoRunTool])
+  }, [selectedTool, imagePreview, configOptions, autoRunTool, currentInputRef])
 
 
   return (
