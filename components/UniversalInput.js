@@ -238,7 +238,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     <div className={styles.container}>
       <div className={styles.inputWrapper}>
         <div className={styles.inputFieldContainer}>
-          <div className={styles.buttonGroup}>
+          <div className={styles.buttonsWrapper}>
             <button
               className={styles.uploadImageButton}
               onClick={openFileDialog}
@@ -252,26 +252,28 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               </svg>
               Upload Image
             </button>
-            {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
-              <button
-                className={styles.loadExampleButton}
-                onClick={handleLoadExample}
-                title="Load example input and see output"
-                type="button"
-              >
-                Load Example
-              </button>
-            )}
-            {inputText && (
-              <button
-                className={styles.clearInputButton}
-                onClick={handleClearInput}
-                title="Clear all input and output"
-                type="button"
-              >
-                Clear Input
-              </button>
-            )}
+            <div className={styles.buttonGroup}>
+              {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
+                <button
+                  className={styles.loadExampleButton}
+                  onClick={handleLoadExample}
+                  title="Load example input and see output"
+                  type="button"
+                >
+                  Load Example
+                </button>
+              )}
+              {inputText && (
+                <button
+                  className={styles.clearInputButton}
+                  onClick={handleClearInput}
+                  title="Clear all input and output"
+                  type="button"
+                >
+                  Clear Input
+                </button>
+              )}
+            </div>
           </div>
 
           <div
