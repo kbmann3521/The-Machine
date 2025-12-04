@@ -390,14 +390,7 @@ export default function Home() {
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
           }
         } else if (tool.toolId === 'ip-address-toolkit') {
-          finalConfig = {
-            ...config,
-            validateIP: ipToolkitConfig.validateIP !== false,
-            ipVersion: ipToolkitConfig.ipVersion || 'auto',
-            normalize: ipToolkitConfig.normalize || false,
-            ipToInteger: ipToolkitConfig.ipToInteger || false,
-            privatePublic: ipToolkitConfig.privatePublic || false,
-          }
+          finalConfig = config
         }
 
         const response = await fetch('/api/tools/run', {
