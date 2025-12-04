@@ -199,17 +199,23 @@ export default function Home() {
     const isAddition = text.length > previousInputLength
     const isEmpty = !text || text.trim() === ''
 
-    setInputText(text)
-    setInputImage(image)
-    setImagePreview(preview)
-    setPreviousInputLength(text.length)
-
-    // Immediately clear output when input is empty (synchronous, not batched)
+    // Immediately clear output when input is empty - use flushSync to force synchronous state update
     if (isEmpty) {
-      setOutputResult(null)
-      setError(null)
-      setLoading(false)
+      flushSync(() => {
+        setOutputResult(null)
+        setError(null)
+        setLoading(false)
+        setInputText(text)
+        setInputImage(image)
+        setImagePreview(preview)
+      })
+    } else {
+      setInputText(text)
+      setInputImage(image)
+      setImagePreview(preview)
     }
+
+    setPreviousInputLength(text.length)
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
