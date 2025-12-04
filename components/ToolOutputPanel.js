@@ -7,7 +7,7 @@ import OutputTabs from './OutputTabs'
 import CodeMirrorOutput from './CodeMirrorOutput'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -16,6 +16,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+
+  // If input is empty, treat as no result - render blank state
+  const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
+  const displayResult = isInputEmpty ? null : result
 
   const handleDialectChange = (dialect) => {
     if (onConfigChange) {
