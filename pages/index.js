@@ -326,6 +326,7 @@ export default function Home() {
             if (lastInputWasPasteRef.current && !autoSelectionDoneRef.current && !advancedMode) {
               console.log('Auto-selecting on paste:', topTool.name)
               setSelectedTool(topTool)
+              selectedToolRef.current = topTool  // Update ref so handleSelectTool comparison works
               autoSelectionDoneRef.current = true // Disable future auto-selection
             }
 
