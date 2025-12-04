@@ -1434,6 +1434,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderColorConverterOutput = () => {
+    // Check for errors first
+    if (displayResult?.error) {
+      const tabs = [
+        {
+          id: 'output',
+          label: 'OUTPUT',
+          content: displayResult.error,
+          contentType: 'error',
+        }
+      ]
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={false} />
+    }
+
     if (!displayResult) return null
 
     const colorFormats = [
