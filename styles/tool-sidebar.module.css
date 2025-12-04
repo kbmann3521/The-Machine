@@ -260,3 +260,9 @@
     white-space: nowrap;
   }
 }
+
+@media (max-width: 640px) {
+  .toolsList {
+    padding: 4px 4px 8px 12px;
+  }
+}
