@@ -404,7 +404,7 @@ export default function Home() {
   )
 
   const autoRunTool = useCallback(
-    async (tool, config, textInput = '', imageInput = null) => {
+    async (tool, config, textInput = inputText, imageInput = imagePreview) => {
       if (!tool) return
 
       setToolLoading(true)
