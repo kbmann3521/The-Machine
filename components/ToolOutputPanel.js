@@ -133,41 +133,64 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs key={toolId} tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
   }
 
-  // Special handling for ASCII/Unicode Converter - show summary card at top
-  if (toolId === 'ascii-unicode-converter' && displayResult) {
-    const tabs = []
-
-    // Add summary card as the first tab
-    if (displayResult.summary) {
-      tabs.push({
-        id: 'summary',
-        label: 'SUMMARY',
-        content: (
+  // Special handling for ASCII/Unicode Converter - show summary card and table in OUTPUT tab
+  if (toolId === 'ascii-unicode-converter' && displayResult?.conversions) {
+    const outputContent = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
+        {/* Copy card with code sequence */}
+        {displayResult.summary && (
           <div style={{
-            padding: '16px',
+            padding: '12px',
             backgroundColor: 'var(--color-background-tertiary)',
             border: '1px solid var(--color-border)',
             borderRadius: '4px',
-            wordBreak: 'break-all',
-            fontFamily: '\'Courier New\', monospace',
-            fontSize: '12px',
-            lineHeight: '1.6',
-            color: 'var(--color-text-primary)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: '12px',
           }}>
-            {displayResult.summary}
+            <div style={{
+              wordBreak: 'break-all',
+              fontFamily: '\'Courier New\', monospace',
+              fontSize: '12px',
+              lineHeight: '1.6',
+              color: 'var(--color-text-primary)',
+              flex: 1,
+            }}>
+              {displayResult.summary}
+            </div>
+            <button
+              onClick={() => handleCopyField(displayResult.summary, 'codes')}
+              style={{
+                padding: '6px 10px',
+                backgroundColor: 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: '500',
+                color: 'var(--color-text-secondary)',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                e.target.style.borderColor = '#0066cc'
+                e.target.style.color = '#0066cc'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent'
+                e.target.style.borderColor = 'var(--color-border)'
+                e.target.style.color = 'var(--color-text-secondary)'
+              }}
+            >
+              {copiedField === 'codes' ? '✓ Copied' : 'Copy'}
+            </button>
           </div>
-        ),
-        contentType: 'component',
-      })
-    }
+        )}
 
-    // Add conversions table as second tab
-    if (displayResult.conversions && Array.isArray(displayResult.conversions)) {
-      const tableContent = (
-        <div style={{
-          padding: '16px',
-          overflowX: 'auto',
-        }}>
+        {/* Conversions table */}
+        {Array.isArray(displayResult.conversions) && (
           <table style={{
             width: '100%',
             borderCollapse: 'collapse',
@@ -189,26 +212,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               ))}
             </tbody>
           </table>
-        </div>
-      )
+        )}
+      </div>
+    )
 
-      tabs.push({
-        id: 'table',
-        label: 'TABLE',
-        content: tableContent,
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: outputContent,
         contentType: 'component',
-      })
-    }
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: JSON.stringify(displayResult, null, 2),
+        contentType: 'json',
+      },
+    ]
 
-    // Add JSON tab
-    tabs.push({
-      id: 'json',
-      label: 'JSON',
-      content: JSON.stringify(displayResult, null, 2),
-      contentType: 'json',
-    })
-
-    return <OutputTabs key={toolId} tabs={tabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={true} />
+    return <OutputTabs key={toolId} tabs={tabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
   }
 
   // For text-toolkit, check if current section has content
