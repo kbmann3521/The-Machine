@@ -199,20 +199,20 @@ export default function Home() {
         setAdvancedMode(true) // User manually selected - exit auto-detect
       }
 
+      // Initialize config for the selected tool (always, not just on change)
+      const initialConfig = {}
+      if (tool?.configSchema) {
+        tool.configSchema.forEach(field => {
+          initialConfig[field.id] = field.default || ''
+        })
+      }
+      setConfigOptions(initialConfig)
+
       // Only reset output when switching to a different tool
       if (toolChanged) {
         setOutputResult(null)
         setError(null)
         setToolLoading(false)
-
-        // Initialize config for the selected tool
-        const initialConfig = {}
-        if (tool?.configSchema) {
-          tool.configSchema.forEach(field => {
-            initialConfig[field.id] = field.default || ''
-          })
-        }
-        setConfigOptions(initialConfig)
       }
     },
     []
