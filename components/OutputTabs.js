@@ -381,12 +381,6 @@ export default function OutputTabs({
     if (contentType === 'json' || contentType === 'code') {
       const codeContent = getJsonString()
 
-      const handleCodeScroll = (e) => {
-        // Sync line numbers scroll with code content scroll
-        if (codeLineNumbersRef.current?.element) {
-          codeLineNumbersRef.current.element.scrollTop = e.target.scrollTop
-        }
-      }
 
       // Determine language from tab config or toolId
       let language = activeTabConfig.language || 'text'
