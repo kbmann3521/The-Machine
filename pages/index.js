@@ -443,19 +443,14 @@ export default function Home() {
   useEffect(() => {
     if (!selectedTool) return
 
-    // Check both state and ref to handle rapid deletions where state may lag
-    const hasContent = (inputText.trim() || imagePreview)
-    const actualContent = (currentInputRef.current.trim() || imagePreview)
+    // Always use the actual current input value from ref, not the batched state
+    const actualInput = currentInputRef.current
+    const isEmpty = !actualInput || actualInput.trim() === ''
 
-    // If the actual input is empty but state hasn't caught up yet, ensure output is cleared
-    if (!actualContent && hasContent) {
+    // If actual input is empty, clear output immediately
+    if (isEmpty && !imagePreview) {
       setOutputResult(null)
       setError(null)
-      return
-    }
-
-    // Don't run tool if nothing to process
-    if (!hasContent) {
       return
     }
 
@@ -463,7 +458,8 @@ export default function Home() {
     const abortController = new AbortController()
 
     const runTool = async () => {
-      await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
+      // Use the actual input from ref, not state which may be batched/stale
+      await autoRunTool(selectedTool, configOptions, actualInput, imagePreview)
     }
 
     runTool()
