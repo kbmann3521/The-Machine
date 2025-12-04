@@ -410,8 +410,6 @@ export default function Home() {
     async (tool, config, textInput = inputText, imageInput = imagePreview) => {
       if (!tool) return
 
-      console.log('[autoRunTool] Running', tool.toolId, 'with config:', config)
-
       setToolLoading(true)
 
       try {
