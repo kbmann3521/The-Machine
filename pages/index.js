@@ -185,16 +185,12 @@ export default function Home() {
   }, [])
 
   const handleSelectTool = useCallback(
-    (tool, isAutoDetect = false) => {
-      // Only reset output if tool is actually changing, not on auto-detection of the same tool
+    (tool) => {
+      // Only reset output if tool is actually changing
       const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
 
       setSelectedTool(tool)
       selectedToolRef.current = tool  // Update ref for next comparison
-
-      if (!isAutoDetect) {
-        setAdvancedMode(true) // User manually selected - exit auto-detect
-      }
 
       // Initialize config for the selected tool (always, not just on change)
       const initialConfig = {}
