@@ -421,6 +421,15 @@ export default function OutputTabs({
       )
     }
 
+    // Handle error content
+    if (contentType === 'error') {
+      return (
+        <div className={styles.errorContent}>
+          <div className={styles.errorMessage}>{String(content)}</div>
+        </div>
+      )
+    }
+
     // Handle plain text content
     if (contentType === 'text') {
       const textContent = String(content)
