@@ -2366,58 +2366,118 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderAsciiUnicodeOutput = () => {
-    if (!displayResult || typeof displayResult !== 'object') return null
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+        />
+      )
+    }
 
     const { fullOutput, breakdown, original, mode } = displayResult
 
-    if (!fullOutput || !breakdown) return null
+    const hasResults = breakdown && breakdown.length > 0
 
     const outputContent = (
       <div className={styles.asciiOutputContainer}>
-        <div className={styles.copyCard}>
-          <div className={styles.copyCardHeader}>
-            <span className={styles.copyCardLabel}>
-              {mode === 'toCode' ? 'Character Codes' : 'Converted Text'}
-            </span>
-            <button
-              className="copy-action"
-              onClick={() => handleCopyField(fullOutput, 'ascii-output')}
-              title="Copy output"
-            >
-              {copiedField === 'ascii-output' ? '✓' : <FaCopy />}
-            </button>
+        {hasResults && (
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>
+                {mode === 'toCode' ? 'Character Codes' : 'Converted Text'}
+              </span>
+              <button
+                className="copy-action"
+                onClick={() => handleCopyField(fullOutput, 'ascii-output')}
+                title="Copy output"
+              >
+                {copiedField === 'ascii-output' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue}>
+              {fullOutput}
+            </div>
           </div>
-          <div className={styles.copyCardValue}>
-            {fullOutput}
-          </div>
-        </div>
+        )}
 
-        <div className={styles.asciiTableContainer}>
-          <table className={styles.asciiTable}>
-            <thead>
-              <tr>
-                <th className={styles.asciiTableHeader}>
-                  {mode === 'toCode' ? 'Character' : 'Code'}
-                </th>
-                <th className={styles.asciiTableHeader}>
-                  {mode === 'toCode' ? 'Code' : 'Character'}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {breakdown.map((item, idx) => (
-                <tr key={idx} className={styles.asciiTableRow}>
-                  <td className={styles.asciiTableCell}>
-                    {mode === 'toCode' ? item.char : item.code}
-                  </td>
-                  <td className={styles.asciiTableCell}>
-                    {mode === 'toCode' ? item.code : item.char}
-                  </td>
+        {hasResults ? (
+          <div className={styles.asciiTableContainer}>
+            <table className={styles.asciiTable}>
+              <thead>
+                <tr>
+                  <th className={styles.asciiTableHeader}>
+                    {mode === 'toCode' ? 'Character' : 'Code'}
+                  </th>
+                  <th className={styles.asciiTableHeader}>
+                    {mode === 'toCode' ? 'Code' : 'Character'}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {breakdown.map((item, idx) => (
+                  <tr key={idx} className={styles.asciiTableRow}>
+                    <td className={styles.asciiTableCell}>
+                      {mode === 'toCode' ? item.char : item.code}
+                    </td>
+                    <td className={styles.asciiTableCell}>
+                      {mode === 'toCode' ? item.code : item.char}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>
+            {mode === 'toCode'
+              ? 'Enter text to convert to character codes'
+              : 'Enter space or comma-separated numbers (e.g., "72, 105, 33")'}
+          </div>
+        )}
       </div>
     )
 
