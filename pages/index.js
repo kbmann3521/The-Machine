@@ -63,8 +63,6 @@ export default function Home() {
   const loadingTimerRef = useRef(null)
   const visibilityMapRef = useRef({})
   const previousClassificationRef = useRef(null)
-  const lastInputWasPasteRef = useRef(false)
-  const autoSelectionDoneRef = useRef(false)
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
