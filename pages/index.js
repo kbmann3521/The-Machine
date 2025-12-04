@@ -355,6 +355,7 @@ export default function Home() {
               }
               setConfigOptions(initialConfig)
             }
+            // If same tool is selected, preserve existing config - don't reset it
 
             // Apply activeToolkitSection if specified for text-toolkit
             if (topTool.toolId === 'text-toolkit' && topTool?.suggestedConfig?.activeToolkitSection) {
