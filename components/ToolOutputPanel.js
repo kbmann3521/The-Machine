@@ -133,6 +133,84 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs key={toolId} tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
   }
 
+  // Special handling for ASCII/Unicode Converter - show summary card at top
+  if (toolId === 'ascii-unicode-converter' && displayResult) {
+    const tabs = []
+
+    // Add summary card as the first tab
+    if (displayResult.summary) {
+      tabs.push({
+        id: 'summary',
+        label: 'SUMMARY',
+        content: (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'var(--color-background-tertiary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '4px',
+            wordBreak: 'break-all',
+            fontFamily: '\'Courier New\', monospace',
+            fontSize: '12px',
+            lineHeight: '1.6',
+            color: 'var(--color-text-primary)',
+          }}>
+            {displayResult.summary}
+          </div>
+        ),
+        contentType: 'component',
+      })
+    }
+
+    // Add conversions table as second tab
+    if (displayResult.conversions && Array.isArray(displayResult.conversions)) {
+      const tableContent = (
+        <div style={{
+          padding: '16px',
+          overflowX: 'auto',
+        }}>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontFamily: '\'Courier New\', monospace',
+            fontSize: '12px',
+          }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
+                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-secondary)' }}>Character</th>
+                <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-secondary)' }}>Code</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayResult.conversions.map((item, idx) => (
+                <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <td style={{ padding: '8px', color: 'var(--color-text-primary)' }}>{item.char !== undefined ? item.char : item.code}</td>
+                  <td style={{ padding: '8px', color: 'var(--color-text-primary)' }}>{item.code !== undefined ? item.code : item.char?.charCodeAt(0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+
+      tabs.push({
+        id: 'table',
+        label: 'TABLE',
+        content: tableContent,
+        contentType: 'component',
+      })
+    }
+
+    // Add JSON tab
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(displayResult, null, 2),
+      contentType: 'json',
+    })
+
+    return <OutputTabs key={toolId} tabs={tabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={true} />
+  }
+
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
