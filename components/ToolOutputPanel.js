@@ -1385,7 +1385,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderUnitConverterOutput = () => {
-    if (!displayResult || !displayResult.conversions) return null
+    if (!displayResult) return null
+
+    // If there's no conversions, let the universal error handler take over
+    // (displayResult.error will be handled at the end of this component)
+    if (!displayResult.conversions) return null
 
     const conversions = displayResult.conversions.map(conv => ({
       label: conv.human || `${conv.value} ${conv.unit}`,
