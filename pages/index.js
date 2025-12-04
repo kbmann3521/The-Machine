@@ -466,11 +466,6 @@ export default function Home() {
           }
         }
 
-        if (tool.toolId === 'ascii-unicode-converter') {
-          console.log('[ASCII/Unicode] Config being sent:', finalConfig)
-          console.log('[ASCII/Unicode] configOptions state:', config)
-        }
-
         const response = await fetch('/api/tools/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
