@@ -112,25 +112,26 @@
   contain: layout style;
 }
 
+.leftPanel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
 .leftPanel::-webkit-scrollbar {
   width: 6px;
 }
 
 .leftPanel::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .leftPanel::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
+  background-color: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 .leftPanel::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-text-secondary);
-}
-
-.leftPanel::-webkit-scrollbar {
-  display: none;
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .inputSection {
