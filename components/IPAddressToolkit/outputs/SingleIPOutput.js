@@ -1,187 +1,153 @@
 import React, { useState } from 'react'
-import { FaCopy } from 'react-icons/fa6'
-import styles from '../../../styles/ip-toolkit.module.css'
+import OutputTabs from '../../OutputTabs'
 
 export default function SingleIPOutput({ result }) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    let textToCopy = ''
-
-    if (typeof result === 'string') {
-      textToCopy = result
-    } else {
-      textToCopy = JSON.stringify(result, null, 2)
-    }
-
-    try {
-      await navigator.clipboard.writeText(textToCopy)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      fallbackCopy(textToCopy)
-    }
-  }
-
-  const fallbackCopy = (text) => {
-    const textarea = document.createElement('textarea')
-    textarea.value = text
-    textarea.style.position = 'fixed'
-    textarea.style.opacity = '0'
-    document.body.appendChild(textarea)
-    textarea.select()
-    try {
-      document.execCommand('copy')
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('Copy failed:', err)
-    }
-    document.body.removeChild(textarea)
-  }
-
   // Show empty state if no result
   if (!result) {
-    return (
-      <div className={styles.outputSection}>
-        <div className={styles.outputHeader}>
-          <h3 className={styles.outputTitle}>Output</h3>
-        </div>
-        <div className={styles.emptyOutput}>
-          <p className={styles.emptyOutputText}>
-            Enter an IP address to see analysis results
-          </p>
-        </div>
-      </div>
-    )
+    const emptyTabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: 'Enter an IP address to see analysis results',
+        contentType: 'text',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: '',
+        contentType: 'json',
+      },
+    ]
+    return <OutputTabs tabs={emptyTabs} showCopyButton={false} />
   }
 
   // Show error state
   if (result.error) {
+    const errorTabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: `Error: ${result.error}`,
+        contentType: 'text',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: JSON.stringify(result, null, 2),
+        contentType: 'json',
+      },
+    ]
+    return <OutputTabs tabs={errorTabs} showCopyButton={true} />
+  }
+
+  // Build friendly output
+  const buildFriendlyOutput = () => {
+    const sections = []
+
+    if (result.isValid !== undefined) {
+      sections.push({
+        title: 'Validation Status',
+        fields: {
+          'Valid': result.isValid ? '✓ Yes' : '✗ No',
+          ...(result.version && { 'Version': result.version }),
+        },
+      })
+    }
+
+    if (result.normalized) {
+      sections.push({
+        title: 'Normalized Form',
+        fields: {
+          'Normalized': result.normalized,
+        },
+      })
+    }
+
+    if (result.integer !== null && result.integer !== undefined) {
+      sections.push({
+        title: 'Integer Conversion',
+        fields: {
+          'Decimal': result.integer,
+          ...(result.integerHex && { 'Hexadecimal': result.integerHex }),
+          ...(result.integerBinary && { 'Binary': result.integerBinary }),
+        },
+      })
+    }
+
+    if (result.classification) {
+      const classFields = {
+        'Type': result.classification.type,
+        ...(result.classification.isPrivate !== undefined && {
+          'Private': result.classification.isPrivate ? 'Yes' : 'No',
+        }),
+        ...(result.classification.isLoopback && {
+          'Loopback': 'Yes',
+        }),
+        ...(result.classification.isMulticast && {
+          'Multicast': 'Yes',
+        }),
+        ...(result.classification.isLinkLocal && {
+          'Link-Local': 'Yes',
+        }),
+      }
+      sections.push({
+        title: 'Classification',
+        fields: classFields,
+      })
+    }
+
     return (
-      <div className={styles.outputSection}>
-        <div className={styles.outputHeader}>
-          <h3 className={styles.outputTitle}>Output</h3>
-          <button className="copy-action" onClick={handleCopy} title="Copy output">
-            {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
-          </button>
-        </div>
-        <div className={styles.card}>
-          <div className={styles.cardContent}>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Error:</span>
-              <span style={{ color: '#f44336' }}>{result.error}</span>
+      <div>
+        {sections.map((section, idx) => (
+          <div key={idx} style={{ marginBottom: '16px' }}>
+            <div style={{
+              fontSize: '13px',
+              fontWeight: '600',
+              marginBottom: '8px',
+              color: 'var(--color-text-primary)',
+            }}>
+              {section.title}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {Object.entries(section.fields).map(([key, value]) => (
+                <div key={key} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  backgroundColor: 'var(--color-background-secondary)',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                }}>
+                  <span style={{ fontWeight: '500', color: 'var(--color-text-secondary)' }}>
+                    {key}
+                  </span>
+                  <span style={{ color: 'var(--color-text-primary)', fontWeight: '600' }}>
+                    {value}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        ))}
       </div>
     )
   }
 
-  // Show results
-  return (
-    <div className={styles.outputSection}>
-      <div className={styles.outputHeader}>
-        <h3 className={styles.outputTitle}>Output</h3>
-        <button className="copy-action" onClick={handleCopy} title="Copy output">
-          {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
-        </button>
-      </div>
+  // Create tabs
+  const tabs = [
+    {
+      id: 'output',
+      label: 'OUTPUT',
+      content: buildFriendlyOutput(),
+      contentType: 'component',
+    },
+    {
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(result, null, 2),
+      contentType: 'json',
+    },
+  ]
 
-      {/* Validation Status Card */}
-      {result.isValid !== undefined && (
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Validation Status</h3>
-          <div className={styles.cardContent}>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Valid:</span>
-              <span className={result.isValid ? styles.textGreen : ''}>
-                {result.isValid ? '✓ Yes' : '✗ No'}
-              </span>
-            </div>
-            {result.version && (
-              <div className={styles.resultRow}>
-                <span className={styles.resultLabel}>Version:</span>
-                <span className={styles.resultValue}>{result.version}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Normalized Form Card */}
-      {result.normalized && (
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Normalized Form</h3>
-          <div className={styles.cardContent}>
-            <code className={styles.codeBlock}>{result.normalized}</code>
-          </div>
-        </div>
-      )}
-
-      {/* Integer Conversion Card */}
-      {result.integer !== null && result.integer !== undefined && (
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Integer Conversion</h3>
-          <div className={styles.cardContent}>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Decimal:</span>
-              <span className={styles.resultValue}>{result.integer}</span>
-            </div>
-            {result.integerHex && (
-              <div className={styles.resultRow}>
-                <span className={styles.resultLabel}>Hexadecimal:</span>
-                <span className={styles.resultValue}>{result.integerHex}</span>
-              </div>
-            )}
-            {result.integerBinary && (
-              <div className={styles.resultRow}>
-                <span className={styles.resultLabel}>Binary:</span>
-                <span className={styles.resultValue}>{result.integerBinary}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Classification Card */}
-      {result.classification && (
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Classification</h3>
-          <div className={styles.cardContent}>
-            <div className={styles.resultRow}>
-              <span className={styles.resultLabel}>Type:</span>
-              <span className={styles.resultValue}>{result.classification.type}</span>
-            </div>
-            {result.classification.isPrivate !== undefined && (
-              <div className={styles.resultRow}>
-                <span className={styles.resultLabel}>Private:</span>
-                <span className={styles.resultValue}>
-                  {result.classification.isPrivate ? 'Yes' : 'No'}
-                </span>
-              </div>
-            )}
-            {result.classification.isLoopback !== undefined && result.classification.isLoopback && (
-              <div className={styles.resultRow}>
-                <span className={styles.resultLabel}>Loopback:</span>
-                <span className={styles.resultValue}>Yes</span>
-              </div>
-            )}
-            {result.classification.isMulticast !== undefined && result.classification.isMulticast && (
-              <div className={styles.resultRow}>
-                <span className={styles.resultLabel}>Multicast:</span>
-                <span className={styles.resultValue}>Yes</span>
-              </div>
-            )}
-            {result.classification.isLinkLocal !== undefined && result.classification.isLinkLocal && (
-              <div className={styles.resultRow}>
-                <span className={styles.resultLabel}>Link-Local:</span>
-                <span className={styles.resultValue}>Yes</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
+  return <OutputTabs tabs={tabs} showCopyButton={true} />
 }
