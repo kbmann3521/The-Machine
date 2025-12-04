@@ -513,24 +513,21 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
-  // Run tool when input text or image changes (real-time)
+  // Run tool in real-time as input changes
   useEffect(() => {
     if (!selectedTool) return
 
-    if (inputText.trim() || imagePreview) {
-      autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-    } else {
-      setOutputResult(null)
-      setError(null)
+    const runCheck = async () => {
+      if (inputText.trim() || imagePreview) {
+        await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
+      } else {
+        setOutputResult(null)
+        setError(null)
+      }
     }
-  }, [selectedTool, inputText, imagePreview])
 
-  // Re-run tool when config or toolkit section changes
-  useEffect(() => {
-    if (!selectedTool || (!inputText.trim() && !imagePreview)) return
-
-    autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-  }, [configOptions, activeToolkitSection, ipToolkitConfig])
+    runCheck()
+  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig, autoRunTool])
 
 
   return (
