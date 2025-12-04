@@ -513,16 +513,12 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
-  // Run tool in real-time as input changes - only depend on direct input/tool changes
+  // Run tool in real-time as input or config changes
   useEffect(() => {
     if (!selectedTool) return
 
     if (inputText.trim() || imagePreview) {
-      // Call autoRunTool directly with current values, don't depend on autoRunTool itself
-      const runAsync = async () => {
-        await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-      }
-      runAsync()
+      autoRunTool(selectedTool, configOptions, inputText, imagePreview)
     } else {
       setOutputResult(null)
       setError(null)
