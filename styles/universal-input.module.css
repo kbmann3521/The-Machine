@@ -281,7 +281,6 @@
   white-space: nowrap;
   transition: all 0.2s ease;
   color: white;
-  min-opacity: 0.4;
 }
 
 .detectedToolButton:hover {
@@ -290,7 +289,7 @@
 }
 
 .detectedToolButton:active {
-  opacity: calc(var(--tool-opacity, 0.6) * 0.9) !important;
+  transform: scale(0.95);
 }
 
 .fileInput {
