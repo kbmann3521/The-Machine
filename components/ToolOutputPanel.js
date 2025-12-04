@@ -2602,6 +2602,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderYamlFormatterOutput()
       case 'unit-converter':
         return renderUnitConverterOutput()
+      case 'ascii-unicode-converter':
+        return renderAsciiUnicodeOutput()
       default: {
         const tabs = []
 
