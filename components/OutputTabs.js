@@ -396,9 +396,8 @@ export default function OutputTabs({
       }
 
       return (
-        <div className={`${styles.codeContentWithLineNumbers} ${showLineNumbers ? '' : styles.codeContentNoLineNumbers}`}>
-          {showLineNumbers && <LineNumbers ref={codeLineNumbersRef} content={codeContent} />}
-          <div className={styles.codeContentWrapper} ref={codeContentRef} onScroll={handleCodeScroll}>
+        <div className={styles.codeContentWithLineNumbers}>
+          <div className={styles.codeContentWrapper} ref={codeContentRef}>
             <SyntaxHighlighter
               code={codeContent}
               language={language}
