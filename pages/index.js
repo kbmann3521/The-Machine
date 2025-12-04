@@ -315,62 +315,6 @@ export default function Home() {
           // Filter out tools with show_in_recommendations = false
           // Only Supabase controls visibility
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
-
-          // Auto-select the best match tool ONLY on paste, once, when not in advanced mode
-          if (toolsWithMetadata.length > 0) {
-            const topTool = toolsWithMetadata[0]
-            // Only auto-select if:
-            // 1. Content was pasted (not typed) AND
-            // 2. Auto-selection hasn't been done yet AND
-            // 3. Not in advanced mode (user hasn't manually selected a tool)
-            if (lastInputWasPasteRef.current && !autoSelectionDoneRef.current && !advancedMode) {
-              console.log('Auto-selecting on paste:', topTool.name)
-              setSelectedTool(topTool)
-              selectedToolRef.current = topTool  // Update ref so handleSelectTool comparison works
-              autoSelectionDoneRef.current = true // Disable future auto-selection
-            }
-
-            // Check for text cleaning issues
-            const cleanTextIssues = detectCleanTextIssues(text)
-
-            // If top tool is Text Toolkit and there are cleaning issues, auto-switch to removeExtras
-            if (topTool.toolId === 'text-toolkit' && cleanTextIssues) {
-              setActiveToolkitSection('removeExtras')
-
-              // Pre-enable relevant cleaning options based on detected issues
-              const updatedConfig = { ...removeExtrasConfig }
-              if (cleanTextIssues.hasExcessiveSpaces) {
-                updatedConfig.compressSpaces = true
-              }
-              if (cleanTextIssues.hasBlankLines) {
-                updatedConfig.removeBlankLines = true
-              }
-              if (cleanTextIssues.hasMixedWhitespace) {
-                updatedConfig.normalizeWhitespace = true
-              }
-              if (cleanTextIssues.hasExcessiveLineBreaks) {
-                updatedConfig.removeBlankLines = true
-              }
-              setRemoveExtrasConfig(updatedConfig)
-            }
-
-            // Only reset config if the top recommended tool is different from the currently selected tool
-            // This prevents overwriting the user's config when they've already selected a different tool
-            if (selectedTool?.toolId !== topTool?.toolId) {
-              const initialConfig = {}
-              if (topTool?.configSchema) {
-                topTool.configSchema.forEach(field => {
-                  initialConfig[field.id] = field.default || ''
-                })
-              }
-              setConfigOptions(initialConfig)
-            }
-
-            // Apply activeToolkitSection if specified for text-toolkit
-            if (topTool.toolId === 'text-toolkit' && topTool?.suggestedConfig?.activeToolkitSection) {
-              setActiveToolkitSection(topTool.suggestedConfig.activeToolkitSection)
-            }
-          }
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
           // Silently fail - the app will continue with the existing tool list
