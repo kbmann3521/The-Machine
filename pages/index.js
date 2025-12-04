@@ -465,7 +465,8 @@ export default function Home() {
 
     const runTool = async () => {
       // Use the actual input from ref, not state which may be batched/stale
-      await autoRunTool(selectedTool, configOptions, actualInput, imagePreview)
+      const config = selectedTool?.toolId === 'ip-address-toolkit' ? ipToolkitConfig : configOptions
+      await autoRunTool(selectedTool, config, actualInput, imagePreview)
     }
 
     runTool()
@@ -474,7 +475,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, imagePreview, configOptions, autoRunTool, inputChangeKey])
+  }, [selectedTool, imagePreview, configOptions, ipToolkitConfig, autoRunTool, inputChangeKey])
 
 
   return (
