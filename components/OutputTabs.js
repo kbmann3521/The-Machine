@@ -425,7 +425,7 @@ export default function OutputTabs({
     if (contentType === 'error') {
       return (
         <div className={styles.errorContent}>
-          <div className={styles.errorMessage}>{String(content)}</div>
+          <div className="error-message">{String(content)}</div>
         </div>
       )
     }
