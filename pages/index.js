@@ -593,6 +593,8 @@ export default function Home() {
                   activeToolkitSection={activeToolkitSection}
                   configOptions={configOptions}
                   onConfigChange={setConfigOptions}
+                  inputText={inputText}
+                  imagePreview={imagePreview}
                 />
               </div>
             </div>
