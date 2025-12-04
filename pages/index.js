@@ -197,11 +197,19 @@ export default function Home() {
 
   const handleInputChange = useCallback((text, image, preview) => {
     const isAddition = text.length > previousInputLength
+    const isEmpty = !text || !text.trim()
 
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
     setPreviousInputLength(text.length)
+
+    // Clear output immediately when input becomes empty
+    if (isEmpty) {
+      setOutputResult(null)
+      setError(null)
+      setLoading(false)
+    }
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
