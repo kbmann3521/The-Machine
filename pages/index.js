@@ -444,13 +444,27 @@ export default function Home() {
   useEffect(() => {
     if (!selectedTool) return
 
+    // Check both state and ref to handle rapid deletions where state may lag
+    const hasContent = (inputText.trim() || imagePreview)
+    const actualContent = (currentInputRef.current.trim() || imagePreview)
+
+    // If the actual input is empty but state hasn't caught up yet, ensure output is cleared
+    if (!actualContent && hasContent) {
+      setOutputResult(null)
+      setError(null)
+      return
+    }
+
+    // Don't run tool if nothing to process
+    if (!hasContent) {
+      return
+    }
+
     // Create an abort controller to cancel previous requests if a new one comes in
     const abortController = new AbortController()
 
     const runTool = async () => {
-      if (inputText.trim() || imagePreview) {
-        await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-      }
+      await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
     }
 
     runTool()
