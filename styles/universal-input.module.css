@@ -255,7 +255,6 @@
   width: 100%;
   box-sizing: border-box;
   animation: slideDown 0.3s ease-out;
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.08);
 }
 
 @keyframes slideDown {
@@ -284,15 +283,12 @@
 
 .detectedToolButton:hover {
   background-color: currentColor;
-  color: #ffffff;
+  color: white !important;
   font-weight: 600;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 102, 204, 0.3);
 }
 
 .detectedToolButton:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.2);
+  opacity: 0.9;
 }
 
 .fileInput {
