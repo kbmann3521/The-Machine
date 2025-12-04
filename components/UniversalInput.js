@@ -237,10 +237,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   return (
     <div className={styles.container}>
       <div className={styles.inputWrapper}>
-        {getInstructionText() && (
-          <div className={styles.instructionLabel}>{getInstructionText()}</div>
-        )}
-
         <div className={styles.inputFieldContainer}>
           <div className={styles.buttonGroup}>
             <button
