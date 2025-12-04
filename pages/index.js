@@ -473,7 +473,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, imagePreview, configOptions, autoRunTool, currentInputRef])
+  }, [selectedTool, imagePreview, configOptions, autoRunTool, inputChangeKey])
 
 
   return (
