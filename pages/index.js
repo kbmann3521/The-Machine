@@ -416,7 +416,6 @@ export default function Home() {
         // If no input and no image, don't run the tool
         if (!textToUse && !imageInput) {
           setToolLoading(false)
-          setOutputResult(null)
           return
         }
 
