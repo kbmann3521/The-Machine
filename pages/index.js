@@ -233,18 +233,19 @@ export default function Home() {
       return
     }
 
-    // Clear any existing loading timer
-    if (loadingTimerRef.current) {
-      clearTimeout(loadingTimerRef.current)
-      loadingTimerRef.current = null
-    }
+    debounceTimerRef.current = setTimeout(() => {
+      // Clear any existing loading timer
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current)
+        loadingTimerRef.current = null
+      }
 
-    // Only show loading if the request takes longer than 500ms
-    loadingTimerRef.current = setTimeout(() => {
-      setLoading(true)
-    }, 500)
+      // Only show loading if the request takes longer than 500ms
+      loadingTimerRef.current = setTimeout(() => {
+        setLoading(true)
+      }, 500)
 
-    const predictTools = async () => {
+      const predictTools = async () => {
         try {
           // Store the classification that triggered this search
           const triggeringClassification = fastLocalClassification(text)
@@ -376,7 +377,8 @@ export default function Home() {
         }
       }
 
-    predictTools()
+      predictTools()
+    }, 100)
   }, [fastLocalClassification, selectedTool, advancedMode, detectCleanTextIssues, previousInputLength])
 
   const handleImageChange = useCallback((image, preview) => {
