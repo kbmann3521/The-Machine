@@ -2800,6 +2800,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         label: 'OUTPUT',
         content: displayResult.error,
         contentType: 'error',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
       }
     ]
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={false} />
