@@ -7,18 +7,6 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.pioneerwebtools.com/?tool=image-resizer</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=word-counter</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.pioneerwebtools.com/?tool=case-converter</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
@@ -26,12 +14,6 @@
   </url>
   <url>
     <loc>https://www.pioneerwebtools.com/?tool=find-replace</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=remove-extras</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -67,12 +49,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.pioneerwebtools.com/?tool=plain-text-stripper</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.pioneerwebtools.com/?tool=json-formatter</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
@@ -80,12 +56,6 @@
   </url>
   <url>
     <loc>https://www.pioneerwebtools.com/?tool=reverse-text</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=slug-generator</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -145,12 +115,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.pioneerwebtools.com/?tool=url-parser</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.pioneerwebtools.com/?tool=jwt-decoder</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
@@ -182,12 +146,6 @@
   </url>
   <url>
     <loc>https://www.pioneerwebtools.com/?tool=escape-unescape</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=sort-lines</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -307,12 +265,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.pioneerwebtools.com/?tool=keyword-extractor</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.pioneerwebtools.com/?tool=cron-tester</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
@@ -338,30 +290,6 @@
   </url>
   <url>
     <loc>https://www.pioneerwebtools.com/?tool=email-validator</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=ip-validator</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=ip-to-integer</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=integer-to-ip</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.pioneerwebtools.com/?tool=ip-range-calculator</loc>
     <lastmod>2024-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

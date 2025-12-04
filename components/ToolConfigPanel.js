@@ -19,7 +19,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   if (!tool) {
     return (
       <div className={styles.container}>
-        <p className={styles.placeholder}>Select a tool to configure</p>
+        <p className={styles.placeholder}></p>
       </div>
     )
   }
@@ -203,7 +203,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     id="findText"
                     type="text"
                     className={styles.input}
-                    placeholder="Enter text or pattern to search for"
+                    placeholder=""
                     value={findReplaceConfig?.findText || ''}
                     onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, findText: e.target.value })}
                   />
@@ -217,7 +217,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     id="replaceText"
                     type="text"
                     className={styles.input}
-                    placeholder="Enter replacement text"
+                    placeholder=""
                     value={findReplaceConfig?.replaceText || ''}
                     onChange={(e) => onFindReplaceConfigChange({ ...findReplaceConfig, replaceText: e.target.value })}
                   />
@@ -433,7 +433,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 <textarea
                   id="text2"
                   className={styles.textarea}
-                  placeholder="Paste the second version to compare with the first"
+                  placeholder=""
                   value={diffConfig?.text2 || ''}
                   onChange={(e) => onDiffConfigChange({ ...diffConfig, text2: e.target.value })}
                   rows={4}

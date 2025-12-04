@@ -1,132 +1,111 @@
-import React, { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import CodeMirror from '@uiw/react-codemirror'
+import { javascript } from '@codemirror/lang-javascript'
+import { markdown } from '@codemirror/lang-markdown'
+import { html } from '@codemirror/lang-html'
+import { css } from '@codemirror/lang-css'
+import { xml } from '@codemirror/lang-xml'
+import { json } from '@codemirror/lang-json'
+import { sql } from '@codemirror/lang-sql'
+import { python } from '@codemirror/lang-python'
+import { yaml } from '@codemirror/lang-yaml'
+import { isScriptingLanguageTool } from '../lib/tools'
+import { useTheme } from '../lib/ThemeContext'
+import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/universal-input.module.css'
-import LineNumbers from './LineNumbers'
-import SyntaxHighlighter from './SyntaxHighlighter'
 
-export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null }) {
+export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
+  const { theme } = useTheme()
+
   const getPlaceholder = () => {
     if (!selectedTool) {
-      return "Type your text here... drag & drop or paste an image (Ctrl+V)"
+      return "Type or paste content here..."
     }
-
-    if (getToolExample && selectedTool?.toolId) {
-      const example = getToolExample(selectedTool.toolId, configOptions)
-      if (example) {
-        return example
-      }
-    }
-
-    const staticPlaceholders = {
-      'image-resizer': 'Upload an image (PNG, JPG, etc.) to resize for web or social media',
-      'text-toolkit': 'Paste your article, blog post, or essay for complete text analysis',
-      'word-counter': 'Paste your essay, article, or document to count words and characters',
-      'case-converter': 'Paste text to convert between uppercase, lowercase, title case, etc.',
-      'find-replace': 'Paste text and configure search patterns to find and replace',
-      'remove-extras': 'Paste text with extra spaces or line breaks to clean up',
-      'text-analyzer': 'Paste text to analyze readability, word frequency, and writing metrics',
-      'base64-converter': 'Paste text or base64 string to encode or decode',
-      'url-converter': 'Paste a URL or encoded string to convert formats',
-      'html-entities-converter': 'Paste HTML content to encode or decode special characters',
-      'html-formatter': 'Paste messy HTML code to format and indent properly',
-      'plain-text-stripper': 'Paste HTML or formatted text to remove all styling and tags',
-      'json-formatter': 'Paste JSON from an API or config file to format and validate',
-      'reverse-text': 'Paste text to reverse character order',
-      'slug-generator': 'Paste a title or heading to generate a URL-friendly slug',
-      'regex-tester': 'Paste text and test regular expression patterns',
-      'timestamp-converter': 'Paste a Unix timestamp or date to convert formats',
-      'csv-json-converter': 'Paste CSV data from Excel or spreadsheets to convert to JSON',
-      'markdown-html-converter': 'Paste Markdown or HTML content to convert between formats',
-      'xml-formatter': 'Paste XML data or configuration to format and validate',
-      'yaml-formatter': 'Paste YAML config file to format and check syntax',
-      'url-toolkit': 'Paste a URL to parse, validate, normalize, or manipulate',
-      'url-parser': 'Paste a URL to extract and analyze components',
-      'jwt-decoder': 'Paste a JWT token from your app to decode and inspect claims',
-      'text-diff-checker': 'Paste your original text in the main field to compare versions',
-      'color-converter': 'Paste a color value (hex, RGB, HSL, etc.) to convert formats',
-      'checksum-calculator': 'Paste text to generate MD5, SHA1, SHA256 checksums',
-      'escape-unescape': 'Paste text or escaped strings to convert encoding',
-      'sort-lines': 'Paste text with multiple lines to sort alphabetically or numerically',
-      'whitespace-visualizer': 'Paste text to visualize tabs, spaces, and line breaks',
-      'ascii-unicode-converter': 'Paste text to convert between ASCII and Unicode formats',
-      'punycode-converter': 'Paste an international domain name to convert to punycode',
-      'binary-converter': 'Paste a binary, hex, or octal number to convert formats',
-      'rot13-cipher': 'Paste text to apply ROT13 cipher for simple obfuscation',
-      'caesar-cipher': 'Paste text to apply Caesar cipher with custom shift',
-      'css-formatter': 'Paste minified CSS code to format and indent properly',
-      'sql-formatter': 'Paste a SQL query to format and improve readability',
-      'http-status-lookup': 'Enter an HTTP status code (e.g., 404, 500) to see what it means',
-      'mime-type-lookup': 'Enter a file extension (e.g., .jpg, .pdf) to find its MIME type',
-      'http-header-parser': 'Paste HTTP headers from a request or response to analyze',
-      'uuid-validator': 'Paste a UUID to validate format and version',
-      'json-path-extractor': 'Paste JSON data to extract and navigate with JSONPath expressions',
-      'image-to-base64': 'Upload an image to convert to base64 for embedding in HTML/CSS',
-      'svg-optimizer': 'Paste SVG code to optimize and reduce file size',
-      'unit-converter': 'Enter a value with unit (e.g., 5km, 100lb, 32°C) to convert',
-      'number-formatter': 'Enter a number to format with separators, decimals, or notation',
-      'timezone-converter': 'Enter a time (e.g., 2:30 PM, 14:30) to convert between timezones',
-      'base-converter': 'Enter a number to convert between decimal, binary, hex, octal',
-      'math-evaluator': 'Paste a math expression (e.g., (10 + 5) * 2) to calculate result',
-      'keyword-extractor': 'Paste an article or text to automatically extract key topics',
-      'cron-tester': 'Paste a cron expression to test schedule and see next run times',
-      'file-size-converter': 'Enter a file size (e.g., 1024MB, 5GB) to convert units',
-      'js-formatter': 'Paste JavaScript code to format, beautify, or minify',
-      'html-minifier': 'Paste HTML code to minify and reduce file size',
-      'email-validator': 'Enter an email address to validate format and syntax',
-      'ip-validator': 'Enter an IP address (IPv4 or IPv6) to validate format',
-      'ip-to-integer': 'Paste an IP address to convert to its integer representation',
-      'integer-to-ip': 'Paste an integer to convert to an IP address',
-      'ip-range-calculator': 'Paste an IP with CIDR notation (e.g., 192.168.1.0/24) to analyze',
-      'markdown-linter': 'Paste Markdown content to check for formatting issues and lint errors',
-      'ip-address-toolkit': 'Enter an IP address (e.g., 8.8.8.8 or 2001:4860:4860::8888) to analyze',
-    }
-
-    return staticPlaceholders[selectedTool.toolId] || "Type or paste content here..."
+    return "Type or paste content here..."
   }
+
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [charCount, setCharCount] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [inputHeight, setInputHeight] = useState(255)
+  const [isResizing, setIsResizing] = useState(false)
   const fileInputRef = useRef(null)
-  const textareaRef = useRef(null)
-  const highlightsLayerRef = useRef(null)
-  const lineNumbersRef = useRef(null)
-  const syntaxHighlightLayerRef = useRef(null)
+  const inputFieldRef = useRef(null)
+  const startYRef = useRef(0)
+  const startHeightRef = useRef(0)
+  const isPasteRef = useRef(false)
 
-  const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
-  const showLineNumbers = selectedTool && codeRelatedCategories.includes(selectedTool.category)
+  // Load saved height from localStorage on mount
+  useEffect(() => {
+    const savedHeight = localStorage.getItem('inputBoxHeight')
+    if (savedHeight) {
+      const height = Math.max(255, Math.min(510, parseInt(savedHeight, 10)))
+      setInputHeight(height)
+    }
+  }, [])
 
-  const handleTextChange = (e) => {
-    const text = e.target.value
-    setInputText(text)
-    setCharCount(text.length)
-    onInputChange(text)
+  // Handle resize start
+  const handleResizeStart = (e) => {
+    setIsResizing(true)
+    startYRef.current = e.clientY
+    startHeightRef.current = inputHeight
   }
 
+  // Handle resize move
+  useEffect(() => {
+    if (!isResizing) return
 
-  const handleScroll = (e) => {
-    const scrollLeft = e.target.scrollLeft
-    const scrollTop = e.target.scrollTop
+    const handleMouseMove = (e) => {
+      const delta = e.clientY - startYRef.current
+      const newHeight = Math.max(255, Math.min(510, startHeightRef.current + delta))
+      setInputHeight(newHeight)
+    }
 
-    if (syntaxHighlightLayerRef.current) {
-      // Shift syntax highlighting layer to match textarea scroll using transform
-      syntaxHighlightLayerRef.current.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      // Save to localStorage when resize is complete
+      localStorage.setItem('inputBoxHeight', inputHeight.toString())
     }
-    if (highlightsLayerRef.current) {
-      // Shift highlights layer to match textarea scroll using transform
-      highlightsLayerRef.current.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
     }
-    if (lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = e.target.scrollTop
+  }, [isResizing, inputHeight])
+
+  const getLanguage = () => {
+    if (!selectedTool) return undefined
+    
+    const languageMap = {
+      'js-formatter': javascript(),
+      'javascript-minifier': javascript(),
+      'json-formatter': json(),
+      'xml-formatter': xml(),
+      'markdown-html-formatter': markdown(),
+      'css-formatter': css(),
+      'sql-formatter': sql(),
+      'yaml-formatter': yaml(),
+      'python-formatter': python(),
     }
+    
+    return languageMap[selectedTool.toolId]
   }
 
-  const getErrorInfo = () => {
-    return new Map()
+  const handleTextChange = (value) => {
+    setInputText(value)
+    setCharCount(value.length)
+    const isPaste = isPasteRef.current
+    isPasteRef.current = false // Reset after use
+    onInputChange(value, null, null, isPaste)
   }
 
-  const renderHighlights = () => {
-    return null
+  const handlePaste = (e) => {
+    isPasteRef.current = true
   }
 
   const handleImageFile = (file) => {
@@ -169,57 +148,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     }
   }
 
-  const handlePaste = (e) => {
-    e.preventDefault()
-
-    const items = e.clipboardData?.items
-    let hasImage = false
-
-    if (items) {
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith('image/')) {
-          const file = items[i].getAsFile()
-          if (file) {
-            handleImageFile(file)
-            hasImage = true
-          }
-          break
-        }
-      }
-    }
-
-    if (!hasImage) {
-      const pastedText = e.clipboardData?.getData('text') || ''
-      if (pastedText) {
-        const textarea = textareaRef.current
-        if (textarea) {
-          // Get current text and cursor position
-          const currentText = textarea.value
-          const cursorStart = textarea.selectionStart
-          const cursorEnd = textarea.selectionEnd
-
-          // Insert pasted text at cursor position (replace selection if text is selected)
-          const newText = currentText.slice(0, cursorStart) + pastedText + currentText.slice(cursorEnd)
-
-          setInputText(newText)
-          setCharCount(newText.length)
-          onInputChange(newText)
-
-          // Move cursor to after the pasted text
-          setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = cursorStart + pastedText.length
-            textarea.focus()
-          }, 0)
-        } else {
-          // Fallback if ref is not available
-          setInputText(pastedText)
-          setCharCount(pastedText.length)
-          onInputChange(pastedText)
-        }
-      }
-    }
-  }
-
   const removeImage = () => {
     setImagePreview(null)
     setInputImage(null)
@@ -230,38 +158,50 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     fileInputRef.current?.click()
   }
 
+  const handleLoadExample = () => {
+    if (!selectedTool || !getToolExample) return
+
+    const example = getToolExample(selectedTool.toolId, configOptions)
+    if (example) {
+      setInputText(example)
+      setCharCount(example.length)
+      onInputChange(example, null, null, false)
+    }
+  }
+
+  const handleClearInput = () => {
+    setInputText('')
+    setCharCount(0)
+    setInputImage(null)
+    setImagePreview(null)
+    onInputChange('', null, null, false)
+  }
+
   const getInstructionText = () => {
     if (!selectedTool) return null
 
     const instructions = {
-      'image-resizer': 'Upload an image to resize for web, mobile, or social media',
-      'word-counter': 'Get detailed statistics on words, characters, and readability',
       'case-converter': 'Transform text case for titles, code, or any style you need',
       'find-replace': 'Search and replace with plain text or regex patterns',
-      'remove-extras': 'Clean up extra spaces, tabs, and unnecessary line breaks',
       'text-analyzer': 'Analyze readability scores, word frequency, and writing quality',
       'base64-converter': 'Encode text to base64 or decode from base64',
       'url-converter': 'Encode or decode URL components and special characters',
       'html-entities-converter': 'Convert between HTML and entity-encoded text',
       'html-formatter': 'Beautify and indent HTML code for better readability',
-      'plain-text-stripper': 'Remove HTML tags and formatting to get plain text',
       'json-formatter': 'Validate and format JSON with proper indentation',
       'reverse-text': 'Reverse text characters, words, or lines',
-      'slug-generator': 'Create URL-friendly slugs from titles and headings',
       'regex-tester': 'Test regex patterns and see all matches highlighted',
       'timestamp-converter': 'Convert between Unix timestamps and human-readable dates',
       'csv-json-converter': 'Transform CSV spreadsheet data to JSON format',
-      'markdown-html-converter': 'Convert between Markdown and HTML markup',
+      'markdown-html-formatter': 'Format and convert between Markdown and HTML',
       'xml-formatter': 'Validate and format XML with proper structure',
       'yaml-formatter': 'Format YAML configuration files with correct indentation',
       'url-toolkit': 'Parse, validate, normalize, and manipulate URLs with advanced features',
-      'url-parser': 'Extract and analyze URL components (domain, path, params, etc.)',
       'jwt-decoder': 'Decode and inspect JWT tokens and claims',
       'text-diff-checker': 'Compare two versions of text and highlight differences',
       'color-converter': 'Convert color values between hex, RGB, HSL, and more',
       'checksum-calculator': 'Generate MD5, SHA1, SHA256, and other checksums',
       'escape-unescape': 'Escape and unescape special characters in text',
-      'sort-lines': 'Sort lines alphabetically or remove duplicates',
       'whitespace-visualizer': 'See hidden spaces, tabs, and line break characters',
       'ascii-unicode-converter': 'Convert between ASCII and Unicode encodings',
       'punycode-converter': 'Convert international domain names to punycode format',
@@ -282,7 +222,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'timezone-converter': 'Convert times between different timezones',
       'base-converter': 'Convert numbers between different bases (binary, octal, hex)',
       'math-evaluator': 'Evaluate mathematical expressions and get results',
-      'keyword-extractor': 'Automatically extract important keywords and topics',
       'cron-tester': 'Test cron expressions and preview execution schedule',
       'file-size-converter': 'Convert file sizes between different units (KB, MB, GB)',
       'js-formatter': 'Format, beautify, or minify JavaScript code',
@@ -298,30 +237,52 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   return (
     <div className={styles.container}>
       <div className={styles.inputWrapper}>
-        {getInstructionText() && (
-          <div className={styles.instructionLabel}>{getInstructionText()}</div>
-        )}
-
         <div className={styles.inputFieldContainer}>
-          <button
-            className={styles.uploadImageButton}
-            onClick={openFileDialog}
-            title="Click to upload an image"
-            type="button"
-          >
-            <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-            Upload Image
-          </button>
+          <div className={styles.buttonsWrapper}>
+            <button
+              className={styles.uploadImageButton}
+              onClick={openFileDialog}
+              title="Click to upload an image"
+              type="button"
+            >
+              <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Upload Image
+            </button>
+            <div className={styles.buttonGroup}>
+              {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
+                <button
+                  className={styles.loadExampleButton}
+                  onClick={handleLoadExample}
+                  title="Load example input and see output"
+                  type="button"
+                >
+                  Load Example
+                </button>
+              )}
+              {inputText && (
+                <button
+                  className={styles.clearInputButton}
+                  onClick={handleClearInput}
+                  title="Clear all input and output"
+                  type="button"
+                >
+                  Clear Input
+                </button>
+              )}
+            </div>
+          </div>
 
           <div
-            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''}`}
+            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''} ${isResizing ? styles.resizing : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            ref={inputFieldRef}
+            style={{ height: inputHeight + 'px' }}
           >
             <input
               type="file"
@@ -330,41 +291,67 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               accept="image/*"
               className={styles.fileInput}
             />
-          <div className={`${styles.textareaWithLineNumbers} ${showLineNumbers ? '' : styles.noLineNumbers}`}>
-            {showLineNumbers && (
-              <LineNumbers
-                ref={lineNumbersRef}
-                content={inputText || getPlaceholder()}
-              />
-            )}
-            <div className={styles.textareaWrapper}>
-              {inputText && (
-                <div ref={syntaxHighlightLayerRef} className={styles.syntaxHighlightLayer}>
-                  <SyntaxHighlighter
-                    code={inputText}
-                    toolId={selectedTool?.toolId}
-                  />
-                </div>
-              )}
-              {getErrorInfo().size > 0 ? (
-                <div ref={highlightsLayerRef} className={styles.highlightsLayer}>
-                  {renderHighlights()}
-                </div>
-              ) : null}
+            {selectedTool && isScriptingLanguageTool(selectedTool.toolId) ? (
+              <div className={styles.codeMirrorWrapper} onPaste={handlePaste}>
+                <CodeMirror
+                  value={inputText}
+                  onChange={handleTextChange}
+                  placeholder={getPlaceholder()}
+                  extensions={[getLanguage(), ...createCustomTheme(theme)]}
+                  className={styles.codeMirror}
+                  height="100%"
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: false,
+                    dropCursor: true,
+                    allowMultipleSelections: true,
+                    indentOnInput: true,
+                    bracketMatching: true,
+                    closeBrackets: true,
+                    autocompletion: false,
+                    rectangularSelection: true,
+                    highlightSelectionMatches: true,
+                    searchKeymap: true,
+                  }}
+                />
+              </div>
+            ) : (
               <textarea
-                ref={textareaRef}
-                className={styles.textarea}
                 value={inputText}
-                onChange={handleTextChange}
-                onScroll={handleScroll}
+                onChange={(e) => handleTextChange(e.target.value)}
                 onPaste={handlePaste}
                 placeholder={getPlaceholder()}
-                spellCheck="false"
+                className={styles.simpleTextarea}
               />
-            </div>
-          </div>
+            )}
+            <div
+              className={styles.resizeHandle}
+              onMouseDown={handleResizeStart}
+              title="Drag to resize input box"
+            />
           </div>
         </div>
+
+        {predictedTools.length > 0 && inputText && (
+          <div className={styles.detectedToolsInsideInput}>
+            {predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
+              // Map similarity (0.6-1.0) to opacity (0.5-0.85) for subtler visual difference
+              const opacity = 0.5 + (tool.similarity - 0.6) * 0.583
+              return (
+                <button
+                  key={tool.toolId}
+                  className={styles.detectedToolButton}
+                  style={{ opacity }}
+                  onClick={() => onSelectTool(tool)}
+                  type="button"
+                  title={`Switch to ${tool.name}`}
+                >
+                  {tool.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {imagePreview && (
           <div className={styles.imagePreview}>
@@ -379,7 +366,11 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
                 ✕
               </button>
             </div>
-            <img src={imagePreview} alt="Preview" className={styles.previewImage} />
+            <img
+              src={imagePreview}
+              alt="preview"
+              className={styles.previewImage}
+            />
           </div>
         )}
       </div>

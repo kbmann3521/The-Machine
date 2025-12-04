@@ -1,7 +1,7 @@
 const fs = require('fs');
 const tools = require('./lib/tools.js').TOOLS;
 
-const toolIds = ['case-converter', 'email-validator', 'find-replace', 'html-minifier', 'integer-to-ip', 'ip-range-calculator', 'ip-to-integer', 'ip-validator', 'js-beautifier', 'js-minifier', 'markdown-linter', 'remove-extras', 'reverse-text', 'slug-generator', 'sort-lines', 'text-analyzer', 'whitespace-visualizer', 'word-counter'];
+const toolIds = ['case-converter', 'email-validator', 'find-replace', 'html-minifier', 'integer-to-ip', 'ip-range-calculator', 'ip-to-integer', 'ip-validator', 'js-beautifier', 'js-minifier', 'markdown-linter', 'reverse-text', 'slug-generator', 'sort-lines', 'text-analyzer', 'whitespace-visualizer', 'word-counter'];
 
 const updates = [];
 

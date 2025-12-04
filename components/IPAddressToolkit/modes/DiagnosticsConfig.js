@@ -31,7 +31,7 @@ export default function DiagnosticsConfig({ configState, setConfigState }) {
         <label className={styles.configLabel}>Target IP</label>
         <input
           type="text"
-          placeholder="e.g., 8.8.8.8"
+          placeholder=""
           value={configState.targetIp || ''}
           onChange={e => handleChange('targetIp', e.target.value)}
           className={styles.input}

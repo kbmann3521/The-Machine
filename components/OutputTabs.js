@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import LineNumbers from './LineNumbers'
 import SyntaxHighlighter from './SyntaxHighlighter'
+import CodeMirrorOutput from './CodeMirrorOutput'
+import { isScriptingLanguageTool } from '../lib/tools'
 import styles from '../styles/output-tabs.module.css'
 
 export default function OutputTabs({
@@ -16,7 +18,7 @@ export default function OutputTabs({
 }) {
   const codeRelatedCategories = ['formatter', 'developer', 'json', 'html']
   const showLineNumbers = codeRelatedCategories.includes(toolCategory)
-  const [activeTab, setActiveTab] = useState(null)
+  const [userSelectedTabId, setUserSelectedTabId] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
@@ -24,6 +26,7 @@ export default function OutputTabs({
   const codeContentRef = useRef(null)
   const textLineNumbersRef = useRef(null)
   const textContentRef = useRef(null)
+  const prevToolIdRef = useRef(toolId)
 
   // Generate a user-friendly view from JSON data
   const generateFriendlyTab = (jsonContent) => {
@@ -232,31 +235,52 @@ export default function OutputTabs({
     }
   }
 
-  // Initialize active tab when tabs config changes
-  useEffect(() => {
-    if (!finalTabConfig || finalTabConfig.length === 0) {
-      setActiveTab(null)
-      return
-    }
-
-    // If no tab is selected, set to first tab
-    if (!activeTab) {
-      setActiveTab(finalTabConfig[0].id)
-      return
-    }
-
-    // If current active tab is not in config, switch to first tab
-    if (!finalTabConfig.find(t => t.id === activeTab)) {
-      setActiveTab(finalTabConfig[0].id)
-    }
-  }, [tabs]) // Depend on input tabs prop
-
   if (!finalTabConfig || finalTabConfig.length === 0) {
     return null
   }
 
-  // Ensure activeTab is set
-  const currentActiveTab = activeTab || finalTabConfig[0]?.id
+  // CRITICAL: Ensure OUTPUT/FORMATTED tab always exists and is FIRST
+  // This prevents flashing validation/json tabs when switching tools
+  const hasOutputTab = finalTabConfig.some(t => t.id === 'output' || t.id === 'formatted')
+  if (!hasOutputTab && finalTabConfig.length > 0) {
+    // Add output tab as first tab if it doesn't exist
+    const firstTab = finalTabConfig[0]
+    const outputTab = {
+      id: 'output',
+      label: 'OUTPUT',
+      content: firstTab.content,
+      contentType: firstTab.contentType
+    }
+    finalTabConfig = [outputTab, ...finalTabConfig]
+  } else if (hasOutputTab) {
+    // If output exists but isn't first, move it to first
+    const outputIdx = finalTabConfig.findIndex(t => t.id === 'output' || t.id === 'formatted')
+    if (outputIdx > 0) {
+      const [outputTab] = finalTabConfig.splice(outputIdx, 1)
+      finalTabConfig.unshift(outputTab)
+    }
+  }
+
+  // When tool changes, reset user selection so it defaults back to output
+  useEffect(() => {
+    if (toolId !== prevToolIdRef.current) {
+      prevToolIdRef.current = toolId
+      setUserSelectedTabId(null)
+    }
+  }, [toolId])
+
+  // Determine which tab to show
+  // Always prefer OUTPUT/FORMATTED unless user explicitly selected something else
+  let currentActiveTab = null
+
+  // If user selected a tab, use it only if it still exists
+  if (userSelectedTabId && finalTabConfig.some(t => t.id === userSelectedTabId)) {
+    currentActiveTab = userSelectedTabId
+  } else {
+    // No valid user selection - always use first tab
+    // (guaranteed to be OUTPUT/FORMATTED due to reordering above)
+    currentActiveTab = finalTabConfig[0]?.id
+  }
   const activeTabConfig = finalTabConfig.find(t => t.id === currentActiveTab)
 
   const getJsonString = () => {
@@ -272,8 +296,8 @@ export default function OutputTabs({
 
     if (!activeTabConfig) return
 
-    // For JSON/code content types, use the formatted string
-    if (activeTabConfig?.contentType === 'json' || activeTabConfig?.contentType === 'code') {
+    // For JSON/code/codemirror content types, use the formatted string
+    if (activeTabConfig?.contentType === 'json' || activeTabConfig?.contentType === 'code' || activeTabConfig?.contentType === 'codemirror') {
       textToCopy = getJsonString()
     } else if (activeTabConfig?.contentType === 'text') {
       // For text, just use the content as-is
@@ -332,6 +356,15 @@ export default function OutputTabs({
     if (!activeTabConfig) return null
 
     const { contentType, content, actions } = activeTabConfig
+
+    // Handle CodeMirror content
+    if (contentType === 'codemirror') {
+      return (
+        <div className={styles.codeMirrorOutputContainer}>
+          <CodeMirrorOutput code={content} toolId={toolId} readOnly={true} />
+        </div>
+      )
+    }
 
     // Handle component/function content (e.g., friendlyView)
     if (contentType === 'component') {
@@ -428,11 +461,17 @@ export default function OutputTabs({
       )
     }
 
+    const jsonContent = JSON.stringify(content, null, 2)
     return (
-      <div className={styles.jsonContent}>
-        <pre className={styles.jsonCode}>
-          <code>{JSON.stringify(content, null, 2)}</code>
-        </pre>
+      <div className={`${styles.codeContentWithLineNumbers} ${styles.codeContentNoLineNumbers}`}>
+        <div className={styles.codeContentWrapper}>
+          <SyntaxHighlighter
+            code={jsonContent}
+            language="json"
+            toolId={toolId}
+            className={styles.jsonCode}
+          />
+        </div>
       </div>
     )
   }
@@ -446,7 +485,7 @@ export default function OutputTabs({
               <button
                 key={tab.id}
                 className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => setUserSelectedTabId(tab.id)}
               >
                 {tab.label}
               </button>

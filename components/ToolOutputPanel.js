@@ -4,7 +4,8 @@ import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
-import { TOOLS } from '../lib/tools'
+import CodeMirrorOutput from './CodeMirrorOutput'
+import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange }) {
   const toolCategory = TOOLS[toolId]?.category
@@ -93,6 +94,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setIsFirstLoad(true)
       setPreviousResult(null)
       setPreviousToolkitSection(null)
+      setExpandedSection('formatted')
     }
   }, [toolId, previousToolId])
 
@@ -104,12 +106,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
 
-  // For text-toolkit, only use previousResult if we haven't switched sections
-  const shouldUsePreviousResult = (toolId === previousToolId) &&
-    (toolId !== 'text-toolkit' || activeToolkitSection === previousToolkitSection)
-
-  const displayResult = shouldUsePreviousResult ? (result || previousResult) : result
-  const isEmpty = !displayResult && !loading && !error
+  // Use result directly - if null (no input), show waiting state
+  const displayResult = result
 
   // Special handling for image-toolkit - show OutputTabs even when empty
   if (toolId === 'image-toolkit') {
@@ -123,17 +121,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return <Base64Output result={displayResult} />
     }
 
-    // Default placeholder with OutputTabs design
+    // Default blank state with OutputTabs design
     const defaultTabs = [
       {
-        id: 'default',
+        id: 'output',
         label: 'Output',
-        content: 'Upload an image to see results',
+        content: '',
         contentType: 'text',
       },
     ]
-    const OutputTabs = require('./OutputTabs').default
-    return <OutputTabs tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
+    return <OutputTabs key={toolId} tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
   }
 
   // For text-toolkit, check if current section has content
@@ -141,20 +138,28 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
-  if (isEmpty || isTextToolkitWithoutContent) {
-    return (
-      <OutputTabs
-        toolCategory={toolCategory}
-        tabs={[
-          {
-            id: 'default',
-            label: 'Output',
-            content: 'Run the tool to see output here',
-            contentType: 'text',
-          },
-        ]}
-      />
-    )
+  // Show blank tabs when no result
+  if (!displayResult) {
+    const blankTabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: '',
+        contentType: 'text',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: '',
+        contentType: 'text',
+      },
+    ]
+    return <OutputTabs tabs={blankTabs} toolCategory={toolCategory} toolId={toolId} showCopyButton={false} />
+  }
+
+  // Text toolkit without content for specific sections - show blank
+  if (isTextToolkitWithoutContent) {
+    return null
   }
 
   const handleCopy = async () => {
@@ -259,9 +264,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
           tabs.push({
             id: primaryTabId,
-            label: 'Output',
+            label: 'OUTPUT',
             content: primaryTabContent,
-            contentType: 'code',
+            contentType: 'codemirror',
           })
         }
       } else {
@@ -571,7 +576,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: primaryTabId,
           label: 'Output',
           content: primaryTabContent,
-          contentType: 'code',
+          contentType: 'codemirror',
         })
       }
     }
@@ -731,18 +736,32 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Add primary output tab - always show formatted result unless hideOutput is set
     if (displayResult.formatted !== undefined) {
-      // Determine language based on convert mode
-      let language = 'markup' // default to HTML
-      if (configOptions?.convertTo === 'markdown') {
-        language = 'markdown'
-      }
-
       tabs.push({
         id: 'formatted',
-        label: 'Output',
+        label: 'OUTPUT',
         content: displayResult.formatted,
-        contentType: 'code',
-        language: language,
+        contentType: 'codemirror',
+      })
+    } else if (displayResult.error) {
+      // Show error message in OUTPUT tab if formatting failed
+      tabs.push({
+        id: 'formatted',
+        label: 'OUTPUT',
+        content: (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+            }}>
+              {displayResult.error}
+            </div>
+          </div>
+        ),
+        contentType: 'component',
       })
     }
 
@@ -903,13 +922,34 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
 
-    // Add primary output tab first - only show if validation passed
-    if (displayResult.formatted && !displayResult.hideOutput) {
+    // Add primary output tab FIRST - always show formatted result (or error message if not available)
+    if (displayResult.formatted) {
       tabs.push({
         id: 'formatted',
-        label: 'Output',
+        label: 'OUTPUT',
         content: displayResult.formatted,
-        contentType: 'code',
+        contentType: 'codemirror',
+      })
+    } else if (displayResult.error) {
+      // Show error message in OUTPUT tab if formatting failed
+      tabs.push({
+        id: 'formatted',
+        label: 'OUTPUT',
+        content: (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+            }}>
+              {displayResult.error}
+            </div>
+          </div>
+        ),
+        contentType: 'component',
       })
     }
 
@@ -1075,7 +1115,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: displayResult.formatted,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
@@ -1341,6 +1381,55 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
+  const renderUnitConverterOutput = () => {
+    if (!displayResult || !displayResult.conversions) return null
+
+    const conversions = displayResult.conversions.map(conv => ({
+      label: conv.human || `${conv.value} ${conv.unit}`,
+      value: conv.value,
+      unit: conv.unit,
+    }))
+
+    if (conversions.length === 0) return null
+
+    const friendlyView = ({ onCopyCard, copiedCardId }) => (
+      <div className={styles.structuredOutput}>
+        {conversions.map((conv, idx) => (
+          <div key={idx} className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>{conv.label}</span>
+              <button
+                className="copy-action"
+                onClick={() => onCopyCard(conv.value.toString(), conv.label)}
+                title={`Copy ${conv.label}`}
+              >
+                {copiedCardId === conv.label ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue}>{conv.value}</div>
+          </div>
+        ))}
+      </div>
+    )
+
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
   const renderColorConverterOutput = () => {
     if (!displayResult) return null
 
@@ -1377,8 +1466,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = [
       {
-        id: 'friendly',
-        label: 'Formats',
+        id: 'output',
+        label: 'OUTPUT',
         content: friendlyView,
         contentType: 'component',
       },
@@ -1481,7 +1570,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: typeof displayResult.formatted === 'string' ? displayResult.formatted : JSON.stringify(displayResult.formatted, null, 2),
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
@@ -1555,7 +1644,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: 'formatted',
           label: 'Output',
           content: displayResult,
-          contentType: 'code',
+          contentType: 'codemirror',
         },
       ]
       return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
@@ -1581,7 +1670,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'output',
         label: 'Output',
         content: primaryXml,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
@@ -1590,7 +1679,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'result',
         label: 'Result',
         content: displayResult.result,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
@@ -1599,7 +1688,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Formatted',
         content: displayResult.formatted,
-        contentType: 'code',
+        contentType: 'codemirror',
       })
     }
 
@@ -2133,7 +2222,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderStructuredOutput = () => {
-    const fieldsToShow = getDisplayFields(toolId, displayResult)
+    const fieldsToShow = getDisplayFields(toolId, displayResult, activeToolkitSection)
     if (!fieldsToShow || fieldsToShow.length === 0) return null
 
     return (
@@ -2162,10 +2251,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
-  const getDisplayFields = (toolId, result) => {
+  const getDisplayFields = (toolId, result, section) => {
     if (!result || typeof result !== 'object') return null
-
-    if (toolId === 'unit-converter') return null
 
     switch (toolId) {
       case 'color-converter':
@@ -2183,16 +2270,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           { label: 'MIME Type', value: result.mimeType || result.extension },
         ].filter(f => f.value)
 
-
-      case 'url-parser':
-        return [
-          { label: 'Protocol', value: result.protocol },
-          { label: 'Host', value: result.host },
-          { label: 'Port', value: result.port },
-          { label: 'Path', value: result.path },
-          { label: 'Query', value: result.query },
-          { label: 'Fragment', value: result.fragment },
-        ].filter(f => f.value)
 
       case 'base64-converter':
         return [
@@ -2239,19 +2316,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         }
         return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
 
-      case 'word-counter':
-        return [
-          { label: 'Word Count', value: String(result.wordCount || 0) },
-          { label: 'Character Count', value: String(result.characterCount || 0) },
-          { label: 'Character Count (no spaces)', value: String(result.characterCountNoSpaces || 0) },
-          { label: 'Sentence Count', value: String(result.sentenceCount || 0) },
-          { label: 'Line Count', value: String(result.lineCount || 0) },
-          { label: 'Paragraph Count', value: String(result.paragraphCount || 0) },
-        ].filter(f => f.value !== undefined && f.value !== null)
-
       case 'text-toolkit':
-        // Word Counter - show as structured fields
-        if (activeToolkitSection === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
+        // Word Counter
+        if (section === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
           return [
             { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
             { label: 'Character Count', value: String(result.wordCounter.characterCount || 0) },
@@ -2261,6 +2328,35 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
           ].filter(f => f.value !== undefined && f.value !== null)
         }
+        // Word Frequency
+        if (section === 'wordFrequency' && result.wordFrequency && typeof result.wordFrequency === 'object') {
+          const fields = []
+          if (result.wordFrequency.totalUniqueWords !== undefined) fields.push({ label: 'Total Unique Words', value: String(result.wordFrequency.totalUniqueWords) })
+          if (result.wordFrequency.totalWords !== undefined) fields.push({ label: 'Total Words', value: String(result.wordFrequency.totalWords) })
+          if (result.wordFrequency.frequency && typeof result.wordFrequency.frequency === 'object') {
+            fields.push({ label: 'Frequency Map', value: JSON.stringify(result.wordFrequency.frequency, null, 2) })
+          }
+          return fields.filter(f => f.value !== undefined && f.value !== null)
+        }
+        // Text Analyzer
+        if (section === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
+          const analyzerFields = []
+          if (result.textAnalyzer.readability) {
+            analyzerFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
+            analyzerFields.push({ label: 'Flesch Reading Ease', value: String(result.textAnalyzer.readability.fleschReadingEase) })
+            analyzerFields.push({ label: 'Flesch-Kincaid Grade', value: String(result.textAnalyzer.readability.fleschKincaidGrade) })
+          }
+          if (result.textAnalyzer.statistics) {
+            analyzerFields.push({ label: 'Words', value: String(result.textAnalyzer.statistics.words) })
+            analyzerFields.push({ label: 'Characters', value: String(result.textAnalyzer.statistics.characters) })
+            analyzerFields.push({ label: 'Sentences', value: String(result.textAnalyzer.statistics.sentences) })
+            analyzerFields.push({ label: 'Lines', value: String(result.textAnalyzer.statistics.lines) })
+            analyzerFields.push({ label: 'Avg Word Length', value: String((result.textAnalyzer.statistics.averageWordLength || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Avg Words per Sentence', value: String((result.textAnalyzer.statistics.averageWordsPerSentence || 0).toFixed(2)) })
+          }
+          return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
+        }
+        // All other sections render as text in OutputTabs, not structured fields
         return null
 
       default:
@@ -2271,6 +2367,220 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
+      case 'text-toolkit': {
+        const tabs = []
+
+        if (activeToolkitSection === 'wordCounter' && displayResult?.wordCounter) {
+          // Word Counter - show structured fields as main output, plus JSON
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: renderStructuredOutput(),
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.wordCounter, null, 2),
+            contentType: 'json'
+          })
+        } else if (activeToolkitSection === 'wordFrequency' && displayResult?.wordFrequency) {
+          // Word Frequency - show copy cards for each word, plus JSON
+          const wordFreqData = displayResult.wordFrequency
+          const frequencyViewContent = (
+            <div className={styles.wordFrequencyView}>
+              {wordFreqData.totalUniqueWords !== undefined && (
+                <div className={styles.frequencyHeader}>
+                  <div className={styles.frequencyStat}>
+                    <span className={styles.frequencyLabel}>Total Unique Words</span>
+                    <span className={styles.frequencyValue}>{wordFreqData.totalUniqueWords}</span>
+                  </div>
+                  <div className={styles.frequencyStat}>
+                    <span className={styles.frequencyLabel}>Total Words</span>
+                    <span className={styles.frequencyValue}>{wordFreqData.totalWords}</span>
+                  </div>
+                </div>
+              )}
+              <div className={styles.frequencyCardsContainer}>
+                {wordFreqData.frequency && Array.isArray(wordFreqData.frequency) && wordFreqData.frequency.length > 0 ? (
+                  wordFreqData.frequency.map((item, idx) => (
+                    <div key={idx} className={styles.frequencyCard}>
+                      <div className={styles.frequencyCardHeader}>
+                        <span className={styles.frequencyCardWord}>{item.word}</span>
+                        <span className={styles.frequencyCardCount}>{item.count}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.noData}>No frequency data available</div>
+                )}
+              </div>
+            </div>
+          )
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: frequencyViewContent,
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.wordFrequency, null, 2),
+            contentType: 'json'
+          })
+        } else if (activeToolkitSection === 'textAnalyzer' && displayResult?.textAnalyzer) {
+          // Text Analyzer - show cards for readability and statistics, plus JSON
+          const analyzerData = displayResult.textAnalyzer
+          const analyzerViewContent = (
+            <div className={styles.textAnalyzerView}>
+              {analyzerData.readability && (
+                <div className={styles.analyzerSection}>
+                  <h3 className={styles.analyzerSectionTitle}>Readability</h3>
+                  <div className={styles.analyzerCardsGrid}>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Reading Level</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.readability.readabilityLevel}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Flesch Reading Ease</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschReadingEase}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Flesch-Kincaid Grade</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschKincaidGrade}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {analyzerData.statistics && (
+                <div className={styles.analyzerSection}>
+                  <h3 className={styles.analyzerSectionTitle}>Text Statistics</h3>
+                  <div className={styles.analyzerCardsGrid}>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Words</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.words}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Characters</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.characters}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Sentences</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.sentences}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Lines</span>
+                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.lines}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Avg Word Length</span>
+                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordLength || 0).toFixed(2)}</span>
+                    </div>
+                    <div className={styles.analyzerCard}>
+                      <span className={styles.analyzerCardLabel}>Avg Words per Sentence</span>
+                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordsPerSentence || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: analyzerViewContent,
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.textAnalyzer, null, 2),
+            contentType: 'json'
+          })
+        } else if (activeToolkitSection === 'caseConverter' && displayResult?.caseConverter) {
+          // Case Converter - show friendly view, plus JSON
+          const caseConverterData = displayResult.caseConverter
+          const friendlyViewContent = (
+            <div className={styles.caseConverterView}>
+              {caseConverterData.uppercase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Uppercase</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.uppercase}</div>
+                </div>
+              )}
+              {caseConverterData.lowercase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Lowercase</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.lowercase}</div>
+                </div>
+              )}
+              {caseConverterData.titleCase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Title Case</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.titleCase}</div>
+                </div>
+              )}
+              {caseConverterData.sentenceCase && (
+                <div className={styles.caseConverterCard}>
+                  <div className={styles.caseConverterLabel}>Sentence Case</div>
+                  <div className={styles.caseConverterOutput}>{caseConverterData.sentenceCase}</div>
+                </div>
+              )}
+            </div>
+          )
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: friendlyViewContent,
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.caseConverter, null, 2),
+            contentType: 'json'
+          })
+        } else {
+          // Text-based toolkit sections
+          const textContent = displayResult?.[activeToolkitSection]
+          if (textContent && typeof textContent === 'string') {
+            tabs.push({
+              id: 'output',
+              label: 'OUTPUT',
+              content: textContent,
+              contentType: 'text'
+            })
+            // Add JSON tab for slug generator, reverse text, and clean text
+            if (['slugGenerator', 'reverseText', 'removeExtras'].includes(activeToolkitSection)) {
+              tabs.push({
+                id: 'json',
+                label: 'JSON',
+                content: JSON.stringify({ result: textContent }, null, 2),
+                contentType: 'json'
+              })
+            }
+          } else {
+            // Fallback for non-string content
+            tabs.push({
+              id: 'output',
+              label: 'OUTPUT',
+              content: typeof textContent === 'object' ? JSON.stringify(textContent, null, 2) : String(textContent),
+              contentType: 'text'
+            })
+          }
+        }
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
       case 'js-formatter':
         return renderJsFormatterOutput()
       case 'css-formatter':
@@ -2289,12 +2599,65 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderXmlFormatterOutput()
       case 'yaml-formatter':
         return renderYamlFormatterOutput()
-      default:
-        if (typeof displayResult === 'string') {
-          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'default', label: 'Output', content: displayResult, contentType: 'text' }]} />
+      case 'unit-converter':
+        return renderUnitConverterOutput()
+      default: {
+        const tabs = []
+
+        // Try to render structured fields first (for tools like text-analyzer)
+        const structuredFields = renderStructuredOutput()
+        if (structuredFields) {
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: structuredFields,
+            contentType: 'component'
+          })
+          // Add JSON tab for object results
+          if (typeof displayResult === 'object' && displayResult !== null) {
+            tabs.push({
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            })
+          }
+        } else if (typeof displayResult === 'string') {
+          // String output
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: displayResult,
+            contentType: 'text'
+          })
+        } else if (typeof displayResult === 'object' && displayResult !== null) {
+          // Object output - show as JSON
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          })
         } else {
-          return <OutputTabs toolCategory={toolCategory} tabs={[{ id: 'json', label: 'JSON', content: JSON.stringify(displayResult, null, 2), contentType: 'json' }]} />
+          // Fallback
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: String(displayResult),
+            contentType: 'text'
+          })
         }
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
     }
   }
 

@@ -52,7 +52,7 @@ export default function DiagnosticsOutput({ result }) {
       {/* Placeholder Content */}
       <div className={styles.emptyOutput}>
         <p className={styles.emptyOutputText}>
-          Enter a target IP and click "Run Diagnostics" to see results here
+          No results yet
         </p>
       </div>
 

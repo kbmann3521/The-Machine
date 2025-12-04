@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { FaFont, FaImage, FaHashtag, FaLettercase, FaSearch, FaCopy, FaBarChart, FaCode, FaLink, FaTag, FaClipboard, FaRotateRight, FaSlug, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaExchangeAlt, FaPalette, FaCheckCircle, FaQuoteLeft, FaArrowsAltH, FaEye, FaLock, FaQuestion, FaMagic, FaTerminal, FaHeading, FaCalculator, FaGaugeHigh, FaDatabase, FaNetworkWired, FaStream, FaRuler, FaJava, FaEnvelope, FaKey, FaToggleOn, FaNetworkWire, FaTrash, FaCheck } from 'react-icons/fa6'
+import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator } from 'react-icons/fa6'
 import { BsRegex } from 'react-icons/bs'
 import { ImCalculator } from 'react-icons/im'
 import styles from '../styles/tool-sidebar.module.css'
@@ -8,37 +8,19 @@ import styles from '../styles/tool-sidebar.module.css'
 const toolIcons = {
   'text-toolkit': FaFont,
   'image-toolkit': FaImage,
-  'image-resizer': FaImage,
-  'word-counter': FaHashtag,
-  'case-converter': FaLettercase,
-  'find-replace': FaSearch,
-  'remove-extras': FaCopy,
-  'text-analyzer': FaBarChart,
   'base64-converter': FaCode,
-  'url-converter': FaLink,
-  'html-entities-converter': FaTag,
-  'html-formatter': FaCode,
-  'plain-text-stripper': FaCopy,
   'json-formatter': FaCode,
-  'reverse-text': FaRotateRight,
-  'slug-generator': FaSlug,
   'regex-tester': BsRegex,
   'timestamp-converter': FaClock,
   'csv-json-converter': FaFileExcel,
-  'markdown-html-converter': FaMarkdown,
   'markdown-html-formatter': FaMarkdown,
-  'markdown-linter': FaMarkdown,
   'xml-formatter': FaCode,
   'yaml-formatter': FaCode,
   'url-toolkit': FaGlobe,
-  'url-parser': FaGlobe,
   'jwt-decoder': FaTicket,
-  'text-diff-checker': FaExchangeAlt,
   'color-converter': FaPalette,
   'checksum-calculator': ImCalculator,
   'escape-unescape': FaQuoteLeft,
-  'sort-lines': FaArrowsAltH,
-  'whitespace-visualizer': FaEye,
   'ascii-unicode-converter': FaFont,
   'binary-converter': FaToggleOn,
   'rot13-cipher': FaLock,
@@ -49,7 +31,6 @@ const toolIcons = {
   'mime-type-lookup': FaFileCode,
   'http-header-parser': FaNetworkWired,
   'uuid-validator': FaTicket,
-  'json-path-extractor': FaCode,
   'image-to-base64': FaImage,
   'svg-optimizer': FaImage,
   'unit-converter': FaRuler,
@@ -57,14 +38,10 @@ const toolIcons = {
   'timezone-converter': FaClock,
   'base-converter': FaCode,
   'math-evaluator': FaCalculator,
-  'keyword-extractor': FaSearch,
   'cron-tester': FaClock,
   'file-size-converter': FaRuler,
   'js-formatter': FaCode,
   'email-validator': FaEnvelope,
-  'ip-validator': FaNetworkWired,
-  'ip-integer-converter': FaNetworkWired,
-  'ip-range-calculator': FaNetworkWired,
   'ip-address-toolkit': FaNetworkWired,
 }
 
@@ -85,45 +62,11 @@ const getScoreLabel = (similarity) => {
 
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [markedForDeletion, setMarkedForDeletion] = useState({})
-  const [markingTool, setMarkingTool] = useState(null)
   const itemRefs = useRef({})
   const prevPositionsRef = useRef({})
 
-  const handleMarkForDelete = async (e, toolId, currentMarked) => {
-    e.stopPropagation()
-    e.preventDefault()
-
-    setMarkingTool(toolId)
-    const newMarked = !currentMarked
-
-    try {
-      const response = await fetch('/api/tools/mark-for-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          toolId,
-          marked: newMarked,
-        }),
-      })
-
-      if (response.ok) {
-        setMarkedForDeletion(prev => ({
-          ...prev,
-          [toolId]: newMarked,
-        }))
-      } else {
-        console.error('Failed to mark tool for deletion')
-      }
-    } catch (error) {
-      console.error('Error marking tool for deletion:', error)
-    } finally {
-      setMarkingTool(null)
-    }
-  }
-
   const filteredTools = useMemo(() => {
-    let tools = predictedTools
+    let tools = [...predictedTools].sort((a, b) => a.name.localeCompare(b.name))
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -134,82 +77,25 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
       )
     }
 
-    // Move selected tool to the top
-    if (selectedTool) {
-      const selectedIndex = tools.findIndex(tool => tool.toolId === selectedTool.toolId)
-      if (selectedIndex > 0) {
-        const reordered = [...tools]
-        const [selected] = reordered.splice(selectedIndex, 1)
-        reordered.unshift(selected)
-        return reordered
-      }
-    }
-
     return tools
-  }, [predictedTools, searchQuery, selectedTool])
+  }, [predictedTools, searchQuery])
 
   const topMatch = filteredTools[0]
 
-  // FLIP animation on desktop
+  // Position tracking (animations disabled)
   useEffect(() => {
-    // Only animate on desktop
-    if (typeof window !== 'undefined' && window.innerWidth <= 991) {
-      return
-    }
-
-    // requestAnimationFrame ensures this runs after the DOM has been updated
     requestAnimationFrame(() => {
       const newPositions = {}
-      const animations = []
-
-      // Get new positions and calculate deltas
       filteredTools.forEach((tool) => {
         const el = itemRefs.current[tool.toolId]
         if (!el) return
-
         const rect = el.getBoundingClientRect()
         newPositions[tool.toolId] = {
           top: rect.top,
           left: rect.left,
           height: rect.height,
         }
-
-        const oldPos = prevPositionsRef.current[tool.toolId]
-        if (oldPos) {
-          const deltaY = oldPos.top - rect.top
-          const deltaX = oldPos.left - rect.left
-
-          if (Math.abs(deltaY) > 0.5 || Math.abs(deltaX) > 0.5) {
-            animations.push({ el, deltaX, deltaY })
-          }
-        }
       })
-
-      // Apply transforms and animations
-      if (animations.length > 0) {
-        // Apply initial transforms without transition
-        animations.forEach(({ el }) => {
-          el.style.transition = 'none'
-        })
-
-        requestAnimationFrame(() => {
-          animations.forEach(({ el, deltaX, deltaY }) => {
-            el.style.transform = `translate(${deltaX}px, ${deltaY}px)`
-          })
-
-          // Force reflow
-          void (animations[0].el?.offsetHeight)
-
-          // Apply transition and animate back to origin
-          requestAnimationFrame(() => {
-            animations.forEach(({ el }) => {
-              el.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
-              el.style.transform = 'translate(0, 0)'
-            })
-          })
-        })
-      }
-
       prevPositionsRef.current = newPositions
     })
   }, [filteredTools])
@@ -241,18 +127,13 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
             const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
             const isSelected = selectedTool?.toolId === tool.toolId
 
-            const isMarked = markedForDeletion[tool.toolId] || tool.markForDelete || false
-            const isMarking = markingTool === tool.toolId
-
             return (
               <article
                 key={tool.toolId}
                 ref={(el) => setItemRef(tool.toolId, el)}
                 className={`${styles.toolItem} ${
                   isSelected ? styles.selected : ''
-                } ${isTopMatch && !searchQuery ? styles.topMatch : ''} ${
-                  isMarked ? styles.markedForDeletion : ''
-                }`}
+                } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
                 onClick={() => onSelectTool(tool)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
                 role="button"
@@ -266,35 +147,10 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                   </div>
                 )}
                 <div className={styles.toolNameContainer}>
-                  <h3
-                    className={styles.toolName}
-                    style={{ color: getScoreColor(tool.similarity) }}
-                    title={getScoreLabel(tool.similarity)}
-                  >
+                  <h3 className={styles.toolName}>
                     {tool.name}
                   </h3>
-                  <span
-                    className={styles.scoreLabel}
-                    title={`Similarity: ${(tool.similarity * 100).toFixed(0)}%`}
-                  >
-                    {(tool.similarity * 100).toFixed(0)}%
-                  </span>
                 </div>
-                <button
-                  className={`${styles.markDeleteBtn} ${isMarked ? styles.marked : ''}`}
-                  onClick={(e) => handleMarkForDelete(e, tool.toolId, isMarked)}
-                  disabled={isMarking}
-                  title={isMarked ? 'Marked for deletion' : 'Mark for deletion'}
-                  aria-label={`Mark ${tool.name} for deletion`}
-                >
-                  {isMarking ? (
-                    <span className={styles.spinner} />
-                  ) : isMarked ? (
-                    <FaCheck />
-                  ) : (
-                    <FaTrash />
-                  )}
-                </button>
               </article>
             )
           })}

@@ -64,6 +64,8 @@ export default function Home() {
   const loadingTimerRef = useRef(null)
   const visibilityMapRef = useRef({})
   const previousClassificationRef = useRef(null)
+  const lastInputWasPasteRef = useRef(false)
+  const autoSelectionDoneRef = useRef(false)
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
@@ -160,7 +162,12 @@ export default function Home() {
       }
 
       // Filter out tools with show_in_recommendations = false
-      const visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+      let visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+
+      // Ensure selected tool is always in the visible list
+      if (selectedToolRef.current && !visibleTools.find(t => t.toolId === selectedToolRef.current.toolId)) {
+        visibleTools = [selectedToolRef.current, ...visibleTools]
+      }
 
       // Sync visibility map from tool metadata
       const newVisibilityMap = {}
@@ -178,17 +185,17 @@ export default function Home() {
     }
 
     initializeTools()
-
-    // Set up auto-refresh every 30 seconds to pick up Supabase changes
-    const refreshInterval = setInterval(initializeTools, 30000)
-
-    return () => clearInterval(refreshInterval)
   }, [])
 
   const handleSelectTool = useCallback(
     (tool) => {
       setSelectedTool(tool)
       setAdvancedMode(true) // User manually selected - exit auto-detect
+
+      // Reset output when switching tools to prevent showing previous tool's output
+      setOutputResult(null)
+      setError(null)
+      setToolLoading(false)
 
       // Initialize config for the selected tool
       const initialConfig = {}
@@ -202,13 +209,16 @@ export default function Home() {
     []
   )
 
-  const handleInputChange = useCallback((text, image, preview) => {
+  const handleInputChange = useCallback((text, image, preview, isPaste = false) => {
     const isAddition = text.length > previousInputLength
 
     setInputText(text)
     setInputImage(image)
     setImagePreview(preview)
     setPreviousInputLength(text.length)
+
+    // Track if this input was a paste
+    lastInputWasPasteRef.current = isPaste
 
     if (selectedToolRef.current && text) {
     }
@@ -217,10 +227,13 @@ export default function Home() {
       clearTimeout(debounceTimerRef.current)
     }
 
-    debounceTimerRef.current = setTimeout(() => {
-      setError(null)
-      setOutputResult(null)
+    // Only run prediction if text was ADDED, not when deleting
+    if (!isAddition) {
+      setLoading(false)
+      return
+    }
 
+    debounceTimerRef.current = setTimeout(() => {
       // Clear any existing loading timer
       if (loadingTimerRef.current) {
         clearTimeout(loadingTimerRef.current)
@@ -294,15 +307,17 @@ export default function Home() {
           // Only Supabase controls visibility
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
 
-          // Auto-select the best match tool ONLY on input addition when not in advanced mode
+          // Auto-select the best match tool ONLY on paste, once, when not in advanced mode
           if (toolsWithMetadata.length > 0) {
             const topTool = toolsWithMetadata[0]
             // Only auto-select if:
-            // 1. Input was added (not deleted) AND
-            // 2. Not in advanced mode (user hasn't manually selected a tool)
-            if (isAddition && !advancedMode) {
-              console.log('Auto-selecting:', topTool.name)
+            // 1. Content was pasted (not typed) AND
+            // 2. Auto-selection hasn't been done yet AND
+            // 3. Not in advanced mode (user hasn't manually selected a tool)
+            if (lastInputWasPasteRef.current && !autoSelectionDoneRef.current && !advancedMode) {
+              console.log('Auto-selecting on paste:', topTool.name)
               setSelectedTool(topTool)
+              autoSelectionDoneRef.current = true // Disable future auto-selection
             }
 
             // Check for text cleaning issues
@@ -379,29 +394,16 @@ export default function Home() {
   )
 
   const autoRunTool = useCallback(
-    async (tool, config) => {
+    async (tool, config, textInput = inputText, imageInput = imagePreview) => {
       if (!tool) return
 
       setToolLoading(true)
 
       try {
-        let textToUse = inputText || ''
+        let textToUse = textInput || ''
 
-        // If no input, try to get an example/placeholder for any tool
-        if (!textToUse && !imagePreview) {
-          const example = getToolExample(tool.toolId, config)
-          if (example) {
-            textToUse = example
-          } else {
-            // No input and no example available - don't run the tool
-            setToolLoading(false)
-            setOutputResult(null)
-            return
-          }
-        }
-
-        // If still no input and no image, don't run the tool
-        if (!textToUse && !imagePreview) {
+        // If no input and no image, don't run the tool
+        if (!textToUse && !imageInput) {
           setToolLoading(false)
           setOutputResult(null)
           return
@@ -450,6 +452,7 @@ export default function Home() {
           finalConfig = {
             ...config,
             validateIP: ipToolkitConfig.validateIP !== false,
+            ipVersion: ipToolkitConfig.ipVersion || 'auto',
             normalize: ipToolkitConfig.normalize || false,
             ipToInteger: ipToolkitConfig.ipToInteger || false,
             privatePublic: ipToolkitConfig.privatePublic || false,
@@ -462,7 +465,7 @@ export default function Home() {
           body: JSON.stringify({
             toolId: tool.toolId,
             inputText: textToUse,
-            inputImage: imagePreview,
+            inputImage: imageInput,
             config: finalConfig,
           }),
         })
@@ -500,14 +503,17 @@ export default function Home() {
     }
   }, [selectedTool, configOptions, autoRunTool])
 
+  // Run tool in real-time as input changes
   useEffect(() => {
-    if (selectedTool) {
-      const hasExample = getToolExample(selectedTool.toolId, configOptions)
-      if (inputText || hasExample || imagePreview) {
-        autoRunTool(selectedTool, configOptions)
-      }
+    if (!selectedTool) return
+
+    if (inputText.trim() || imagePreview) {
+      autoRunTool(selectedTool, configOptions, inputText, imagePreview)
+    } else {
+      setOutputResult(null)
+      setError(null)
     }
-  }, [selectedTool, inputText, configOptions, autoRunTool, imagePreview, activeToolkitSection])
+  }, [selectedTool, inputText, imagePreview, configOptions, activeToolkitSection, ipToolkitConfig, autoRunTool])
 
 
   return (
@@ -564,6 +570,8 @@ export default function Home() {
                   configOptions={configOptions}
                   getToolExample={getToolExample}
                   errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
+                  predictedTools={predictedTools}
+                  onSelectTool={handleSelectTool}
                 />
               </div>
 
@@ -616,6 +624,7 @@ export default function Home() {
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
                 <ToolOutputPanel
+                  key={selectedTool?.toolId}
                   result={outputResult}
                   outputType={selectedTool?.outputType}
                   loading={toolLoading}

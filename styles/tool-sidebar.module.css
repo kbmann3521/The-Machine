@@ -44,14 +44,12 @@
   border-radius: 6px;
   background-color: var(--color-background-primary);
   color: var(--color-text-primary);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
 }
 
 .searchInput::placeholder {
   color: var(--color-text-secondary);
   opacity: 0.6;
-  transition: opacity 0.25s ease;
 }
 
 .searchInput:hover {
@@ -111,36 +109,6 @@
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-}
-
-@keyframes slideInTool {
-  from {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@media (max-width: 991px) {
-  .toolItem {
-    animation: slideInTool 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-}
-
-@keyframes highlightPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 102, 204, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(0, 102, 204, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 102, 204, 0);
-  }
 }
 
 @media (min-width: 992px) {
@@ -166,15 +134,6 @@
   box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.15);
 }
 
-.toolItem.topMatch {
-  animation: none;
-}
-
-@media (max-width: 991px) {
-  .toolItem.topMatch {
-    animation: slideInTool 0.6s cubic-bezier(0.4, 0, 0.2, 1), highlightPulse 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
-  }
-}
 
 .toolRank {
   display: none;
@@ -189,12 +148,10 @@
   font-size: 16px;
   color: var(--color-text-secondary);
   flex-shrink: 0;
-  transition: color 0.4s ease, transform 0.3s ease;
 }
 
 .toolItem:hover .toolIcon {
   color: #0066cc;
-  transform: scale(1.1);
 }
 
 .toolItem.selected .toolIcon {
@@ -234,66 +191,6 @@
 
 .toolScore {
   display: none;
-}
-
-.markDeleteBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background-color: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-size: 14px;
-  flex-shrink: 0;
-  transition: all 0.25s ease;
-  opacity: 0.6;
-}
-
-.markDeleteBtn:hover:not(:disabled) {
-  opacity: 1;
-  background-color: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-  border-color: rgba(220, 53, 69, 0.3);
-}
-
-.markDeleteBtn:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.markDeleteBtn.marked {
-  opacity: 1;
-  background-color: rgba(220, 53, 69, 0.15);
-  color: #dc3545;
-  border-color: #dc3545;
-}
-
-.markDeleteBtn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.markDeleteBtn .spinner {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(220, 53, 69, 0.3);
-  border-top-color: #dc3545;
-  border-radius: 50%;
-  animation: spinSmooth 0.6s linear infinite;
-}
-
-.toolItem.markedForDeletion {
-  opacity: 0.65;
-  background-color: rgba(220, 53, 69, 0.08);
-}
-
-.toolItem.markedForDeletion:hover {
-  background-color: rgba(220, 53, 69, 0.12);
 }
 
 .emptyState {

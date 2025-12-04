@@ -63,7 +63,6 @@ export default async function handler(req, res) {
       const imageCapableSet = new Set(
         Object.entries(TOOLS)
           .filter(([toolId, toolData]) => {
-            if (toolId === 'image-resizer') return true
             return toolData.inputTypes?.includes('image')
           })
           .map(([toolId]) => toolId)
@@ -76,10 +75,7 @@ export default async function handler(req, res) {
           let similarity = 0
           let source = 'unmatched'
 
-          if (toolId === 'image-resizer') {
-            similarity = 0.99
-            source = 'image_detection'
-          } else if (imageCapableSet.has(toolId)) {
+          if (imageCapableSet.has(toolId)) {
             similarity = 0.9
             source = 'image_detection'
           }

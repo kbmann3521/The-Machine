@@ -4,7 +4,6 @@ import styles from '../styles/test-detection.module.css'
 const DEFAULT_TEST_CASES = [
   { input: 'please rewrite this to sound more professional', expected: 'text-toolkit' },
   { input: '   Hello    world! This   has   extra spaces.   ', expected: 'clean-text' },
-  { input: '<p>Hello <b>world</b></p>', expected: 'plain-text-stripper' },
   { input: '🔥', expected: 'ascii-unicode-converter' },
   { input: 'uryyb jbeyq', expected: 'rot13-cipher' },
   { input: 'Khoor Zruog', expected: 'caesar-cipher' },
@@ -19,7 +18,6 @@ const DEFAULT_TEST_CASES = [
   { input: '$.store.book[0].title', expected: 'json-path-extractor' },
   { input: 'SGVsbG8gd29ybGQ=', expected: 'base64-converter' },
   { input: 'hello world?', expected: 'url-converter' },
-  { input: 'https://example.com/products?id=22&color=red', expected: 'url-parser' },
   { input: 'Tom & Jerry > Mickey & Minnie', expected: 'html-entities-converter' },
   {
     input: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiJ9.sig',
@@ -46,7 +44,7 @@ const DEFAULT_TEST_CASES = [
   { input: '550e8400-e29b-41d4-a716-446655440000', expected: 'uuid-validator' },
   { input: 'john@example.com', expected: 'email-validator' },
   { input: 'application/json', expected: 'mime-type-lookup' },
-  { input: '# Hello World', expected: 'markdown-html-converter' },
+  { input: '# Hello World', expected: 'markdown-html-formatter' },
 ]
 
 export default function TestDetection() {

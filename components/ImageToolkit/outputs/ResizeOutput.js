@@ -14,13 +14,13 @@ export default function ResizeOutput({ result }) {
       {
         id: 'placeholder',
         label: 'Resized Image',
-        content: 'Upload an image to see resized preview',
+        content: 'No preview available',
         contentType: 'text',
       },
       {
         id: 'code-placeholder',
         label: 'HTML Code',
-        content: '<img src="[resized-image-data]" alt="Resized Image" width="800" height="600" />',
+        content: '',
         contentType: 'code',
       },
     ]
