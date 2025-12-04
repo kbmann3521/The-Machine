@@ -275,8 +275,8 @@
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   padding: 4px 8px;
   border-radius: 4px;
-  background-color: #0066cc;
-  border: 1px solid #0066cc;
+  background-color: #4a90e2;
+  border: 1px solid #4a90e2;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -284,8 +284,8 @@
 }
 
 .detectedToolButton:hover {
-  background-color: #0052a3;
-  border-color: #0052a3;
+  background-color: #357abd;
+  border-color: #357abd;
 }
 
 .detectedToolButton:active {
