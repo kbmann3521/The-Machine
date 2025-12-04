@@ -110,9 +110,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
 
-  // Use result directly - if null (no input), show waiting state
-  const displayResult = result
-
   // Special handling for image-toolkit - show OutputTabs even when empty
   if (toolId === 'image-toolkit') {
     if (displayResult?.mode === 'resize') {
