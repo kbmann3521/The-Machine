@@ -578,19 +578,27 @@ export default function Home() {
 
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
-                <ToolOutputPanel
-                  key={selectedTool?.toolId}
-                  result={outputResult}
-                  outputType={selectedTool?.outputType}
-                  loading={toolLoading}
-                  error={error}
-                  toolId={selectedTool?.toolId}
-                  activeToolkitSection={activeToolkitSection}
-                  configOptions={configOptions}
-                  onConfigChange={setConfigOptions}
-                  inputText={inputText}
-                  imagePreview={imagePreview}
-                />
+                {selectedTool?.toolId === 'ip-address-toolkit' ? (
+                  <IPToolkitOutputPanel
+                    key={selectedTool?.toolId}
+                    activeMode={ipToolkitMode}
+                    result={outputResult}
+                  />
+                ) : (
+                  <ToolOutputPanel
+                    key={selectedTool?.toolId}
+                    result={outputResult}
+                    outputType={selectedTool?.outputType}
+                    loading={toolLoading}
+                    error={error}
+                    toolId={selectedTool?.toolId}
+                    activeToolkitSection={activeToolkitSection}
+                    configOptions={configOptions}
+                    onConfigChange={setConfigOptions}
+                    inputText={inputText}
+                    imagePreview={imagePreview}
+                  />
+                )}
               </div>
             </div>
           </div>
