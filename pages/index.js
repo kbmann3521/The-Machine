@@ -504,7 +504,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig]
+    [activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig]
   )
 
   const handleRegenerate = useCallback(() => {
