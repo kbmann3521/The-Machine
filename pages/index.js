@@ -518,11 +518,23 @@ export default function Home() {
   useEffect(() => {
     if (!selectedTool) return
 
-    if (inputText.trim() || imagePreview) {
-      autoRunTool(selectedTool, configOptions, inputText, imagePreview)
-    } else {
-      setOutputResult(null)
-      setError(null)
+    // Create an abort controller to cancel previous requests if a new one comes in
+    const abortController = new AbortController()
+
+    const runTool = async () => {
+      if (inputText.trim() || imagePreview) {
+        await autoRunTool(selectedTool, configOptions, inputText, imagePreview)
+      } else {
+        setOutputResult(null)
+        setError(null)
+      }
+    }
+
+    runTool()
+
+    // Cleanup: cancel any pending requests if the effect re-runs
+    return () => {
+      abortController.abort()
     }
   }, [selectedTool, inputText, imagePreview, configOptions])
 
