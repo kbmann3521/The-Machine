@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { flushSync } from 'react-dom'
 import Head from 'next/head'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
