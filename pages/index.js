@@ -363,10 +363,7 @@ export default function Home() {
                   initialConfig[field.id] = field.default || ''
                 })
               }
-              console.log('[predictTools] Top tool changed. Resetting config for', topTool.toolId, ':', initialConfig)
               setConfigOptions(initialConfig)
-            } else {
-              console.log('[predictTools] Top tool is same as selected. Keeping existing config.')
             }
 
             // Apply activeToolkitSection if specified for text-toolkit
