@@ -792,45 +792,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }} />
     )
 
-    const ExpandableSection = ({ title, children, sectionId, defaultExpanded = true }) => {
-      const isExpanded = expandedSections[sectionId]
-      return (
-        <div style={{ marginBottom: '16px' }}>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              toggleSection(sectionId)
-            }}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: 'var(--color-background-tertiary)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: 'var(--color-text)',
-              textAlign: 'left',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              transition: 'all 0.2s',
-            }}
-          >
-            <span>{title}</span>
-            <span style={{ transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>▼</span>
-          </button>
-          {isExpanded && (
-            <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-              {children}
-            </div>
-          )}
-        </div>
-      )
-    }
 
     const outputContent = (
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
