@@ -296,6 +296,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   <div className={styles.copyCardHeader}>
                     <span className={styles.copyCardLabel}>{baseNames[key]} (base {key === 'binary' ? '2' : key === 'octal' ? '8' : key === 'decimal' ? '10' : '16'})</span>
                     <button
+                      type="button"
                       className="copy-action"
                       onClick={() => handleCopyField(value, `base-${key}`)}
                       title="Copy to clipboard"
