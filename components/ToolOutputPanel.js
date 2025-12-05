@@ -818,15 +818,27 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         </div>
 
         {/* Base Formats */}
-        <ExpandableSection title="📦 Base Formats" sectionId="baseFormats">
-          <ColorCard label="HEX" value={formats.hex} fieldId="hex" />
-          <ColorCard label="HEX8 (with alpha)" value={formats.hex8} fieldId="hex8" />
-          <ColorCard label="RGB" value={formats.rgb} fieldId="rgb" />
-          <ColorCard label="RGBA" value={formats.rgba} fieldId="rgba" />
-          <ColorCard label="HSL" value={formats.hsl} fieldId="hsl" />
-          <ColorCard label="HSLA" value={formats.hsla} fieldId="hsla" />
-          <ColorCard label="HSV" value={formats.hsv} fieldId="hsv" />
-        </ExpandableSection>
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            📦 Base Formats
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+            <ColorCard label="HEX" value={formats.hex} fieldId="hex" />
+            <ColorCard label="HEX8 (with alpha)" value={formats.hex8} fieldId="hex8" />
+            <ColorCard label="RGB" value={formats.rgb} fieldId="rgb" />
+            <ColorCard label="RGBA" value={formats.rgba} fieldId="rgba" />
+            <ColorCard label="HSL" value={formats.hsl} fieldId="hsl" />
+            <ColorCard label="HSLA" value={formats.hsla} fieldId="hsla" />
+            <ColorCard label="HSV" value={formats.hsv} fieldId="hsv" />
+          </div>
+        </div>
 
         {/* Advanced Formats */}
         <ExpandableSection title="🔬 Advanced Formats" sectionId="advancedFormats">
