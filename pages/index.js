@@ -417,6 +417,11 @@ export default function Home() {
             removeTimestamps: removeExtrasConfig.removeTimestamps === true,
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
           }
+        } else if (tool.toolId === 'checksum-calculator') {
+          finalConfig = {
+            ...config,
+            compareText: checksumCompareText || '',
+          }
         } else if (tool.toolId === 'ip-address-toolkit') {
           finalConfig = config
         }
