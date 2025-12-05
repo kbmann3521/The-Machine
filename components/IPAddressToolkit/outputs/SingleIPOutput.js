@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import OutputTabs from '../../OutputTabs'
+import styles from '../../styles/ip-toolkit.module.css'
 
 export default function SingleIPOutput({ result }) {
   // Show empty state if no result
