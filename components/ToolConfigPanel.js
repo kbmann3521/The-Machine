@@ -128,6 +128,9 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         )
 
       case 'toggle':
+        const detectedBase = tool?.toolId === 'base-converter' && field.id === 'autoDetect' && result?.detectedBase
+          ? ` (detected: base ${result.detectedBase})`
+          : ''
         return (
           <div key={field.id} className={styles.toggleContainer}>
             <label className={styles.toggleLabel}>
@@ -139,7 +142,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 disabled={isFieldDisabled}
               />
               <span className={styles.toggleSlider}></span>
-              <span>{field.label}</span>
+              <span>{field.label}{detectedBase}</span>
             </label>
           </div>
         )
