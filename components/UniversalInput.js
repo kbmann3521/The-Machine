@@ -390,6 +390,19 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
             />
           </div>
         )}
+
+        {selectedTool?.toolId === 'checksum-calculator' && configOptions.compareMode && (
+          <div className={styles.compareInputWrapper}>
+            <div className={styles.compareInputLabel}>Input B (Compare)</div>
+            <textarea
+              value={compareText}
+              onChange={(e) => handleCompareTextChange(e.target.value)}
+              placeholder="Enter second input to compare checksums..."
+              className={styles.simpleTextarea}
+              style={{ minHeight: '120px' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
