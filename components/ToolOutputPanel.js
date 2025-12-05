@@ -1105,6 +1105,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 <select
                   value={gradient.mode || 'rgb'}
                   onChange={(e) => {
+                    e.preventDefault()
                     if (configOptions && onConfigChange) {
                       onConfigChange({ ...configOptions, gradientMode: e.target.value })
                     }
@@ -1131,6 +1132,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                     type="checkbox"
                     checked={gradient.reversed || false}
                     onChange={(e) => {
+                      e.preventDefault()
                       if (configOptions && onConfigChange) {
                         onConfigChange({ ...configOptions, gradientReversed: e.target.checked })
                       }
