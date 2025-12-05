@@ -327,7 +327,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 return (
                   <div key={key} className={styles.copyCard}>
                     <div className={styles.copyCardHeader}>
-                      <span className={styles.copyCardLabel}>Base {baseNum}</span>
+                      <span className={styles.copyCardLabel}>Custom Output (Base {baseNum})</span>
                       <button
                         className="copy-action"
                         onClick={() => handleCopyField(value, `base-${baseNum}`)}
