@@ -386,7 +386,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
           <div className={styles.compareInputWrapper}>
             <div className={styles.compareInputLabel}>Input B (Compare)</div>
             <textarea
-              value={compareText}
+              value={compareText || ''}
               onChange={(e) => handleCompareTextChange(e.target.value)}
               placeholder="Enter second input to compare checksums..."
               className={styles.simpleTextarea}
