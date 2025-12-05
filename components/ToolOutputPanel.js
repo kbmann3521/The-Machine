@@ -511,6 +511,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   <div className={styles.copyCardHeader}>
                     <span className={styles.copyCardLabel}>{label}</span>
                     <button
+                      type="button"
                       className="copy-action"
                       onClick={() => handleCopyField(value, `checksum-${key}`)}
                       title="Copy to clipboard"
