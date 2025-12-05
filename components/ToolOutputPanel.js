@@ -3459,9 +3459,46 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
 
       case 'base64-converter':
-        return [
-          { label: 'Result', value: result },
-        ]
+        const base64Fields = []
+
+        if (result.error) {
+          base64Fields.push({ label: 'Error', value: result.error })
+          if (result.suggestion) base64Fields.push({ label: 'Suggestion', value: result.suggestion })
+        } else {
+          base64Fields.push({ label: 'Mode', value: result.mode === 'encode' ? 'Encode' : 'Decode' })
+          base64Fields.push({ label: 'Output', value: result.output, isMain: true })
+
+          if (result.charEncoding) base64Fields.push({ label: 'Character Encoding', value: result.charEncoding.toUpperCase() })
+          if (result.paddingStatus) base64Fields.push({ label: 'Padding Status', value: result.paddingStatus })
+          if (result.warning) base64Fields.push({ label: 'Warning', value: result.warning })
+
+          // Alternate formats
+          if (result.formats) {
+            if (result.formats.standard && result.mode === 'encode') {
+              base64Fields.push({ label: 'Standard Base64', value: result.formats.standard })
+            }
+            if (result.formats.urlSafe && result.mode === 'encode') {
+              base64Fields.push({ label: 'URL-Safe Version', value: result.formats.urlSafe })
+            }
+            if (result.formats.noPadding && result.mode === 'encode') {
+              base64Fields.push({ label: 'Without Padding', value: result.formats.noPadding })
+            }
+            if (result.formats.wrapped && result.mode === 'encode') {
+              base64Fields.push({ label: 'Line-Wrapped (MIME 76)', value: result.formats.wrapped })
+            }
+          }
+
+          // Stats
+          if (result.stats) {
+            base64Fields.push({ label: 'Input Size', value: result.stats.inputSize })
+            base64Fields.push({ label: 'Output Size', value: result.stats.outputSize })
+            if (result.stats.compressionRatio) {
+              base64Fields.push({ label: 'Compression Ratio', value: result.stats.compressionRatio })
+            }
+          }
+        }
+
+        return base64Fields.filter(f => f.value)
 
       case 'uuid-validator':
         return [
