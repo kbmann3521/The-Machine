@@ -171,7 +171,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   }
 
   const handleCompareTextChange = (value) => {
-    setCompareText(value)
+    if (onCompareTextChange) {
+      onCompareTextChange(value)
+    }
   }
 
   const handleLoadExample = () => {
