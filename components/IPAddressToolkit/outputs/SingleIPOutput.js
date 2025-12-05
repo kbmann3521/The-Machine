@@ -100,29 +100,17 @@ export default function SingleIPOutput({ result }) {
     return (
       <div>
         {sections.map((section, idx) => (
-          <div key={idx} style={{ marginBottom: '16px' }}>
-            <div style={{
-              fontSize: '13px',
-              fontWeight: '600',
-              marginBottom: '8px',
-              color: 'var(--color-text-primary)',
-            }}>
+          <div key={idx} className={styles.outputSectionContainer}>
+            <div className={styles.outputSectionTitle}>
               {section.title}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className={styles.outputSectionContent}>
               {Object.entries(section.fields).map(([key, value]) => (
-                <div key={key} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  padding: '8px',
-                  backgroundColor: 'var(--color-background-secondary)',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                }}>
-                  <span style={{ fontWeight: '500', color: 'var(--color-text-secondary)' }}>
+                <div key={key} className={styles.outputFieldRow}>
+                  <span className={styles.outputFieldLabel}>
                     {key}
                   </span>
-                  <span style={{ color: 'var(--color-text-primary)', fontWeight: '600' }}>
+                  <span className={styles.outputFieldValue}>
                     {value}
                   </span>
                 </div>
