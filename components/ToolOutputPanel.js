@@ -706,6 +706,277 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
+  // Color converter custom output
+  if (toolId === 'color-converter' && displayResult?.formats) {
+    const { formats, rgb, hsl, hsv, lab, lch, cmyk, luminance, contrast, accessibility, variants, colorBlindness, detectedFormat } = displayResult
+    const [expandedSections, setExpandedSections] = useState({
+      baseFormats: true,
+      advancedFormats: false,
+      variants: true,
+      accessibility: true,
+      colorBlindness: false,
+    })
+
+    const toggleSection = (section) => {
+      setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
+    }
+
+    const handleCopyField = (value, field) => {
+      navigator.clipboard.writeText(value)
+      setCopiedField(field)
+      setTimeout(() => setCopiedField(null), 2000)
+    }
+
+    const ColorCard = ({ label, value, fieldId }) => (
+      <div className={styles.copyCard}>
+        <div className={styles.copyCardHeader}>
+          <span className={styles.copyCardLabel}>{label}</span>
+          <button
+            className="copy-action"
+            onClick={() => handleCopyField(value, fieldId)}
+            title="Copy to clipboard"
+          >
+            {copiedField === fieldId ? '✓' : <FaCopy />}
+          </button>
+        </div>
+        <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', fontFamily: 'monospace' }}>
+          {value}
+        </div>
+      </div>
+    )
+
+    const ColorSwatch = ({ hexColor, size = '120px' }) => (
+      <div style={{
+        width: size,
+        height: size,
+        backgroundColor: hexColor,
+        borderRadius: '8px',
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      }} />
+    )
+
+    const ExpandableSection = ({ title, children, sectionId, defaultExpanded = true }) => {
+      const isExpanded = expandedSections[sectionId]
+      return (
+        <div style={{ marginBottom: '16px' }}>
+          <button
+            onClick={() => toggleSection(sectionId)}
+            style={{
+              width: '100%',
+              padding: '12px',
+              backgroundColor: 'var(--color-background-tertiary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              textAlign: 'left',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span>{title}</span>
+            <span style={{ transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>▼</span>
+          </button>
+          {isExpanded && (
+            <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+              {children}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Color Preview */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '20px',
+          backgroundColor: 'var(--color-background-tertiary)',
+          borderRadius: '8px',
+          border: '1px solid var(--color-border)',
+        }}>
+          <ColorSwatch hexColor={formats.hex} size="140px" />
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--color-text-secondary)',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '4px' }}>Detected: {detectedFormat.toUpperCase()}</div>
+            <div style={{ fontSize: '11px' }}>{formats.hex}</div>
+          </div>
+        </div>
+
+        {/* Base Formats */}
+        <ExpandableSection title="📦 Base Formats" sectionId="baseFormats">
+          <ColorCard label="HEX" value={formats.hex} fieldId="hex" />
+          <ColorCard label="HEX8 (with alpha)" value={formats.hex8} fieldId="hex8" />
+          <ColorCard label="RGB" value={formats.rgb} fieldId="rgb" />
+          <ColorCard label="RGBA" value={formats.rgba} fieldId="rgba" />
+          <ColorCard label="HSL" value={formats.hsl} fieldId="hsl" />
+          <ColorCard label="HSLA" value={formats.hsla} fieldId="hsla" />
+          <ColorCard label="HSV" value={formats.hsv} fieldId="hsv" />
+        </ExpandableSection>
+
+        {/* Advanced Formats */}
+        <ExpandableSection title="🔬 Advanced Formats" sectionId="advancedFormats">
+          <ColorCard label="LAB" value={formats.lab} fieldId="lab" />
+          <ColorCard label="LCH" value={formats.lch} fieldId="lch" />
+          <ColorCard label="CMYK" value={formats.cmyk} fieldId="cmyk" />
+          <div style={{
+            padding: '12px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            borderRadius: '4px',
+            fontSize: '12px',
+            color: 'var(--color-text-secondary)',
+          }}>
+            <div><strong>Luminance:</strong> {luminance}</div>
+            <div style={{ fontSize: '11px', marginTop: '4px' }}>Relative luminance for contrast calculation</div>
+          </div>
+        </ExpandableSection>
+
+        {/* Accessibility */}
+        <ExpandableSection title="♿ Accessibility (WCAG)" sectionId="accessibility">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>vs White</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#4caf50', marginBottom: '6px' }}>
+                {contrast.white}:1
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                <div>AA: {accessibility.aaSmallText ? '✓' : '✗'}</div>
+                <div>AAA: {accessibility.aaaSmallText ? '✓' : '✗'}</div>
+              </div>
+            </div>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(100, 100, 100, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(100, 100, 100, 0.3)',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>vs Black</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#666', marginBottom: '6px' }}>
+                {contrast.black}:1
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                <div>AA: {accessibility.aaSmallText ? '✓' : '✗'}</div>
+                <div>AAA: {accessibility.aaaSmallText ? '✓' : '✗'}</div>
+              </div>
+            </div>
+          </div>
+        </ExpandableSection>
+
+        {/* Color Variants */}
+        <ExpandableSection title="🌈 Variants & Palettes" sectionId="variants">
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Shades (Darker)</div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              {variants.shades.map((shade, idx) => (
+                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '100%',
+                    height: '40px',
+                    backgroundColor: shade,
+                    borderRadius: '4px',
+                    border: '1px solid var(--color-border)',
+                  }} />
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>-{(idx + 1) * 10}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Tints (Lighter)</div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              {variants.tints.map((tint, idx) => (
+                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '100%',
+                    height: '40px',
+                    backgroundColor: tint,
+                    borderRadius: '4px',
+                    border: '1px solid var(--color-border)',
+                  }} />
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>+{(idx + 1) * 10}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Complementary</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <ColorSwatch hexColor={formats.hex} size="50px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center' }}>Opposite</div>
+            </div>
+          </div>
+        </ExpandableSection>
+
+        {/* Color Blindness Simulation */}
+        <ExpandableSection title="🧪 Color Blindness Simulation" sectionId="colorBlindness">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Protanopia</div>
+              <ColorSwatch hexColor={colorBlindness.protanopia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.protanopia.hex}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Deuteranopia</div>
+              <ColorSwatch hexColor={colorBlindness.deuteranopia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.deuteranopia.hex}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Tritanopia</div>
+              <ColorSwatch hexColor={colorBlindness.tritanopia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.tritanopia.hex}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Achromatopsia</div>
+              <ColorSwatch hexColor={colorBlindness.achromatopsia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.achromatopsia.hex}</div>
+            </div>
+          </div>
+        </ExpandableSection>
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json',
+          },
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+      />
+    )
+  }
+
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
