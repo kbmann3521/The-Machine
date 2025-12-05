@@ -1020,8 +1020,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         </div>
 
         {/* Color Blindness Simulation */}
-        <ExpandableSection title="🧪 Color Blindness Simulation" sectionId="colorBlindness">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            🧪 Color Blindness Simulation
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ fontSize: '11px', fontWeight: '600' }}>Protanopia</div>
               <ColorSwatch hexColor={colorBlindness.protanopia.hex} size="60px" />
@@ -1043,7 +1053,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.achromatopsia.hex}</div>
             </div>
           </div>
-        </ExpandableSection>
+        </div>
 
         {/* Delta-E Comparison */}
         {deltaE && (
