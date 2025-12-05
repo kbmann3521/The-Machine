@@ -33,7 +33,7 @@ export default function SingleIPConfig({ configState = {}, setConfigState }) {
           <label className={styles.toggleLabel}>
             <input
               type="checkbox"
-              checked={configState.normalize || false}
+              checked={configState.normalize !== false}
               onChange={() => handleToggle('normalize')}
               className={styles.toggleInput}
             />
@@ -44,7 +44,7 @@ export default function SingleIPConfig({ configState = {}, setConfigState }) {
           <label className={styles.toggleLabel}>
             <input
               type="checkbox"
-              checked={configState.ipToInteger || false}
+              checked={configState.ipToInteger !== false}
               onChange={() => handleToggle('ipToInteger')}
               className={styles.toggleInput}
             />
@@ -55,7 +55,7 @@ export default function SingleIPConfig({ configState = {}, setConfigState }) {
           <label className={styles.toggleLabel}>
             <input
               type="checkbox"
-              checked={configState.privatePublic || false}
+              checked={configState.privatePublic !== false}
               onChange={() => handleToggle('privatePublic')}
               className={styles.toggleInput}
             />

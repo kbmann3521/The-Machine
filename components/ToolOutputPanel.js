@@ -3459,9 +3459,46 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
 
       case 'base64-converter':
-        return [
-          { label: 'Result', value: result },
-        ]
+        const base64Fields = []
+
+        if (result.error) {
+          base64Fields.push({ label: 'Error', value: result.error })
+          if (result.suggestion) base64Fields.push({ label: 'Suggestion', value: result.suggestion })
+        } else {
+          base64Fields.push({ label: 'Mode', value: result.mode === 'encode' ? 'Encode' : 'Decode' })
+          base64Fields.push({ label: 'Output', value: result.output, isMain: true })
+
+          if (result.charEncoding) base64Fields.push({ label: 'Character Encoding', value: result.charEncoding.toUpperCase() })
+          if (result.paddingStatus) base64Fields.push({ label: 'Padding Status', value: result.paddingStatus })
+          if (result.warning) base64Fields.push({ label: 'Warning', value: result.warning })
+
+          // Alternate formats
+          if (result.formats) {
+            if (result.formats.standard && result.mode === 'encode') {
+              base64Fields.push({ label: 'Standard Base64', value: result.formats.standard })
+            }
+            if (result.formats.urlSafe && result.mode === 'encode') {
+              base64Fields.push({ label: 'URL-Safe Version', value: result.formats.urlSafe })
+            }
+            if (result.formats.noPadding && result.mode === 'encode') {
+              base64Fields.push({ label: 'Without Padding', value: result.formats.noPadding })
+            }
+            if (result.formats.wrapped && result.mode === 'encode') {
+              base64Fields.push({ label: 'Line-Wrapped (MIME 76)', value: result.formats.wrapped })
+            }
+          }
+
+          // Stats
+          if (result.stats) {
+            base64Fields.push({ label: 'Input Size', value: result.stats.inputSize })
+            base64Fields.push({ label: 'Output Size', value: result.stats.outputSize })
+            if (result.stats.compressionRatio) {
+              base64Fields.push({ label: 'Compression Ratio', value: result.stats.compressionRatio })
+            }
+          }
+        }
+
+        return base64Fields.filter(f => f.value)
 
       case 'uuid-validator':
         return [
@@ -3664,6 +3701,388 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             {mode === 'toCode'
               ? 'Enter text to convert to character codes'
               : 'Enter space or comma-separated numbers (e.g., "72, 105, 33")'}
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
+  const renderBase64ConverterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    const { output, formats = {}, metadata = {} } = displayResult
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Primary Output */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Primary Output
+          </div>
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>Result</span>
+              <button
+                type="button"
+                className="copy-action"
+                onClick={() => handleCopyField(output, 'base64-primary')}
+                title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
+              >
+                {copiedField === 'base64-primary' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+              {output}
+            </div>
+          </div>
+        </div>
+
+        {/* All Conversion Formats */}
+        {Object.keys(formats).length > 0 && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              All Formats
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {Object.entries(formats).map(([formatName, formatValue]) => (
+                <div key={formatName} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>{formatName}</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(formatValue, `base64-format-${formatName}`)}
+                      title="Copy to clipboard"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `base64-format-${formatName}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', maxHeight: '150px', overflowY: 'auto' }}>
+                    {formatValue}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metadata Summary */}
+        {Object.keys(metadata).length > 0 && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Metadata</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+              {Object.entries(metadata).map(([metaKey, metaValue]) => (
+                <div key={metaKey}>
+                  <strong>{metaKey}:</strong> {metaValue}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
+  const renderCaesarCipherOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    const { output, input, bruteForce, metadata = {} } = displayResult
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Primary Output */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Result
+          </div>
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>Output</span>
+              <button
+                type="button"
+                className="copy-action"
+                onClick={() => handleCopyField(output, 'caesar-output')}
+                title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
+              >
+                {copiedField === 'caesar-output' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+              {output}
+            </div>
+          </div>
+        </div>
+
+        {/* Brute Force - All 26 Shifts */}
+        {bruteForce && Object.keys(bruteForce).length > 0 && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Brute Force (All 26 Shifts)
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {Object.entries(bruteForce).map(([shiftNum, shiftResult]) => (
+                <div key={shiftNum} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>Shift {shiftNum}</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(shiftResult, `caesar-shift-${shiftNum}`)}
+                      title="Copy to clipboard"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `caesar-shift-${shiftNum}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue} style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap', maxHeight: '120px', overflowY: 'auto' }}>
+                    {shiftResult}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metadata Summary */}
+        {Object.keys(metadata).length > 0 && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Metadata</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+              {Object.entries(metadata).map(([metaKey, metaValue]) => (
+                <div key={metaKey}>
+                  <strong>{metaKey}:</strong> {metaValue}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -3932,6 +4351,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderUnitConverterOutput()
       case 'ascii-unicode-converter':
         return renderAsciiUnicodeOutput()
+      case 'base64-converter':
+        return renderBase64ConverterOutput()
+      case 'caesar-cipher':
+        return renderCaesarCipherOutput()
       default: {
         const tabs = []
 

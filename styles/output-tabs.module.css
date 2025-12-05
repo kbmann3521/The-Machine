@@ -192,6 +192,11 @@
   gap: 12px;
 }
 
+/* Vertical stack for specific tools */
+.dataSectionContent.singleColumn {
+  grid-template-columns: 1fr;
+}
+
 .dataCardWrapper {
   display: flex;
 }

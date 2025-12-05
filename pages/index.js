@@ -7,7 +7,6 @@ import ToolOutputPanel from '../components/ToolOutputPanel'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
-import IPToolkitConfigPanel from '../components/IPToolkitConfigPanel'
 import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
@@ -59,20 +58,6 @@ export default function Home() {
   const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
 
-  // Load IP Toolkit config from localStorage
-  const [ipToolkitMode, setIpToolkitMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('ipToolkitMode') || 'single-ip'
-    }
-    return 'single-ip'
-  })
-  const [ipToolkitConfig, setIpToolkitConfig] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ipToolkitConfig')
-      return saved ? JSON.parse(saved) : {}
-    }
-    return {}
-  })
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -85,19 +70,6 @@ export default function Home() {
     selectedToolRef.current = selectedTool
   }, [selectedTool])
 
-  // Persist IP Toolkit mode to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ipToolkitMode', ipToolkitMode)
-    }
-  }, [ipToolkitMode])
-
-  // Persist IP Toolkit config to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ipToolkitConfig', JSON.stringify(ipToolkitConfig))
-    }
-  }, [ipToolkitConfig])
 
   // Fast local classification using heuristics (no API call)
   // Only detects strong signals; backend handles nuanced detection
@@ -422,8 +394,6 @@ export default function Home() {
             ...config,
             compareText: checksumCompareText || '',
           }
-        } else if (tool.toolId === 'ip-address-toolkit') {
-          finalConfig = config
         }
 
         const response = await fetch('/api/tools/run', {
@@ -461,7 +431,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig, checksumCompareText]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -491,8 +461,7 @@ export default function Home() {
 
     const runTool = async () => {
       // Use the actual input from ref, not state which may be batched/stale
-      const config = selectedTool?.toolId === 'ip-address-toolkit' ? ipToolkitConfig : configOptions
-      await autoRunTool(selectedTool, config, actualInput, imagePreview)
+      await autoRunTool(selectedTool, configOptions, actualInput, imagePreview)
     }
 
     runTool()
@@ -501,7 +470,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, imagePreview, configOptions, checksumCompareText, ipToolkitConfig, autoRunTool, inputChangeKey])
+  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey])
 
 
   return (
@@ -632,7 +601,6 @@ export default function Home() {
                 {selectedTool?.toolId === 'ip-address-toolkit' ? (
                   <IPToolkitOutputPanel
                     key={selectedTool?.toolId}
-                    activeMode={ipToolkitMode}
                     result={outputResult}
                   />
                 ) : (
