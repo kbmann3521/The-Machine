@@ -1177,7 +1177,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             gap: '12px',
           }}>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
                 const json = {
                   colors: [
                     { name: 'current', hex: formats.hex, rgb: formats.rgb, hsl: formats.hsl }
@@ -1210,7 +1211,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
             </button>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
                 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="${formats.hex}"/></svg>`
                 handleCopyField(svg, 'paletteSVG')
               }}
