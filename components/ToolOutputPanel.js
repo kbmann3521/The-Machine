@@ -758,6 +758,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ]}
         toolCategory={toolCategory}
         toolId={toolId}
+        showCopyButton={true}
       />
     )
   }
