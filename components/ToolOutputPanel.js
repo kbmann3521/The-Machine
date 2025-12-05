@@ -915,8 +915,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )}
 
         {/* Accessibility */}
-        <ExpandableSection title="♿ Accessibility (WCAG)" sectionId="accessibility">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            ♿ Accessibility (WCAG)
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div style={{
               padding: '12px',
               backgroundColor: 'rgba(76, 175, 80, 0.1)',
@@ -948,7 +958,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               </div>
             </div>
           </div>
-        </ExpandableSection>
+        </div>
 
         {/* Color Variants */}
         <ExpandableSection title="🌈 Variants & Palettes" sectionId="variants">
