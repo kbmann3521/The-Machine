@@ -80,8 +80,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       case 'text':
         // Special handling for color inputs with autocomplete
         if (field.id === 'secondColor' || field.id === 'gradientEndColor') {
+          const isActive = activeSuggestionsField === field.id
+          const fieldSuggestions = colorSuggestions[field.id] || []
+
           return (
-            <div key={field.id} style={{ position: 'relative' }} onMouseLeave={() => setShowSuggestions(false)}>
+            <div key={field.id} style={{ position: 'relative' }} onMouseLeave={() => setActiveSuggestionsField(null)}>
               <input
                 type="text"
                 className={styles.input}
@@ -90,26 +93,26 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   handleFieldChange(field.id, e.target.value)
                   if (e.target.value.length > 0) {
                     const suggestions = getSuggestionsForColor(e.target.value)
-                    setColorSuggestions(suggestions)
-                    setShowSuggestions(true)
+                    setColorSuggestions(prev => ({ ...prev, [field.id]: suggestions }))
+                    setActiveSuggestionsField(field.id)
                   } else {
-                    setShowSuggestions(false)
+                    setActiveSuggestionsField(null)
                   }
                 }}
                 onFocus={(e) => {
                   if (e.target.value.length > 0) {
                     const suggestions = getSuggestionsForColor(e.target.value)
                     if (suggestions.length > 0) {
-                      setColorSuggestions(suggestions)
-                      setShowSuggestions(true)
+                      setColorSuggestions(prev => ({ ...prev, [field.id]: suggestions }))
+                      setActiveSuggestionsField(field.id)
                     }
                   }
                 }}
-                onBlur={() => setShowSuggestions(false)}
+                onBlur={() => setActiveSuggestionsField(null)}
                 placeholder={field.placeholder || ''}
                 disabled={isFieldDisabled}
               />
-              {showSuggestions && colorSuggestions.length > 0 && (
+              {isActive && fieldSuggestions.length > 0 && (
                 <div style={{
                   position: 'absolute',
                   top: '100%',
@@ -123,13 +126,13 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   maxHeight: '150px',
                   overflowY: 'auto',
                 }}>
-                  {colorSuggestions.map((suggestion) => (
+                  {fieldSuggestions.map((suggestion) => (
                     <div
                       key={suggestion.name}
                       onMouseDown={(e) => {
                         e.preventDefault()
                         handleFieldChange(field.id, suggestion.name)
-                        setShowSuggestions(false)
+                        setActiveSuggestionsField(null)
                       }}
                       style={{
                         padding: '8px 10px',
