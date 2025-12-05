@@ -56,6 +56,7 @@ export default function Home() {
     removeTimestamps: false,
     removeDuplicateLines: false,
   })
+  const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
 
   // Load IP Toolkit config from localStorage
@@ -416,6 +417,11 @@ export default function Home() {
             removeTimestamps: removeExtrasConfig.removeTimestamps === true,
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
           }
+        } else if (tool.toolId === 'checksum-calculator') {
+          finalConfig = {
+            ...config,
+            compareText: checksumCompareText || '',
+          }
         } else if (tool.toolId === 'ip-address-toolkit') {
           finalConfig = config
         }
@@ -455,7 +461,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    []
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig, checksumCompareText]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -495,7 +501,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, imagePreview, configOptions, ipToolkitConfig, autoRunTool, inputChangeKey])
+  }, [selectedTool, imagePreview, configOptions, checksumCompareText, ipToolkitConfig, autoRunTool, inputChangeKey])
 
 
   return (
@@ -548,6 +554,8 @@ export default function Home() {
                 <UniversalInput
                   onInputChange={handleInputChange}
                   onImageChange={handleImageChange}
+                  onCompareTextChange={setChecksumCompareText}
+                  compareText={checksumCompareText}
                   selectedTool={selectedTool}
                   configOptions={configOptions}
                   getToolExample={getToolExample}
@@ -583,6 +591,7 @@ export default function Home() {
                       loading={toolLoading}
                       onRegenerate={handleRegenerate}
                       currentConfig={configOptions}
+                      result={outputResult}
                       activeToolkitSection={activeToolkitSection}
                       onToolkitSectionChange={setActiveToolkitSection}
                       findReplaceConfig={findReplaceConfig}

@@ -22,7 +22,6 @@ const toolIcons = {
   'checksum-calculator': ImCalculator,
   'escape-unescape': FaQuoteLeft,
   'ascii-unicode-converter': FaFont,
-  'binary-converter': FaToggleOn,
   'rot13-cipher': FaLock,
   'caesar-cipher': FaLock,
   'css-formatter': FaCode,

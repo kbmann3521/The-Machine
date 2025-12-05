@@ -14,7 +14,7 @@ import { useTheme } from '../lib/ThemeContext'
 import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
+export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
   const { theme } = useTheme()
 
   const getPlaceholder = () => {
@@ -158,6 +158,12 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     fileInputRef.current?.click()
   }
 
+  const handleCompareTextChange = (value) => {
+    if (onCompareTextChange) {
+      onCompareTextChange(value)
+    }
+  }
+
   const handleLoadExample = () => {
     if (!selectedTool || !getToolExample) return
 
@@ -172,6 +178,9 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const handleClearInput = () => {
     setInputText('')
     setCharCount(0)
+    if (onCompareTextChange) {
+      onCompareTextChange('')
+    }
     setInputImage(null)
     setImagePreview(null)
     onInputChange('', null, null, false)
@@ -205,7 +214,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'whitespace-visualizer': 'See hidden spaces, tabs, and line break characters',
       'ascii-unicode-converter': 'Convert between ASCII and Unicode encodings',
       'punycode-converter': 'Convert international domain names to punycode format',
-      'binary-converter': 'Convert numbers between binary, hex, octal, and decimal',
       'rot13-cipher': 'Apply ROT13 text cipher for simple obfuscation',
       'caesar-cipher': 'Apply Caesar cipher with custom character shift amount',
       'css-formatter': 'Format and beautify CSS code with proper indentation',
@@ -370,6 +378,19 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
               src={imagePreview}
               alt="preview"
               className={styles.previewImage}
+            />
+          </div>
+        )}
+
+        {selectedTool?.toolId === 'checksum-calculator' && configOptions.compareMode && (
+          <div className={styles.compareInputWrapper}>
+            <div className={styles.compareInputLabel}>Input B (Compare)</div>
+            <textarea
+              value={compareText || ''}
+              onChange={(e) => handleCompareTextChange(e.target.value)}
+              placeholder="Enter second input to compare checksums..."
+              className={styles.simpleTextarea}
+              style={{ minHeight: '120px' }}
             />
           </div>
         )}

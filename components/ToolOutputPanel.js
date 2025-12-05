@@ -6,6 +6,7 @@ import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CodeMirrorOutput from './CodeMirrorOutput'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
+import { colorConverter } from '../lib/tools/colorConverter'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview }) {
   const toolCategory = TOOLS[toolId]?.category
@@ -240,6 +241,1198 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setCopiedField(fieldName)
       setTimeout(() => setCopiedField(null), 2000)
     }
+  }
+
+  // Base converter custom output
+  if (toolId === 'base-converter' && displayResult?.conversions) {
+    const { conversions, detectedBase, detectionReason, input, details } = displayResult
+
+    const baseNames = {
+      binary: 'Binary',
+      octal: 'Octal',
+      decimal: 'Decimal',
+      hexadecimal: 'Hexadecimal',
+    }
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {detectedBase && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            border: '1px solid rgba(76, 175, 80, 0.3)',
+            borderRadius: '4px',
+            fontSize: '13px',
+            color: '#4caf50',
+          }}>
+            Detected input as base {detectedBase} {detectionReason ? `(${detectionReason})` : ''}
+          </div>
+        )}
+
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Standard Conversions
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {Object.entries(conversions).map(([key, value]) => {
+              if (key.startsWith('base_')) return null
+              return (
+                <div key={key} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>{baseNames[key]} (base {key === 'binary' ? '2' : key === 'octal' ? '8' : key === 'decimal' ? '10' : '16'})</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(value, `base-${key}`)}
+                      title="Copy to clipboard"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `base-${key}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue}>
+                    {value}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {Object.entries(conversions).some(([key]) => key.startsWith('base_')) && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingTop: '8px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Custom Conversion
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {Object.entries(conversions).map(([key, value]) => {
+                if (!key.startsWith('base_')) return null
+                const baseNum = key.replace('base_', '')
+                return (
+                  <div key={key} className={styles.copyCard}>
+                    <div className={styles.copyCardHeader}>
+                      <span className={styles.copyCardLabel}>Custom Output (Base {baseNum})</span>
+                      <button
+                        type="button"
+                        className="copy-action"
+                        onClick={() => handleCopyField(value, `base-${baseNum}`)}
+                        title="Copy to clipboard"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          minWidth: '32px',
+                          minHeight: '28px'
+                        }}
+                      >
+                        {copiedField === `base-${baseNum}` ? '✓' : <FaCopy />}
+                      </button>
+                    </div>
+                    <div className={styles.copyCardValue}>
+                      {value}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {details && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary, #666)' }}>Details</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary, #666)' }}>
+              {Object.entries(details).map(([key, val]) => (
+                <div key={key}>
+                  <strong>{key}:</strong> {String(val)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json',
+          },
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
+  // Checksum calculator custom output
+  if (toolId === 'checksum-calculator' && displayResult?.algorithm) {
+    const { algorithm, conversions, metadata, byteLength, encoding, timestamp, outputFormat, primaryOutput, compareResult, detectedMode, isAutoDetected } = displayResult
+
+    const outputFormatLabels = {
+      hex: 'Hexadecimal (0x)',
+      'hex-plain': 'Hex (plain)',
+      decimal: 'Decimal',
+      binary: 'Binary',
+      'bytes-be': 'Bytes (Big-endian)',
+      'bytes-le': 'Bytes (Little-endian)',
+    }
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Algorithm Info Section */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Algorithm Information
+          </div>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(0, 102, 204, 0.05)',
+            border: '1px solid rgba(0, 102, 204, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text)' }}>{metadata?.name}</div>
+            <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginBottom: '6px' }}>
+              {metadata?.description}
+            </div>
+            {metadata?.polynomial && (
+              <div style={{ color: 'var(--color-text-secondary)', fontSize: '11px', marginTop: '8px' }}>
+                <div>Polynomial: <code style={{ backgroundColor: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px' }}>{metadata.polynomial}</code></div>
+                <div>Initial: {metadata.initialValue}</div>
+                <div>Final XOR: {metadata.finalXor}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Primary Checksum Output Section */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Primary Output ({outputFormatLabels[outputFormat] || outputFormat})
+          </div>
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>{outputFormatLabels[outputFormat] || outputFormat}</span>
+              <button
+                type="button"
+                className="copy-action"
+                onClick={() => handleCopyField(primaryOutput, 'checksum-primary')}
+                title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
+              >
+                {copiedField === 'checksum-primary' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', fontSize: '14px', fontWeight: '500' }}>
+              {primaryOutput}
+            </div>
+          </div>
+        </div>
+
+        {/* All Formats Section */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            All Formats
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {Object.entries(conversions).map(([key, value]) => {
+              const labels = {
+                decimal: 'Decimal',
+                hex: 'Hexadecimal (0x)',
+                hexPlain: 'Hex (plain)',
+                binary: 'Binary',
+                bytesBE: 'Bytes (Big-endian)',
+                bytesLE: 'Bytes (Little-endian)',
+              }
+              const label = labels[key] || key
+              return (
+                <div key={key} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>{label}</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(value, `checksum-${key}`)}
+                      title="Copy to clipboard"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `checksum-${key}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+                    {value}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Compare Mode Section */}
+        {compareResult && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Comparison Results
+            </div>
+
+            {compareResult.error ? (
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                border: '1px solid rgba(239, 83, 80, 0.3)',
+                borderRadius: '4px',
+                color: '#ef5350',
+                fontSize: '13px',
+              }}>
+                Error processing second input: {compareResult.error}
+              </div>
+            ) : (
+              <>
+                {/* Match Status */}
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: compareResult.match
+                    ? 'rgba(76, 175, 80, 0.1)'
+                    : 'rgba(255, 152, 0, 0.1)',
+                  border: compareResult.match
+                    ? '1px solid rgba(76, 175, 80, 0.3)'
+                    : '1px solid rgba(255, 152, 0, 0.3)',
+                  borderRadius: '4px',
+                  marginBottom: '16px',
+                }}>
+                  <div style={{
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: compareResult.match ? '#4caf50' : '#ff9800',
+                    marginBottom: '8px',
+                  }}>
+                    {compareResult.match ? '✓ MATCH' : '✗ MISMATCH'}
+                  </div>
+                  {!compareResult.match && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: compareResult.match ? 'var(--color-text-secondary)' : '#ff9800',
+                    }}>
+                      Input A and Input B produce different checksums
+                    </div>
+                  )}
+                </div>
+
+                {/* Comparison Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '8px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Input A
+                    </div>
+                    <div className={styles.copyCard}>
+                      <div className={styles.copyCardHeader}>
+                        <span className={styles.copyCardLabel}>{outputFormatLabels[outputFormat] || outputFormat}</span>
+                        <button
+                          type="button"
+                          className="copy-action"
+                          onClick={() => handleCopyField(displayResult.primaryOutput, 'compare-input-a')}
+                          title="Copy to clipboard"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            minWidth: '32px',
+                            minHeight: '28px'
+                          }}
+                        >
+                          {copiedField === 'compare-input-a' ? '✓' : <FaCopy />}
+                        </button>
+                      </div>
+                      <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+                        {displayResult.primaryOutput}
+                      </div>
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-secondary)',
+                      marginTop: '6px',
+                    }}>
+                      {byteLength} bytes
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '8px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Input B
+                    </div>
+                    <div className={styles.copyCard}>
+                      <div className={styles.copyCardHeader}>
+                        <span className={styles.copyCardLabel}>{outputFormatLabels[outputFormat] || outputFormat}</span>
+                        <button
+                          type="button"
+                          className="copy-action"
+                          onClick={() => handleCopyField(compareResult.primaryOutput2, 'compare-input-b')}
+                          title="Copy to clipboard"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            minWidth: '32px',
+                            minHeight: '28px'
+                          }}
+                        >
+                          {copiedField === 'compare-input-b' ? '✓' : <FaCopy />}
+                        </button>
+                      </div>
+                      <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+                        {compareResult.primaryOutput2}
+                      </div>
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-secondary)',
+                      marginTop: '6px',
+                    }}>
+                      {compareResult.byteLength2} bytes
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Metadata Section */}
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: 'rgba(158, 158, 158, 0.1)',
+          border: '1px solid rgba(158, 158, 158, 0.2)',
+          borderRadius: '4px',
+          fontSize: '13px',
+        }}>
+          <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Metadata</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+            <div><strong>Input Length:</strong> {byteLength} bytes</div>
+            <div><strong>Encoding:</strong> {encoding}</div>
+            {isAutoDetected && (
+              <div>
+                <strong>Input Mode:</strong>{' '}
+                {detectedMode === 'text' ? 'Text (UTF-8)' :
+                 detectedMode === 'hex' ? 'Hex bytes' :
+                 detectedMode === 'base64' ? 'Base64' :
+                 detectedMode === 'binary' ? 'Binary' :
+                 detectedMode} (auto-detected)
+              </div>
+            )}
+            <div><strong>Algorithm ID:</strong> {algorithm}</div>
+            <div><strong>Output Format:</strong> {outputFormatLabels[outputFormat] || outputFormat}</div>
+            <div><strong>Processed:</strong> {new Date(timestamp).toLocaleTimeString()}</div>
+          </div>
+        </div>
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json',
+          },
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
+  // Color converter custom output
+  if (toolId === 'color-converter' && displayResult?.formats) {
+    const { formats, rgb, hsl, hsv, lab, lch, cmyk, cmykProfiles, luminance, contrast, accessibility, variants, colorBlindness, detectedFormat, deltaE, gradient } = displayResult
+
+
+    const handleCopyField = (value, field) => {
+      let copySucceeded = false
+
+      // Try modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(value).then(() => {
+          copySucceeded = true
+        }).catch((err) => {
+          // Fallback: use old-school copy method
+          console.debug('Clipboard API failed, trying fallback:', err.message)
+          copySucceeded = fallbackCopy(value)
+        })
+      } else {
+        // Fallback for non-secure contexts or if clipboard API is unavailable
+        copySucceeded = fallbackCopy(value)
+      }
+
+      // Always show feedback, even if copy might fail silently
+      setCopiedField(field)
+      setTimeout(() => setCopiedField(null), 2000)
+    }
+
+    const fallbackCopy = (text) => {
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.left = '-9999px'
+        textarea.style.top = '-9999px'
+        textarea.setAttribute('readonly', '')
+        document.body.appendChild(textarea)
+        textarea.select()
+        const success = document.execCommand('copy')
+        document.body.removeChild(textarea)
+        return success
+      } catch (err) {
+        console.warn('Fallback copy failed:', err)
+        return false
+      }
+    }
+
+    const ColorCard = ({ label, value, fieldId }) => (
+      <div className={styles.copyCard}>
+        <div className={styles.copyCardHeader}>
+          <span className={styles.copyCardLabel}>{label}</span>
+          <button
+            type="button"
+            className="copy-action"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleCopyField(value, fieldId)
+            }}
+            title="Copy to clipboard"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              minWidth: '32px',
+              minHeight: '28px'
+            }}
+          >
+            {copiedField === fieldId ? '✓' : <FaCopy />}
+          </button>
+        </div>
+        <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', fontFamily: 'monospace' }}>
+          {value}
+        </div>
+      </div>
+    )
+
+    const ColorSwatch = ({ hexColor, size = '120px' }) => (
+      <div style={{
+        width: size,
+        height: size,
+        backgroundColor: hexColor,
+        borderRadius: '8px',
+        border: '1px solid var(--color-border)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      }} />
+    )
+
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Color Preview */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '20px',
+          backgroundColor: 'var(--color-background-tertiary)',
+          borderRadius: '8px',
+          border: '1px solid var(--color-border)',
+        }}>
+          <ColorSwatch hexColor={formats.hex} size="140px" />
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--color-text-secondary)',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '4px' }}>Detected: {detectedFormat.toUpperCase()}</div>
+            <div style={{ fontSize: '11px' }}>{formats.hex}</div>
+          </div>
+        </div>
+
+        {/* Base Formats */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            📦 Base Formats
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+            <ColorCard label="HEX" value={formats.hex} fieldId="hex" />
+            <ColorCard label="HEX8 (with alpha)" value={formats.hex8} fieldId="hex8" />
+            <ColorCard label="RGB" value={formats.rgb} fieldId="rgb" />
+            <ColorCard label="RGBA" value={formats.rgba} fieldId="rgba" />
+            <ColorCard label="HSL" value={formats.hsl} fieldId="hsl" />
+            <ColorCard label="HSLA" value={formats.hsla} fieldId="hsla" />
+            <ColorCard label="HSV" value={formats.hsv} fieldId="hsv" />
+          </div>
+        </div>
+
+        {/* Advanced Formats */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            🔬 Advanced Formats
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+            <ColorCard label="LAB" value={formats.lab} fieldId="lab" />
+            <ColorCard label="LCH" value={formats.lch} fieldId="lch" />
+            <ColorCard label="CMYK (Simple)" value={formats.cmyk} fieldId="cmyk" />
+            {cmykProfiles?.fogra && (
+              <ColorCard label="CMYK (FOGRA Profile)" value={formats.cmykFogra} fieldId="cmykFogra" />
+            )}
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(158, 158, 158, 0.1)',
+              borderRadius: '4px',
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div><strong>Luminance:</strong> {luminance}</div>
+              <div style={{ fontSize: '11px', marginTop: '4px' }}>Relative luminance for contrast calculation</div>
+            </div>
+          </div>
+        </div>
+
+        {/* CMYK Profiles Details */}
+        {cmykProfiles && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: '12px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid var(--color-border)',
+            }}>
+              🖨️ CMYK Profiles (Printing)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(66, 133, 244, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(66, 133, 244, 0.3)',
+              }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Device-Dependent</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Standard formula</div>
+                <div style={{ fontSize: '11px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  C: {cmykProfiles.simple.c}% M: {cmykProfiles.simple.m}% Y: {cmykProfiles.simple.y}% K: {cmykProfiles.simple.k}%
+                </div>
+              </div>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(244, 81, 30, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(244, 81, 30, 0.3)',
+              }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>FOGRA Profile</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Industry standard (printing)</div>
+                <div style={{ fontSize: '11px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  C: {cmykProfiles.fogra.c}% M: {cmykProfiles.fogra.m}% Y: {cmykProfiles.fogra.y}% K: {cmykProfiles.fogra.k}%
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Accessibility */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            ♿ Accessibility (WCAG)
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>vs White</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#4caf50', marginBottom: '6px' }}>
+                {contrast.white}:1
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                <div>AA: {accessibility.aaSmallText ? '✓' : '✗'}</div>
+                <div>AAA: {accessibility.aaaSmallText ? '✓' : '✗'}</div>
+              </div>
+            </div>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(100, 100, 100, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(100, 100, 100, 0.3)',
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>vs Black</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: '#666', marginBottom: '6px' }}>
+                {contrast.black}:1
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                <div>AA: {accessibility.aaSmallText ? '✓' : '✗'}</div>
+                <div>AAA: {accessibility.aaaSmallText ? '✓' : '✗'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Color Variants */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            🌈 Variants & Palettes
+          </div>
+          <div style={{ marginBottom: '20px' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Shades (Darker)</div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                {variants.shades.map((shade, idx) => (
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <div style={{
+                      width: '100%',
+                      height: '40px',
+                      backgroundColor: shade,
+                      borderRadius: '4px',
+                      border: '1px solid var(--color-border)',
+                    }} />
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>-{(idx + 1) * 10}%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Tints (Lighter)</div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                {variants.tints.map((tint, idx) => (
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <div style={{
+                      width: '100%',
+                      height: '40px',
+                      backgroundColor: tint,
+                      borderRadius: '4px',
+                      border: '1px solid var(--color-border)',
+                    }} />
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>+{(idx + 1) * 10}%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Complementary</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <ColorSwatch hexColor={formats.hex} size="50px" />
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center' }}>Opposite</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Color Blindness Simulation */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            🧪 Color Blindness Simulation
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Protanopia</div>
+              <ColorSwatch hexColor={colorBlindness.protanopia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.protanopia.hex}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Deuteranopia</div>
+              <ColorSwatch hexColor={colorBlindness.deuteranopia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.deuteranopia.hex}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Tritanopia</div>
+              <ColorSwatch hexColor={colorBlindness.tritanopia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.tritanopia.hex}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600' }}>Achromatopsia</div>
+              <ColorSwatch hexColor={colorBlindness.achromatopsia.hex} size="60px" />
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{colorBlindness.achromatopsia.hex}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Delta-E Comparison */}
+        {deltaE && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: '12px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid var(--color-border)',
+            }}>
+              ⚖️ Delta-E Color Comparison
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(156, 39, 176, 0.3)',
+                marginBottom: '12px',
+              }}>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Comparing colors:</div>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>{deltaE.color1} → {deltaE.color2}</div>
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.color2Hex}</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(33, 150, 243, 0.3)',
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 76</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#2196f3', marginBottom: '4px' }}>{deltaE.deltaE76}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation76}</div>
+                </div>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 94</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#4caf50', marginBottom: '4px' }}>{deltaE.deltaE94}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation94}</div>
+                </div>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 152, 0, 0.3)',
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 2000</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#ff9800', marginBottom: '4px' }}>{deltaE.deltaE2000}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation2000}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Gradient Preview */}
+        {gradient?.startColor && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: '12px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid var(--color-border)',
+            }}>
+              🎨 Linear Gradient
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                width: '100%',
+                height: '80px',
+                borderRadius: '6px',
+                border: '1px solid var(--color-border)',
+                background: gradient.css,
+                marginBottom: '12px',
+              }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>From:</div>
+                  <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
+                    {gradient.startColor}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>To:</div>
+                  <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
+                    {gradient.endColor}
+                  </div>
+                </div>
+              </div>
+
+              {(() => {
+                // Find midpoint color (50%)
+                const midpoint = gradient.colors.find(c => c.percentage === 50) ||
+                                 gradient.colors[Math.floor(gradient.colors.length / 2)]
+                // Calculate contrast ratio between start and end
+                const startHex = gradient.startColor
+                const endHex = gradient.endColor
+                const startResult = colorConverter(startHex, {})
+                const endResult = colorConverter(endHex, {})
+
+                if (startResult.error || endResult.error) return null
+
+                const startLum = startResult.luminance || 0
+                const endLum = endResult.luminance || 0
+                const lighter = Math.max(startLum, endLum)
+                const darker = Math.min(startLum, endLum)
+                const contrastRatio = (lighter + 0.05) / (darker + 0.05)
+                const wcagPass = contrastRatio >= 4.5 ? '✓ Pass WCAG AA' : contrastRatio >= 3 ? '⚠ WCAG Large' : '✗ Fail WCAG'
+
+                return (
+                  <div style={{ marginBottom: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(33, 150, 243, 0.05)',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(33, 150, 243, 0.2)',
+                    }}>
+                      <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '4px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                        Contrast Ratio
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#2196f3', marginBottom: '4px' }}>
+                        {contrastRatio.toFixed(2)}:1
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        {wcagPass}
+                      </div>
+                    </div>
+                    {midpoint && (
+                      <div style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(76, 175, 80, 0.05)',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(76, 175, 80, 0.2)',
+                      }}>
+                        <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '4px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                          Midpoint (50%)
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{
+                            width: '30px',
+                            height: '30px',
+                            backgroundColor: midpoint.hex,
+                            borderRadius: '4px',
+                            border: '1px solid var(--color-border)',
+                          }} />
+                          <div>
+                            <div style={{ fontSize: '11px', fontWeight: '600', fontFamily: 'monospace', color: '#4caf50' }}>
+                              {midpoint.hex}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {gradient.colors.map((stop, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        backgroundColor: stop.hex,
+                        borderRadius: '4px',
+                        border: '1px solid var(--color-border)',
+                      }} />
+                      <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)' }}>{stop.percentage}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ColorCard label="CSS" value={gradient.css} fieldId="gradientCSS" />
+                {gradient.tailwind && (
+                  <ColorCard label="Tailwind" value={gradient.tailwind} fieldId="gradientTailwind" />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Palette Export */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            💾 Export Palette
+          </div>
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px',
+              marginBottom: '12px',
+            }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const json = {
+                    colors: [
+                      { name: 'current', hex: formats.hex, rgb: formats.rgb, hsl: formats.hsl }
+                    ]
+                  }
+                  handleCopyField(JSON.stringify(json, null, 2), 'paletteJSON')
+                }}
+                style={{
+                  padding: '10px',
+                  backgroundColor: copiedField === 'paletteJSON' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
+                  border: copiedField === 'paletteJSON' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: copiedField === 'paletteJSON' ? '#4caf50' : 'var(--color-text)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  if (copiedField !== 'paletteJSON') {
+                    e.target.style.backgroundColor = 'var(--color-background-secondary)'
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (copiedField !== 'paletteJSON') {
+                    e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                  }
+                }}
+              >
+                {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="${formats.hex}"/></svg>`
+                  handleCopyField(svg, 'paletteSVG')
+                }}
+                style={{
+                  padding: '10px',
+                  backgroundColor: copiedField === 'paletteSVG' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
+                  border: copiedField === 'paletteSVG' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: copiedField === 'paletteSVG' ? '#4caf50' : 'var(--color-text)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  if (copiedField !== 'paletteSVG') {
+                    e.target.style.backgroundColor = 'var(--color-background-secondary)'
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (copiedField !== 'paletteSVG') {
+                    e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                  }
+                }}
+              >
+                {copiedField === 'paletteSVG' ? '✓ Copied!' : '🖼️ SVG'}
+              </button>
+            </div>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(255, 193, 7, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(255, 193, 7, 0.3)',
+              fontSize: '11px',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{ fontWeight: '600', marginBottom: '4px' }}>💡 Tip</div>
+              Multiple colors? Save them as variants above to export grouped palettes.
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json',
+          },
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
   }
 
   const renderJsFormatterOutput = () => {
@@ -2379,6 +3572,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           ]}
           toolCategory={toolCategory}
           toolId={toolId}
+          showCopyButton={true}
         />
       )
     }
@@ -2407,6 +3601,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           ]}
           toolCategory={toolCategory}
           toolId={toolId}
+          showCopyButton={true}
         />
       )
     }
@@ -2493,6 +3688,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ]}
         toolCategory={toolCategory}
         toolId={toolId}
+        showCopyButton={true}
       />
     )
   }

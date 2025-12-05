@@ -32,7 +32,6 @@ const DEFAULT_TEST_CASES = [
   { input: '<svg width="100" height="100"><rect width="100" height="100"/></svg>', expected: 'svg-optimizer' },
   { input: '1234567.89123', expected: 'number-formatter' },
   { input: '101011', expected: 'base-converter' },
-  { input: '1100101011110001', expected: 'binary-converter' },
   { input: '(5 + 3) * 12 / 4', expected: 'math-evaluator' },
   { input: 'Hello world', expected: 'checksum-calculator' },
   { input: '1024 KB', expected: 'file-size-converter' },

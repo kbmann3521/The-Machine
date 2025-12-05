@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
+import { getSuggestionsForColor } from '../lib/tools/colorConverter'
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
   const [config, setConfig] = useState({})
+  const [colorSuggestions, setColorSuggestions] = useState({})
+  const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
 
   useEffect(() => {
     if (tool?.configSchema) {
@@ -44,6 +47,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     const value = config[field.id]
     const isJsFormatterInMinify = tool.toolId === 'js-formatter' && config.mode === 'minify'
     const isCssFormatterInMinify = tool.toolId === 'css-formatter' && config.mode === 'minify'
+    const isBaseConverterAutoDetect = tool.toolId === 'base-converter' && config.autoDetect
+    const isChecksumAutoDetect = tool.toolId === 'checksum-calculator' && config.autoDetect
 
     const jsFormatterDisabledFields = [
       'useSemicolons',
@@ -61,12 +66,109 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       'showLinting',
     ]
 
+    const baseConverterDisabledFields = ['fromBase']
+
+    const checksumDisabledFields = ['inputMode']
+
     const isFieldDisabled =
       (isJsFormatterInMinify && jsFormatterDisabledFields.includes(field.id)) ||
-      (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id))
+      (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id)) ||
+      (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id)) ||
+      (isChecksumAutoDetect && checksumDisabledFields.includes(field.id))
 
     switch (field.type) {
       case 'text':
+        // Special handling for color inputs with autocomplete
+        if (field.id === 'secondColor' || field.id === 'gradientEndColor') {
+          const isActive = activeSuggestionsField === field.id
+          const fieldSuggestions = colorSuggestions[field.id] || []
+
+          return (
+            <div key={field.id} style={{ position: 'relative' }} onMouseLeave={() => setActiveSuggestionsField(null)}>
+              <input
+                type="text"
+                className={styles.input}
+                value={value || ''}
+                onChange={(e) => {
+                  handleFieldChange(field.id, e.target.value)
+                  if (e.target.value.length > 0) {
+                    const suggestions = getSuggestionsForColor(e.target.value)
+                    setColorSuggestions(prev => ({ ...prev, [field.id]: suggestions }))
+                    setActiveSuggestionsField(field.id)
+                  } else {
+                    setActiveSuggestionsField(null)
+                  }
+                }}
+                onFocus={(e) => {
+                  if (e.target.value.length > 0) {
+                    const suggestions = getSuggestionsForColor(e.target.value)
+                    if (suggestions.length > 0) {
+                      setColorSuggestions(prev => ({ ...prev, [field.id]: suggestions }))
+                      setActiveSuggestionsField(field.id)
+                    }
+                  }
+                }}
+                onBlur={() => setActiveSuggestionsField(null)}
+                placeholder={field.placeholder || ''}
+                disabled={isFieldDisabled}
+              />
+              {isActive && fieldSuggestions.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'var(--color-background-secondary)',
+                  border: '1px solid var(--color-border)',
+                  borderTop: 'none',
+                  borderRadius: '0 0 4px 4px',
+                  zIndex: 10,
+                  maxHeight: '150px',
+                  overflowY: 'auto',
+                }}>
+                  {fieldSuggestions.map((suggestion) => (
+                    <div
+                      key={suggestion.name}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        handleFieldChange(field.id, suggestion.name)
+                        setActiveSuggestionsField(null)
+                      }}
+                      style={{
+                        padding: '8px 10px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid var(--color-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-background-tertiary)'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
+                    >
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        backgroundColor: suggestion.hex,
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '3px',
+                      }} />
+                      <span>{suggestion.name}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        {suggestion.hex}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        }
+
         return (
           <input
             key={field.id}
@@ -445,25 +547,85 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       )}
 
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
-        <div className={styles.fieldsContainer}>
-          {tool.configSchema.map(field => {
-            // Check if field should be visible based on visibleWhen condition
-            if (field.visibleWhen) {
-              const { field: conditionField, value: conditionValue } = field.visibleWhen
-              if (config[conditionField] !== conditionValue) {
-                return null
+        <div>
+          {(() => {
+            // Group fields by row number (if specified)
+            const rows = {}
+            const fieldsWithoutRow = []
+
+            tool.configSchema.forEach(field => {
+              // Check visibility
+              if (field.visibleWhen) {
+                const { field: conditionField, value: conditionValue } = field.visibleWhen
+                if (config[conditionField] !== conditionValue) {
+                  return
+                }
               }
+
+              if (field.row !== undefined) {
+                if (!rows[field.row]) rows[field.row] = []
+                rows[field.row].push(field)
+              } else {
+                fieldsWithoutRow.push(field)
+              }
+            })
+
+            // If there are fields with row numbers, render them grouped by row
+            if (Object.keys(rows).length > 0) {
+              return (
+                <>
+                  {Object.keys(rows).sort((a, b) => a - b).map(rowNum => (
+                    <div key={`row-${rowNum}`} className={styles.fieldsContainer}>
+                      {rows[rowNum].map(field => (
+                        <div key={field.id} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={field.id}>
+                            {field.label}
+                          </label>
+                          {renderField(field)}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  {fieldsWithoutRow.length > 0 && (
+                    <div className={styles.fieldsContainer}>
+                      {fieldsWithoutRow.map(field => (
+                        <div key={field.id} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={field.id}>
+                            {field.label}
+                          </label>
+                          {renderField(field)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )
             }
 
+            // Fallback: render all fields in a single grid (original behavior)
             return (
-              <div key={field.id} className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor={field.id}>
-                  {field.label}
-                </label>
-                {renderField(field)}
+              <div className={styles.fieldsContainer}>
+                {tool.configSchema.map(field => {
+                  // Check visibility
+                  if (field.visibleWhen) {
+                    const { field: conditionField, value: conditionValue } = field.visibleWhen
+                    if (config[conditionField] !== conditionValue) {
+                      return null
+                    }
+                  }
+
+                  return (
+                    <div key={field.id} className={styles.field}>
+                      <label className={styles.fieldLabel} htmlFor={field.id}>
+                        {field.label}
+                      </label>
+                      {renderField(field)}
+                    </div>
+                  )
+                })}
               </div>
             )
-          })}
+          })()}
         </div>
       )}
 
