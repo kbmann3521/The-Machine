@@ -716,13 +716,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // Color converter custom output
   if (toolId === 'color-converter' && displayResult?.formats) {
     const { formats, rgb, hsl, hsv, lab, lch, cmyk, luminance, contrast, accessibility, variants, colorBlindness, detectedFormat } = displayResult
-    const [expandedSections, setExpandedSections] = useState({
-      baseFormats: true,
-      advancedFormats: false,
-      variants: true,
-      accessibility: true,
-      colorBlindness: false,
-    })
 
     const toggleSection = (section) => {
       setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
