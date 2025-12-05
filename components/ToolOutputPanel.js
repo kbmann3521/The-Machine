@@ -4186,6 +4186,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderUnitConverterOutput()
       case 'ascii-unicode-converter':
         return renderAsciiUnicodeOutput()
+      case 'base64-converter':
+        return renderBase64ConverterOutput()
       default: {
         const tabs = []
 
