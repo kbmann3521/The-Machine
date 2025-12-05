@@ -709,6 +709,45 @@
   }
 }
 
+/* IP OUTPUT SECTIONS */
+.outputSectionContainer {
+  margin-bottom: 16px;
+}
+
+.outputSectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+
+.outputSectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.outputFieldRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background-color: var(--color-background-secondary);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.outputFieldLabel {
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.outputFieldValue {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  word-break: break-word;
+  text-align: right;
+}
+
 @media (max-width: 480px) {
   .tab {
     padding: 6px 8px;
