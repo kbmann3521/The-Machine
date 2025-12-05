@@ -59,30 +59,6 @@ export default function Home() {
   const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
 
-  // Load IP Toolkit config from localStorage
-  const [ipToolkitMode, setIpToolkitMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('ipToolkitMode') || 'single-ip'
-    }
-    return 'single-ip'
-  })
-  const [ipToolkitConfig, setIpToolkitConfig] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ipToolkitConfig')
-      return saved ? JSON.parse(saved) : {
-        validateIP: true,
-        normalize: true,
-        ipToInteger: true,
-        privatePublic: true,
-      }
-    }
-    return {
-      validateIP: true,
-      normalize: true,
-      ipToInteger: true,
-      privatePublic: true,
-    }
-  })
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
