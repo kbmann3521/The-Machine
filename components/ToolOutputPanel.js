@@ -841,24 +841,36 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         </div>
 
         {/* Advanced Formats */}
-        <ExpandableSection title="🔬 Advanced Formats" sectionId="advancedFormats">
-          <ColorCard label="LAB" value={formats.lab} fieldId="lab" />
-          <ColorCard label="LCH" value={formats.lch} fieldId="lch" />
-          <ColorCard label="CMYK (Simple)" value={formats.cmyk} fieldId="cmyk" />
-          {cmykProfiles?.fogra && (
-            <ColorCard label="CMYK (FOGRA Profile)" value={formats.cmykFogra} fieldId="cmykFogra" />
-          )}
+        <div>
           <div style={{
-            padding: '12px',
-            backgroundColor: 'rgba(158, 158, 158, 0.1)',
-            borderRadius: '4px',
             fontSize: '12px',
-            color: 'var(--color-text-secondary)',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
           }}>
-            <div><strong>Luminance:</strong> {luminance}</div>
-            <div style={{ fontSize: '11px', marginTop: '4px' }}>Relative luminance for contrast calculation</div>
+            🔬 Advanced Formats
           </div>
-        </ExpandableSection>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+            <ColorCard label="LAB" value={formats.lab} fieldId="lab" />
+            <ColorCard label="LCH" value={formats.lch} fieldId="lch" />
+            <ColorCard label="CMYK (Simple)" value={formats.cmyk} fieldId="cmyk" />
+            {cmykProfiles?.fogra && (
+              <ColorCard label="CMYK (FOGRA Profile)" value={formats.cmykFogra} fieldId="cmykFogra" />
+            )}
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(158, 158, 158, 0.1)',
+              borderRadius: '4px',
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div><strong>Luminance:</strong> {luminance}</div>
+              <div style={{ fontSize: '11px', marginTop: '4px' }}>Relative luminance for contrast calculation</div>
+            </div>
+          </div>
+        </div>
 
         {/* CMYK Profiles Details */}
         {cmykProfiles && (
