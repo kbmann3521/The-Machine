@@ -395,8 +395,6 @@ export default function Home() {
             ...config,
             compareText: checksumCompareText || '',
           }
-        } else if (tool.toolId === 'ip-address-toolkit') {
-          finalConfig = config
         }
 
         const response = await fetch('/api/tools/run', {
