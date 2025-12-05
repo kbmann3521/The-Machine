@@ -1110,6 +1110,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   value={gradient.mode || 'rgb'}
                   onChange={(e) => {
                     e.preventDefault()
+                    e.stopPropagation()
                     if (configOptions && onConfigChange) {
                       onConfigChange({ ...configOptions, gradientMode: e.target.value })
                     }
