@@ -642,7 +642,6 @@ export default function Home() {
                 {selectedTool?.toolId === 'ip-address-toolkit' ? (
                   <IPToolkitOutputPanel
                     key={selectedTool?.toolId}
-                    activeMode={ipToolkitMode}
                     result={outputResult}
                   />
                 ) : (
