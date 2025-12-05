@@ -159,6 +159,10 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
     fileInputRef.current?.click()
   }
 
+  const handleCompareTextChange = (value) => {
+    setCompareText(value)
+  }
+
   const handleLoadExample = () => {
     if (!selectedTool || !getToolExample) return
 
@@ -173,6 +177,7 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const handleClearInput = () => {
     setInputText('')
     setCharCount(0)
+    setCompareText('')
     setInputImage(null)
     setImagePreview(null)
     onInputChange('', null, null, false)
