@@ -820,6 +820,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               handleCopyField(value, fieldId)
             }}
             title="Copy to clipboard"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              minWidth: '32px',
+              minHeight: '28px'
+            }}
           >
             {copiedField === fieldId ? '✓' : <FaCopy />}
           </button>
