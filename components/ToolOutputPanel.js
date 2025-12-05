@@ -1024,7 +1024,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
         {/* Delta-E Comparison */}
         {deltaE && (
-          <ExpandableSection title="⚖️ Delta-E Color Comparison" sectionId="deltaE">
+          <ExpandableSection title="⚖️ Delta-E Color Comparison" sectionId="deltaE" defaultExpanded={false}>
             <div style={{
               padding: '12px',
               backgroundColor: 'rgba(156, 39, 176, 0.1)',
