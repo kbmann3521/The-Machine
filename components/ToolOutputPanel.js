@@ -767,6 +767,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         <div className={styles.copyCardHeader}>
           <span className={styles.copyCardLabel}>{label}</span>
           <button
+            type="button"
             className="copy-action"
             onClick={(e) => {
               e.preventDefault()
@@ -800,6 +801,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return (
         <div style={{ marginBottom: '16px' }}>
           <button
+            type="button"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -1105,54 +1107,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-              <div>
-                <label style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px', display: 'block', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
-                  Interpolation Mode
-                </label>
-                <select
-                  value={gradient.mode || 'rgb'}
-                  onChange={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (configOptions && onConfigChange) {
-                      onConfigChange({ ...configOptions, gradientMode: e.target.value })
-                    }
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '6px',
-                    backgroundColor: 'var(--color-background-tertiary)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '4px',
-                    color: 'var(--color-text)',
-                    fontSize: '11px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <option value="rgb">RGB (Fast)</option>
-                  <option value="hsl">HSL (Hue-based)</option>
-                  <option value="oklab">OKLAB (Perceptual) ⭐</option>
-                </select>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <label style={{ fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--color-text)' }}>
-                  <input
-                    type="checkbox"
-                    checked={gradient.reversed || false}
-                    onChange={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (configOptions && onConfigChange) {
-                        onConfigChange({ ...configOptions, gradientReversed: e.target.checked })
-                      }
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  Reverse Gradient
-                </label>
-              </div>
-            </div>
 
             <div style={{ marginBottom: '12px' }}>
               <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
@@ -1187,6 +1141,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             gap: '12px',
           }}>
             <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -1222,6 +1177,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
             </button>
             <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
