@@ -392,7 +392,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Checksum calculator custom output
   if (toolId === 'checksum-calculator' && displayResult?.algorithm) {
-    const { algorithm, conversions, metadata, byteLength, encoding, timestamp, outputFormat, primaryOutput, compareResult } = displayResult
+    const { algorithm, conversions, metadata, byteLength, encoding, timestamp, outputFormat, primaryOutput, compareResult, detectedMode, isAutoDetected } = displayResult
 
     const outputFormatLabels = {
       hex: 'Hexadecimal (0x)',
