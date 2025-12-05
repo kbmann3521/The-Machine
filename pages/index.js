@@ -69,9 +69,19 @@ export default function Home() {
   const [ipToolkitConfig, setIpToolkitConfig] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ipToolkitConfig')
-      return saved ? JSON.parse(saved) : {}
+      return saved ? JSON.parse(saved) : {
+        validateIP: true,
+        normalize: true,
+        ipToInteger: true,
+        privatePublic: true,
+      }
     }
-    return {}
+    return {
+      validateIP: true,
+      normalize: true,
+      ipToInteger: true,
+      privatePublic: true,
+    }
   })
 
   const debounceTimerRef = useRef(null)
