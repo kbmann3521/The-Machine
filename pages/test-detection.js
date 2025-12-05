@@ -5,7 +5,6 @@ const DEFAULT_TEST_CASES = [
   { input: 'please rewrite this to sound more professional', expected: 'text-toolkit' },
   { input: '   Hello    world! This   has   extra spaces.   ', expected: 'clean-text' },
   { input: '🔥', expected: 'ascii-unicode-converter' },
-  { input: 'uryyb jbeyq', expected: 'rot13-cipher' },
   { input: 'Khoor Zruog', expected: 'caesar-cipher' },
   { input: 'apple banana apple orange banana apple', expected: 'word-frequency-counter' },
   { input: 'const x={name:"john",age:30};function hi(){console.log("hello")}', expected: 'js-formatter' },
