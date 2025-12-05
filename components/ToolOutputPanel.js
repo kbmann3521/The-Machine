@@ -1096,6 +1096,52 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 </div>
               </div>
             </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px', display: 'block', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                  Interpolation Mode
+                </label>
+                <select
+                  value={gradient.mode || 'rgb'}
+                  onChange={(e) => {
+                    if (configOptions && onConfigChange) {
+                      onConfigChange({ ...configOptions, gradientMode: e.target.value })
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    backgroundColor: 'var(--color-background-tertiary)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '4px',
+                    color: 'var(--color-text)',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="rgb">RGB (Fast)</option>
+                  <option value="hsl">HSL (Hue-based)</option>
+                  <option value="oklab">OKLAB (Perceptual) ⭐</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <label style={{ fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--color-text)' }}>
+                  <input
+                    type="checkbox"
+                    checked={gradient.reversed || false}
+                    onChange={(e) => {
+                      if (configOptions && onConfigChange) {
+                        onConfigChange({ ...configOptions, gradientReversed: e.target.checked })
+                      }
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  Reverse Gradient
+                </label>
+              </div>
+            </div>
+
             <div style={{ marginBottom: '12px' }}>
               <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -1113,7 +1159,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 ))}
               </div>
             </div>
+
             <ColorCard label="CSS" value={gradient.css} fieldId="gradientCSS" />
+            {gradient.tailwind && (
+              <ColorCard label="Tailwind" value={gradient.tailwind} fieldId="gradientTailwind" />
+            )}
           </ExpandableSection>
         )}
 
