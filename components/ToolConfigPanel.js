@@ -464,7 +464,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             }
 
             return (
-              <div key={field.id} className={styles.field}>
+              <div
+                key={field.id}
+                className={styles.field}
+                style={field.row ? { gridColumn: field.row === 1 ? '1 / span 1' : '1 / span 1' } : {}}
+              >
                 <label className={styles.fieldLabel} htmlFor={field.id}>
                   {field.label}
                 </label>
