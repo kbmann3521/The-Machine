@@ -665,6 +665,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
             <div><strong>Input Length:</strong> {byteLength} bytes</div>
             <div><strong>Encoding:</strong> {encoding}</div>
+            {isAutoDetected && (
+              <div>
+                <strong>Input Mode:</strong>{' '}
+                {detectedMode === 'text' ? 'Text (UTF-8)' :
+                 detectedMode === 'hex' ? 'Hex bytes' :
+                 detectedMode === 'base64' ? 'Base64' :
+                 detectedMode === 'binary' ? 'Binary' :
+                 detectedMode} (auto-detected)
+              </div>
+            )}
             <div><strong>Algorithm ID:</strong> {algorithm}</div>
             <div><strong>Output Format:</strong> {outputFormatLabels[outputFormat] || outputFormat}</div>
             <div><strong>Processed:</strong> {new Date(timestamp).toLocaleTimeString()}</div>
