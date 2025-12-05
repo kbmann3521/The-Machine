@@ -81,7 +81,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         // Special handling for color inputs with autocomplete
         if (field.id === 'secondColor' || field.id === 'gradientEndColor') {
           return (
-            <div key={field.id} style={{ position: 'relative' }}>
+            <div key={field.id} style={{ position: 'relative' }} onMouseLeave={() => setShowSuggestions(false)}>
               <input
                 type="text"
                 className={styles.input}
@@ -96,7 +96,16 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     setShowSuggestions(false)
                   }
                 }}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onFocus={(e) => {
+                  if (e.target.value.length > 0) {
+                    const suggestions = getSuggestionsForColor(e.target.value)
+                    if (suggestions.length > 0) {
+                      setColorSuggestions(suggestions)
+                      setShowSuggestions(true)
+                    }
+                  }
+                }}
+                onBlur={() => setShowSuggestions(false)}
                 placeholder={field.placeholder || ''}
                 disabled={isFieldDisabled}
               />
@@ -117,7 +126,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   {colorSuggestions.map((suggestion) => (
                     <div
                       key={suggestion.name}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault()
                         handleFieldChange(field.id, suggestion.name)
                         setShowSuggestions(false)
                       }}
@@ -130,8 +140,12 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                         gap: '8px',
                         fontSize: '12px',
                       }}
-                      onMouseOver={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
-                      onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-background-tertiary)'
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
                     >
                       <div style={{
                         width: '20px',
