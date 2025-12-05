@@ -1118,54 +1118,67 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
         {/* Gradient Preview */}
         {gradient?.startColor && (
-          <ExpandableSection title="🎨 Linear Gradient" sectionId="gradient" defaultExpanded={true}>
+          <div>
             <div style={{
-              width: '100%',
-              height: '80px',
-              borderRadius: '6px',
-              border: '1px solid var(--color-border)',
-              background: gradient.css,
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text)',
               marginBottom: '12px',
-            }} />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>From:</div>
-                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
-                  {gradient.startColor}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>To:</div>
-                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
-                  {gradient.endColor}
-                </div>
-              </div>
+              paddingBottom: '12px',
+              borderBottom: '1px solid var(--color-border)',
+            }}>
+              🎨 Linear Gradient
             </div>
-
-
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {gradient.colors.map((stop, idx) => (
-                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      backgroundColor: stop.hex,
-                      borderRadius: '4px',
-                      border: '1px solid var(--color-border)',
-                    }} />
-                    <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)' }}>{stop.percentage}%</div>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                width: '100%',
+                height: '80px',
+                borderRadius: '6px',
+                border: '1px solid var(--color-border)',
+                background: gradient.css,
+                marginBottom: '12px',
+              }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>From:</div>
+                  <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
+                    {gradient.startColor}
                   </div>
-                ))}
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>To:</div>
+                  <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
+                    {gradient.endColor}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {gradient.colors.map((stop, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        backgroundColor: stop.hex,
+                        borderRadius: '4px',
+                        border: '1px solid var(--color-border)',
+                      }} />
+                      <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)' }}>{stop.percentage}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <ColorCard label="CSS" value={gradient.css} fieldId="gradientCSS" />
+                {gradient.tailwind && (
+                  <ColorCard label="Tailwind" value={gradient.tailwind} fieldId="gradientTailwind" />
+                )}
               </div>
             </div>
-
-            <ColorCard label="CSS" value={gradient.css} fieldId="gradientCSS" />
-            {gradient.tailwind && (
-              <ColorCard label="Tailwind" value={gradient.tailwind} fieldId="gradientTailwind" />
-            )}
-          </ExpandableSection>
+          </div>
         )}
 
         {/* Palette Export */}
