@@ -242,6 +242,19 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
           </div>
         )
 
+      case 'checkbox':
+        return (
+          <label key={field.id} className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={value || false}
+              onChange={e => handleFieldChange(field.id, e.target.checked)}
+              disabled={isFieldDisabled}
+            />
+            <span>{field.label}</span>
+          </label>
+        )
+
       case 'slider':
         return (
           <div key={field.id} className={styles.sliderContainer}>
