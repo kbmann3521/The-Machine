@@ -1125,19 +1125,27 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               }}
               style={{
                 padding: '10px',
-                backgroundColor: 'var(--color-background-tertiary)',
-                border: '1px solid var(--color-border)',
+                backgroundColor: copiedField === 'paletteJSON' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
+                border: copiedField === 'paletteJSON' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '600',
-                color: 'var(--color-text)',
+                color: copiedField === 'paletteJSON' ? '#4caf50' : 'var(--color-text)',
                 transition: 'all 0.2s',
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = 'var(--color-background-secondary)'}
-              onMouseOut={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
+              onMouseOver={(e) => {
+                if (copiedField !== 'paletteJSON') {
+                  e.target.style.backgroundColor = 'var(--color-background-secondary)'
+                }
+              }}
+              onMouseOut={(e) => {
+                if (copiedField !== 'paletteJSON') {
+                  e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                }
+              }}
             >
-              📄 JSON
+              {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
             </button>
             <button
               onClick={() => {
@@ -1146,19 +1154,27 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               }}
               style={{
                 padding: '10px',
-                backgroundColor: 'var(--color-background-tertiary)',
-                border: '1px solid var(--color-border)',
+                backgroundColor: copiedField === 'paletteSVG' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
+                border: copiedField === 'paletteSVG' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontSize: '12px',
                 fontWeight: '600',
-                color: 'var(--color-text)',
+                color: copiedField === 'paletteSVG' ? '#4caf50' : 'var(--color-text)',
                 transition: 'all 0.2s',
               }}
-              onMouseOver={(e) => e.target.style.backgroundColor = 'var(--color-background-secondary)'}
-              onMouseOut={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
+              onMouseOver={(e) => {
+                if (copiedField !== 'paletteSVG') {
+                  e.target.style.backgroundColor = 'var(--color-background-secondary)'
+                }
+              }}
+              onMouseOut={(e) => {
+                if (copiedField !== 'paletteSVG') {
+                  e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                }
+              }}
             >
-              🖼️ SVG
+              {copiedField === 'paletteSVG' ? '✓ Copied!' : '🖼️ SVG'}
             </button>
           </div>
           <div style={{
