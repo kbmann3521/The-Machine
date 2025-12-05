@@ -56,6 +56,7 @@ export default function Home() {
     removeTimestamps: false,
     removeDuplicateLines: false,
   })
+  const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
 
   // Load IP Toolkit config from localStorage
