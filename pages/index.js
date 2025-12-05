@@ -432,7 +432,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig, checksumCompareText]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText]
   )
 
   const handleRegenerate = useCallback(() => {
