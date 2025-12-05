@@ -205,7 +205,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
       'whitespace-visualizer': 'See hidden spaces, tabs, and line break characters',
       'ascii-unicode-converter': 'Convert between ASCII and Unicode encodings',
       'punycode-converter': 'Convert international domain names to punycode format',
-      'binary-converter': 'Convert numbers between binary, hex, octal, and decimal',
       'rot13-cipher': 'Apply ROT13 text cipher for simple obfuscation',
       'caesar-cipher': 'Apply Caesar cipher with custom character shift amount',
       'css-formatter': 'Format and beautify CSS code with proper indentation',
