@@ -1057,51 +1057,63 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
         {/* Delta-E Comparison */}
         {deltaE && (
-          <ExpandableSection title="⚖️ Delta-E Color Comparison" sectionId="deltaE" defaultExpanded={false}>
+          <div>
             <div style={{
-              padding: '12px',
-              backgroundColor: 'rgba(156, 39, 176, 0.1)',
-              borderRadius: '6px',
-              border: '1px solid rgba(156, 39, 176, 0.3)',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text)',
               marginBottom: '12px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid var(--color-border)',
             }}>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Comparing colors:</div>
-              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>{deltaE.color1} → {deltaE.color2}</div>
-              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.color2Hex}</div>
+              ⚖️ Delta-E Color Comparison
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+            <div style={{ marginBottom: '20px' }}>
               <div style={{
                 padding: '12px',
-                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                backgroundColor: 'rgba(156, 39, 176, 0.1)',
                 borderRadius: '6px',
-                border: '1px solid rgba(33, 150, 243, 0.3)',
+                border: '1px solid rgba(156, 39, 176, 0.3)',
+                marginBottom: '12px',
               }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 76</div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#2196f3', marginBottom: '4px' }}>{deltaE.deltaE76}</div>
-                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation76}</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Comparing colors:</div>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>{deltaE.color1} → {deltaE.color2}</div>
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.color2Hex}</div>
               </div>
-              <div style={{
-                padding: '12px',
-                backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                borderRadius: '6px',
-                border: '1px solid rgba(76, 175, 80, 0.3)',
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 94</div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#4caf50', marginBottom: '4px' }}>{deltaE.deltaE94}</div>
-                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation94}</div>
-              </div>
-              <div style={{
-                padding: '12px',
-                backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                borderRadius: '6px',
-                border: '1px solid rgba(255, 152, 0, 0.3)',
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 2000</div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#ff9800', marginBottom: '4px' }}>{deltaE.deltaE2000}</div>
-                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation2000}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(33, 150, 243, 0.3)',
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 76</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#2196f3', marginBottom: '4px' }}>{deltaE.deltaE76}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation76}</div>
+                </div>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 94</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#4caf50', marginBottom: '4px' }}>{deltaE.deltaE94}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation94}</div>
+                </div>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 152, 0, 0.3)',
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 2000</div>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#ff9800', marginBottom: '4px' }}>{deltaE.deltaE2000}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation2000}</div>
+                </div>
               </div>
             </div>
-          </ExpandableSection>
+          </div>
         )}
 
         {/* Gradient Preview */}
