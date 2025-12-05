@@ -44,6 +44,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     const value = config[field.id]
     const isJsFormatterInMinify = tool.toolId === 'js-formatter' && config.mode === 'minify'
     const isCssFormatterInMinify = tool.toolId === 'css-formatter' && config.mode === 'minify'
+    const isBaseConverterAutoDetect = tool.toolId === 'base-converter' && config.autoDetect
 
     const jsFormatterDisabledFields = [
       'useSemicolons',
@@ -61,9 +62,12 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       'showLinting',
     ]
 
+    const baseConverterDisabledFields = ['fromBase']
+
     const isFieldDisabled =
       (isJsFormatterInMinify && jsFormatterDisabledFields.includes(field.id)) ||
-      (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id))
+      (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id)) ||
+      (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id))
 
     switch (field.type) {
       case 'text':
