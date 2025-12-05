@@ -768,7 +768,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           <span className={styles.copyCardLabel}>{label}</span>
           <button
             className="copy-action"
-            onClick={() => handleCopyField(value, fieldId)}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleCopyField(value, fieldId)
+            }}
             title="Copy to clipboard"
           >
             {copiedField === fieldId ? '✓' : <FaCopy />}
