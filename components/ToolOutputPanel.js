@@ -3730,6 +3730,223 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
+  const renderBase64ConverterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    const { output, formats = {}, metadata = {} } = displayResult
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Primary Output */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Primary Output
+          </div>
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>Result</span>
+              <button
+                type="button"
+                className="copy-action"
+                onClick={() => handleCopyField(output, 'base64-primary')}
+                title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
+              >
+                {copiedField === 'base64-primary' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+              {output}
+            </div>
+          </div>
+        </div>
+
+        {/* All Conversion Formats */}
+        {Object.keys(formats).length > 0 && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              All Formats
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {Object.entries(formats).map(([formatName, formatValue]) => (
+                <div key={formatName} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>{formatName}</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(formatValue, `base64-format-${formatName}`)}
+                      title="Copy to clipboard"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `base64-format-${formatName}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', maxHeight: '150px', overflowY: 'auto' }}>
+                    {formatValue}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metadata Summary */}
+        {Object.keys(metadata).length > 0 && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Metadata
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {Object.entries(metadata).map(([metaKey, metaValue]) => (
+                <div key={metaKey} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>{metaKey}</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(metaValue, `base64-meta-${metaKey}`)}
+                      title="Copy to clipboard"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `base64-meta-${metaKey}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue}>
+                    {metaValue}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
