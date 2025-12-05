@@ -554,6 +554,8 @@ export default function Home() {
                 <UniversalInput
                   onInputChange={handleInputChange}
                   onImageChange={handleImageChange}
+                  onCompareTextChange={setChecksumCompareText}
+                  compareText={checksumCompareText}
                   selectedTool={selectedTool}
                   configOptions={configOptions}
                   getToolExample={getToolExample}
