@@ -986,6 +986,169 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             </div>
           </div>
         </ExpandableSection>
+
+        {/* Delta-E Comparison */}
+        {deltaE && (
+          <ExpandableSection title="⚖️ Delta-E Color Comparison" sectionId="deltaE">
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(156, 39, 176, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(156, 39, 176, 0.3)',
+              marginBottom: '12px',
+            }}>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Comparing colors:</div>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px' }}>{deltaE.color1} → {deltaE.color2}</div>
+              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.color2Hex}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(33, 150, 243, 0.3)',
+              }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 76</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#2196f3', marginBottom: '4px' }}>{deltaE.deltaE76}</div>
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation76}</div>
+              </div>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(76, 175, 80, 0.3)',
+              }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 94</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#4caf50', marginBottom: '4px' }}>{deltaE.deltaE94}</div>
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation94}</div>
+              </div>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(255, 152, 0, 0.3)',
+              }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>ΔE 2000</div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#ff9800', marginBottom: '4px' }}>{deltaE.deltaE2000}</div>
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{deltaE.interpretation2000}</div>
+              </div>
+            </div>
+          </ExpandableSection>
+        )}
+
+        {/* Gradient Preview */}
+        {gradient && (
+          <ExpandableSection title="🎨 Linear Gradient" sectionId="gradient" defaultExpanded={true}>
+            <div style={{
+              width: '100%',
+              height: '80px',
+              borderRadius: '6px',
+              border: '1px solid var(--color-border)',
+              background: gradient.gradient.css,
+              marginBottom: '12px',
+            }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>From:</div>
+                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
+                  {gradient.gradient.startColor}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>To:</div>
+                <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
+                  {gradient.gradient.endColor}
+                </div>
+              </div>
+            </div>
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {gradient.gradient.colors.map((stop, idx) => (
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      backgroundColor: stop.hex,
+                      borderRadius: '4px',
+                      border: '1px solid var(--color-border)',
+                    }} />
+                    <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)' }}>{stop.percentage}%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <ColorCard label="CSS" value={gradient.gradient.css} fieldId="gradientCSS" />
+          </ExpandableSection>
+        )}
+
+        {/* Palette Export */}
+        <ExpandableSection title="💾 Export Palette" sectionId="paletteExport" defaultExpanded={false}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+          }}>
+            <button
+              onClick={() => {
+                const json = {
+                  colors: [
+                    { name: 'current', hex: formats.hex, rgb: formats.rgb, hsl: formats.hsl }
+                  ]
+                }
+                handleCopyField(JSON.stringify(json, null, 2), 'paletteJSON')
+              }}
+              style={{
+                padding: '10px',
+                backgroundColor: 'var(--color-background-tertiary)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: 'var(--color-text)',
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'var(--color-background-secondary)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
+            >
+              📄 JSON
+            </button>
+            <button
+              onClick={() => {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="${formats.hex}"/></svg>`
+                handleCopyField(svg, 'paletteSVG')
+              }}
+              style={{
+                padding: '10px',
+                backgroundColor: 'var(--color-background-tertiary)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: 'var(--color-text)',
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = 'var(--color-background-secondary)'}
+              onMouseOut={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
+            >
+              🖼️ SVG
+            </button>
+          </div>
+          <div style={{
+            padding: '12px',
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            borderRadius: '6px',
+            border: '1px solid rgba(255, 193, 7, 0.3)',
+            marginTop: '12px',
+            fontSize: '11px',
+            color: 'var(--color-text-secondary)',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '4px' }}>💡 Tip</div>
+            Multiple colors? Save them as variants above to export grouped palettes.
+          </div>
+        </ExpandableSection>
       </div>
     )
 
