@@ -453,29 +453,85 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       )}
 
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
-        <div className={styles.fieldsContainer}>
-          {tool.configSchema.map(field => {
-            // Check if field should be visible based on visibleWhen condition
-            if (field.visibleWhen) {
-              const { field: conditionField, value: conditionValue } = field.visibleWhen
-              if (config[conditionField] !== conditionValue) {
-                return null
+        <div>
+          {(() => {
+            // Group fields by row number (if specified)
+            const rows = {}
+            const fieldsWithoutRow = []
+
+            tool.configSchema.forEach(field => {
+              // Check visibility
+              if (field.visibleWhen) {
+                const { field: conditionField, value: conditionValue } = field.visibleWhen
+                if (config[conditionField] !== conditionValue) {
+                  return
+                }
               }
+
+              if (field.row !== undefined) {
+                if (!rows[field.row]) rows[field.row] = []
+                rows[field.row].push(field)
+              } else {
+                fieldsWithoutRow.push(field)
+              }
+            })
+
+            // If there are fields with row numbers, render them grouped by row
+            if (Object.keys(rows).length > 0) {
+              return (
+                <>
+                  {Object.keys(rows).sort((a, b) => a - b).map(rowNum => (
+                    <div key={`row-${rowNum}`} className={styles.fieldsContainer}>
+                      {rows[rowNum].map(field => (
+                        <div key={field.id} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={field.id}>
+                            {field.label}
+                          </label>
+                          {renderField(field)}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  {fieldsWithoutRow.length > 0 && (
+                    <div className={styles.fieldsContainer}>
+                      {fieldsWithoutRow.map(field => (
+                        <div key={field.id} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={field.id}>
+                            {field.label}
+                          </label>
+                          {renderField(field)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )
             }
 
+            // Fallback: render all fields in a single grid (original behavior)
             return (
-              <div
-                key={field.id}
-                className={styles.field}
-                style={field.row ? { gridColumn: field.row === 1 ? '1 / span 1' : '1 / span 1' } : {}}
-              >
-                <label className={styles.fieldLabel} htmlFor={field.id}>
-                  {field.label}
-                </label>
-                {renderField(field)}
+              <div className={styles.fieldsContainer}>
+                {tool.configSchema.map(field => {
+                  // Check visibility
+                  if (field.visibleWhen) {
+                    const { field: conditionField, value: conditionValue } = field.visibleWhen
+                    if (config[conditionField] !== conditionValue) {
+                      return null
+                    }
+                  }
+
+                  return (
+                    <div key={field.id} className={styles.field}>
+                      <label className={styles.fieldLabel} htmlFor={field.id}>
+                        {field.label}
+                      </label>
+                      {renderField(field)}
+                    </div>
+                  )
+                })}
               </div>
             )
-          })}
+          })()}
         </div>
       )}
 
