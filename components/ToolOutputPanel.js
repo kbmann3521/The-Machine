@@ -481,6 +481,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 className="copy-action"
                 onClick={() => handleCopyField(primaryOutput, 'checksum-primary')}
                 title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
               >
                 {copiedField === 'checksum-primary' ? '✓' : <FaCopy />}
               </button>
