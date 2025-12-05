@@ -4,6 +4,8 @@ import { getSuggestionsForColor } from '../lib/tools/colorConverter'
 
 export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
   const [config, setConfig] = useState({})
+  const [colorSuggestions, setColorSuggestions] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
   useEffect(() => {
     if (tool?.configSchema) {
