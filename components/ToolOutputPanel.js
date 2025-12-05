@@ -961,51 +961,63 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         </div>
 
         {/* Color Variants */}
-        <ExpandableSection title="🌈 Variants & Palettes" sectionId="variants">
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Shades (Darker)</div>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-              {variants.shades.map((shade, idx) => (
-                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <div style={{
-                    width: '100%',
-                    height: '40px',
-                    backgroundColor: shade,
-                    borderRadius: '4px',
-                    border: '1px solid var(--color-border)',
-                  }} />
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>-{(idx + 1) * 10}%</div>
-                </div>
-              ))}
-            </div>
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
+          }}>
+            🌈 Variants & Palettes
           </div>
+          <div style={{ marginBottom: '20px' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Shades (Darker)</div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                {variants.shades.map((shade, idx) => (
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <div style={{
+                      width: '100%',
+                      height: '40px',
+                      backgroundColor: shade,
+                      borderRadius: '4px',
+                      border: '1px solid var(--color-border)',
+                    }} />
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>-{(idx + 1) * 10}%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Tints (Lighter)</div>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-              {variants.tints.map((tint, idx) => (
-                <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <div style={{
-                    width: '100%',
-                    height: '40px',
-                    backgroundColor: tint,
-                    borderRadius: '4px',
-                    border: '1px solid var(--color-border)',
-                  }} />
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>+{(idx + 1) * 10}%</div>
-                </div>
-              ))}
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Tints (Lighter)</div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                {variants.tints.map((tint, idx) => (
+                  <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <div style={{
+                      width: '100%',
+                      height: '40px',
+                      backgroundColor: tint,
+                      borderRadius: '4px',
+                      border: '1px solid var(--color-border)',
+                    }} />
+                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>+{(idx + 1) * 10}%</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div>
-            <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Complementary</div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <ColorSwatch hexColor={formats.hex} size="50px" />
-              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center' }}>Opposite</div>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase' }}>Complementary</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <ColorSwatch hexColor={formats.hex} size="50px" />
+                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center' }}>Opposite</div>
+              </div>
             </div>
           </div>
-        </ExpandableSection>
+        </div>
 
         {/* Color Blindness Simulation */}
         <ExpandableSection title="🧪 Color Blindness Simulation" sectionId="colorBlindness">
