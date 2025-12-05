@@ -339,8 +339,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         key={toolId}
         tabs={[
           {
-            id: 'conversions',
-            label: 'CONVERSIONS',
+            id: 'output',
+            label: 'OUTPUT',
             content: outputContent,
             contentType: 'component',
           },
