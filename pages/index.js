@@ -501,7 +501,7 @@ export default function Home() {
     return () => {
       abortController.abort()
     }
-  }, [selectedTool, imagePreview, configOptions, ipToolkitConfig, autoRunTool, inputChangeKey])
+  }, [selectedTool, imagePreview, configOptions, checksumCompareText, ipToolkitConfig, autoRunTool, inputChangeKey])
 
 
   return (
