@@ -116,21 +116,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const { conversions, detectedBase, detectionReason, input, details } = displayResult
 
     const baseNames = {
-      binary: 'Binary (base 2)',
-      octal: 'Octal (base 8)',
-      decimal: 'Decimal (base 10)',
-      hexadecimal: 'Hexadecimal (base 16)',
-    }
-
-    const baseSymbols = {
-      binary: '2',
-      octal: '8',
-      decimal: '10',
-      hexadecimal: '16',
+      binary: 'Binary',
+      octal: 'Octal',
+      decimal: 'Decimal',
+      hexadecimal: 'Hexadecimal',
     }
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {detectedBase && (
           <div style={{
             padding: '12px 16px',
@@ -144,65 +137,23 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {Object.entries(conversions).map(([key, value]) => {
             if (key.startsWith('base_')) return null
             return (
-              <div
-                key={key}
-                style={{
-                  border: '1px solid var(--color-border, #ddd)',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                  backgroundColor: 'var(--color-bg-secondary, #f5f5f5)',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '10px 12px',
-                    backgroundColor: 'var(--color-bg-input, #e8e8e8)',
-                    borderBottom: '1px solid var(--color-border, #ddd)',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    color: 'var(--color-text-secondary, #666)',
-                  }}
-                >
-                  {baseNames[key]}
-                </div>
-                <div
-                  style={{
-                    padding: '12px',
-                    fontFamily: 'monospace',
-                    fontSize: '14px',
-                    wordBreak: 'break-all',
-                    color: 'var(--color-text, #000)',
-                    backgroundColor: 'var(--color-bg-primary, #fff)',
-                  }}
-                >
-                  {value}
-                </div>
-                <div style={{ display: 'flex', gap: '6px', padding: '8px 12px', borderTop: '1px solid var(--color-border, #ddd)' }}>
+              <div key={key} className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>{baseNames[key]} (base {key === 'binary' ? '2' : key === 'octal' ? '8' : key === 'decimal' ? '10' : '16'})</span>
                   <button
                     className="copy-action"
                     onClick={() => handleCopyField(value, `base-${key}`)}
                     title="Copy to clipboard"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      backgroundColor: 'var(--color-primary, #0066cc)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                    }}
                   >
-                    {copiedField === `base-${key}` ? '✓ Copied' : <><FaCopy /> Copy</>}
+                    {copiedField === `base-${key}` ? '✓' : <FaCopy />}
                   </button>
+                </div>
+                <div className={styles.copyCardValue}>
+                  {value}
                 </div>
               </div>
             )
@@ -213,29 +164,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           if (!key.startsWith('base_')) return null
           const baseNum = key.replace('base_', '')
           return (
-            <div key={key} style={{ padding: '12px 16px', border: '1px solid var(--color-border, #ddd)', borderRadius: '4px', backgroundColor: 'var(--color-bg-secondary, #f5f5f5)' }}>
-              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary, #666)' }}>Base {baseNum}</div>
-              <div style={{ fontFamily: 'monospace', fontSize: '14px', wordBreak: 'break-all', color: 'var(--color-text, #000)' }}>{value}</div>
-              <button
-                className="copy-action"
-                onClick={() => handleCopyField(value, `base-${baseNum}`)}
-                title="Copy to clipboard"
-                style={{
-                  marginTop: '8px',
-                  padding: '6px 12px',
-                  fontSize: '12px',
-                  backgroundColor: 'var(--color-primary, #0066cc)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                {copiedField === `base-${baseNum}` ? '✓ Copied' : <><FaCopy /> Copy</>}
-              </button>
+            <div key={key} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>Base {baseNum}</span>
+                <button
+                  className="copy-action"
+                  onClick={() => handleCopyField(value, `base-${baseNum}`)}
+                  title="Copy to clipboard"
+                >
+                  {copiedField === `base-${baseNum}` ? '✓' : <FaCopy />}
+                </button>
+              </div>
+              <div className={styles.copyCardValue}>
+                {value}
+              </div>
             </div>
           )
         })}
