@@ -1183,6 +1183,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             <button
               onClick={(e) => {
                 e.preventDefault()
+                e.stopPropagation()
                 const json = {
                   colors: [
                     { name: 'current', hex: formats.hex, rgb: formats.rgb, hsl: formats.hsl }
