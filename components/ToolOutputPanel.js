@@ -1037,7 +1037,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )}
 
         {/* Gradient Preview */}
-        {gradient && (
+        {gradient?.gradient && (
           <ExpandableSection title="🎨 Linear Gradient" sectionId="gradient" defaultExpanded={true}>
             <div style={{
               width: '100%',
