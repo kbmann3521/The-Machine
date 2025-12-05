@@ -392,7 +392,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Checksum calculator custom output
   if (toolId === 'checksum-calculator' && displayResult?.algorithm) {
-    const { algorithm, conversions, metadata, byteLength, encoding, timestamp } = displayResult
+    const { algorithm, conversions, metadata, byteLength, encoding, timestamp, outputFormat, primaryOutput, compareResult } = displayResult
+
+    const outputFormatLabels = {
+      hex: 'Hexadecimal (0x)',
+      'hex-plain': 'Hex (plain)',
+      decimal: 'Decimal',
+      binary: 'Binary',
+      'bytes-be': 'Bytes (Big-endian)',
+      'bytes-le': 'Bytes (Little-endian)',
+    }
 
     const outputContent = (
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -431,7 +440,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
         </div>
 
-        {/* Checksum Results Section */}
+        {/* Primary Checksum Output Section */}
         <div>
           <div style={{
             fontSize: '12px',
@@ -443,7 +452,38 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
           }}>
-            Checksum Results
+            Primary Output ({outputFormatLabels[outputFormat] || outputFormat})
+          </div>
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>{outputFormatLabels[outputFormat] || outputFormat}</span>
+              <button
+                className="copy-action"
+                onClick={() => handleCopyField(primaryOutput, 'checksum-primary')}
+                title="Copy to clipboard"
+              >
+                {copiedField === 'checksum-primary' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', fontSize: '14px', fontWeight: '500' }}>
+              {primaryOutput}
+            </div>
+          </div>
+        </div>
+
+        {/* All Formats Section */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            All Formats
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {Object.entries(conversions).map(([key, value]) => {
@@ -477,6 +517,142 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
         </div>
 
+        {/* Compare Mode Section */}
+        {compareResult && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Comparison Results
+            </div>
+
+            {compareResult.error ? (
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                border: '1px solid rgba(239, 83, 80, 0.3)',
+                borderRadius: '4px',
+                color: '#ef5350',
+                fontSize: '13px',
+              }}>
+                Error processing second input: {compareResult.error}
+              </div>
+            ) : (
+              <>
+                {/* Match Status */}
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: compareResult.match
+                    ? 'rgba(76, 175, 80, 0.1)'
+                    : 'rgba(255, 152, 0, 0.1)',
+                  border: compareResult.match
+                    ? '1px solid rgba(76, 175, 80, 0.3)'
+                    : '1px solid rgba(255, 152, 0, 0.3)',
+                  borderRadius: '4px',
+                  marginBottom: '16px',
+                }}>
+                  <div style={{
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: compareResult.match ? '#4caf50' : '#ff9800',
+                    marginBottom: '8px',
+                  }}>
+                    {compareResult.match ? '✓ MATCH' : '✗ MISMATCH'}
+                  </div>
+                  {!compareResult.match && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: compareResult.match ? 'var(--color-text-secondary)' : '#ff9800',
+                    }}>
+                      Input A and Input B produce different checksums
+                    </div>
+                  )}
+                </div>
+
+                {/* Comparison Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '8px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Input A
+                    </div>
+                    <div className={styles.copyCard}>
+                      <div className={styles.copyCardHeader}>
+                        <span className={styles.copyCardLabel}>{outputFormatLabels[outputFormat] || outputFormat}</span>
+                        <button
+                          className="copy-action"
+                          onClick={() => handleCopyField(displayResult.primaryOutput, 'compare-input-a')}
+                          title="Copy to clipboard"
+                        >
+                          {copiedField === 'compare-input-a' ? '✓' : <FaCopy />}
+                        </button>
+                      </div>
+                      <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+                        {displayResult.primaryOutput}
+                      </div>
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-secondary)',
+                      marginTop: '6px',
+                    }}>
+                      {byteLength} bytes
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '8px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Input B
+                    </div>
+                    <div className={styles.copyCard}>
+                      <div className={styles.copyCardHeader}>
+                        <span className={styles.copyCardLabel}>{outputFormatLabels[outputFormat] || outputFormat}</span>
+                        <button
+                          className="copy-action"
+                          onClick={() => handleCopyField(compareResult.primaryOutput2, 'compare-input-b')}
+                          title="Copy to clipboard"
+                        >
+                          {copiedField === 'compare-input-b' ? '✓' : <FaCopy />}
+                        </button>
+                      </div>
+                      <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+                        {compareResult.primaryOutput2}
+                      </div>
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-secondary)',
+                      marginTop: '6px',
+                    }}>
+                      {compareResult.byteLength2} bytes
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Metadata Section */}
         <div style={{
           padding: '12px 16px',
@@ -490,6 +666,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             <div><strong>Input Length:</strong> {byteLength} bytes</div>
             <div><strong>Encoding:</strong> {encoding}</div>
             <div><strong>Algorithm ID:</strong> {algorithm}</div>
+            <div><strong>Output Format:</strong> {outputFormatLabels[outputFormat] || outputFormat}</div>
             <div><strong>Processed:</strong> {new Date(timestamp).toLocaleTimeString()}</div>
           </div>
         </div>
