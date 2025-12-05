@@ -45,6 +45,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     const isJsFormatterInMinify = tool.toolId === 'js-formatter' && config.mode === 'minify'
     const isCssFormatterInMinify = tool.toolId === 'css-formatter' && config.mode === 'minify'
     const isBaseConverterAutoDetect = tool.toolId === 'base-converter' && config.autoDetect
+    const isChecksumAutoDetect = tool.toolId === 'checksum-calculator' && config.autoDetect
 
     const jsFormatterDisabledFields = [
       'useSemicolons',
@@ -64,10 +65,20 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
     const baseConverterDisabledFields = ['fromBase']
 
+    const checksumHiddenFields = ['inputMode']
+
+    const isFieldHidden =
+      (isChecksumAutoDetect && checksumHiddenFields.includes(field.id))
+
     const isFieldDisabled =
       (isJsFormatterInMinify && jsFormatterDisabledFields.includes(field.id)) ||
       (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id)) ||
       (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id))
+
+    // Hide field if it should be hidden
+    if (isFieldHidden) {
+      return null
+    }
 
     switch (field.type) {
       case 'text':
