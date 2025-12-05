@@ -104,18 +104,6 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     onInputChange(value, null, null, isPaste)
   }
 
-  const notifyCompareTextChange = () => {
-    // Trigger tool re-run by calling onInputChange with current compareText
-    // This ensures the tool config gets updated
-    if (inputText && selectedTool?.toolId === 'checksum-calculator' && configOptions.compareMode) {
-      onInputChange(inputText, null, null, false)
-    }
-  }
-
-  React.useEffect(() => {
-    notifyCompareTextChange()
-  }, [compareText, configOptions.compareMode, selectedTool?.toolId])
-
   const handlePaste = (e) => {
     isPasteRef.current = true
   }
