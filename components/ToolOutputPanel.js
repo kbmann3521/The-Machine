@@ -268,50 +268,83 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {Object.entries(conversions).map(([key, value]) => {
-            if (key.startsWith('base_')) return null
-            return (
-              <div key={key} className={styles.copyCard}>
-                <div className={styles.copyCardHeader}>
-                  <span className={styles.copyCardLabel}>{baseNames[key]} (base {key === 'binary' ? '2' : key === 'octal' ? '8' : key === 'decimal' ? '10' : '16'})</span>
-                  <button
-                    className="copy-action"
-                    onClick={() => handleCopyField(value, `base-${key}`)}
-                    title="Copy to clipboard"
-                  >
-                    {copiedField === `base-${key}` ? '✓' : <FaCopy />}
-                  </button>
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Standard Conversions
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {Object.entries(conversions).map(([key, value]) => {
+              if (key.startsWith('base_')) return null
+              return (
+                <div key={key} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>{baseNames[key]} (base {key === 'binary' ? '2' : key === 'octal' ? '8' : key === 'decimal' ? '10' : '16'})</span>
+                    <button
+                      className="copy-action"
+                      onClick={() => handleCopyField(value, `base-${key}`)}
+                      title="Copy to clipboard"
+                    >
+                      {copiedField === `base-${key}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue}>
+                    {value}
+                  </div>
                 </div>
-                <div className={styles.copyCardValue}>
-                  {value}
-                </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
 
-        {Object.entries(conversions).map(([key, value]) => {
-          if (!key.startsWith('base_')) return null
-          const baseNum = key.replace('base_', '')
-          return (
-            <div key={key} className={styles.copyCard}>
-              <div className={styles.copyCardHeader}>
-                <span className={styles.copyCardLabel}>Base {baseNum}</span>
-                <button
-                  className="copy-action"
-                  onClick={() => handleCopyField(value, `base-${baseNum}`)}
-                  title="Copy to clipboard"
-                >
-                  {copiedField === `base-${baseNum}` ? '✓' : <FaCopy />}
-                </button>
-              </div>
-              <div className={styles.copyCardValue}>
-                {value}
-              </div>
+        {Object.entries(conversions).some(([key]) => key.startsWith('base_')) && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingTop: '8px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Custom Conversion
             </div>
-          )
-        })}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {Object.entries(conversions).map(([key, value]) => {
+                if (!key.startsWith('base_')) return null
+                const baseNum = key.replace('base_', '')
+                return (
+                  <div key={key} className={styles.copyCard}>
+                    <div className={styles.copyCardHeader}>
+                      <span className={styles.copyCardLabel}>Base {baseNum}</span>
+                      <button
+                        className="copy-action"
+                        onClick={() => handleCopyField(value, `base-${baseNum}`)}
+                        title="Copy to clipboard"
+                      >
+                        {copiedField === `base-${baseNum}` ? '✓' : <FaCopy />}
+                      </button>
+                    </div>
+                    <div className={styles.copyCardValue}>
+                      {value}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {details && (
           <div style={{
