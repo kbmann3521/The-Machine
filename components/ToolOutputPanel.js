@@ -6,6 +6,7 @@ import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CodeMirrorOutput from './CodeMirrorOutput'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
+import { colorConverter } from '../lib/tools/colorConverter'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview }) {
   const toolCategory = TOOLS[toolId]?.category
