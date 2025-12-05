@@ -461,7 +461,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    []
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, ipToolkitConfig, checksumCompareText]
   )
 
   const handleRegenerate = useCallback(() => {
