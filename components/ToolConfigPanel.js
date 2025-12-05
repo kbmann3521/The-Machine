@@ -65,20 +65,13 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
     const baseConverterDisabledFields = ['fromBase']
 
-    const checksumHiddenFields = ['inputMode']
-
-    const isFieldHidden =
-      (isChecksumAutoDetect && checksumHiddenFields.includes(field.id))
+    const checksumDisabledFields = ['inputMode']
 
     const isFieldDisabled =
       (isJsFormatterInMinify && jsFormatterDisabledFields.includes(field.id)) ||
       (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id)) ||
-      (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id))
-
-    // Hide field if it should be hidden
-    if (isFieldHidden) {
-      return null
-    }
+      (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id)) ||
+      (isChecksumAutoDetect && checksumDisabledFields.includes(field.id))
 
     switch (field.type) {
       case 'text':
