@@ -1037,34 +1037,34 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )}
 
         {/* Gradient Preview */}
-        {gradient?.gradient && (
+        {gradient?.startColor && (
           <ExpandableSection title="🎨 Linear Gradient" sectionId="gradient" defaultExpanded={true}>
             <div style={{
               width: '100%',
               height: '80px',
               borderRadius: '6px',
               border: '1px solid var(--color-border)',
-              background: gradient.gradient.css,
+              background: gradient.css,
               marginBottom: '12px',
             }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>From:</div>
                 <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
-                  {gradient.gradient.startColor}
+                  {gradient.startColor}
                 </div>
               </div>
               <div>
                 <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>To:</div>
                 <div style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>
-                  {gradient.gradient.endColor}
+                  {gradient.endColor}
                 </div>
               </div>
             </div>
             <div style={{ marginBottom: '12px' }}>
               <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {gradient.gradient.colors.map((stop, idx) => (
+                {gradient.colors.map((stop, idx) => (
                   <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                     <div style={{
                       width: '40px',
@@ -1078,7 +1078,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 ))}
               </div>
             </div>
-            <ColorCard label="CSS" value={gradient.gradient.css} fieldId="gradientCSS" />
+            <ColorCard label="CSS" value={gradient.css} fieldId="gradientCSS" />
           </ExpandableSection>
         )}
 
