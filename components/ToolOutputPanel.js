@@ -1182,94 +1182,106 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )}
 
         {/* Palette Export */}
-        <ExpandableSection title="💾 Export Palette" sectionId="paletteExport" defaultExpanded={false}>
+        <div>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '12px',
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text)',
+            marginBottom: '12px',
+            paddingBottom: '12px',
+            borderBottom: '1px solid var(--color-border)',
           }}>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                const json = {
-                  colors: [
-                    { name: 'current', hex: formats.hex, rgb: formats.rgb, hsl: formats.hsl }
-                  ]
-                }
-                handleCopyField(JSON.stringify(json, null, 2), 'paletteJSON')
-              }}
-              style={{
-                padding: '10px',
-                backgroundColor: copiedField === 'paletteJSON' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
-                border: copiedField === 'paletteJSON' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '600',
-                color: copiedField === 'paletteJSON' ? '#4caf50' : 'var(--color-text)',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={(e) => {
-                if (copiedField !== 'paletteJSON') {
-                  e.target.style.backgroundColor = 'var(--color-background-secondary)'
-                }
-              }}
-              onMouseOut={(e) => {
-                if (copiedField !== 'paletteJSON') {
-                  e.target.style.backgroundColor = 'var(--color-background-tertiary)'
-                }
-              }}
-            >
-              {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="${formats.hex}"/></svg>`
-                handleCopyField(svg, 'paletteSVG')
-              }}
-              style={{
-                padding: '10px',
-                backgroundColor: copiedField === 'paletteSVG' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
-                border: copiedField === 'paletteSVG' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '600',
-                color: copiedField === 'paletteSVG' ? '#4caf50' : 'var(--color-text)',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={(e) => {
-                if (copiedField !== 'paletteSVG') {
-                  e.target.style.backgroundColor = 'var(--color-background-secondary)'
-                }
-              }}
-              onMouseOut={(e) => {
-                if (copiedField !== 'paletteSVG') {
-                  e.target.style.backgroundColor = 'var(--color-background-tertiary)'
-                }
-              }}
-            >
-              {copiedField === 'paletteSVG' ? '✓ Copied!' : '🖼️ SVG'}
-            </button>
+            💾 Export Palette
           </div>
-          <div style={{
-            padding: '12px',
-            backgroundColor: 'rgba(255, 193, 7, 0.1)',
-            borderRadius: '6px',
-            border: '1px solid rgba(255, 193, 7, 0.3)',
-            marginTop: '12px',
-            fontSize: '11px',
-            color: 'var(--color-text-secondary)',
-          }}>
-            <div style={{ fontWeight: '600', marginBottom: '4px' }}>💡 Tip</div>
-            Multiple colors? Save them as variants above to export grouped palettes.
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px',
+              marginBottom: '12px',
+            }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const json = {
+                    colors: [
+                      { name: 'current', hex: formats.hex, rgb: formats.rgb, hsl: formats.hsl }
+                    ]
+                  }
+                  handleCopyField(JSON.stringify(json, null, 2), 'paletteJSON')
+                }}
+                style={{
+                  padding: '10px',
+                  backgroundColor: copiedField === 'paletteJSON' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
+                  border: copiedField === 'paletteJSON' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: copiedField === 'paletteJSON' ? '#4caf50' : 'var(--color-text)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  if (copiedField !== 'paletteJSON') {
+                    e.target.style.backgroundColor = 'var(--color-background-secondary)'
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (copiedField !== 'paletteJSON') {
+                    e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                  }
+                }}
+              >
+                {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="${formats.hex}"/></svg>`
+                  handleCopyField(svg, 'paletteSVG')
+                }}
+                style={{
+                  padding: '10px',
+                  backgroundColor: copiedField === 'paletteSVG' ? 'rgba(76, 175, 80, 0.2)' : 'var(--color-background-tertiary)',
+                  border: copiedField === 'paletteSVG' ? '1px solid rgba(76, 175, 80, 0.5)' : '1px solid var(--color-border)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: copiedField === 'paletteSVG' ? '#4caf50' : 'var(--color-text)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={(e) => {
+                  if (copiedField !== 'paletteSVG') {
+                    e.target.style.backgroundColor = 'var(--color-background-secondary)'
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (copiedField !== 'paletteSVG') {
+                    e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                  }
+                }}
+              >
+                {copiedField === 'paletteSVG' ? '✓ Copied!' : '🖼️ SVG'}
+              </button>
+            </div>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(255, 193, 7, 0.1)',
+              borderRadius: '6px',
+              border: '1px solid rgba(255, 193, 7, 0.3)',
+              fontSize: '11px',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{ fontWeight: '600', marginBottom: '4px' }}>💡 Tip</div>
+              Multiple colors? Save them as variants above to export grouped palettes.
+            </div>
           </div>
-        </ExpandableSection>
+        </div>
       </div>
     )
 
