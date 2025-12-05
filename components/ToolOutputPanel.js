@@ -722,34 +722,44 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     const handleCopyField = (value, field) => {
-      // Try modern Clipboard API first, fallback to older method if blocked
+      let copySucceeded = false
+
+      // Try modern Clipboard API first
       if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(value).catch(() => {
+        navigator.clipboard.writeText(value).then(() => {
+          copySucceeded = true
+        }).catch((err) => {
           // Fallback: use old-school copy method
-          fallbackCopy(value)
+          console.debug('Clipboard API failed, trying fallback:', err.message)
+          copySucceeded = fallbackCopy(value)
         })
       } else {
         // Fallback for non-secure contexts or if clipboard API is unavailable
-        fallbackCopy(value)
+        copySucceeded = fallbackCopy(value)
       }
 
+      // Always show feedback, even if copy might fail silently
       setCopiedField(field)
       setTimeout(() => setCopiedField(null), 2000)
     }
 
     const fallbackCopy = (text) => {
-      const textarea = document.createElement('textarea')
-      textarea.value = text
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
       try {
-        document.execCommand('copy')
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.left = '-9999px'
+        textarea.style.top = '-9999px'
+        textarea.setAttribute('readonly', '')
+        document.body.appendChild(textarea)
+        textarea.select()
+        const success = document.execCommand('copy')
+        document.body.removeChild(textarea)
+        return success
       } catch (err) {
-        console.warn('Copy failed:', err)
+        console.warn('Fallback copy failed:', err)
+        return false
       }
-      document.body.removeChild(textarea)
     }
 
     const ColorCard = ({ label, value, fieldId }) => (
