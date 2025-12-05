@@ -390,6 +390,135 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
+  // Checksum calculator custom output
+  if (toolId === 'checksum-calculator' && displayResult?.algorithm) {
+    const { algorithm, conversions, metadata, byteLength, encoding, timestamp } = displayResult
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Algorithm Info Section */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Algorithm Information
+          </div>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(0, 102, 204, 0.05)',
+            border: '1px solid rgba(0, 102, 204, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text)' }}>{metadata?.name}</div>
+            <div style={{ color: 'var(--color-text-secondary)', fontSize: '12px', marginBottom: '6px' }}>
+              {metadata?.description}
+            </div>
+            {metadata?.polynomial && (
+              <div style={{ color: 'var(--color-text-secondary)', fontSize: '11px', marginTop: '8px' }}>
+                <div>Polynomial: <code style={{ backgroundColor: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px' }}>{metadata.polynomial}</code></div>
+                <div>Initial: {metadata.initialValue}</div>
+                <div>Final XOR: {metadata.finalXor}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Checksum Results Section */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Checksum Results
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {Object.entries(conversions).map(([key, value]) => {
+              const labels = {
+                decimal: 'Decimal',
+                hex: 'Hexadecimal (0x)',
+                hexPlain: 'Hex (plain)',
+                binary: 'Binary',
+                bytesBE: 'Bytes (Big-endian)',
+                bytesLE: 'Bytes (Little-endian)',
+              }
+              const label = labels[key] || key
+              return (
+                <div key={key} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>{label}</span>
+                    <button
+                      className="copy-action"
+                      onClick={() => handleCopyField(value, `checksum-${key}`)}
+                      title="Copy to clipboard"
+                    >
+                      {copiedField === `checksum-${key}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
+                    {value}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Metadata Section */}
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: 'rgba(158, 158, 158, 0.1)',
+          border: '1px solid rgba(158, 158, 158, 0.2)',
+          borderRadius: '4px',
+          fontSize: '13px',
+        }}>
+          <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Metadata</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+            <div><strong>Input Length:</strong> {byteLength} bytes</div>
+            <div><strong>Encoding:</strong> {encoding}</div>
+            <div><strong>Algorithm ID:</strong> {algorithm}</div>
+            <div><strong>Processed:</strong> {new Date(timestamp).toLocaleTimeString()}</div>
+          </div>
+        </div>
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json',
+          },
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+      />
+    )
+  }
+
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
