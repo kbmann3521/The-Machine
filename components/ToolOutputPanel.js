@@ -722,9 +722,34 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     const handleCopyField = (value, field) => {
-      navigator.clipboard.writeText(value)
+      // Try modern Clipboard API first, fallback to older method if blocked
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(value).catch(() => {
+          // Fallback: use old-school copy method
+          fallbackCopy(value)
+        })
+      } else {
+        // Fallback for non-secure contexts or if clipboard API is unavailable
+        fallbackCopy(value)
+      }
+
       setCopiedField(field)
       setTimeout(() => setCopiedField(null), 2000)
+    }
+
+    const fallbackCopy = (text) => {
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      try {
+        document.execCommand('copy')
+      } catch (err) {
+        console.warn('Copy failed:', err)
+      }
+      document.body.removeChild(textarea)
     }
 
     const ColorCard = ({ label, value, fieldId }) => (
