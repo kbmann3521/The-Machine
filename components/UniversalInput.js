@@ -190,7 +190,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   const handleClearInput = () => {
     setInputText('')
     setCharCount(0)
-    setCompareText('')
+    if (onCompareTextChange) {
+      onCompareTextChange('')
+    }
     setInputImage(null)
     setImagePreview(null)
     onInputChange('', null, null, false)
