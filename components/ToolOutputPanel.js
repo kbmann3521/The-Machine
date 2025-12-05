@@ -1153,6 +1153,73 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 </div>
               </div>
 
+              {(() => {
+                // Find midpoint color (50%)
+                const midpoint = gradient.colors.find(c => c.percentage === 50) ||
+                                 gradient.colors[Math.floor(gradient.colors.length / 2)]
+                // Calculate contrast ratio between start and end
+                const startHex = gradient.startColor
+                const endHex = gradient.endColor
+                const startResult = colorConverter(startHex, {})
+                const endResult = colorConverter(endHex, {})
+
+                if (startResult.error || endResult.error) return null
+
+                const startLum = startResult.luminance || 0
+                const endLum = endResult.luminance || 0
+                const lighter = Math.max(startLum, endLum)
+                const darker = Math.min(startLum, endLum)
+                const contrastRatio = (lighter + 0.05) / (darker + 0.05)
+                const wcagPass = contrastRatio >= 4.5 ? '✓ Pass WCAG AA' : contrastRatio >= 3 ? '⚠ WCAG Large' : '✗ Fail WCAG'
+
+                return (
+                  <div style={{ marginBottom: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(33, 150, 243, 0.05)',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(33, 150, 243, 0.2)',
+                    }}>
+                      <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '4px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                        Contrast Ratio
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#2196f3', marginBottom: '4px' }}>
+                        {contrastRatio.toFixed(2)}:1
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        {wcagPass}
+                      </div>
+                    </div>
+                    {midpoint && (
+                      <div style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(76, 175, 80, 0.05)',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(76, 175, 80, 0.2)',
+                      }}>
+                        <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '4px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
+                          Midpoint (50%)
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{
+                            width: '30px',
+                            height: '30px',
+                            backgroundColor: midpoint.hex,
+                            borderRadius: '4px',
+                            border: '1px solid var(--color-border)',
+                          }} />
+                          <div>
+                            <div style={{ fontSize: '11px', fontWeight: '600', fontFamily: 'monospace', color: '#4caf50' }}>
+                              {midpoint.hex}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+
               <div style={{ marginBottom: '12px' }}>
                 <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>Color Stops:</div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
