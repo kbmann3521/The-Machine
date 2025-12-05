@@ -800,7 +800,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return (
         <div style={{ marginBottom: '16px' }}>
           <button
-            onClick={() => toggleSection(sectionId)}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              toggleSection(sectionId)
+            }}
             style={{
               width: '100%',
               padding: '12px',
