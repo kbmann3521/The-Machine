@@ -1218,6 +1218,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             <button
               onClick={(e) => {
                 e.preventDefault()
+                e.stopPropagation()
                 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="${formats.hex}"/></svg>`
                 handleCopyField(svg, 'paletteSVG')
               }}
