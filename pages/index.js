@@ -583,6 +583,7 @@ export default function Home() {
                       loading={toolLoading}
                       onRegenerate={handleRegenerate}
                       currentConfig={configOptions}
+                      result={outputResult}
                       activeToolkitSection={activeToolkitSection}
                       onToolkitSectionChange={setActiveToolkitSection}
                       findReplaceConfig={findReplaceConfig}
