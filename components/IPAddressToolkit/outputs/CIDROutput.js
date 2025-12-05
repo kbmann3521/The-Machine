@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../../../styles/ip-toolkit.module.css'
 
