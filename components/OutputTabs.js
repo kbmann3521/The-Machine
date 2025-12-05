@@ -83,10 +83,11 @@ export default function OutputTabs({
       if (!obj || typeof obj !== 'object') return null
 
       const entries = Object.entries(obj)
+      const sectionContentClass = toolId === 'base64-converter' ? `${styles.dataSectionContent} ${styles.singleColumn}` : styles.dataSectionContent
       return (
         <div key={sectionId} className={styles.dataSection}>
           <div className={styles.dataSectionTitle}>{title}</div>
-          <div className={styles.dataSectionContent}>
+          <div className={sectionContentClass}>
             {entries.map(([key, value], idx) => {
               const cardId = `${sectionId}-${key}`
               return (
