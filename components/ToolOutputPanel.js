@@ -830,7 +830,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         <ExpandableSection title="🔬 Advanced Formats" sectionId="advancedFormats">
           <ColorCard label="LAB" value={formats.lab} fieldId="lab" />
           <ColorCard label="LCH" value={formats.lch} fieldId="lch" />
-          <ColorCard label="CMYK" value={formats.cmyk} fieldId="cmyk" />
+          <ColorCard label="CMYK (Simple)" value={formats.cmyk} fieldId="cmyk" />
+          {cmykProfiles?.fogra && (
+            <ColorCard label="CMYK (FOGRA Profile)" value={formats.cmykFogra} fieldId="cmykFogra" />
+          )}
           <div style={{
             padding: '12px',
             backgroundColor: 'rgba(158, 158, 158, 0.1)',
@@ -842,6 +845,38 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             <div style={{ fontSize: '11px', marginTop: '4px' }}>Relative luminance for contrast calculation</div>
           </div>
         </ExpandableSection>
+
+        {/* CMYK Profiles Details */}
+        {cmykProfiles && (
+          <ExpandableSection title="🖨️ CMYK Profiles (Printing)" sectionId="cmykProfiles">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(66, 133, 244, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(66, 133, 244, 0.3)',
+              }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>Device-Dependent</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Standard formula</div>
+                <div style={{ fontSize: '11px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  C: {cmykProfiles.simple.c}% M: {cmykProfiles.simple.m}% Y: {cmykProfiles.simple.y}% K: {cmykProfiles.simple.k}%
+                </div>
+              </div>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(244, 81, 30, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(244, 81, 30, 0.3)',
+              }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>FOGRA Profile</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Industry standard (printing)</div>
+                <div style={{ fontSize: '11px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  C: {cmykProfiles.fogra.c}% M: {cmykProfiles.fogra.m}% Y: {cmykProfiles.fogra.y}% K: {cmykProfiles.fogra.k}%
+                </div>
+              </div>
+            </div>
+          </ExpandableSection>
+        )}
 
         {/* Accessibility */}
         <ExpandableSection title="♿ Accessibility (WCAG)" sectionId="accessibility">
