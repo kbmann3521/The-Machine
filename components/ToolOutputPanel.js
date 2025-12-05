@@ -4353,6 +4353,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderAsciiUnicodeOutput()
       case 'base64-converter':
         return renderBase64ConverterOutput()
+      case 'caesar-cipher':
+        return renderCaesarCipherOutput()
       default: {
         const tabs = []
 
