@@ -874,8 +874,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
         {/* CMYK Profiles Details */}
         {cmykProfiles && (
-          <ExpandableSection title="🖨️ CMYK Profiles (Printing)" sectionId="cmykProfiles">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text)',
+              marginBottom: '12px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid var(--color-border)',
+            }}>
+              🖨️ CMYK Profiles (Printing)
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
               <div style={{
                 padding: '12px',
                 backgroundColor: 'rgba(66, 133, 244, 0.1)',
@@ -901,7 +911,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 </div>
               </div>
             </div>
-          </ExpandableSection>
+          </div>
         )}
 
         {/* Accessibility */}
