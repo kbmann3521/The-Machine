@@ -1138,6 +1138,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                     checked={gradient.reversed || false}
                     onChange={(e) => {
                       e.preventDefault()
+                      e.stopPropagation()
                       if (configOptions && onConfigChange) {
                         onConfigChange({ ...configOptions, gradientReversed: e.target.checked })
                       }
