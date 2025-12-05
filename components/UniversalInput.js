@@ -14,7 +14,7 @@ import { useTheme } from '../lib/ThemeContext'
 import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
+export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
   const { theme } = useTheme()
 
   const getPlaceholder = () => {
@@ -31,7 +31,6 @@ export default function UniversalInput({ onInputChange, onImageChange, selectedT
   const [isDragging, setIsDragging] = useState(false)
   const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
-  const [compareText, setCompareText] = useState('')
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
   const startYRef = useRef(0)
