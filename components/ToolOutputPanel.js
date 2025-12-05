@@ -3877,44 +3877,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
         {/* Metadata Summary */}
         {Object.keys(metadata).length > 0 && (
-          <div>
-            <div style={{
-              fontSize: '12px',
-              fontWeight: '600',
-              color: 'var(--color-text-secondary)',
-              marginBottom: '12px',
-              paddingBottom: '8px',
-              borderBottom: '1px solid var(--color-border)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-            }}>
-              Metadata
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Metadata</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
               {Object.entries(metadata).map(([metaKey, metaValue]) => (
-                <div key={metaKey} className={styles.copyCard}>
-                  <div className={styles.copyCardHeader}>
-                    <span className={styles.copyCardLabel}>{metaKey}</span>
-                    <button
-                      type="button"
-                      className="copy-action"
-                      onClick={() => handleCopyField(metaValue, `base64-meta-${metaKey}`)}
-                      title="Copy to clipboard"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        minWidth: '32px',
-                        minHeight: '28px'
-                      }}
-                    >
-                      {copiedField === `base64-meta-${metaKey}` ? '✓' : <FaCopy />}
-                    </button>
-                  </div>
-                  <div className={styles.copyCardValue}>
-                    {metaValue}
-                  </div>
+                <div key={metaKey}>
+                  <strong>{metaKey}:</strong> {metaValue}
                 </div>
               ))}
             </div>
