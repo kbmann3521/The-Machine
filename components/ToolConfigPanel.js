@@ -78,6 +78,80 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
     switch (field.type) {
       case 'text':
+        // Special handling for color inputs with autocomplete
+        if (field.id === 'secondColor' || field.id === 'gradientEndColor') {
+          return (
+            <div key={field.id} style={{ position: 'relative' }}>
+              <input
+                type="text"
+                className={styles.input}
+                value={value || ''}
+                onChange={(e) => {
+                  handleFieldChange(field.id, e.target.value)
+                  if (e.target.value.length > 0) {
+                    const suggestions = getSuggestionsForColor(e.target.value)
+                    setColorSuggestions(suggestions)
+                    setShowSuggestions(true)
+                  } else {
+                    setShowSuggestions(false)
+                  }
+                }}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                placeholder={field.placeholder || ''}
+                disabled={isFieldDisabled}
+              />
+              {showSuggestions && colorSuggestions.length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'var(--color-background-secondary)',
+                  border: '1px solid var(--color-border)',
+                  borderTop: 'none',
+                  borderRadius: '0 0 4px 4px',
+                  zIndex: 10,
+                  maxHeight: '150px',
+                  overflowY: 'auto',
+                }}>
+                  {colorSuggestions.map((suggestion) => (
+                    <div
+                      key={suggestion.name}
+                      onClick={() => {
+                        handleFieldChange(field.id, suggestion.name)
+                        setShowSuggestions(false)
+                      }}
+                      style={{
+                        padding: '8px 10px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid var(--color-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '12px',
+                      }}
+                      onMouseOver={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
+                      onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        backgroundColor: suggestion.hex,
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '3px',
+                      }} />
+                      <span>{suggestion.name}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        {suggestion.hex}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        }
+
         return (
           <input
             key={field.id}
