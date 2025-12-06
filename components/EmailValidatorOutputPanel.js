@@ -230,7 +230,7 @@ export default function EmailValidatorOutputPanel({ result }) {
       id: 'output',
       label: 'OUTPUT',
       content: outputContent,
-      contentType: 'jsx',
+      contentType: 'component',
     },
     {
       id: 'json',
