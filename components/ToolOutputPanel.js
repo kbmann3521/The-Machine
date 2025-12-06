@@ -4167,7 +4167,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       )
     }
 
-    const { cronExpression, humanReadable, nextRuns = [], metadata = {}, valid } = displayResult
+    const { cronExpression, humanReadable, nextRuns = [], metadata = {}, valid, timezone } = displayResult
 
     const outputContent = (
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -4227,35 +4227,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
             }}>
-              Next 5 Runs
+              Next 5 Runs {timezone && `(${timezone})`}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {nextRuns.map((run, idx) => (
-                <div key={idx} className={styles.copyCard}>
-                  <div className={styles.copyCardHeader}>
-                    <span className={styles.copyCardLabel}>Run {idx + 1}</span>
-                    <button
-                      type="button"
-                      className="copy-action"
-                      onClick={() => handleCopyField(run.formatted, `cron-run-${idx}`)}
-                      title="Copy to clipboard"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        minWidth: '32px',
-                        minHeight: '28px'
-                      }}
-                    >
-                      {copiedField === `cron-run-${idx}` ? '✓' : <FaCopy />}
-                    </button>
+                <div key={idx} style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
+                  border: '1px solid var(--color-border, #ddd)',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                }}>
+                  <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    Run {idx + 1}
                   </div>
-                  <div className={styles.copyCardValue}>
+                  <div style={{ color: 'var(--color-text-secondary)', fontFamily: 'Courier New, monospace' }}>
                     {run.formatted}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                    ISO 8601: {run.datetime}
                   </div>
                 </div>
               ))}
