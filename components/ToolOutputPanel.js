@@ -32,6 +32,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const handleLoadMoreCronRuns = () => {
+    const newRunCount = cronRunsToLoad + 10
+    setCronRunsToLoad(newRunCount)
+    if (onConfigChange) {
+      onConfigChange({
+        ...configOptions,
+        runsToLoad: newRunCount,
+      })
+    }
+  }
+
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
     if (!errors || errors.length === 0) return null
 
