@@ -103,28 +103,9 @@ export default function EmailValidatorOutputPanel({ result }) {
                   <span style={{ color: emailResult.valid ? '#4caf50' : '#ef5350', fontSize: '14px' }}>
                     {emailResult.valid ? '✓' : '✗'}
                   </span>
-                  <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500', flex: 1 }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500' }}>
                     {emailResult.email}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyEmail(emailResult.email)}
-                    title="Copy email"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '28px',
-                      minHeight: '24px',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      color: 'var(--color-text-secondary)',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {copiedEmail === emailResult.email ? '✓' : '📋'}
-                  </button>
                 </div>
 
                 {/* Status label */}
