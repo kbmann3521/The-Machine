@@ -113,7 +113,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                 {/* Email header with status and copy button */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <span style={{ color: emailResult.valid ? '#4caf50' : '#ef5350', fontSize: '14px' }}>
-                    {emailResult.valid ? <FaCheck /> : <FaTimes />}
+                    {emailResult.valid ? '✓' : '✗'}
                   </span>
                   <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500', flex: 1 }}>
                     {emailResult.email}
@@ -135,7 +135,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                       fontSize: '12px',
                     }}
                   >
-                    {copiedEmail === emailResult.email ? '✓' : <FaCopy />}
+                    {copiedEmail === emailResult.email ? '✓' : '📋'}
                   </button>
                 </div>
 
