@@ -4112,6 +4112,203 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
+  const renderCronTesterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    const { cronExpression, humanReadable, nextRuns = [], metadata = {}, valid } = displayResult
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Validation Status */}
+        {valid !== undefined && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: valid ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+            border: `1px solid ${valid ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)'}`,
+            borderRadius: '4px',
+            color: valid ? 'var(--color-success, #4caf50)' : 'var(--color-error, #f44336)',
+            fontWeight: '600',
+            fontSize: '13px',
+          }}>
+            {valid ? '✓ Valid Cron Expression' : '✗ Invalid Cron Expression'}
+          </div>
+        )}
+
+        {/* Human-Readable Description */}
+        {humanReadable && (
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>Description</span>
+              <button
+                type="button"
+                className="copy-action"
+                onClick={() => handleCopyField(humanReadable, 'cron-description')}
+                title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
+              >
+                {copiedField === 'cron-description' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-word' }}>
+              {humanReadable}
+            </div>
+          </div>
+        )}
+
+        {/* Next 5 Scheduled Runs */}
+        {nextRuns && nextRuns.length > 0 && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Next 5 Runs
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {nextRuns.map((run, idx) => (
+                <div key={idx} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>Run {idx + 1}</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(run.formatted, `cron-run-${idx}`)}
+                      title="Copy to clipboard"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `cron-run-${idx}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue}>
+                    {run.formatted}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                    ISO 8601: {run.datetime}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metadata */}
+        {Object.keys(metadata).length > 0 && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Metadata</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+              {Object.entries(metadata).map(([key, value]) => (
+                <div key={key}>
+                  <strong>{key}:</strong> {value}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
