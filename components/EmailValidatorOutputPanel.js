@@ -174,8 +174,8 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                     {(emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation) && (
                       <div>
-                        <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <FaCircleExclamation /> Warnings:
+                        <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
+                          ⚠ Warnings:
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                           {emailResult.roleBasedEmail && (
