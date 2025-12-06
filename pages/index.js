@@ -604,6 +604,11 @@ export default function Home() {
                     key={selectedTool?.toolId}
                     result={outputResult}
                   />
+                ) : selectedTool?.toolId === 'email-validator' ? (
+                  <EmailValidatorOutputPanel
+                    key={selectedTool?.toolId}
+                    result={outputResult}
+                  />
                 ) : (
                   <ToolOutputPanel
                     key={selectedTool?.toolId}
