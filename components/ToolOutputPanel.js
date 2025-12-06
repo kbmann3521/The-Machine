@@ -4552,6 +4552,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderBase64ConverterOutput()
       case 'caesar-cipher':
         return renderCaesarCipherOutput()
+      case 'cron-tester':
+        return renderCronTesterOutput()
       default: {
         const tabs = []
 
