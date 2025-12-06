@@ -3,8 +3,6 @@ import styles from '../styles/tool-output.module.css'
 import OutputTabs from './OutputTabs'
 
 export default function EmailValidatorOutputPanel({ result }) {
-  const [copiedEmail, setCopiedEmail] = useState(null)
-
   if (!result) {
     const emptyTabs = [
       {
