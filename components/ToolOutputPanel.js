@@ -17,6 +17,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+  const [cronRunsToLoad, setCronRunsToLoad] = useState(5)
 
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
