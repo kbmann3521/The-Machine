@@ -46,6 +46,7 @@
     "json-escaping": "^2.0.0",
     "json2csv": "^5.0.7",
     "jsonpath-plus": "^10.3.0",
+    "mailchecker": "^6.0.19",
     "marked": "^17.0.1",
     "mathjs": "^15.1.0",
     "next": "^14.0.0",
