@@ -4226,7 +4226,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
         )}
 
-        {/* Next 5 Scheduled Runs */}
+        {/* Next Scheduled Runs */}
         {nextRuns && nextRuns.length > 0 && (
           <div>
             <div style={{
@@ -4239,7 +4239,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
             }}>
-              Next 5 Runs {timezone && `(${timezone})`}
+              Next {nextRuns.length} Runs {timezone && `(${timezone})`}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {nextRuns.map((run, idx) => (
@@ -4259,6 +4259,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 </div>
               ))}
             </div>
+            <button
+              onClick={handleLoadMoreCronRuns}
+              style={{
+                marginTop: '12px',
+                padding: '10px 16px',
+                backgroundColor: '#0066cc',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#0052a3'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#0066cc'}
+            >
+              Load 10 More Runs
+            </button>
           </div>
         )}
 
