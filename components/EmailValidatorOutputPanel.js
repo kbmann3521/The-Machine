@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaCopy, FaCheck, FaTimes, FaCircleExclamation } from 'react-icons/fa6'
+import { FaCopy, FaCheck, FaTimes } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 import OutputTabs from './OutputTabs'
 
