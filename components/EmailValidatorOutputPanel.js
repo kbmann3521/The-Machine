@@ -21,16 +21,6 @@ export default function EmailValidatorOutputPanel({ result }) {
     return <OutputTabs tabs={emptyTabs} showCopyButton={false} />
   }
 
-  const handleCopyEmail = async (email) => {
-    try {
-      await navigator.clipboard.writeText(email)
-      setCopiedEmail(email)
-      setTimeout(() => setCopiedEmail(null), 2000)
-    } catch (err) {
-      console.error('Copy failed:', err)
-    }
-  }
-
   // Build the friendly output display
   const renderEmailValidationContent = () => (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
