@@ -514,6 +514,7 @@ export default function Home() {
         }
 
         setOutputResult(data.result)
+        setOutputWarnings(data.warnings || [])
       } catch (err) {
         const errorMessage = err?.message || 'Tool execution failed'
         setError(errorMessage)
