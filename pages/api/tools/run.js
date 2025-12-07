@@ -1,4 +1,4 @@
-import { runTool } from '../../../lib/tools'
+import { runTool, filterWarningsBasedOnSettings } from '../../../lib/tools'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
