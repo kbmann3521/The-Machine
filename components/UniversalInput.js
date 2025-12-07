@@ -168,10 +168,18 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   const handleLoadExample = () => {
     if (!selectedTool || !getToolExample) return
 
-    const example = getToolExample(selectedTool.toolId, configOptions)
+    const currentIndex = exampleIndex[selectedTool.toolId] || 0
+    const totalExamples = getToolExampleCount(selectedTool.toolId, configOptions)
+    const nextIndex = (currentIndex + 1) % totalExamples
+
+    const example = getToolExample(selectedTool.toolId, configOptions, nextIndex)
     if (example) {
       setInputText(example)
       setCharCount(example.length)
+      setExampleIndex(prev => ({
+        ...prev,
+        [selectedTool.toolId]: nextIndex
+      }))
       onInputChange(example, null, null, false)
     }
   }
