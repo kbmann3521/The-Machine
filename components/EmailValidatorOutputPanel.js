@@ -150,11 +150,11 @@ export default function EmailValidatorOutputPanel({ result }) {
                 borderLeft: `3px solid ${emailResult.valid ? '#4caf50' : '#ef5350'}`,
               }}>
                 {/* Email header with status and copy button */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ color: emailResult.valid ? '#4caf50' : '#ef5350', fontSize: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ color: emailResult.valid ? '#4caf50' : '#ef5350', fontSize: '14px', flexShrink: 0 }}>
                     {emailResult.valid ? '✓' : '✗'}
                   </span>
-                  <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500', wordBreak: 'break-all', overflowWrap: 'break-word', minWidth: 0 }}>
                     {emailResult.email}
                   </span>
                 </div>
