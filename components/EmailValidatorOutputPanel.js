@@ -330,8 +330,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                       </div>
                     )}
 
-                    {/* TLD Quality (Upgrade #4) */}
-                    {emailResult.tldQuality && (
+                    {/* TLD Quality (Upgrade #4) - Only show for valid emails */}
+                    {emailResult.tldQuality && emailResult.deliverabilityScore > 0 && (
                       <div style={{ padding: '10px', backgroundColor: emailResult.tldQuality === 'high-trust' ? 'rgba(76, 175, 80, 0.05)' : emailResult.tldQuality === 'low-trust' ? 'rgba(239, 83, 80, 0.05)' : 'rgba(158, 158, 158, 0.05)', borderRadius: '4px', border: emailResult.tldQuality === 'high-trust' ? '1px solid rgba(76, 175, 80, 0.2)' : emailResult.tldQuality === 'low-trust' ? '1px solid rgba(239, 83, 80, 0.2)' : '1px solid rgba(158, 158, 158, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                           TLD Quality
