@@ -12,7 +12,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const addresses = await dns.resolveMx(domain)
+    // Set a timeout for DNS lookup
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('DNS lookup timeout')), 5000)
+    )
+
+    const addresses = await Promise.race([
+      dns.resolveMx(domain),
+      timeoutPromise
+    ])
 
     if (addresses && addresses.length > 0) {
       const mxRecords = addresses
