@@ -138,13 +138,31 @@ export default function Home() {
       // First, try to fetch tool metadata from Supabase
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+        const timeoutId = setTimeout(() => {
+          try {
+            controller.abort()
+          } catch (e) {
+            // Ignore abort errors
+          }
+        }, 5000) // 5 second timeout
 
-        const response = await fetch('/api/tools/get-metadata', {
-          signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'force-cache',
-        })
+        let response
+        try {
+          response = await fetch('/api/tools/get-metadata', {
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'force-cache',
+          })
+        } catch (fetchError) {
+          clearTimeout(timeoutId)
+          if (fetchError.name === 'AbortError') {
+            console.debug('Tool metadata request timed out')
+          } else {
+            console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
+          }
+          throw fetchError
+        }
+
         clearTimeout(timeoutId)
 
         if (response.ok) {
