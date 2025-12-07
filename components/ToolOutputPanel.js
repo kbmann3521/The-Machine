@@ -4682,27 +4682,32 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'cron-tester':
         return renderCronTesterOutput()
       case 'csv-json-converter': {
-        // CSV to JSON output - display as JSON with syntax highlighting
+        // CSV to JSON/SQL/JS/TS output
         const tabs = []
         if (typeof displayResult === 'string') {
-          // Try to parse the JSON string
-          try {
-            const parsed = JSON.parse(displayResult)
-            tabs.push({
-              id: 'output',
-              label: 'JSON',
-              content: displayResult,
-              contentType: 'json'
-            })
-          } catch (e) {
-            // If not valid JSON, show as text
-            tabs.push({
-              id: 'output',
-              label: 'OUTPUT',
-              content: displayResult,
-              contentType: 'text'
-            })
+          // Determine content type based on the output format
+          let contentType = 'text'
+          let language = 'text'
+
+          // Try to detect format from content
+          if (displayResult.trim().startsWith('[') || displayResult.trim().startsWith('{')) {
+            contentType = 'json'
+            language = 'json'
+          } else if (displayResult.trim().startsWith('INSERT INTO')) {
+            contentType = 'code'
+            language = 'sql'
+          } else if (displayResult.trim().startsWith('export')) {
+            contentType = 'code'
+            language = displayResult.includes('Record<string, any>') ? 'typescript' : 'javascript'
           }
+
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: displayResult,
+            contentType: contentType,
+            language: language
+          })
         } else {
           tabs.push({
             id: 'output',
