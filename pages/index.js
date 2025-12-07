@@ -379,6 +379,12 @@ export default function Home() {
             clearTimeout(loadingTimerRef.current)
             loadingTimerRef.current = null
           }
+          // Clean up abort timeout
+          if (abortTimeoutRef.current) {
+            clearTimeout(abortTimeoutRef.current)
+            abortTimeoutRef.current = null
+          }
+          abortControllerRef.current = null
           setLoading(false)
         }
       }
