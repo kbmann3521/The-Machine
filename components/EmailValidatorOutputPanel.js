@@ -250,28 +250,43 @@ export default function EmailValidatorOutputPanel({ result }) {
                 )}
 
                 {/* Domain Analysis */}
-                {emailResult.valid && dnsData[emailResult.email] && (
+                {emailResult.valid && (
                   <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
                     <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
                       DOMAIN ANALYSIS
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ color: dnsData[emailResult.email].domainExists ? '#4caf50' : '#ef5350' }}>
-                          {dnsData[emailResult.email].domainExists ? '✓' : '✗'}
-                        </span>
-                        <span>Domain exists: {dnsData[emailResult.email].domainExists ? 'Yes' : dnsData[emailResult.email].error ? 'Check failed' : 'No'}</span>
-                      </div>
-                      {dnsData[emailResult.email].mxRecords && dnsData[emailResult.email].mxRecords.length > 0 && (
-                        <div>
-                          <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px' }}>MX Records:</div>
-                          <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            {dnsData[emailResult.email].mxRecords.map((mx, mxIdx) => (
-                              <div key={mxIdx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                                [{mx.priority}] {mx.hostname}
-                              </div>
-                            ))}
+                      {dnsData[emailResult.email] ? (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ color: dnsData[emailResult.email].domainExists ? '#4caf50' : '#ef5350' }}>
+                              {dnsData[emailResult.email].domainExists ? '✓' : '✗'}
+                            </span>
+                            <span>
+                              Domain exists: {dnsData[emailResult.email].domainExists ? 'Yes' : 'No'}
+                            </span>
                           </div>
+                          {dnsData[emailResult.email].mxRecords && dnsData[emailResult.email].mxRecords.length > 0 && (
+                            <div>
+                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px' }}>MX Records:</div>
+                              <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {dnsData[emailResult.email].mxRecords.map((mx, mxIdx) => (
+                                  <div key={mxIdx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                    [{mx.priority}] {mx.hostname}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {dnsData[emailResult.email].domainExists && !dnsData[emailResult.email].mxRecords?.length && (
+                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                              No MX records (may use A records)
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                          Loading DNS data...
                         </div>
                       )}
                     </div>
