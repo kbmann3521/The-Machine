@@ -10,21 +10,26 @@ export default function EmailValidatorOutputPanel({ result }) {
     if (!result || !result.results) return
 
     const fetchDnsData = async () => {
-      const newDnsData = { ...dnsData }
+      const newDnsData = {}
 
       for (const emailResult of result.results) {
-        if (emailResult.valid && !dnsData[emailResult.email]) {
+        if (emailResult.valid) {
           try {
             const domain = emailResult.email.split('@')[1]
-            const response = await fetch('/api/tools/email-validator-dns', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ domain })
-            })
-            const data = await response.json()
-            newDnsData[emailResult.email] = data
+            if (domain) {
+              const response = await fetch('/api/tools/email-validator-dns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ domain })
+              })
+              if (response.ok) {
+                const data = await response.json()
+                newDnsData[emailResult.email] = data
+              } else {
+                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+              }
+            }
           } catch (error) {
-            console.error(`DNS lookup failed for ${emailResult.email}:`, error)
             newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
           }
         }
