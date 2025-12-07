@@ -713,6 +713,7 @@ export default function Home() {
                     onConfigChange={setConfigOptions}
                     inputText={inputText}
                     imagePreview={imagePreview}
+                    warnings={outputWarnings}
                   />
                 )}
               </div>
