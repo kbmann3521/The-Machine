@@ -2656,27 +2656,50 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (conversions.length === 0) return null
 
     const friendlyView = ({ onCopyCard, copiedCardId }) => (
-      <div className={styles.structuredOutput}>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {displayResult.normalizedInput && (
-          <div className={styles.fileSizeConverterHeader}>
-            <h4>{displayResult.normalizedInput.human} equals:</h4>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            border: '1px solid rgba(33, 150, 243, 0.3)',
+            borderRadius: '4px',
+            fontSize: '13px',
+            color: '#2196F3',
+          }}>
+            Detected input as {displayResult.normalizedInput.unit} ({displayResult.normalizedInput.human})
           </div>
         )}
-        {conversions.map((conv, idx) => (
-          <div key={idx} className={styles.copyCard}>
-            <div className={styles.copyCardHeader}>
-              <span className={styles.copyCardLabel}>{conv.label}</span>
-              <button
-                className="copy-action"
-                onClick={() => onCopyCard(conv.value.toString(), conv.label)}
-                title={`Copy ${conv.label}`}
-              >
-                {copiedCardId === conv.label ? '✓' : <FaCopy />}
-              </button>
-            </div>
-            <div className={styles.copyCardValue}>{conv.value}</div>
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            All Conversions
           </div>
-        ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {conversions.map((conv, idx) => (
+              <div key={idx} className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>{conv.label}</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => onCopyCard(conv.value.toString(), conv.label)}
+                    title={`Copy ${conv.label}`}
+                  >
+                    {copiedCardId === conv.label ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue}>{conv.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
 
