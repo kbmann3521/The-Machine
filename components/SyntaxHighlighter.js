@@ -5,6 +5,7 @@ import 'prismjs/themes/prism-tomorrow.css'
 // Load common language components on client side only
 if (typeof window !== 'undefined') {
   require('prismjs/components/prism-javascript')
+  require('prismjs/components/prism-typescript')
   require('prismjs/components/prism-json')
   require('prismjs/components/prism-css')
   require('prismjs/components/prism-markup')
