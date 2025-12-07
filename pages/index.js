@@ -22,6 +22,7 @@ export default function Home() {
   const [selectedTool, setSelectedTool] = useState(null)
   const [configOptions, setConfigOptions] = useState({})
   const [outputResult, setOutputResult] = useState(null)
+  const [outputWarnings, setOutputWarnings] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
