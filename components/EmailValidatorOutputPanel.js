@@ -304,19 +304,19 @@ export default function EmailValidatorOutputPanel({ result }) {
                     {emailResult.humanLikelihood && (
                       <div style={{
                         padding: '10px',
-                        backgroundColor: emailResult.humanLikelihood.includes('Invalid') ? 'rgba(239, 83, 80, 0.05)' : emailResult.humanLikelihood.includes('abusive') ? 'rgba(244, 67, 54, 0.05)' : 'rgba(255, 152, 0, 0.05)',
+                        backgroundColor: emailResult.humanLikelihood === 'Invalid' ? 'rgba(239, 83, 80, 0.05)' : emailResult.humanLikelihood.includes('abusive') ? 'rgba(244, 67, 54, 0.05)' : emailResult.humanLikelihood.includes('organization') ? 'rgba(0, 150, 136, 0.05)' : 'rgba(255, 152, 0, 0.05)',
                         borderRadius: '4px',
-                        border: emailResult.humanLikelihood.includes('Invalid') ? '1px solid rgba(239, 83, 80, 0.2)' : emailResult.humanLikelihood.includes('abusive') ? '1px solid rgba(244, 67, 54, 0.2)' : '1px solid rgba(255, 152, 0, 0.2)',
+                        border: emailResult.humanLikelihood === 'Invalid' ? '1px solid rgba(239, 83, 80, 0.2)' : emailResult.humanLikelihood.includes('abusive') ? '1px solid rgba(244, 67, 54, 0.2)' : emailResult.humanLikelihood.includes('organization') ? '1px solid rgba(0, 150, 136, 0.2)' : '1px solid rgba(255, 152, 0, 0.2)',
                         marginTop: '12px'
                       }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                           Human Likelihood
                         </div>
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: emailResult.humanLikelihood.includes('Invalid') ? '#ef5350' : emailResult.humanLikelihood.includes('abusive') ? '#f44336' : '#ff9800', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: emailResult.humanLikelihood === 'Invalid' ? '#ef5350' : emailResult.humanLikelihood.includes('abusive') ? '#f44336' : emailResult.humanLikelihood.includes('organization') ? '#009688' : '#ff9800', marginBottom: '4px' }}>
                           {emailResult.humanLikelihood}
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                          {emailResult.humanLikelihood.includes('Invalid') ? 'Cannot assess: email address is invalid' : emailResult.humanLikelihood.includes('abusive') ? 'Very likely human, but contains abusive content' : 'Probability this email belongs to a real person'}
+                          {emailResult.humanLikelihood === 'Invalid' ? 'Cannot assess: email address is invalid' : emailResult.humanLikelihood.includes('abusive') ? 'Very likely human, but contains abusive content' : emailResult.humanLikelihood.includes('organization') ? 'Likely controlled by organization' : 'Probability this email belongs to a real person'}
                         </div>
                       </div>
                     )}
