@@ -2688,11 +2688,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         {displayResult.normalizedInput && (
           <div style={{
             padding: '12px 16px',
-            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-            border: '1px solid rgba(33, 150, 243, 0.3)',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            border: '1px solid rgba(76, 175, 80, 0.3)',
             borderRadius: '4px',
             fontSize: '13px',
-            color: '#2196F3',
+            color: '#4caf50',
           }}>
             Detected input as {displayResult.normalizedInput.unit} ({displayResult.normalizedInput.human})
           </div>
