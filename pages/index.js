@@ -66,6 +66,39 @@ export default function Home() {
   const visibilityMapRef = useRef({})
   const previousClassificationRef = useRef(null)
   const currentInputRef = useRef('')
+  const abortControllerRef = useRef(null)
+  const abortTimeoutRef = useRef(null)
+
+  // Cleanup function for pending timers and requests
+  const cleanupPendingRequests = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = null
+    }
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current)
+      loadingTimerRef.current = null
+    }
+    if (abortTimeoutRef.current) {
+      clearTimeout(abortTimeoutRef.current)
+      abortTimeoutRef.current = null
+    }
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort()
+      } catch (e) {
+        // Ignore abort errors during cleanup
+      }
+      abortControllerRef.current = null
+    }
+  }, [])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupPendingRequests()
+    }
+  }, [cleanupPendingRequests])
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
