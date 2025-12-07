@@ -5,6 +5,7 @@ import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
+import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import { FaCircleInfo } from 'react-icons/fa6'
@@ -65,6 +66,39 @@ export default function Home() {
   const visibilityMapRef = useRef({})
   const previousClassificationRef = useRef(null)
   const currentInputRef = useRef('')
+  const abortControllerRef = useRef(null)
+  const abortTimeoutRef = useRef(null)
+
+  // Cleanup function for pending timers and requests
+  const cleanupPendingRequests = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = null
+    }
+    if (loadingTimerRef.current) {
+      clearTimeout(loadingTimerRef.current)
+      loadingTimerRef.current = null
+    }
+    if (abortTimeoutRef.current) {
+      clearTimeout(abortTimeoutRef.current)
+      abortTimeoutRef.current = null
+    }
+    if (abortControllerRef.current) {
+      try {
+        abortControllerRef.current.abort()
+      } catch (e) {
+        // Ignore abort errors during cleanup
+      }
+      abortControllerRef.current = null
+    }
+  }, [])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupPendingRequests()
+    }
+  }, [cleanupPendingRequests])
 
   useEffect(() => {
     selectedToolRef.current = selectedTool
@@ -104,13 +138,31 @@ export default function Home() {
       // First, try to fetch tool metadata from Supabase
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+        const timeoutId = setTimeout(() => {
+          try {
+            controller.abort()
+          } catch (e) {
+            // Ignore abort errors
+          }
+        }, 5000) // 5 second timeout
 
-        const response = await fetch('/api/tools/get-metadata', {
-          signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'force-cache',
-        })
+        let response
+        try {
+          response = await fetch('/api/tools/get-metadata', {
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'force-cache',
+          })
+        } catch (fetchError) {
+          clearTimeout(timeoutId)
+          if (fetchError.name === 'AbortError') {
+            console.debug('Tool metadata request timed out')
+          } else {
+            console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
+          }
+          throw fetchError
+        }
+
         clearTimeout(timeoutId)
 
         if (response.ok) {
@@ -231,6 +283,19 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
+      // Clean up any existing abort controller from previous request
+      if (abortControllerRef.current) {
+        try {
+          abortControllerRef.current.abort()
+        } catch (e) {
+          // Ignore
+        }
+      }
+      if (abortTimeoutRef.current) {
+        clearTimeout(abortTimeoutRef.current)
+        abortTimeoutRef.current = null
+      }
+
       // Clear any existing loading timer
       if (loadingTimerRef.current) {
         clearTimeout(loadingTimerRef.current)
@@ -250,7 +315,14 @@ export default function Home() {
 
           // Fetch with 20 second timeout
           const controller = new AbortController()
-          const abortTimeoutId = setTimeout(() => controller.abort(), 20000)
+          abortControllerRef.current = controller
+          abortTimeoutRef.current = setTimeout(() => {
+            try {
+              controller.abort()
+            } catch (e) {
+              // Ignore abort errors
+            }
+          }, 20000)
 
           let response
           try {
@@ -264,14 +336,24 @@ export default function Home() {
               signal: controller.signal,
             })
           } catch (fetchError) {
-            clearTimeout(abortTimeoutId)
+            if (abortTimeoutRef.current) {
+              clearTimeout(abortTimeoutRef.current)
+              abortTimeoutRef.current = null
+            }
             // Handle fetch errors gracefully
-            console.debug('Predict API fetch failed:', fetchError.message)
+            if (fetchError.name === 'AbortError') {
+              console.debug('Predict API request timed out after 20 seconds')
+            } else {
+              console.debug('Predict API fetch failed:', fetchError.message)
+            }
             // Fall through to use local prediction
             throw new Error('Prediction service unavailable')
           }
 
-          clearTimeout(abortTimeoutId)
+          if (abortTimeoutRef.current) {
+            clearTimeout(abortTimeoutRef.current)
+            abortTimeoutRef.current = null
+          }
 
           if (!response || !response.ok) {
             const errorText = response ? await response.text() : 'No response'
@@ -315,11 +397,19 @@ export default function Home() {
             clearTimeout(loadingTimerRef.current)
             loadingTimerRef.current = null
           }
+          // Clean up abort timeout
+          if (abortTimeoutRef.current) {
+            clearTimeout(abortTimeoutRef.current)
+            abortTimeoutRef.current = null
+          }
+          abortControllerRef.current = null
           setLoading(false)
         }
       }
 
-      predictTools()
+      predictTools().catch(err => {
+        console.debug('Unhandled error in predictTools:', err?.message || err)
+      })
     }, 300)
   }, [fastLocalClassification, previousInputLength])
 
@@ -600,6 +690,11 @@ export default function Home() {
               <div className={styles.outputSection}>
                 {selectedTool?.toolId === 'ip-address-toolkit' ? (
                   <IPToolkitOutputPanel
+                    key={selectedTool?.toolId}
+                    result={outputResult}
+                  />
+                ) : selectedTool?.toolId === 'email-validator' ? (
+                  <EmailValidatorOutputPanel
                     key={selectedTool?.toolId}
                     result={outputResult}
                   />

@@ -17,6 +17,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolId, setPreviousToolId] = useState(null)
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+  const [cronRunsToLoad, setCronRunsToLoad] = useState(5)
 
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
@@ -27,6 +28,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       onConfigChange({
         ...configOptions,
         language: dialect
+      })
+    }
+  }
+
+  const handleLoadMoreCronRuns = () => {
+    const newRunCount = cronRunsToLoad + 10
+    setCronRunsToLoad(newRunCount)
+    if (onConfigChange) {
+      onConfigChange({
+        ...configOptions,
+        runsToLoad: newRunCount,
       })
     }
   }
@@ -4112,6 +4124,209 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
+  const renderCronTesterOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    const { cronExpression, humanReadable, nextRuns = [], metadata = {}, valid, timezone } = displayResult
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Validation Status */}
+        {valid !== undefined && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: valid ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+            border: `1px solid ${valid ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)'}`,
+            borderRadius: '4px',
+            color: valid ? 'var(--color-success, #4caf50)' : 'var(--color-error, #f44336)',
+            fontWeight: '600',
+            fontSize: '13px',
+          }}>
+            {valid ? '✓ Valid Cron Expression' : '✗ Invalid Cron Expression'}
+          </div>
+        )}
+
+        {/* Human-Readable Description */}
+        {humanReadable && (
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>Description</span>
+              <button
+                type="button"
+                className="copy-action"
+                onClick={() => handleCopyField(humanReadable, 'cron-description')}
+                title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
+              >
+                {copiedField === 'cron-description' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-word' }}>
+              {humanReadable}
+            </div>
+          </div>
+        )}
+
+        {/* Next Scheduled Runs */}
+        {nextRuns && nextRuns.length > 0 && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Next {nextRuns.length} Runs {timezone && `(${timezone})`}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {nextRuns.map((run, idx) => (
+                <div key={idx} style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
+                  border: '1px solid var(--color-border, #ddd)',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                }}>
+                  <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                    Run {idx + 1}
+                  </div>
+                  <div style={{ color: 'var(--color-text-secondary)', fontFamily: 'Courier New, monospace' }}>
+                    {run.formatted}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={handleLoadMoreCronRuns}
+              style={{
+                marginTop: '12px',
+                padding: '10px 16px',
+                backgroundColor: '#0066cc',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#0052a3'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#0066cc'}
+            >
+              Load 10 More Runs
+            </button>
+          </div>
+        )}
+
+        {/* Metadata */}
+        {Object.keys(metadata).length > 0 && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Metadata</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+              {Object.entries(metadata).map(([key, value]) => (
+                <div key={key}>
+                  <strong>{key}:</strong> {value}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
@@ -4355,6 +4570,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderBase64ConverterOutput()
       case 'caesar-cipher':
         return renderCaesarCipherOutput()
+      case 'cron-tester':
+        return renderCronTesterOutput()
       default: {
         const tabs = []
 
