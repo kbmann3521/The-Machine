@@ -2657,6 +2657,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const friendlyView = ({ onCopyCard, copiedCardId }) => (
       <div className={styles.structuredOutput}>
+        {displayResult.normalizedInput && (
+          <div className={styles.fileSizeConverterHeader}>
+            <h4>{displayResult.normalizedInput.human} equals:</h4>
+          </div>
+        )}
         {conversions.map((conv, idx) => (
           <div key={idx} className={styles.copyCard}>
             <div className={styles.copyCardHeader}>
