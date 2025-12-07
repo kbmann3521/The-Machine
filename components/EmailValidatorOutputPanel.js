@@ -336,44 +336,184 @@ export default function EmailValidatorOutputPanel({ result }) {
                       </div>
                     )}
 
-                    {/* Business Email Intelligence (Upgrade #3) */}
-                    {emailResult.businessEmail && (
-                      <div style={{ padding: '10px', backgroundColor: 'rgba(0, 150, 136, 0.05)', borderRadius: '4px', border: '1px solid rgba(0, 150, 136, 0.2)', marginTop: '12px' }}>
-                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Business Email Provider
+
+                    {/* Username Analysis Section */}
+                    {(emailResult.gibberishScore !== undefined || emailResult.abusiveScore !== undefined || emailResult.roleBasedEmail) && (
+                      <div style={{ padding: '10px', backgroundColor: 'rgba(255, 152, 0, 0.05)', borderRadius: '4px', border: '1px solid rgba(255, 152, 0, 0.2)', marginTop: '12px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Username Analysis
                         </div>
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#009688', marginBottom: '3px' }}>
-                          {emailResult.businessEmail.name}
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                          Type: <strong>{emailResult.businessEmail.type}</strong>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {emailResult.gibberishScore !== undefined && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Gibberish Score:</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: '600' }}>{emailResult.gibberishScore}</span>
+                                <span style={{
+                                  display: 'inline-block',
+                                  padding: '2px 8px',
+                                  backgroundColor: emailResult.gibberishScore >= 25 ? 'rgba(239, 83, 80, 0.2)' : emailResult.gibberishScore >= 15 ? 'rgba(255, 152, 0, 0.2)' : 'rgba(76, 175, 80, 0.2)',
+                                  color: emailResult.gibberishScore >= 25 ? '#ef5350' : emailResult.gibberishScore >= 15 ? '#ff9800' : '#4caf50',
+                                  borderRadius: '3px',
+                                  fontSize: '10px',
+                                  fontWeight: '600'
+                                }}>
+                                  {emailResult.gibberishScore >= 25 ? 'High' : emailResult.gibberishScore >= 15 ? 'Medium' : 'Low'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {emailResult.abusiveScore !== undefined && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Abusive Score:</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: '600' }}>{emailResult.abusiveScore}</span>
+                                <span style={{
+                                  display: 'inline-block',
+                                  padding: '2px 8px',
+                                  backgroundColor: emailResult.abusiveScore > 0 ? 'rgba(239, 83, 80, 0.2)' : 'rgba(76, 175, 80, 0.2)',
+                                  color: emailResult.abusiveScore > 0 ? '#ef5350' : '#4caf50',
+                                  borderRadius: '3px',
+                                  fontSize: '10px',
+                                  fontWeight: '600'
+                                }}>
+                                  {emailResult.abusiveScore > 0 ? 'Detected' : 'Clean'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {emailResult.roleBasedEmail && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Role-Based Email:</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: '600' }}>Yes</span>
+                                {emailResult.roleBasedType && (
+                                  <span style={{
+                                    display: 'inline-block',
+                                    padding: '2px 8px',
+                                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                                    color: '#2196f3',
+                                    borderRadius: '3px',
+                                    fontSize: '10px',
+                                    fontWeight: '600',
+                                    textTransform: 'capitalize'
+                                  }}>
+                                    {emailResult.roleBasedType}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {emailResult.usernameHeuristics && emailResult.usernameHeuristics.length > 0 && (
+                            <div style={{ marginTop: '4px' }}>
+                              <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>Heuristics:</div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginLeft: '8px' }}>
+                                {emailResult.usernameHeuristics.map((heuristic, hIdx) => (
+                                  <div key={`heur-${hIdx}`} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                    • {heuristic}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {/* Phishing Risk (FIX #2: Separated from humanLikelihood) */}
+                    {/* Domain Intelligence Section */}
+                    {(emailResult.tldQuality || emailResult.businessEmail) && (
+                      <div style={{ padding: '10px', backgroundColor: 'rgba(0, 150, 136, 0.05)', borderRadius: '4px', border: '1px solid rgba(0, 150, 136, 0.2)', marginTop: '12px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Domain Intelligence
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {emailResult.tldQuality && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>TLD Trust Level:</span>
+                              <span style={{
+                                display: 'inline-block',
+                                padding: '2px 8px',
+                                backgroundColor: emailResult.tldQuality === 'high-trust' ? 'rgba(76, 175, 80, 0.2)' : emailResult.tldQuality === 'low-trust' ? 'rgba(239, 83, 80, 0.2)' : 'rgba(158, 158, 158, 0.2)',
+                                color: emailResult.tldQuality === 'high-trust' ? '#4caf50' : emailResult.tldQuality === 'low-trust' ? '#ef5350' : '#9e9e9e',
+                                borderRadius: '3px',
+                                fontSize: '10px',
+                                fontWeight: '600'
+                              }}>
+                                {emailResult.tldQuality === 'high-trust' ? '✓ High-Trust' : emailResult.tldQuality === 'low-trust' ? '✗ Low-Trust' : '◐ Neutral'}
+                              </span>
+                            </div>
+                          )}
+                          {emailResult.businessEmail && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>Email Provider:</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: '600' }}>{emailResult.businessEmail.name}</span>
+                                <span style={{
+                                  display: 'inline-block',
+                                  padding: '2px 8px',
+                                  backgroundColor: emailResult.businessEmail.type === 'corporate' ? 'rgba(0, 150, 136, 0.2)' : 'rgba(158, 158, 158, 0.2)',
+                                  color: emailResult.businessEmail.type === 'corporate' ? '#009688' : '#9e9e9e',
+                                  borderRadius: '3px',
+                                  fontSize: '10px',
+                                  fontWeight: '600',
+                                  textTransform: 'capitalize'
+                                }}>
+                                  {emailResult.businessEmail.type}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Phishing Intelligence Section */}
                     {emailResult.phishingRisk && emailResult.phishingRisk !== 'Unknown' && (
                       <div style={{ padding: '10px', backgroundColor: emailResult.phishingRisk === 'Very High' ? 'rgba(244, 67, 54, 0.05)' : emailResult.phishingRisk === 'High' ? 'rgba(255, 152, 0, 0.05)' : emailResult.phishingRisk === 'Medium' ? 'rgba(255, 193, 7, 0.05)' : 'rgba(76, 175, 80, 0.05)', borderRadius: '4px', border: emailResult.phishingRisk === 'Very High' ? '1px solid rgba(244, 67, 54, 0.2)' : emailResult.phishingRisk === 'High' ? '1px solid rgba(255, 152, 0, 0.2)' : emailResult.phishingRisk === 'Medium' ? '1px solid rgba(255, 193, 7, 0.2)' : '1px solid rgba(76, 175, 80, 0.2)', marginTop: '12px' }}>
-                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Phishing Risk
+                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Phishing Intelligence
                         </div>
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: emailResult.phishingRisk === 'Very High' ? '#f44336' : emailResult.phishingRisk === 'High' ? '#ff9800' : emailResult.phishingRisk === 'Medium' ? '#ffc107' : '#4caf50', marginBottom: '3px' }}>
-                          {emailResult.phishingRisk}
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                          {emailResult.phishingRisk === 'Very High' ? 'Role-based email on corporate domain - high impersonation risk' : emailResult.phishingRisk === 'High' ? 'Role-based email on freemail - potential phishing risk' : emailResult.phishingRisk === 'Medium' ? 'Moderate phishing risk detected' : 'Low phishing risk'}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: '600', color: emailResult.phishingRisk === 'Very High' ? '#f44336' : emailResult.phishingRisk === 'High' ? '#ff9800' : emailResult.phishingRisk === 'Medium' ? '#ffc107' : '#4caf50' }}>
+                              Risk Level:
+                            </span>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              backgroundColor: emailResult.phishingRisk === 'Very High' ? 'rgba(244, 67, 54, 0.2)' : emailResult.phishingRisk === 'High' ? 'rgba(255, 152, 0, 0.2)' : emailResult.phishingRisk === 'Medium' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(76, 175, 80, 0.2)',
+                              color: emailResult.phishingRisk === 'Very High' ? '#f44336' : emailResult.phishingRisk === 'High' ? '#ff9800' : emailResult.phishingRisk === 'Medium' ? '#ffc107' : '#4caf50',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                              fontWeight: '600'
+                            }}>
+                              {emailResult.phishingRisk}
+                            </span>
+                          </div>
+                          {emailResult.trustworthinessWarnings && emailResult.trustworthinessWarnings.some(w => w.toLowerCase().includes('impersonate')) && (
+                            <div style={{ marginTop: '4px' }}>
+                              <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '3px' }}>Impersonation Warnings:</div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginLeft: '8px' }}>
+                                {emailResult.trustworthinessWarnings.filter(w => w.toLowerCase().includes('impersonate')).map((warning, wIdx) => (
+                                  <div key={`iw-${wIdx}`} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                    • {warning}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {/* TLD Quality (Upgrade #4) - Only show for valid emails */}
-                    {emailResult.tldQuality && emailResult.deliverabilityScore > 0 && (
-                      <div style={{ padding: '10px', backgroundColor: emailResult.tldQuality === 'high-trust' ? 'rgba(76, 175, 80, 0.05)' : emailResult.tldQuality === 'low-trust' ? 'rgba(239, 83, 80, 0.05)' : 'rgba(158, 158, 158, 0.05)', borderRadius: '4px', border: emailResult.tldQuality === 'high-trust' ? '1px solid rgba(76, 175, 80, 0.2)' : emailResult.tldQuality === 'low-trust' ? '1px solid rgba(239, 83, 80, 0.2)' : '1px solid rgba(158, 158, 158, 0.2)', marginTop: '12px' }}>
+                    {/* Normalized Email Section */}
+                    {emailResult.normalized && (
+                      <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          TLD Quality
+                          Normalized Email
                         </div>
-                        <div style={{ fontSize: '12px', fontWeight: '600', color: emailResult.tldQuality === 'high-trust' ? '#4caf50' : emailResult.tldQuality === 'low-trust' ? '#ef5350' : '#9e9e9e' }}>
-                          {emailResult.tldQuality === 'high-trust' ? '✓ High-Trust TLD' : emailResult.tldQuality === 'low-trust' ? '✗ Low-Trust / Suspicious TLD' : '◐ Neutral TLD'}
+                        <div style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: '500', color: 'var(--color-text-primary)', wordBreak: 'break-all' }}>
+                          {emailResult.normalized}
                         </div>
                       </div>
                     )}

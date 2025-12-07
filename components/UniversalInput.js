@@ -9,7 +9,7 @@ import { json } from '@codemirror/lang-json'
 import { sql } from '@codemirror/lang-sql'
 import { python } from '@codemirror/lang-python'
 import { yaml } from '@codemirror/lang-yaml'
-import { isScriptingLanguageTool } from '../lib/tools'
+import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
 import { useTheme } from '../lib/ThemeContext'
 import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/universal-input.module.css'
@@ -31,6 +31,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   const [isDragging, setIsDragging] = useState(false)
   const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
+  const [exampleIndex, setExampleIndex] = useState({})
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
   const startYRef = useRef(0)
@@ -45,6 +46,16 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       setInputHeight(height)
     }
   }, [])
+
+  // Reset example index when tool changes
+  useEffect(() => {
+    if (selectedTool) {
+      setExampleIndex(prev => ({
+        ...prev,
+        [selectedTool.toolId]: 0
+      }))
+    }
+  }, [selectedTool?.toolId])
 
   // Handle resize start
   const handleResizeStart = (e) => {
@@ -167,10 +178,18 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   const handleLoadExample = () => {
     if (!selectedTool || !getToolExample) return
 
-    const example = getToolExample(selectedTool.toolId, configOptions)
+    const currentIndex = exampleIndex[selectedTool.toolId] || 0
+    const totalExamples = getToolExampleCount(selectedTool.toolId, configOptions)
+    const nextIndex = (currentIndex + 1) % totalExamples
+
+    const example = getToolExample(selectedTool.toolId, configOptions, nextIndex)
     if (example) {
       setInputText(example)
       setCharCount(example.length)
+      setExampleIndex(prev => ({
+        ...prev,
+        [selectedTool.toolId]: nextIndex
+      }))
       onInputChange(example, null, null, false)
     }
   }
