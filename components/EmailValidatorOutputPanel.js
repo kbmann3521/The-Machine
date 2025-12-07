@@ -17,16 +17,31 @@ export default function EmailValidatorOutputPanel({ result }) {
           try {
             const domain = emailResult.email.split('@')[1]
             if (domain) {
-              const response = await fetch('/api/tools/email-validator-dns', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ domain })
-              })
-              if (response.ok) {
-                const data = await response.json()
-                newDnsData[emailResult.email] = data
-              } else {
-                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+              const controller = new AbortController()
+              const timeout = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+              try {
+                const response = await fetch('/api/tools/email-validator-dns', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ domain }),
+                  signal: controller.signal
+                })
+                clearTimeout(timeout)
+
+                if (response.ok) {
+                  const data = await response.json()
+                  newDnsData[emailResult.email] = data
+                } else {
+                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                }
+              } catch (fetchError) {
+                clearTimeout(timeout)
+                if (fetchError.name === 'AbortError') {
+                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
+                } else {
+                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                }
               }
             }
           } catch (error) {
