@@ -4711,7 +4711,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           }
 
           tabs.push({
-            id: 'format',
+            id: 'output',
             label: tabLabel,
             content: displayResult,
             contentType: contentType,
@@ -4719,7 +4719,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           })
         } else {
           tabs.push({
-            id: 'format',
+            id: 'output',
             label: 'OUTPUT',
             content: String(displayResult),
             contentType: 'text'
