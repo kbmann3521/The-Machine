@@ -4685,6 +4685,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'csv-json-converter': {
         // CSV to JSON/SQL/JS/TS output - show format-specific tab only
         const tabs = []
+
+        // Add warnings tab if there are warnings
+        if (warnings && warnings.length > 0) {
+          tabs.push({
+            id: 'warnings',
+            label: `⚠️ Warnings (${warnings.length})`,
+            content: <CSVWarningsPanel warnings={warnings} />,
+            contentType: 'component',
+          })
+        }
+
         if (typeof displayResult === 'string') {
           // Determine content type and label based on the output format
           // Use 'code' instead of 'json' to prevent OutputTabs from auto-inserting a friendly tab
