@@ -5,6 +5,7 @@ import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CodeMirrorOutput from './CodeMirrorOutput'
+import CSVWarningsPanel from './CSVWarningsPanel'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
 
