@@ -4615,6 +4615,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderYamlFormatterOutput()
       case 'unit-converter':
         return renderUnitConverterOutput()
+      case 'file-size-converter':
+        return renderFileSizeConverterOutput()
       case 'ascii-unicode-converter':
         return renderAsciiUnicodeOutput()
       case 'base64-converter':
