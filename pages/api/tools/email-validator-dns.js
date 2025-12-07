@@ -25,14 +25,20 @@ export default async function handler(req, res) {
     if (addresses && addresses.length > 0) {
       const mxRecords = addresses
         .map(record => {
-          // Node.js returns exchange as the property name
-          const hostname = record.exchange || record.hostname || ''
+          // Node.js dns.resolveMx returns objects with 'exchange' property
+          // Ensure we extract it properly
+          let hostname = ''
+          if (typeof record === 'object') {
+            hostname = record.exchange || record.hostname || ''
+          } else if (typeof record === 'string') {
+            hostname = record
+          }
+
           return {
-            priority: parseInt(record.priority) || 0,
-            hostname: hostname.toString().trim()
+            priority: typeof record.priority === 'number' ? record.priority : parseInt(record.priority) || 10,
+            hostname: String(hostname).trim()
           }
         })
-        .filter(record => record.hostname) // Filter out empty hostnames
         .sort((a, b) => a.priority - b.priority)
 
       return res.status(200).json({
