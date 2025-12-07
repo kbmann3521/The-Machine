@@ -3,6 +3,39 @@ import styles from '../styles/tool-output.module.css'
 import OutputTabs from './OutputTabs'
 
 export default function EmailValidatorOutputPanel({ result }) {
+  const [dnsData, setDnsData] = useState({})
+
+  // Fetch DNS data for valid emails
+  React.useEffect(() => {
+    if (!result || !result.results) return
+
+    const fetchDnsData = async () => {
+      const newDnsData = { ...dnsData }
+
+      for (const emailResult of result.results) {
+        if (emailResult.valid && !dnsData[emailResult.email]) {
+          try {
+            const domain = emailResult.email.split('@')[1]
+            const response = await fetch('/api/tools/email-validator-dns', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ domain })
+            })
+            const data = await response.json()
+            newDnsData[emailResult.email] = data
+          } catch (error) {
+            console.error(`DNS lookup failed for ${emailResult.email}:`, error)
+            newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+          }
+        }
+      }
+
+      setDnsData(newDnsData)
+    }
+
+    fetchDnsData()
+  }, [result])
+
   if (!result) {
     const emptyTabs = [
       {
