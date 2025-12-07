@@ -171,7 +171,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     fontWeight: '600',
                     textTransform: 'uppercase',
                   }}>
-                    {emailResult.valid ? '✓ Valid' : emailResult.isDisposable ? '✗ Invalid (Disposable domain)' : '✗ Invalid'}
+                    {emailResult.valid ? '✓ Valid' : emailResult.isDisposable ? '✗ Invalid (Disposable domain)' : emailResult.hasSyntaxError ? '✗ Invalid (Syntax error)' : '✗ Invalid'}
                   </span>
                 </div>
 
