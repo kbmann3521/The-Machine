@@ -15,10 +15,14 @@ export default async function handler(req, res) {
     const addresses = await dns.resolveMx(domain)
 
     if (addresses && addresses.length > 0) {
-      const mxRecords = addresses.map(record => ({
-        priority: record.priority || 0,
-        hostname: record.exchange || 'unknown'
-      })).sort((a, b) => a.priority - b.priority)
+      const mxRecords = addresses.map(record => {
+        // Debug: log the record structure
+        console.log('MX Record:', JSON.stringify(record))
+        return {
+          priority: record.priority || 0,
+          hostname: record.exchange || record.hostname || 'unknown'
+        }
+      }).sort((a, b) => a.priority - b.priority)
 
       return res.status(200).json({
         domainExists: true,
