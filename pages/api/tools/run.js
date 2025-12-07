@@ -27,10 +27,25 @@ export default async function handler(req, res) {
 
     const result = await runTool(toolId, inputText, config || {}, inputImage)
 
+    // Handle tools that return validation metadata (like CSV converter)
+    let finalResult = result
+    let warnings = []
+
+    if (result && typeof result === 'object' && result.output !== undefined && result.warnings !== undefined) {
+      finalResult = result.output
+      warnings = result.warnings || []
+    }
+
     res.status(200).json({
       success: true,
       toolId,
-      result,
+      result: finalResult,
+      warnings,
+      metadata: result && typeof result === 'object' ? {
+        warningCount: result.warningCount,
+        criticalWarnings: result.criticalWarnings,
+        error: result.error,
+      } : {},
     })
   } catch (error) {
     console.error('Tool execution error:', error)
