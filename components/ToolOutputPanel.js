@@ -4681,6 +4681,46 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderCaesarCipherOutput()
       case 'cron-tester':
         return renderCronTesterOutput()
+      case 'csv-json-converter': {
+        // CSV to JSON output - display as JSON with syntax highlighting
+        const tabs = []
+        if (typeof displayResult === 'string') {
+          // Try to parse the JSON string
+          try {
+            const parsed = JSON.parse(displayResult)
+            tabs.push({
+              id: 'output',
+              label: 'JSON',
+              content: displayResult,
+              contentType: 'json'
+            })
+          } catch (e) {
+            // If not valid JSON, show as text
+            tabs.push({
+              id: 'output',
+              label: 'OUTPUT',
+              content: displayResult,
+              contentType: 'text'
+            })
+          }
+        } else {
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: String(displayResult),
+            contentType: 'text'
+          })
+        }
+
+        return (
+          <OutputTabs
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
       default: {
         const tabs = []
 
