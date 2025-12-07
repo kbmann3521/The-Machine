@@ -34,6 +34,11 @@ export default async function handler(req, res) {
     if (result && typeof result === 'object' && result.output !== undefined && result.warnings !== undefined) {
       finalResult = result.output
       warnings = result.warnings || []
+
+      // Filter warnings based on settings for CSV converter
+      if (toolId === 'csv-json-converter') {
+        warnings = filterWarningsBasedOnSettings(warnings, config || {})
+      }
     }
 
     res.status(200).json({
@@ -42,8 +47,8 @@ export default async function handler(req, res) {
       result: finalResult,
       warnings,
       metadata: result && typeof result === 'object' ? {
-        warningCount: result.warningCount,
-        criticalWarnings: result.criticalWarnings,
+        warningCount: warnings.length,
+        criticalWarnings: warnings.filter(w => w.severity === 'critical').length,
         error: result.error,
       } : {},
     })
