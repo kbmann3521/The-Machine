@@ -357,17 +357,22 @@ export default function EmailValidatorOutputPanel({ result }) {
         fontSize: '12px',
         color: 'var(--color-text-secondary)',
       }}>
-        <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-primary)' }}>Features Used:</div>
+        <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-primary)' }}>Features & Scoring System:</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px' }}>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Validation:</div>
           <div>✓ RFC-like syntax validation</div>
-          <div>✓ Disposable domain detection (55,000+ domains)</div>
+          <div>✓ Disposable domain detection</div>
           <div>✓ Bad reputation provider identification</div>
           <div>✓ Role-based email detection</div>
           <div>✓ Invalid domain pattern detection</div>
           <div>✓ ICANN TLD validation</div>
           <div>✓ DNS MX record lookup</div>
           <div>✓ Domain existence verification</div>
-          <div>✓ Deliverability score (0-100)</div>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Scoring (0-100):</div>
+          <div>✓ High-risk penalties (syntax, disposable, spammy TLDs)</div>
+          <div>✓ Medium-risk penalties (role-based, automated, free-mail)</div>
+          <div>✓ Low-risk penalties (whitespace, subdomains, non-ASCII)</div>
+          <div>✓ Professional score mapping (Excellent → Guaranteed bad)</div>
         </div>
       </div>
     </div>
