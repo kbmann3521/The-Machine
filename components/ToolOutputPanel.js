@@ -5,10 +5,11 @@ import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CodeMirrorOutput from './CodeMirrorOutput'
+import CSVWarningsPanel from './CSVWarningsPanel'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [] }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -4681,6 +4682,138 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderCaesarCipherOutput()
       case 'cron-tester':
         return renderCronTesterOutput()
+      case 'csv-json-converter': {
+        // CSV to JSON/SQL/JS/TS output - show format-specific tab only
+        const tabs = []
+
+        // Always add warnings tab (matching validation tab pattern from JS formatter)
+        const warningCount = warnings ? warnings.length : 0
+        if (warningCount > 0) {
+          const warningContent = (
+            <div style={{ padding: '16px' }}>
+              <div style={{
+                marginBottom: '16px',
+                padding: '12px',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                border: '1px solid rgba(255, 152, 0, 0.3)',
+                borderRadius: '4px',
+                color: '#ff9800',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✗ {warningCount} Warning{warningCount !== 1 ? 's' : ''} Found
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {warnings.map((warning, idx) => (
+                  <div key={idx} style={{
+                    padding: '12px',
+                    backgroundColor: 'var(--color-background-tertiary)',
+                    border: '1px solid rgba(255, 152, 0, 0.2)',
+                    borderRadius: '4px',
+                  }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ff9800' }}>
+                      {warning.message}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                      {warning.description}
+                    </div>
+                    {warning.row !== undefined && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        Location: Row {warning.row + 1}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+
+          tabs.push({
+            id: 'warnings',
+            label: `Warnings (${warningCount})`,
+            content: warningContent,
+            contentType: 'component',
+          })
+        } else {
+          // Show success state when no warnings
+          tabs.push({
+            id: 'warnings',
+            label: 'Warnings (✓)',
+            content: (
+              <div style={{
+                padding: '16px',
+                textAlign: 'center',
+                color: 'var(--color-text-secondary)',
+              }}>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                  border: '1px solid rgba(102, 187, 106, 0.3)',
+                  borderRadius: '4px',
+                  color: '#66bb6a',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}>
+                  ✓ No warnings found
+                </div>
+              </div>
+            ),
+            contentType: 'component',
+          })
+        }
+
+        if (typeof displayResult === 'string') {
+          // Determine content type and label based on the output format
+          // Use 'code' instead of 'json' to prevent OutputTabs from auto-inserting a friendly tab
+          let contentType = 'code'
+          let language = 'text'
+          let tabLabel = 'OUTPUT'
+
+          // Try to detect format from content
+          if (displayResult.trim().startsWith('[') || displayResult.trim().startsWith('{')) {
+            if (displayResult.includes('\n')) {
+              language = 'json'
+              tabLabel = 'JSON'
+            } else {
+              language = 'json'
+              tabLabel = 'JSONL'
+            }
+          } else if (displayResult.trim().startsWith('INSERT INTO')) {
+            language = 'sql'
+            tabLabel = 'SQL'
+          } else if (displayResult.trim().startsWith('export')) {
+            language = displayResult.includes('Record<string, any>') ? 'typescript' : 'javascript'
+            tabLabel = language === 'typescript' ? 'TypeScript' : 'JavaScript'
+          } else {
+            contentType = 'text'
+          }
+
+          tabs.push({
+            id: 'output',
+            label: tabLabel,
+            content: displayResult,
+            contentType: contentType,
+            language: language
+          })
+        } else {
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: String(displayResult),
+            contentType: 'text'
+          })
+        }
+
+        return (
+          <OutputTabs
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
       default: {
         const tabs = []
 

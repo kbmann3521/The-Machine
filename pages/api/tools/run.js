@@ -1,4 +1,4 @@
-import { runTool } from '../../../lib/tools'
+import { runTool, filterWarningsBasedOnSettings } from '../../../lib/tools'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -27,10 +27,30 @@ export default async function handler(req, res) {
 
     const result = await runTool(toolId, inputText, config || {}, inputImage)
 
+    // Handle tools that return validation metadata (like CSV converter)
+    let finalResult = result
+    let warnings = []
+
+    if (result && typeof result === 'object' && result.output !== undefined && result.warnings !== undefined) {
+      finalResult = result.output
+      warnings = result.warnings || []
+
+      // Filter warnings based on settings for CSV converter
+      if (toolId === 'csv-json-converter') {
+        warnings = filterWarningsBasedOnSettings(warnings, config || {})
+      }
+    }
+
     res.status(200).json({
       success: true,
       toolId,
-      result,
+      result: finalResult,
+      warnings,
+      metadata: result && typeof result === 'object' ? {
+        warningCount: warnings.length,
+        criticalWarnings: warnings.filter(w => w.severity === 'critical').length,
+        error: result.error,
+      } : {},
     })
   } catch (error) {
     console.error('Tool execution error:', error)

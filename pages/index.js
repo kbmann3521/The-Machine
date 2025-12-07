@@ -22,6 +22,7 @@ export default function Home() {
   const [selectedTool, setSelectedTool] = useState(null)
   const [configOptions, setConfigOptions] = useState({})
   const [outputResult, setOutputResult] = useState(null)
+  const [outputWarnings, setOutputWarnings] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
@@ -229,6 +230,7 @@ export default function Home() {
       const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
 
       setSelectedTool(tool)
+      setOutputWarnings([]) // Clear warnings when tool changes
       selectedToolRef.current = tool  // Update ref for next comparison
 
       // Initialize config for the selected tool (always, not just on change)
@@ -513,6 +515,7 @@ export default function Home() {
         }
 
         setOutputResult(data.result)
+        setOutputWarnings(data.warnings || [])
       } catch (err) {
         const errorMessage = err?.message || 'Tool execution failed'
         setError(errorMessage)
@@ -711,6 +714,7 @@ export default function Home() {
                     onConfigChange={setConfigOptions}
                     inputText={inputText}
                     imagePreview={imagePreview}
+                    warnings={outputWarnings}
                   />
                 )}
               </div>
