@@ -247,9 +247,9 @@ export default function EmailValidatorOutputPanel({ result }) {
                         <div style={{
                           height: '100%',
                           width: `${emailResult.deliverabilityScore}%`,
-                          backgroundColor: emailResult.deliverabilityScore >= 85 ? '#4caf50' :
-                                           emailResult.deliverabilityScore >= 60 ? '#2196f3' :
-                                           emailResult.deliverabilityScore >= 30 ? '#ff9800' : '#ef5350',
+                          backgroundColor: emailResult.deliverabilityScore >= 90 ? '#4caf50' :
+                                           emailResult.deliverabilityScore >= 70 ? '#2196f3' :
+                                           emailResult.deliverabilityScore >= 40 ? '#ff9800' : '#ef5350',
                           borderRadius: '5px',
                           transition: 'width 0.3s ease'
                         }} />
