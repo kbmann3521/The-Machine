@@ -166,6 +166,66 @@ export default function EmailValidatorOutputPanel({ result }) {
                     )}
                   </div>
                 )}
+
+                {/* Deliverability Score */}
+                {emailResult.deliverabilityScore !== undefined && (
+                  <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                      DELIVERABILITY SCORE
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: 'var(--color-background-secondary)',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${emailResult.deliverabilityScore}%`,
+                          backgroundColor: emailResult.deliverabilityScore >= 85 ? '#4caf50' :
+                                           emailResult.deliverabilityScore >= 60 ? '#2196f3' :
+                                           emailResult.deliverabilityScore >= 30 ? '#ff9800' : '#ef5350',
+                          borderRadius: '4px',
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
+                      <span style={{ fontSize: '12px', fontWeight: '600', minWidth: '35px' }}>
+                        {emailResult.deliverabilityScore}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Domain Analysis */}
+                {emailResult.domainExists !== undefined && (
+                  <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                      DOMAIN ANALYSIS
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ color: emailResult.domainExists ? '#4caf50' : '#ef5350' }}>
+                          {emailResult.domainExists ? '✓' : '✗'}
+                        </span>
+                        <span>Domain exists: {emailResult.domainExists ? 'Yes' : 'No'}</span>
+                      </div>
+                      {emailResult.mxRecords && emailResult.mxRecords.length > 0 && (
+                        <div>
+                          <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px' }}>MX Records:</div>
+                          <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            {emailResult.mxRecords.map((mx, mxIdx) => (
+                              <div key={mxIdx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                [{mx.priority}] {mx.hostname}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
