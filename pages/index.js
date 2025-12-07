@@ -265,6 +265,19 @@ export default function Home() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
+      // Clean up any existing abort controller from previous request
+      if (abortControllerRef.current) {
+        try {
+          abortControllerRef.current.abort()
+        } catch (e) {
+          // Ignore
+        }
+      }
+      if (abortTimeoutRef.current) {
+        clearTimeout(abortTimeoutRef.current)
+        abortTimeoutRef.current = null
+      }
+
       // Clear any existing loading timer
       if (loadingTimerRef.current) {
         clearTimeout(loadingTimerRef.current)
@@ -284,7 +297,14 @@ export default function Home() {
 
           // Fetch with 20 second timeout
           const controller = new AbortController()
-          const abortTimeoutId = setTimeout(() => controller.abort(), 20000)
+          abortControllerRef.current = controller
+          abortTimeoutRef.current = setTimeout(() => {
+            try {
+              controller.abort()
+            } catch (e) {
+              // Ignore abort errors
+            }
+          }, 20000)
 
           let response
           try {
@@ -298,7 +318,10 @@ export default function Home() {
               signal: controller.signal,
             })
           } catch (fetchError) {
-            clearTimeout(abortTimeoutId)
+            if (abortTimeoutRef.current) {
+              clearTimeout(abortTimeoutRef.current)
+              abortTimeoutRef.current = null
+            }
             // Handle fetch errors gracefully
             if (fetchError.name === 'AbortError') {
               console.debug('Predict API request timed out after 20 seconds')
@@ -309,7 +332,10 @@ export default function Home() {
             throw new Error('Prediction service unavailable')
           }
 
-          clearTimeout(abortTimeoutId)
+          if (abortTimeoutRef.current) {
+            clearTimeout(abortTimeoutRef.current)
+            abortTimeoutRef.current = null
+          }
 
           if (!response || !response.ok) {
             const errorText = response ? await response.text() : 'No response'
