@@ -230,6 +230,7 @@ export default function Home() {
       const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
 
       setSelectedTool(tool)
+      setOutputWarnings([]) // Clear warnings when tool changes
       selectedToolRef.current = tool  // Update ref for next comparison
 
       // Initialize config for the selected tool (always, not just on change)
