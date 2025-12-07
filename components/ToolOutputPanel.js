@@ -4686,29 +4686,28 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         const tabs = []
         if (typeof displayResult === 'string') {
           // Determine content type and label based on the output format
-          let contentType = 'text'
+          // Use 'code' instead of 'json' to prevent OutputTabs from auto-inserting a friendly tab
+          let contentType = 'code'
           let language = 'text'
           let tabLabel = 'OUTPUT'
 
           // Try to detect format from content
           if (displayResult.trim().startsWith('[') || displayResult.trim().startsWith('{')) {
             if (displayResult.includes('\n')) {
-              contentType = 'json'
               language = 'json'
               tabLabel = 'JSON'
             } else {
-              contentType = 'code'
               language = 'json'
               tabLabel = 'JSONL'
             }
           } else if (displayResult.trim().startsWith('INSERT INTO')) {
-            contentType = 'code'
             language = 'sql'
             tabLabel = 'SQL'
           } else if (displayResult.trim().startsWith('export')) {
-            contentType = 'code'
             language = displayResult.includes('Record<string, any>') ? 'typescript' : 'javascript'
             tabLabel = language === 'typescript' ? 'TypeScript' : 'JavaScript'
+          } else {
+            contentType = 'text'
           }
 
           tabs.push({
