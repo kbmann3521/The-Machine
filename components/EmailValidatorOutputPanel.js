@@ -191,7 +191,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                       </div>
                     )}
 
-                    {(emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation) && (
+                    {(emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0) && (
                       <div>
                         <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
                           ⚠ Warnings:
@@ -212,6 +212,16 @@ export default function EmailValidatorOutputPanel({ result }) {
                               • Domain has poor reputation or is on blocklist
                             </div>
                           )}
+                          {emailResult.usernameHeuristics?.map((heuristic, hIdx) => (
+                            <div key={`uh-${hIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                              • Username: {heuristic}
+                            </div>
+                          ))}
+                          {emailResult.domainHeuristics?.map((heuristic, dhIdx) => (
+                            <div key={`dh-${dhIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                              • Domain: {heuristic}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
