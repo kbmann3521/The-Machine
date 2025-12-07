@@ -2642,6 +2642,57 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
+  const renderFileSizeConverterOutput = () => {
+    if (!displayResult) return null
+
+    if (!displayResult.conversions) return null
+
+    const conversions = displayResult.conversions.map(conv => ({
+      label: conv.human || `${conv.value} ${conv.unit}`,
+      value: conv.value,
+      unit: conv.unit,
+    }))
+
+    if (conversions.length === 0) return null
+
+    const friendlyView = ({ onCopyCard, copiedCardId }) => (
+      <div className={styles.structuredOutput}>
+        {conversions.map((conv, idx) => (
+          <div key={idx} className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>{conv.label}</span>
+              <button
+                className="copy-action"
+                onClick={() => onCopyCard(conv.value.toString(), conv.label)}
+                title={`Copy ${conv.label}`}
+              >
+                {copiedCardId === conv.label ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue}>{conv.value}</div>
+          </div>
+        ))}
+      </div>
+    )
+
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
   const renderColorConverterOutput = () => {
     if (!displayResult) return null
 
