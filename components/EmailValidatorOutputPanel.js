@@ -266,7 +266,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                               Domain exists: {dnsData[emailResult.email].domainExists ? 'Yes' : 'No'}
                             </span>
                           </div>
-                          {dnsData[emailResult.email].mxRecords && dnsData[emailResult.email].mxRecords.length > 0 && (
+                          {dnsData[emailResult.email].mxRecords && dnsData[emailResult.email].mxRecords.length > 0 && dnsData[emailResult.email].mxRecords.some(mx => mx.hostname) ? (
                             <div>
                               <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px' }}>MX Records:</div>
                               <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -277,8 +277,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                                 ))}
                               </div>
                             </div>
-                          )}
-                          {dnsData[emailResult.email].domainExists && !dnsData[emailResult.email].mxRecords?.length && (
+                          ) : (
                             <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                               No MX records (may use A records)
                             </div>
