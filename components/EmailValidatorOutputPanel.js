@@ -349,17 +349,20 @@ export default function EmailValidatorOutputPanel({ result }) {
           <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Validation:</div>
           <div>✓ RFC-like syntax validation</div>
           <div>✓ Disposable domain detection</div>
-          <div>✓ Bad reputation provider identification</div>
           <div>✓ Role-based email detection</div>
-          <div>✓ Invalid domain pattern detection</div>
           <div>✓ ICANN TLD validation</div>
           <div>✓ DNS MX record lookup</div>
           <div>✓ Domain existence verification</div>
-          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Scoring (0-100):</div>
-          <div>✓ High-risk penalties (syntax, disposable, spammy TLDs)</div>
-          <div>✓ Medium-risk penalties (role-based, automated, free-mail)</div>
-          <div>✓ Low-risk penalties (whitespace, subdomains, non-ASCII)</div>
-          <div>✓ Professional score mapping (Excellent → Guaranteed bad)</div>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Deliverability Scoring (0-100):</div>
+          <div>✓ Server-side delivery probability</div>
+          <div>✓ MX record validity</div>
+          <div>✓ Provider reputation (Gmail, Outlook, Yahoo)</div>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Trustworthiness Scoring (0-100):</div>
+          <div>✓ Username pattern analysis (gibberish detection)</div>
+          <div>✓ Role-based email flagging</div>
+          <div>✓ Human-like pattern recognition</div>
+          <div>✓ Suspicious TLD detection</div>
+          <div>✓ Disposable domain flagging</div>
         </div>
       </div>
     </div>
