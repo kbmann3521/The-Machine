@@ -262,6 +262,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     {/* Score meaning */}
                     {emailResult.deliverabilityMeaning && (
                       <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', fontWeight: '500', marginBottom: '8px' }}>
+                        {emailResult.deliverabilityScore >= 95 ? '✓ ' : emailResult.deliverabilityScore >= 60 ? '◐ ' : '✗ '}
                         {emailResult.deliverabilityMeaning}
                       </div>
                     )}
