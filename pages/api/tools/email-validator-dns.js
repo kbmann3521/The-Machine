@@ -13,26 +13,47 @@ export default async function handler(req, res) {
 
   try {
     const addresses = await dns.resolveMx(domain)
-    
+
     if (addresses && addresses.length > 0) {
+      const mxRecords = addresses.map(record => ({
+        priority: record.priority || 0,
+        hostname: record.exchange || 'unknown'
+      })).sort((a, b) => a.priority - b.priority)
+
       return res.status(200).json({
         domainExists: true,
-        mxRecords: addresses.map(record => ({
-          priority: record.priority,
-          hostname: record.exchange
-        }))
+        mxRecords: mxRecords,
+        success: true
       })
     } else {
       return res.status(200).json({
         domainExists: false,
-        mxRecords: []
+        mxRecords: [],
+        success: true
       })
     }
   } catch (error) {
+    // Try A record lookup as fallback
+    try {
+      const aRecords = await dns.resolve4(domain)
+      if (aRecords && aRecords.length > 0) {
+        return res.status(200).json({
+          domainExists: true,
+          mxRecords: [],
+          aRecords: aRecords,
+          note: 'Domain has A records but no MX records',
+          success: true
+        })
+      }
+    } catch (aError) {
+      // Fall through
+    }
+
     return res.status(200).json({
       domainExists: false,
       mxRecords: [],
-      error: 'Domain does not exist or has no MX records'
+      error: 'DNS lookup failed',
+      success: true
     })
   }
 }
