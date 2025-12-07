@@ -336,17 +336,17 @@ export default function EmailValidatorOutputPanel({ result }) {
                       </div>
                     )}
 
-                    {/* Impersonation/Phishing Risk (NEW) */}
-                    {emailResult.impersonationRisk && emailResult.impersonationRisk !== 'Low' && (
-                      <div style={{ padding: '10px', backgroundColor: emailResult.impersonationRisk === 'Very High' ? 'rgba(244, 67, 54, 0.05)' : 'rgba(255, 152, 0, 0.05)', borderRadius: '4px', border: emailResult.impersonationRisk === 'Very High' ? '1px solid rgba(244, 67, 54, 0.2)' : '1px solid rgba(255, 152, 0, 0.2)', marginTop: '12px' }}>
+                    {/* Phishing Risk (FIX #2: Separated from humanLikelihood) */}
+                    {emailResult.phishingRisk && emailResult.phishingRisk !== 'Unknown' && (
+                      <div style={{ padding: '10px', backgroundColor: emailResult.phishingRisk === 'Very High' ? 'rgba(244, 67, 54, 0.05)' : emailResult.phishingRisk === 'High' ? 'rgba(255, 152, 0, 0.05)' : emailResult.phishingRisk === 'Medium' ? 'rgba(255, 193, 7, 0.05)' : 'rgba(76, 175, 80, 0.05)', borderRadius: '4px', border: emailResult.phishingRisk === 'Very High' ? '1px solid rgba(244, 67, 54, 0.2)' : emailResult.phishingRisk === 'High' ? '1px solid rgba(255, 152, 0, 0.2)' : emailResult.phishingRisk === 'Medium' ? '1px solid rgba(255, 193, 7, 0.2)' : '1px solid rgba(76, 175, 80, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Phishing / Impersonation Risk
+                          Phishing Risk
                         </div>
-                        <div style={{ fontSize: '13px', fontWeight: '600', color: emailResult.impersonationRisk === 'Very High' ? '#f44336' : '#ff9800', marginBottom: '3px' }}>
-                          {emailResult.impersonationRisk}
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: emailResult.phishingRisk === 'Very High' ? '#f44336' : emailResult.phishingRisk === 'High' ? '#ff9800' : emailResult.phishingRisk === 'Medium' ? '#ffc107' : '#4caf50', marginBottom: '3px' }}>
+                          {emailResult.phishingRisk}
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                          Role-based email addresses on known corporate domains have elevated phishing risk
+                          {emailResult.phishingRisk === 'Very High' ? 'Role-based email on corporate domain - high impersonation risk' : emailResult.phishingRisk === 'High' ? 'Role-based email on freemail - potential phishing risk' : emailResult.phishingRisk === 'Medium' ? 'Moderate phishing risk detected' : 'Low phishing risk'}
                         </div>
                       </div>
                     )}
