@@ -31,6 +31,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   const [isDragging, setIsDragging] = useState(false)
   const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
+  const [exampleIndex, setExampleIndex] = useState({})
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
   const startYRef = useRef(0)
