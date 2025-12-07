@@ -442,16 +442,14 @@
   gap: 12px;
 }
 
-.unitConverterHeader,
-.fileSizeConverterHeader {
+.unitConverterHeader {
   padding: 12px;
   background-color: var(--color-background-tertiary);
   border: 1px solid var(--color-border);
   border-radius: 5px;
 }
 
-.unitConverterHeader h4,
-.fileSizeConverterHeader h4 {
+.unitConverterHeader h4 {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
