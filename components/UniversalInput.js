@@ -47,6 +47,16 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     }
   }, [])
 
+  // Reset example index when tool changes
+  useEffect(() => {
+    if (selectedTool) {
+      setExampleIndex(prev => ({
+        ...prev,
+        [selectedTool.toolId]: 0
+      }))
+    }
+  }, [selectedTool?.toolId])
+
   // Handle resize start
   const handleResizeStart = (e) => {
     setIsResizing(true)
