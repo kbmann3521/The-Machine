@@ -4686,12 +4686,79 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // CSV to JSON/SQL/JS/TS output - show format-specific tab only
         const tabs = []
 
-        // Add warnings tab if there are warnings
-        if (warnings && warnings.length > 0) {
+        // Always add warnings tab (matching validation tab pattern from JS formatter)
+        const warningCount = warnings ? warnings.length : 0
+        if (warningCount > 0) {
+          const warningContent = (
+            <div style={{ padding: '16px' }}>
+              <div style={{
+                marginBottom: '16px',
+                padding: '12px',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                border: '1px solid rgba(255, 152, 0, 0.3)',
+                borderRadius: '4px',
+                color: '#ff9800',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✗ {warningCount} Warning{warningCount !== 1 ? 's' : ''} Found
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {warnings.map((warning, idx) => (
+                  <div key={idx} style={{
+                    padding: '12px',
+                    backgroundColor: 'var(--color-background-tertiary)',
+                    border: '1px solid rgba(255, 152, 0, 0.2)',
+                    borderRadius: '4px',
+                  }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ff9800' }}>
+                      {warning.message}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                      {warning.description}
+                    </div>
+                    {warning.row !== undefined && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        Location: Row {warning.row + 1}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+
           tabs.push({
             id: 'warnings',
-            label: `⚠️ Warnings (${warnings.length})`,
-            content: <CSVWarningsPanel warnings={warnings} />,
+            label: `Warnings (${warningCount})`,
+            content: warningContent,
+            contentType: 'component',
+          })
+        } else {
+          // Show success state when no warnings
+          tabs.push({
+            id: 'warnings',
+            label: 'Warnings (✓)',
+            content: (
+              <div style={{
+                padding: '16px',
+                textAlign: 'center',
+                color: 'var(--color-text-secondary)',
+              }}>
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                  border: '1px solid rgba(102, 187, 106, 0.3)',
+                  borderRadius: '4px',
+                  color: '#66bb6a',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}>
+                  ✓ No warnings found
+                </div>
+              </div>
+            ),
             contentType: 'component',
           })
         }
