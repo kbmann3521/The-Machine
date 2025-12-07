@@ -284,6 +284,63 @@ export default function EmailValidatorOutputPanel({ result }) {
                         )}
                       </div>
                     </div>
+
+                    {/* Combined Grade Panel (Upgrade #1) */}
+                    {emailResult.combinedGrade && (
+                      <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '12px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Overall Grade
+                        </div>
+                        <div style={{ fontSize: '28px', fontWeight: '700', color: emailResult.combinedGrade === 'A+' || emailResult.combinedGrade === 'A' ? '#4caf50' : emailResult.combinedGrade === 'A-' || emailResult.combinedGrade === 'B+' || emailResult.combinedGrade === 'B' ? '#2196f3' : emailResult.combinedGrade === 'B-' || emailResult.combinedGrade === 'C+' ? '#ff9800' : '#ef5350', marginBottom: '6px' }}>
+                          {emailResult.combinedGrade}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                          Single verdict combining deliverability + trustworthiness
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Human Likelihood Label (Upgrade #2) */}
+                    {emailResult.humanLikelihood && (
+                      <div style={{ padding: '10px', backgroundColor: 'rgba(255, 152, 0, 0.05)', borderRadius: '4px', border: '1px solid rgba(255, 152, 0, 0.2)', marginTop: '12px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Human Likelihood
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
+                          {emailResult.humanLikelihood}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                          Probability this email belongs to a real person
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Business Email Intelligence (Upgrade #3) */}
+                    {emailResult.businessEmail && (
+                      <div style={{ padding: '10px', backgroundColor: 'rgba(0, 150, 136, 0.05)', borderRadius: '4px', border: '1px solid rgba(0, 150, 136, 0.2)', marginTop: '12px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Business Email Provider
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#009688', marginBottom: '3px' }}>
+                          {emailResult.businessEmail.name}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                          Type: <strong>{emailResult.businessEmail.type}</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* TLD Quality (Upgrade #4) */}
+                    {emailResult.tldQuality && (
+                      <div style={{ padding: '10px', backgroundColor: emailResult.tldQuality === 'high-trust' ? 'rgba(76, 175, 80, 0.05)' : emailResult.tldQuality === 'low-trust' ? 'rgba(239, 83, 80, 0.05)' : 'rgba(158, 158, 158, 0.05)', borderRadius: '4px', border: emailResult.tldQuality === 'high-trust' ? '1px solid rgba(76, 175, 80, 0.2)' : emailResult.tldQuality === 'low-trust' ? '1px solid rgba(239, 83, 80, 0.2)' : '1px solid rgba(158, 158, 158, 0.2)', marginTop: '12px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          TLD Quality
+                        </div>
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: emailResult.tldQuality === 'high-trust' ? '#4caf50' : emailResult.tldQuality === 'low-trust' ? '#ef5350' : '#9e9e9e' }}>
+                          {emailResult.tldQuality === 'high-trust' ? '✓ High-Trust TLD' : emailResult.tldQuality === 'low-trust' ? '✗ Low-Trust / Suspicious TLD' : '◐ Neutral TLD'}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
