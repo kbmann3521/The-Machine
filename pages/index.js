@@ -324,7 +324,9 @@ export default function Home() {
         }
       }
 
-      predictTools()
+      predictTools().catch(err => {
+        console.debug('Unhandled error in predictTools:', err?.message || err)
+      })
     }, 300)
   }, [fastLocalClassification, previousInputLength])
 
