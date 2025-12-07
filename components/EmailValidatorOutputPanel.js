@@ -231,15 +231,17 @@ export default function EmailValidatorOutputPanel({ result }) {
                 {/* Deliverability Score */}
                 {emailResult.deliverabilityScore !== undefined && (
                   <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
                       DELIVERABILITY SCORE
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+                    {/* Score bar */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                       <div style={{
                         width: '100%',
-                        height: '8px',
+                        height: '10px',
                         backgroundColor: 'var(--color-background-secondary)',
-                        borderRadius: '4px',
+                        borderRadius: '5px',
                         overflow: 'hidden'
                       }}>
                         <div style={{
@@ -248,14 +250,53 @@ export default function EmailValidatorOutputPanel({ result }) {
                           backgroundColor: emailResult.deliverabilityScore >= 85 ? '#4caf50' :
                                            emailResult.deliverabilityScore >= 60 ? '#2196f3' :
                                            emailResult.deliverabilityScore >= 30 ? '#ff9800' : '#ef5350',
-                          borderRadius: '4px',
+                          borderRadius: '5px',
                           transition: 'width 0.3s ease'
                         }} />
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: '600', minWidth: '35px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '600', minWidth: '30px', textAlign: 'right' }}>
                         {emailResult.deliverabilityScore}
                       </span>
                     </div>
+
+                    {/* Score meaning */}
+                    {emailResult.deliverabilityMeaning && (
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', fontWeight: '500', marginBottom: '8px' }}>
+                        {emailResult.deliverabilityMeaning}
+                      </div>
+                    )}
+
+                    {/* Penalties breakdown */}
+                    {emailResult.penalties && emailResult.penalties.length > 0 && (
+                      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(239, 83, 80, 0.2)' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '600', color: '#ef5350', marginBottom: '4px', textTransform: 'uppercase' }}>
+                          Penalties Applied:
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          {emailResult.penalties.map((penalty, penaltyIdx) => (
+                            <div key={penaltyIdx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '8px' }}>
+                              • {penalty.issue} <span style={{ color: '#ef5350', fontWeight: '600' }}>-{penalty.deduction}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bonuses breakdown */}
+                    {emailResult.bonuses && emailResult.bonuses.length > 0 && (
+                      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                        <div style={{ fontSize: '10px', fontWeight: '600', color: '#4caf50', marginBottom: '4px', textTransform: 'uppercase' }}>
+                          Bonuses Applied:
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          {emailResult.bonuses.map((bonus, bonusIdx) => (
+                            <div key={bonusIdx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '8px' }}>
+                              • {bonus.feature} <span style={{ color: '#4caf50', fontWeight: '600' }}>+{bonus.bonus}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
