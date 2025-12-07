@@ -4682,35 +4682,45 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'cron-tester':
         return renderCronTesterOutput()
       case 'csv-json-converter': {
-        // CSV to JSON/SQL/JS/TS output
+        // CSV to JSON/SQL/JS/TS output - show format-specific tab only
         const tabs = []
         if (typeof displayResult === 'string') {
-          // Determine content type based on the output format
+          // Determine content type and label based on the output format
           let contentType = 'text'
           let language = 'text'
+          let tabLabel = 'OUTPUT'
 
           // Try to detect format from content
           if (displayResult.trim().startsWith('[') || displayResult.trim().startsWith('{')) {
-            contentType = 'json'
-            language = 'json'
+            if (displayResult.includes('\n')) {
+              contentType = 'json'
+              language = 'json'
+              tabLabel = 'JSON'
+            } else {
+              contentType = 'code'
+              language = 'json'
+              tabLabel = 'JSONL'
+            }
           } else if (displayResult.trim().startsWith('INSERT INTO')) {
             contentType = 'code'
             language = 'sql'
+            tabLabel = 'SQL'
           } else if (displayResult.trim().startsWith('export')) {
             contentType = 'code'
             language = displayResult.includes('Record<string, any>') ? 'typescript' : 'javascript'
+            tabLabel = language === 'typescript' ? 'TypeScript' : 'JavaScript'
           }
 
           tabs.push({
-            id: 'output',
-            label: 'OUTPUT',
+            id: 'format',
+            label: tabLabel,
             content: displayResult,
             contentType: contentType,
             language: language
           })
         } else {
           tabs.push({
-            id: 'output',
+            id: 'format',
             label: 'OUTPUT',
             content: String(displayResult),
             contentType: 'text'
@@ -4721,7 +4731,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           <OutputTabs
             toolCategory={toolCategory}
             toolId={toolId}
-            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'format', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
             showCopyButton={true}
           />
         )
