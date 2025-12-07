@@ -420,6 +420,12 @@ export default function EmailValidatorOutputPanel({ result }) {
           <div>✓ Human-like pattern recognition</div>
           <div>✓ Suspicious TLD detection</div>
           <div>✓ Disposable domain flagging</div>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Enterprise Features:</div>
+          <div>✓ Combined letter grade (A+ to F)</div>
+          <div>✓ Human likelihood labels (very likely human → bot)</div>
+          <div>✓ Business email provider detection</div>
+          <div>✓ TLD quality classification (high/low trust)</div>
+          <div>✓ Username semantic analysis (names, brand impersonation, offensive terms)</div>
         </div>
       </div>
     </div>
