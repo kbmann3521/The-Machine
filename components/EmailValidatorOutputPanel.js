@@ -248,6 +248,10 @@ export default function EmailValidatorOutputPanel({ result }) {
           <div>✓ Bad reputation provider identification</div>
           <div>✓ Role-based email detection</div>
           <div>✓ Invalid domain pattern detection</div>
+          <div>✓ ICANN TLD validation</div>
+          <div>✓ DNS MX record lookup</div>
+          <div>✓ Domain existence verification</div>
+          <div>✓ Deliverability score (0-100)</div>
         </div>
       </div>
     </div>
