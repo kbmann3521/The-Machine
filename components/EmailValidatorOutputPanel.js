@@ -71,6 +71,19 @@ export default function EmailValidatorOutputPanel({ result }) {
             <div style={{ fontSize: '13px', fontWeight: '600', color: '#2196f3' }}>Active</div>
           </div>
         )}
+
+        {result.averageDeliverabilityScore !== undefined && (
+          <div style={{
+            padding: '12px',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            border: '1px solid rgba(76, 175, 80, 0.3)',
+            borderRadius: '4px',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG SCORE</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: '#4caf50' }}>{result.averageDeliverabilityScore}</div>
+          </div>
+        )}
       </div>
 
       {/* Email validation results */}
