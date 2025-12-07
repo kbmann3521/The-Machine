@@ -267,7 +267,11 @@ export default function Home() {
           } catch (fetchError) {
             clearTimeout(abortTimeoutId)
             // Handle fetch errors gracefully
-            console.debug('Predict API fetch failed:', fetchError.message)
+            if (fetchError.name === 'AbortError') {
+              console.debug('Predict API request timed out after 20 seconds')
+            } else {
+              console.debug('Predict API fetch failed:', fetchError.message)
+            }
             // Fall through to use local prediction
             throw new Error('Prediction service unavailable')
           }
