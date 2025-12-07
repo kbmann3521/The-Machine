@@ -46,7 +46,7 @@ export default function EmailValidatorOutputPanel({ result }) {
       {
         id: 'output',
         label: 'OUTPUT',
-        content: 'Enter an email address to validate',
+        content: 'Enter one or more email addresses to validate',
         contentType: 'text',
       },
       {
