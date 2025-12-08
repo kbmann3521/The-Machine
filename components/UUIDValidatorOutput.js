@@ -107,6 +107,85 @@ function DatabaseSuggestion({ version }) {
   )
 }
 
+function SecurityNotes({ version }) {
+  const securityInfo = {
+    1: {
+      risks: [
+        'Contains MAC address → reveals network hardware identity',
+        'Timestamp embedded → creation time is visible',
+        'Not anonymous → can be traced to specific machine',
+        'Predictable sequence if timestamp is known',
+      ],
+      suitable: 'Suitable for: Internal systems where privacy is not a concern',
+    },
+    3: {
+      risks: [
+        'Deterministic → same input always produces same UUID',
+        'Hash collision theoretically possible (low probability)',
+        'Not suitable for secrets or authentication tokens',
+      ],
+      suitable: 'Suitable for: Consistent namespace-based identifiers, stable references',
+    },
+    4: {
+      risks: [
+        'Cryptographically random → unpredictable',
+        'Not reversible → cannot extract original data',
+        'No embedded metadata',
+      ],
+      suitable: 'Suitable for: URLs, invitations, API keys, session tokens, security-sensitive applications',
+    },
+    5: {
+      risks: [
+        'Deterministic → same input always produces same UUID',
+        'SHA-1 hash used → cryptographically stronger than v3 MD5',
+        'Not suitable for secrets or authentication tokens',
+      ],
+      suitable: 'Suitable for: Consistent namespace-based identifiers, stable references with better hash security',
+    },
+    7: {
+      risks: [
+        'Timestamp embedded → creation time is visible (millisecond precision)',
+        'Random component → unpredictable except for timestamp portion',
+        'Timestamp can be extracted → reveals when UUID was generated',
+      ],
+      suitable: 'Suitable for: Modern distributed systems, database ordering, audit logs with temporal ordering',
+    },
+  }
+
+  const info = securityInfo[version] || securityInfo[4]
+
+  return (
+    <div className={styles.securityPanel}>
+      <div className={styles.securityHeader}>🔐 Security Notes</div>
+      <div className={styles.securityRisks}>
+        <div className={styles.riskLabel}>Characteristics:</div>
+        <ul className={styles.riskList}>
+          {info.risks.map((risk, idx) => (
+            <li key={idx}>{risk}</li>
+          ))}
+        </ul>
+      </div>
+      <div className={styles.securitySuitable}>
+        {info.suitable}
+      </div>
+    </div>
+  )
+}
+
+function SortabilityBadge({ version }) {
+  const sortability = {
+    1: { label: 'Sortable (by time)', variant: 'success' },
+    3: { label: 'Not Sortable', variant: 'warning' },
+    4: { label: 'Not Sortable', variant: 'warning' },
+    5: { label: 'Not Sortable', variant: 'warning' },
+    7: { label: 'HIGHLY Sortable', variant: 'success' },
+  }
+
+  const info = sortability[version] || sortability[4]
+
+  return <Badge label={`Sortability: ${info.label}`} variant={info.variant} />
+}
+
 export default function UUIDValidatorOutput({ result }) {
   const [expandedExplanation, setExpandedExplanation] = useState(false)
 
