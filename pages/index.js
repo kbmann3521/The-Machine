@@ -549,9 +549,6 @@ export default function Home() {
       return
     }
 
-    // Create an abort controller to cancel previous requests if a new one comes in
-    const abortController = new AbortController()
-
     const runTool = async () => {
       // Use the actual input from ref, not state which may be batched/stale
       await autoRunTool(selectedTool, configOptions, actualInput, imagePreview)
@@ -561,7 +558,13 @@ export default function Home() {
 
     // Cleanup: cancel any pending requests if the effect re-runs
     return () => {
-      abortController.abort()
+      if (abortControllerRef.current) {
+        try {
+          abortControllerRef.current.abort('Effect cleanup')
+        } catch (e) {
+          // Ignore abort errors
+        }
+      }
     }
   }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey])
 
