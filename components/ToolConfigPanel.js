@@ -34,17 +34,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     onConfigChange(newConfig)
   }
 
-  const handleTemplateSelect = (template) => {
-    setSelectedTemplateId(template.id)
-    const newConfig = {
-      ...config,
-      pattern: template.pattern,
-      flags: template.flags,
-    }
-    setConfig(newConfig)
-    onConfigChange(newConfig)
-  }
-
   const noInputRequiredTools = [
     'random-string-generator',
     'variable-name-generator',
