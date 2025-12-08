@@ -319,14 +319,6 @@
     background: var(--color-background-secondary, #2a2a2a);
   }
 
-  .flagLabel {
-    color: var(--color-text-primary, #e0e0e0);
-  }
-
-  .flagsHint {
-    color: var(--color-text-secondary, #999);
-  }
-
   .flagItem {
     background: var(--color-background-tertiary, #3a3a3a);
     border-color: var(--color-border, #444);
