@@ -286,39 +286,13 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               accept="image/*"
               className={styles.fileInput}
             />
-            {selectedTool && isScriptingLanguageTool(selectedTool.toolId) ? (
-              <div className={styles.codeMirrorWrapper} onPaste={handlePaste}>
-                <CodeMirror
-                  value={inputText}
-                  onChange={handleTextChange}
-                  placeholder={getPlaceholder()}
-                  extensions={[getLanguage(), ...createCustomTheme(theme)]}
-                  className={styles.codeMirror}
-                  height="100%"
-                  basicSetup={{
-                    lineNumbers: true,
-                    foldGutter: false,
-                    dropCursor: true,
-                    allowMultipleSelections: true,
-                    indentOnInput: true,
-                    bracketMatching: true,
-                    closeBrackets: true,
-                    autocompletion: false,
-                    rectangularSelection: true,
-                    highlightSelectionMatches: true,
-                    searchKeymap: true,
-                  }}
-                />
-              </div>
-            ) : (
-              <textarea
-                value={inputText}
-                onChange={(e) => handleTextChange(e.target.value)}
-                onPaste={handlePaste}
-                placeholder={getPlaceholder()}
-                className={styles.simpleTextarea}
-              />
-            )}
+            <textarea
+              value={inputText}
+              onChange={(e) => handleTextChange(e.target.value)}
+              onPaste={handlePaste}
+              placeholder={getPlaceholder()}
+              className={styles.simpleTextarea}
+            />
             <div
               className={styles.resizeHandle}
               onMouseDown={handleResizeStart}
