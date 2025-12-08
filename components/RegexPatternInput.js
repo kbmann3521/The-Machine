@@ -262,6 +262,15 @@ export default function RegexPatternInput({
         </div>
       </div>
 
+      {selectedTemplate && (
+        <div className={styles.templateInfo}>
+          <div className={styles.templateInfoContent}>
+            <span className={styles.templateBadge}>Template: {selectedTemplate.name}</span>
+            <span className={styles.templateDescription}>{selectedTemplate.description}</span>
+          </div>
+        </div>
+      )}
+
       <WarningsList warnings={warnings} />
     </div>
   );
