@@ -61,11 +61,13 @@
   padding: 8px 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
+  line-height: 24px;
   color: transparent;
   caret-color: var(--color-text-primary, #333);
   resize: none;
   outline: none;
   z-index: 2;
+  box-sizing: border-box;
 }
 
 .input:disabled {
