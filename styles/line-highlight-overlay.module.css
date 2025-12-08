@@ -15,6 +15,7 @@
   padding: 10px;
   box-sizing: border-box;
   border-radius: 0;
+  z-index: 0;
 }
 
 .highlightLine {
