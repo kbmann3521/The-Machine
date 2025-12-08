@@ -634,14 +634,19 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 <>
                   {Object.keys(rows).sort((a, b) => a - b).map(rowNum => (
                     <div key={`row-${rowNum}`} className={styles.fieldsContainer}>
-                      {rows[rowNum].map(field => (
-                        <div key={field.id} className={styles.field}>
-                          <label className={styles.fieldLabel} htmlFor={field.id}>
-                            {field.label}
-                          </label>
-                          {renderField(field)}
-                        </div>
-                      ))}
+                      {rows[rowNum].map(field => {
+                        if (tool.toolId === 'regex-tester' && field.id === 'flags') {
+                          return null;
+                        }
+                        return (
+                          <div key={field.id} className={styles.field}>
+                            <label className={styles.fieldLabel} htmlFor={field.id}>
+                              {field.label}
+                            </label>
+                            {renderField(field)}
+                          </div>
+                        );
+                      })}
                     </div>
                   ))}
                   {fieldsWithoutRow.length > 0 && (
