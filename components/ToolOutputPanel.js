@@ -4814,6 +4814,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           />
         )
       }
+      case 'uuid-validator':
+        return <UUIDValidatorOutput result={displayResult} selectedMode={configOptions?.mode} />
       default: {
         const tabs = []
 
