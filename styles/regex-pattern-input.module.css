@@ -118,6 +118,7 @@
   padding: 12px;
   background: var(--color-background-tertiary, #f5f5f5);
   border-radius: 8px;
+  margin-top: 16px;
 }
 
 .flagsHeader {
