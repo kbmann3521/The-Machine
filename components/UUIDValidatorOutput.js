@@ -108,15 +108,30 @@ function DatabaseSuggestion({ version }) {
 }
 
 export default function UUIDValidatorOutput({ result }) {
+  const [expandedExplanation, setExpandedExplanation] = useState(false)
+
   if (!result) {
     return null
   }
+
+  const hasTimestamp = result.version === 1 && result.timestamp
+  const hasTimestampV7 = result.version === 7
 
   // Standard validation mode - display main content only (tabs handle JSON)
   return (
     <div className={styles.container}>
       {/* Summary */}
       <CopyCard label="Summary" value={result.summary} />
+
+      {/* Badges Row - Status indicators */}
+      {result.valid && (
+        <div className={styles.badgesRow}>
+          <Badge label={`Version ${result.version}`} variant="info" />
+          {result.validRFC4122 && <Badge label="RFC 4122 ✓" variant="success" />}
+          {hasTimestamp && <Badge label="Has Timestamp ✓" variant="success" />}
+          {hasTimestampV7 && <Badge label="Time-Ordered ✓" variant="success" />}
+        </div>
+      )}
 
       {/* Valid Reason - Only show for invalid UUIDs */}
       {!result.valid && result.validReason && (
