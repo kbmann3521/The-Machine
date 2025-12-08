@@ -224,11 +224,14 @@ export default function UUIDValidatorOutput({ result }) {
           <CopyCard label="Base64" value={result.base64} />
           <CopyCard label="URN" value={result.urn} />
 
-          {/* Version 1 Timestamp */}
-          {result.version === 1 && result.timestamp && (
+          {/* Version 1 & 7 Timestamp */}
+          {(result.version === 1 || result.version === 7) && result.timestamp && (
             <>
               <div className={styles.sectionHeader}>Time Information</div>
-              <CopyCard label="Generated At" value={result.timestamp} />
+              <CopyCard
+                label={result.version === 7 ? 'Timestamp (from UUID)' : 'Generated At'}
+                value={result.timestamp}
+              />
             </>
           )}
         </div>
