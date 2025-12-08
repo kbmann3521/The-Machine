@@ -38,9 +38,11 @@ export default function UUIDValidatorOutput({ result }) {
   return (
     <div className={styles.container}>
       {/* Status */}
-      <div className={`${toolOutputStyles.copyCard} ${result.valid ? styles.validCard : styles.invalidCard}`}>
-        <div className={toolOutputStyles.copyCardLabel}>
-          {result.valid ? 'Status: Valid UUID' : 'Status: Invalid UUID'}
+      <div className={toolOutputStyles.copyCard}>
+        <div className={toolOutputStyles.copyCardHeader}>
+          <span className={toolOutputStyles.copyCardLabel}>
+            {result.valid ? 'Status: Valid UUID' : 'Status: Invalid UUID'}
+          </span>
         </div>
         {result.error && (
           <div className={styles.errorMessage}>
@@ -59,41 +61,37 @@ export default function UUIDValidatorOutput({ result }) {
       )}
 
       {result.valid && (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Version & Variant */}
-          <div className={toolOutputStyles.copyCardsGrid}>
-            <CopyCard label="UUID Version" value={`v${result.version} (${result.versionName})`} />
-            <CopyCard label="Variant" value={result.variant} />
-          </div>
+          <CopyCard label="UUID Version" value={`v${result.version} (${result.versionName})`} />
+          <CopyCard label="Variant" value={result.variant} />
 
           {/* Normalized UUID */}
           <CopyCard label="Normalized" value={result.normalized} />
 
           {/* Alternative Formats */}
-          <div className={toolOutputStyles.copyCardsGrid}>
-            <CopyCard label="Hex" value={result.hex} />
-            <CopyCard label="Base64" value={result.base64} />
-            <CopyCard label="URN" value={result.urn} />
-          </div>
+          <CopyCard label="Hex" value={result.hex} />
+          <CopyCard label="Base64" value={result.base64} />
+          <CopyCard label="URN" value={result.urn} />
 
           {/* Version-Specific Metadata */}
           {result.version === 1 && result.metadata.timeLow && (
-            <div className={toolOutputStyles.copyCardsGrid}>
+            <>
               <CopyCard label="Time Low" value={result.metadata.timeLow} />
               <CopyCard label="Time Mid" value={result.metadata.timeMid} />
               <CopyCard label="Time High" value={result.metadata.timeHigh} />
               <CopyCard label="Clock Sequence" value={result.metadata.clockSequence} />
               <CopyCard label="Node (MAC)" value={result.metadata.node} />
-            </div>
+            </>
           )}
 
           {result.version === 7 && result.metadata.date && (
-            <div className={toolOutputStyles.copyCardsGrid}>
+            <>
               <CopyCard label="Timestamp (ms)" value={result.metadata.timestampMs?.toString() || ''} />
               <CopyCard label="Date/Time" value={result.metadata.date} />
-            </div>
+            </>
           )}
-        </>
+        </div>
       )}
     </div>
   )
