@@ -27,11 +27,6 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled 
 
   return (
     <div className={styles.regexToolkitContainer}>
-      <PatternTemplateSelector
-        onSelectTemplate={handleTemplateSelect}
-        selectedTemplateId={selectedTemplateId}
-      />
-
       <div className={styles.fieldsContainer}>
         <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="pattern">
@@ -64,6 +59,11 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled 
           />
         </div>
       </div>
+
+      <PatternTemplateSelector
+        onSelectTemplate={handleTemplateSelect}
+        selectedTemplateId={selectedTemplateId}
+      />
     </div>
   )
 }
