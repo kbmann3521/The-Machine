@@ -555,17 +555,6 @@ export default function Home() {
     }
 
     runTool()
-
-    // Cleanup: cancel any pending requests if the effect re-runs
-    return () => {
-      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
-        try {
-          abortControllerRef.current.abort('Effect cleanup')
-        } catch (e) {
-          // Ignore abort errors
-        }
-      }
-    }
   }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey])
 
 
