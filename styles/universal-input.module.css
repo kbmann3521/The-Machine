@@ -62,6 +62,7 @@
   transition: border-color 0.2s;
   overflow: hidden;
   height: 255px;
+  z-index: 0;
 }
 
 .inputField:hover {
