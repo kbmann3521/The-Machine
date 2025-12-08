@@ -347,10 +347,6 @@
     color: var(--color-text-primary, #e0e0e0);
   }
 
-  .flagLabel {
-    color: var(--color-text-secondary, #999);
-  }
-
   .warningMessage {
     color: var(--color-text-primary, #e0e0e0);
   }
