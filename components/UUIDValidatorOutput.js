@@ -78,11 +78,11 @@ export default function UUIDValidatorOutput({ result }) {
           {result.bits && (
             <>
               <div className={styles.sectionHeader}>Bit Fields</div>
-              <CopyCard label="Time Low" value={result.bits.time_low} />
-              <CopyCard label="Time Mid" value={result.bits.time_mid} />
-              <CopyCard label="Time High & Version" value={result.bits.time_high_and_version} />
-              <CopyCard label="Clock Sequence" value={result.bits.clock_seq} />
-              <CopyCard label="Node" value={result.bits.node} />
+              {result.bits.time_low && <CopyCard label="Time Low" value={result.bits.time_low} />}
+              {result.bits.time_mid && <CopyCard label="Time Mid" value={result.bits.time_mid} />}
+              {result.bits.time_high_and_version && <CopyCard label="Time High & Version" value={result.bits.time_high_and_version} />}
+              {result.bits.clock_seq && <CopyCard label="Clock Sequence" value={result.bits.clock_seq} />}
+              {result.bits.node && <CopyCard label="Node" value={result.bits.node} />}
             </>
           )}
 
