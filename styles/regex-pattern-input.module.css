@@ -121,29 +121,6 @@
   margin-top: 16px;
 }
 
-.flagsHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.flagLabel {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-text-primary, #333);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0;
-}
-
-.flagsHint {
-  font-size: 11px;
-  color: var(--color-text-secondary, #999);
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: normal;
-}
 
 .flagsGrid {
   display: grid;
