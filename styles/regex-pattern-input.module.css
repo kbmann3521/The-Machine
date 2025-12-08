@@ -27,15 +27,15 @@
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background: var(--pattern-display-bg, #f8f9fa);
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  background: var(--color-background-tertiary, #f8f9fa);
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   min-height: 40px;
 }
 
 .slash {
-  color: var(--border-color, #ccc);
+  color: var(--color-border, #ccc);
   margin: 0 4px;
   font-weight: 300;
 }
