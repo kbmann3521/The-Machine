@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 import { getSuggestionsForColor } from '../lib/tools/colorConverter'
+import RegexToolkit from './RegexToolkit'
 
 export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
   const [config, setConfig] = useState({})
@@ -561,6 +562,15 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
         <div>
+          {tool.toolId === 'regex-tester' && (
+            <RegexToolkit
+              config={config}
+              onConfigChange={onConfigChange}
+              result={result}
+              disabled={false}
+            />
+          )}
+
           {(() => {
             // Group fields by row number (if specified)
             const rows = {}
@@ -589,26 +599,36 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 <>
                   {Object.keys(rows).sort((a, b) => a - b).map(rowNum => (
                     <div key={`row-${rowNum}`} className={styles.fieldsContainer}>
-                      {rows[rowNum].map(field => (
-                        <div key={field.id} className={styles.field}>
-                          <label className={styles.fieldLabel} htmlFor={field.id}>
-                            {field.label}
-                          </label>
-                          {renderField(field)}
-                        </div>
-                      ))}
+                      {rows[rowNum].map(field => {
+                        if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
+                          return null;
+                        }
+                        return (
+                          <div key={field.id} className={styles.field}>
+                            <label className={styles.fieldLabel} htmlFor={field.id}>
+                              {field.label}
+                            </label>
+                            {renderField(field)}
+                          </div>
+                        );
+                      })}
                     </div>
                   ))}
                   {fieldsWithoutRow.length > 0 && (
                     <div className={styles.fieldsContainer}>
-                      {fieldsWithoutRow.map(field => (
-                        <div key={field.id} className={styles.field}>
-                          <label className={styles.fieldLabel} htmlFor={field.id}>
-                            {field.label}
-                          </label>
-                          {renderField(field)}
-                        </div>
-                      ))}
+                      {fieldsWithoutRow.map(field => {
+                        if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
+                          return null;
+                        }
+                        return (
+                          <div key={field.id} className={styles.field}>
+                            <label className={styles.fieldLabel} htmlFor={field.id}>
+                              {field.label}
+                            </label>
+                            {renderField(field)}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </>
@@ -619,6 +639,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             return (
               <div className={styles.fieldsContainer}>
                 {tool.configSchema.map(field => {
+                  // Skip fields handled by RegexToolkit for regex-tester
+                  if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
+                    return null;
+                  }
+
                   // Check visibility
                   if (field.visibleWhen) {
                     const { field: conditionField, value: conditionValue } = field.visibleWhen

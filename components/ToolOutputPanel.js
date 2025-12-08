@@ -7,6 +7,8 @@ import OutputTabs from './OutputTabs'
 import CSVWarningsPanel from './CSVWarningsPanel'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
+import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
+import RegexTesterOutput from './RegexTesterOutput'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [] }) {
   const toolCategory = TOOLS[toolId]?.category
@@ -4807,6 +4809,163 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return (
           <OutputTabs
             toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
+
+      case 'regex-tester': {
+        const tabs = []
+
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: displayResult ? (
+            <RegexTesterOutput result={displayResult} inputText={inputText} />
+          ) : 'No output',
+          contentType: 'component'
+        })
+
+        if (displayResult?.matches) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify({
+              pattern: displayResult.pattern,
+              flags: displayResult.flags,
+              matchCount: displayResult.matchCount,
+              matches: displayResult.matches,
+              replacement: displayResult.replacement
+            }, null, 2),
+            contentType: 'json'
+          })
+        }
+
+        return (
+          <OutputTabs
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
+
+      case 'uuid-validator': {
+        const mode = configOptions?.mode || 'validate'
+
+        // Generation modes
+        if (mode.startsWith('generate-')) {
+          const tabs = []
+          const generated = displayResult?.generated
+
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: generated ? (
+              <UUIDValidatorGeneratedOutput result={displayResult} />
+            ) : 'No output',
+            contentType: 'component'
+          })
+
+          if (generated) {
+            tabs.push({
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify({ generated, version: displayResult.version }, null, 2),
+              contentType: 'json'
+            })
+          }
+
+          return (
+            <OutputTabs
+              toolId={toolId}
+              tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+              showCopyButton={true}
+            />
+          )
+        }
+
+        // Bulk validation mode
+        if (mode === 'bulk-validate') {
+          const tabs = []
+          const results = displayResult?.results
+
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: results ? (
+              <UUIDValidatorBulkOutput result={displayResult} />
+            ) : 'No output',
+            contentType: 'component'
+          })
+
+          if (results) {
+            tabs.push({
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(results, null, 2),
+              contentType: 'json'
+            })
+          }
+
+          return (
+            <OutputTabs
+              toolId={toolId}
+              tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+              showCopyButton={true}
+            />
+          )
+        }
+
+        // Standard validation mode
+        const tabs = []
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: <UUIDValidatorOutput result={displayResult} />,
+          contentType: 'component'
+        })
+
+        if (displayResult) {
+          const jsonOutput = {
+            input: displayResult.input,
+            inputFormat: displayResult.inputFormat,
+            valid: displayResult.valid,
+            normalized: displayResult.normalized,
+            wasNormalized: displayResult.wasNormalized,
+          };
+
+          if (displayResult.valid) {
+            Object.assign(jsonOutput, {
+              version: displayResult.version,
+              versionName: displayResult.versionName,
+              variant: displayResult.variant,
+              type: displayResult.type,
+              hex: displayResult.hex,
+              base64: displayResult.base64,
+              urn: displayResult.urn,
+              ...(displayResult.bits && { bits: displayResult.bits }),
+              ...(displayResult.timestamp && { timestamp: displayResult.timestamp }),
+            });
+          }
+
+          Object.assign(jsonOutput, {
+            summary: displayResult.summary,
+            errors: displayResult.errors || [],
+          });
+
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(jsonOutput, null, 2),
+            contentType: 'json'
+          });
+        }
+
+        return (
+          <OutputTabs
             toolId={toolId}
             tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
             showCopyButton={true}

@@ -62,6 +62,8 @@
   transition: border-color 0.2s;
   overflow: hidden;
   height: 255px;
+  z-index: 0;
+  background-attachment: fixed;
 }
 
 .inputField:hover {
@@ -92,13 +94,16 @@
   height: 100%;
   padding: 10px;
   border: none;
-  background-color: var(--color-background-secondary);
+  background: transparent;
   color: var(--color-text-primary);
   font-size: 13px;
   font-family: 'Courier New', monospace;
   line-height: 1.5;
   resize: none;
   outline: none;
+  position: relative;
+  z-index: 2;
+  caret-color: var(--color-text-primary);
 }
 
 .resizeHandle {
@@ -116,6 +121,7 @@
   align-items: flex-end;
   justify-content: flex-end;
   transition: all 0.2s ease;
+  z-index: 3;
 }
 
 .resizeHandle::after {

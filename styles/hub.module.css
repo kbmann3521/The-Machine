@@ -51,8 +51,8 @@
 }
 
 .header {
-  height: 100px;
-  padding: 20px 40px;
+  height: 50px;
+  padding: 10px 30px;
   background: linear-gradient(135deg, var(--color-header-gradient-start) 0%, var(--color-header-gradient-end) 100%);
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 0;
@@ -65,13 +65,14 @@
 }
 
 .header h1 {
-  margin: 0 0 6px 0;
-  font-size: 24px;
+  margin: 0;
+  font-size: 16px;
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .header p {
+  display: none;
   margin: 0;
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -83,10 +84,10 @@
 
 .content {
   flex: 1;
-  padding: 30px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
   width: 100%;
   box-sizing: border-box;
   min-height: 0;
@@ -114,8 +115,8 @@
 .leftPanel {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 20px;
+  gap: 10px;
+  padding: 15px;
   border-right: 1px solid var(--color-border);
   overflow-y: auto;
   width: 100%;
@@ -155,32 +156,33 @@
 .toolHeader {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-  padding-bottom: 16px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   flex-shrink: 0;
 }
 
 .toolTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--color-text-primary);
   letter-spacing: -0.3px;
 }
 
 .toolDescription {
-  margin: 6px 0 0 0;
-  font-size: 13px;
+  margin: 2px 0 0 0;
+  font-size: 12px;
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: 1.3;
 }
 
 .configSection {
   flex-shrink: 0;
   width: 100%;
+  gap: 10px;
 }
 
 
@@ -323,11 +325,11 @@
 
 @media (max-width: 1200px) {
   .header {
-    padding: 24px 30px;
+    padding: 10px 30px;
   }
 
   .header h1 {
-    font-size: 24px;
+    font-size: 16px;
   }
 
   .content {
@@ -346,14 +348,14 @@
   }
 
   .header {
-    height: 100px;
-    padding: 20px 25px;
+    height: 50px;
+    padding: 10px 25px;
     justify-content: space-between;
     align-items: center;
   }
 
   .header h1 {
-    font-size: 22px;
+    font-size: 16px;
     margin-bottom: 0;
   }
 
@@ -393,8 +395,8 @@
   }
 
   .header {
-    height: 100px;
-    padding: 15px 20px;
+    height: 50px;
+    padding: 10px 20px;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -402,7 +404,7 @@
   }
 
   .header h1 {
-    font-size: 20px;
+    font-size: 15px;
     margin-bottom: 0;
   }
 
@@ -472,12 +474,12 @@
 
 @media (max-width: 640px) {
   .header {
-    height: 100px;
-    padding: 12px 15px;
+    height: 50px;
+    padding: 10px 15px;
   }
 
   .header h1 {
-    font-size: 18px;
+    font-size: 14px;
   }
 
   .content {

@@ -141,7 +141,7 @@ export default function Home() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => {
           try {
-            controller.abort('Request timeout')
+            controller.abort()
           } catch (e) {
             // Ignore abort errors
           }
@@ -288,7 +288,7 @@ export default function Home() {
       // Clean up any existing abort controller from previous request
       if (abortControllerRef.current) {
         try {
-          abortControllerRef.current.abort('New request coming')
+          abortControllerRef.current.abort()
         } catch (e) {
           // Ignore
         }
@@ -320,7 +320,7 @@ export default function Home() {
           abortControllerRef.current = controller
           abortTimeoutRef.current = setTimeout(() => {
             try {
-              controller.abort('Prediction timeout after 20s')
+              controller.abort()
             } catch (e) {
               // Ignore abort errors
             }
@@ -555,17 +555,6 @@ export default function Home() {
     }
 
     runTool()
-
-    // Cleanup: cancel any pending requests if the effect re-runs
-    return () => {
-      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
-        try {
-          abortControllerRef.current.abort('Effect cleanup')
-        } catch (e) {
-          // Ignore abort errors
-        }
-      }
-    }
   }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey])
 
 
@@ -627,6 +616,8 @@ export default function Home() {
                   errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
                   predictedTools={predictedTools}
                   onSelectTool={handleSelectTool}
+                  validationErrors={outputResult?.diagnostics ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
+                  lintingWarnings={outputResult?.diagnostics ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
                 />
               </div>
 

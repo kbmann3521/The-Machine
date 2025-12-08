@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
+import LineHighlightOverlay from './LineHighlightOverlay'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
+export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, validationErrors = [], lintingWarnings = [] }) {
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type or paste content here..."
@@ -186,7 +187,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       'html-formatter': 'Beautify and indent HTML code for better readability',
       'json-formatter': 'Validate and format JSON with proper indentation',
       'reverse-text': 'Reverse text characters, words, or lines',
-      'regex-tester': 'Test regex patterns and see all matches highlighted',
+      'regex-tester': 'Test regex patterns with live matching and replacement',
       'timestamp-converter': 'Convert between Unix timestamps and human-readable dates',
       'csv-json-converter': 'Transform CSV spreadsheet data to JSON format',
       'markdown-html-formatter': 'Format and convert between Markdown and HTML',
@@ -285,6 +286,11 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               onChange={handleFileSelect}
               accept="image/*"
               className={styles.fileInput}
+            />
+            <LineHighlightOverlay
+              inputText={inputText}
+              validationErrors={validationErrors}
+              lintingWarnings={lintingWarnings}
             />
             <textarea
               value={inputText}
