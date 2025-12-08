@@ -141,7 +141,7 @@ export default function Home() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => {
           try {
-            controller.abort('Request timeout')
+            controller.abort()
           } catch (e) {
             // Ignore abort errors
           }
@@ -288,7 +288,7 @@ export default function Home() {
       // Clean up any existing abort controller from previous request
       if (abortControllerRef.current) {
         try {
-          abortControllerRef.current.abort('New request coming')
+          abortControllerRef.current.abort()
         } catch (e) {
           // Ignore
         }
@@ -320,7 +320,7 @@ export default function Home() {
           abortControllerRef.current = controller
           abortTimeoutRef.current = setTimeout(() => {
             try {
-              controller.abort('Prediction timeout after 20s')
+              controller.abort()
             } catch (e) {
               // Ignore abort errors
             }
