@@ -99,7 +99,7 @@ export default function UUIDValidatorOutput({ result }) {
 
 export function UUIDValidatorGeneratedOutput({ result }) {
   return (
-    <div className={styles.container}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <CopyCard label={`Generated UUID ${result.version}`} value={result.generated} />
     </div>
   )
