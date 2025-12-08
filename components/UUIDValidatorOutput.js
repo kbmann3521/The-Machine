@@ -158,6 +158,16 @@ export default function UUIDValidatorOutput({ result }) {
 
       {result.valid && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Collapsible Explanation Section */}
+          <VersionExplanation
+            version={result.version}
+            expanded={expandedExplanation}
+            onToggle={() => setExpandedExplanation(!expandedExplanation)}
+          />
+
+          {/* Database Recommendation */}
+          <DatabaseSuggestion version={result.version} />
+
           {/* RFC 4122 Compliance */}
           <CopyCard label="RFC 4122 Compliant" value={result.validRFC4122 ? 'Yes' : 'No'} />
 
