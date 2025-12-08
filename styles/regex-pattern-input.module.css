@@ -78,7 +78,6 @@
 
 .flagItem:hover:not(:disabled) {
   background: rgba(74, 144, 226, 0.08);
-  border: 1px solid #4a90e2;
 }
 
 .flagItem.flagItemActive {

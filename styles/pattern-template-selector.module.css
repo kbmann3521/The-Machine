@@ -150,7 +150,6 @@
 
 .templateButton:hover {
   background: rgba(74, 144, 226, 0.08);
-  padding-left: 16px;
 }
 
 .templateButton.templateSelected {
