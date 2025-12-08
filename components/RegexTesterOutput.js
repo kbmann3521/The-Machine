@@ -1,6 +1,62 @@
 import React, { useState } from 'react'
 import styles from '../styles/regex-tester.module.css'
 
+function WarningsPanel({ warnings }) {
+  if (!warnings || warnings.length === 0) {
+    return null;
+  }
+
+  const errorWarnings = warnings.filter(w => w.severity === 'error');
+  const regularWarnings = warnings.filter(w => w.severity === 'warning');
+  const infoWarnings = warnings.filter(w => w.severity === 'info');
+
+  return (
+    <div className={styles.warningsPanelContainer}>
+      {errorWarnings.length > 0 && (
+        <div className={styles.warningSection}>
+          {errorWarnings.map((warning, idx) => (
+            <div key={`error-${idx}`} className={`${styles.warningItem} ${styles.warningErrorItem}`}>
+              <span className={styles.warningItemIcon}>❌</span>
+              <div>
+                <div className={styles.warningItemMessage}>{warning.message}</div>
+                <div className={styles.warningItemSuggestion}>{warning.suggestion}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {regularWarnings.length > 0 && (
+        <div className={styles.warningSection}>
+          {regularWarnings.map((warning, idx) => (
+            <div key={`warning-${idx}`} className={`${styles.warningItem} ${styles.warningRegularItem}`}>
+              <span className={styles.warningItemIcon}>⚠️</span>
+              <div>
+                <div className={styles.warningItemMessage}>{warning.message}</div>
+                <div className={styles.warningItemSuggestion}>{warning.suggestion}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {infoWarnings.length > 0 && (
+        <div className={styles.warningSection}>
+          {infoWarnings.map((warning, idx) => (
+            <div key={`info-${idx}`} className={`${styles.warningItem} ${styles.warningInfoItem}`}>
+              <span className={styles.warningItemIcon}>ℹ️</span>
+              <div>
+                <div className={styles.warningItemMessage}>{warning.message}</div>
+                <div className={styles.warningItemSuggestion}>{warning.suggestion}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HighlightedText({ text, matches }) {
   if (!matches || matches.length === 0) {
     return <div className={styles.highlightedText}>{text}</div>
