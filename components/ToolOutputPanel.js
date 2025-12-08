@@ -4890,29 +4890,40 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           contentType: 'component'
         })
 
-        if (displayResult?.normalized) {
+        if (displayResult) {
+          const jsonOutput = {
+            input: displayResult.input,
+            inputFormat: displayResult.inputFormat,
+            valid: displayResult.valid,
+            normalized: displayResult.normalized,
+            wasNormalized: displayResult.wasNormalized,
+          };
+
+          if (displayResult.valid) {
+            Object.assign(jsonOutput, {
+              version: displayResult.version,
+              versionName: displayResult.versionName,
+              variant: displayResult.variant,
+              type: displayResult.type,
+              hex: displayResult.hex,
+              base64: displayResult.base64,
+              urn: displayResult.urn,
+              ...(displayResult.bits && { bits: displayResult.bits }),
+              ...(displayResult.timestamp && { timestamp: displayResult.timestamp }),
+            });
+          }
+
+          Object.assign(jsonOutput, {
+            summary: displayResult.summary,
+            errors: displayResult.errors || [],
+          });
+
           tabs.push({
             id: 'json',
             label: 'JSON',
-            content: JSON.stringify(
-              {
-                input: displayResult.input,
-                valid: displayResult.valid,
-                version: displayResult.version,
-                versionName: displayResult.versionName,
-                variant: displayResult.variant,
-                normalized: displayResult.normalized,
-                hex: displayResult.hex,
-                base64: displayResult.base64,
-                urn: displayResult.urn,
-                ...(displayResult.metadata?.node && { node: displayResult.metadata.node }),
-                ...(displayResult.metadata?.date && { timestamp: displayResult.metadata.date }),
-              },
-              null,
-              2
-            ),
+            content: JSON.stringify(jsonOutput, null, 2),
             contentType: 'json'
-          })
+          });
         }
 
         return (
