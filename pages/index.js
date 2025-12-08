@@ -141,7 +141,7 @@ export default function Home() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => {
           try {
-            controller.abort()
+            controller.abort('Request timeout')
           } catch (e) {
             // Ignore abort errors
           }
@@ -288,7 +288,7 @@ export default function Home() {
       // Clean up any existing abort controller from previous request
       if (abortControllerRef.current) {
         try {
-          abortControllerRef.current.abort()
+          abortControllerRef.current.abort('New request coming')
         } catch (e) {
           // Ignore
         }
@@ -320,7 +320,7 @@ export default function Home() {
           abortControllerRef.current = controller
           abortTimeoutRef.current = setTimeout(() => {
             try {
-              controller.abort()
+              controller.abort('Prediction timeout after 20s')
             } catch (e) {
               // Ignore abort errors
             }
@@ -549,9 +549,6 @@ export default function Home() {
       return
     }
 
-    // Create an abort controller to cancel previous requests if a new one comes in
-    const abortController = new AbortController()
-
     const runTool = async () => {
       // Use the actual input from ref, not state which may be batched/stale
       await autoRunTool(selectedTool, configOptions, actualInput, imagePreview)
@@ -561,7 +558,13 @@ export default function Home() {
 
     // Cleanup: cancel any pending requests if the effect re-runs
     return () => {
-      abortController.abort()
+      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+        try {
+          abortControllerRef.current.abort('Effect cleanup')
+        } catch (e) {
+          // Ignore abort errors
+        }
+      }
     }
   }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey])
 

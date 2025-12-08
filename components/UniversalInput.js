@@ -1,22 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import CodeMirror from '@uiw/react-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
-import { markdown } from '@codemirror/lang-markdown'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
-import { xml } from '@codemirror/lang-xml'
-import { json } from '@codemirror/lang-json'
-import { sql } from '@codemirror/lang-sql'
-import { python } from '@codemirror/lang-python'
-import { yaml } from '@codemirror/lang-yaml'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
-import { useTheme } from '../lib/ThemeContext'
-import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/universal-input.module.css'
 
 export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
-  const { theme } = useTheme()
-
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type or paste content here..."
@@ -88,24 +74,6 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       document.removeEventListener('mouseup', handleMouseUp)
     }
   }, [isResizing, inputHeight])
-
-  const getLanguage = () => {
-    if (!selectedTool) return undefined
-    
-    const languageMap = {
-      'js-formatter': javascript(),
-      'javascript-minifier': javascript(),
-      'json-formatter': json(),
-      'xml-formatter': xml(),
-      'markdown-html-formatter': markdown(),
-      'css-formatter': css(),
-      'sql-formatter': sql(),
-      'yaml-formatter': yaml(),
-      'python-formatter': python(),
-    }
-    
-    return languageMap[selectedTool.toolId]
-  }
 
   const handleTextChange = (value) => {
     setInputText(value)
@@ -318,39 +286,13 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               accept="image/*"
               className={styles.fileInput}
             />
-            {selectedTool && isScriptingLanguageTool(selectedTool.toolId) ? (
-              <div className={styles.codeMirrorWrapper} onPaste={handlePaste}>
-                <CodeMirror
-                  value={inputText}
-                  onChange={handleTextChange}
-                  placeholder={getPlaceholder()}
-                  extensions={[getLanguage(), ...createCustomTheme(theme)]}
-                  className={styles.codeMirror}
-                  height="100%"
-                  basicSetup={{
-                    lineNumbers: true,
-                    foldGutter: false,
-                    dropCursor: true,
-                    allowMultipleSelections: true,
-                    indentOnInput: true,
-                    bracketMatching: true,
-                    closeBrackets: true,
-                    autocompletion: false,
-                    rectangularSelection: true,
-                    highlightSelectionMatches: true,
-                    searchKeymap: true,
-                  }}
-                />
-              </div>
-            ) : (
-              <textarea
-                value={inputText}
-                onChange={(e) => handleTextChange(e.target.value)}
-                onPaste={handlePaste}
-                placeholder={getPlaceholder()}
-                className={styles.simpleTextarea}
-              />
-            )}
+            <textarea
+              value={inputText}
+              onChange={(e) => handleTextChange(e.target.value)}
+              onPaste={handlePaste}
+              placeholder={getPlaceholder()}
+              className={styles.simpleTextarea}
+            />
             <div
               className={styles.resizeHandle}
               onMouseDown={handleResizeStart}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import SyntaxHighlighter from './SyntaxHighlighter'
-import CodeMirrorOutput from './CodeMirrorOutput'
 import { isScriptingLanguageTool } from '../lib/tools'
 import styles from '../styles/output-tabs.module.css'
 
@@ -292,8 +291,8 @@ export default function OutputTabs({
 
     if (!activeTabConfig) return
 
-    // For JSON/code/codemirror content types, use the formatted string
-    if (activeTabConfig?.contentType === 'json' || activeTabConfig?.contentType === 'code' || activeTabConfig?.contentType === 'codemirror') {
+    // For JSON/code content types, use the formatted string
+    if (activeTabConfig?.contentType === 'json' || activeTabConfig?.contentType === 'code') {
       textToCopy = getJsonString()
     } else if (activeTabConfig?.contentType === 'text') {
       // For text, just use the content as-is
@@ -352,15 +351,6 @@ export default function OutputTabs({
     if (!activeTabConfig) return null
 
     const { contentType, content, actions } = activeTabConfig
-
-    // Handle CodeMirror content
-    if (contentType === 'codemirror') {
-      return (
-        <div className={styles.codeMirrorOutputContainer}>
-          <CodeMirrorOutput code={content} toolId={toolId} readOnly={true} />
-        </div>
-      )
-    }
 
     // Handle component/function content (e.g., friendlyView)
     if (contentType === 'component') {

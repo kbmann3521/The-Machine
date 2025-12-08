@@ -4,7 +4,6 @@ import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
-import CodeMirrorOutput from './CodeMirrorOutput'
 import CSVWarningsPanel from './CSVWarningsPanel'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
@@ -1475,7 +1474,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             id: primaryTabId,
             label: 'OUTPUT',
             content: primaryTabContent,
-            contentType: 'codemirror',
+            contentType: 'code',
           })
         }
       } else {
@@ -1785,7 +1784,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: primaryTabId,
           label: 'Output',
           content: primaryTabContent,
-          contentType: 'codemirror',
+          contentType: 'code',
         })
       }
     }
@@ -1949,7 +1948,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'OUTPUT',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     } else if (displayResult.error) {
       // Show error message in OUTPUT tab if formatting failed
@@ -2137,7 +2136,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'OUTPUT',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     } else if (displayResult.error) {
       // Show error message in OUTPUT tab if formatting failed
@@ -2324,7 +2323,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2877,7 +2876,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: typeof displayResult.formatted === 'string' ? displayResult.formatted : JSON.stringify(displayResult.formatted, null, 2),
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2951,7 +2950,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: 'formatted',
           label: 'Output',
           content: displayResult,
-          contentType: 'codemirror',
+          contentType: 'code',
         },
       ]
       return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
@@ -2977,7 +2976,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'output',
         label: 'Output',
         content: primaryXml,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2986,7 +2985,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'result',
         label: 'Result',
         content: displayResult.result,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2995,7 +2994,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Formatted',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
