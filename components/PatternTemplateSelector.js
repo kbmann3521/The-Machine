@@ -35,6 +35,12 @@ export default function PatternTemplateSelector({ onSelectTemplate, selectedTemp
     return filtered;
   }, [categories, searchQuery]);
 
+  const displayCategories = searchQuery.trim() ? filteredCategories : categories;
+  const displayCategoryList = Object.keys(displayCategories).sort((a, b) => {
+    const order = ['Common', 'Identifiers', 'Network', 'Colors', 'Business', 'Text', 'Web', 'Social', 'Payment', 'Location'];
+    return (order.indexOf(a) !== -1 ? order.indexOf(a) : 999) - (order.indexOf(b) !== -1 ? order.indexOf(b) : 999);
+  });
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -42,37 +48,51 @@ export default function PatternTemplateSelector({ onSelectTemplate, selectedTemp
         <p className={styles.subtitle}>Click to auto-fill regex pattern</p>
       </div>
 
-      <div className={styles.categoriesContainer}>
-        {categoryList.map(category => (
-          <div key={category} className={styles.categoryGroup}>
-            <button
-              className={`${styles.categoryHeader} ${expandedCategory === category ? styles.categoryExpanded : ''}`}
-              onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
-            >
-              <span className={styles.categoryIcon}>
-                {expandedCategory === category ? '▼' : '▶'}
-              </span>
-              <span className={styles.categoryName}>{category}</span>
-              <span className={styles.templateCount}>{categories[category].length}</span>
-            </button>
+      <input
+        type="text"
+        className={styles.searchInput}
+        placeholder="Search templates..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
 
-            {expandedCategory === category && (
-              <div className={styles.templatesGrid}>
-                {categories[category].map(template => (
-                  <button
-                    key={template.id}
-                    className={`${styles.templateButton} ${selectedTemplateId === template.id ? styles.templateSelected : ''}`}
-                    onClick={() => onSelectTemplate(template)}
-                    title={template.description}
-                  >
-                    <div className={styles.templateName}>{template.name}</div>
-                    <div className={styles.templateDescription}>{template.description}</div>
-                  </button>
-                ))}
-              </div>
-            )}
+      <div className={styles.categoriesContainer}>
+        {displayCategoryList.length === 0 ? (
+          <div className={styles.noResults}>
+            <p>No templates match your search</p>
           </div>
-        ))}
+        ) : (
+          displayCategoryList.map(category => (
+            <div key={category} className={styles.categoryGroup}>
+              <button
+                className={`${styles.categoryHeader} ${expandedCategory === category ? styles.categoryExpanded : ''}`}
+                onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
+              >
+                <span className={styles.categoryIcon}>
+                  {expandedCategory === category ? '▼' : '▶'}
+                </span>
+                <span className={styles.categoryName}>{category}</span>
+                <span className={styles.templateCount}>{displayCategories[category].length}</span>
+              </button>
+
+              {expandedCategory === category && (
+                <div className={styles.templatesGrid}>
+                  {displayCategories[category].map(template => (
+                    <button
+                      key={template.id}
+                      className={`${styles.templateButton} ${selectedTemplateId === template.id ? styles.templateSelected : ''}`}
+                      onClick={() => onSelectTemplate(template)}
+                      title={template.description}
+                    >
+                      <div className={styles.templateName}>{template.name}</div>
+                      <div className={styles.templateDescription}>{template.description}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
