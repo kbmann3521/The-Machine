@@ -62,6 +62,11 @@ export default function UUIDValidatorOutput({ result }) {
       {/* Summary */}
       <CopyCard label="Summary" value={result.summary} />
 
+      {/* Valid Reason */}
+      {result.validReason && (
+        <CopyCard label="Valid Reason" value={result.validReason} />
+      )}
+
       {/* Status */}
       {!result.valid && result.errors && result.errors.length > 0 && (
         <div className={styles.errorsWarning}>
@@ -82,6 +87,9 @@ export default function UUIDValidatorOutput({ result }) {
 
       {result.valid && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* RFC 4122 Compliance */}
+          <CopyCard label="RFC 4122 Compliant" value={result.validRFC4122 ? 'Yes' : 'No'} />
+
           {/* Input Format */}
           <CopyCard label="Input Format" value={result.inputFormat} />
 
@@ -90,11 +98,23 @@ export default function UUIDValidatorOutput({ result }) {
 
           {/* Version & Type Info */}
           <CopyCard label="UUID Version" value={`v${result.version} (${result.versionName})`} />
+          {result.versionDescription && (
+            <CopyCard label="Version Description" value={result.versionDescription} />
+          )}
           <CopyCard label="Type" value={result.type} />
           <CopyCard label="Variant" value={result.variant} />
 
           {/* Normalized UUID */}
           <CopyCard label="Normalized" value={result.normalized} />
+
+          {/* RFC 4122 Validation Details */}
+          {result.bitValidation && (
+            <>
+              <div className={styles.sectionHeader}>RFC 4122 Validation</div>
+              <CopyCard label="Version Nibble Correct" value={result.bitValidation.versionNibbleCorrect ? 'Yes' : 'No'} />
+              <CopyCard label="Variant Nibble Correct" value={result.bitValidation.variantNibbleCorrect ? 'Yes' : 'No'} />
+            </>
+          )}
 
           {/* Bit Breakdown */}
           {result.bits && (
@@ -108,9 +128,18 @@ export default function UUIDValidatorOutput({ result }) {
             </>
           )}
 
+          {/* Byte Representation */}
+          {result.bytes && (
+            <>
+              <div className={styles.sectionHeader}>Bytes</div>
+              <CopyCard label="Bytes Array" value={`[${result.bytes.join(', ')}]`} />
+            </>
+          )}
+
           {/* Alternative Formats */}
           <div className={styles.sectionHeader}>Alternative Formats</div>
           <CopyCard label="Hex" value={result.hex} />
+          {result.raw && <CopyCard label="Raw" value={result.raw} />}
           <CopyCard label="Base64" value={result.base64} />
           <CopyCard label="URN" value={result.urn} />
 
