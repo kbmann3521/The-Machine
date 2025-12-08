@@ -75,24 +75,6 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     }
   }, [isResizing, inputHeight])
 
-  const getLanguage = () => {
-    if (!selectedTool) return undefined
-    
-    const languageMap = {
-      'js-formatter': javascript(),
-      'javascript-minifier': javascript(),
-      'json-formatter': json(),
-      'xml-formatter': xml(),
-      'markdown-html-formatter': markdown(),
-      'css-formatter': css(),
-      'sql-formatter': sql(),
-      'yaml-formatter': yaml(),
-      'python-formatter': python(),
-    }
-    
-    return languageMap[selectedTool.toolId]
-  }
-
   const handleTextChange = (value) => {
     setInputText(value)
     setCharCount(value.length)
