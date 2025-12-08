@@ -2,27 +2,29 @@ import React, { useState } from 'react'
 import styles from '../styles/uuid-validator.module.css'
 import toolOutputStyles from '../styles/tool-output.module.css'
 
-function CopyCard({ label, value, onCopy }) {
+function CopyCard({ label, value }) {
   const [isCopied, setIsCopied] = useState(false)
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value)
     setIsCopied(true)
     setTimeout(() => setIsCopied(false), 2000)
-    if (onCopy) onCopy()
   }
 
   return (
     <div className={toolOutputStyles.copyCard}>
-      <div className={toolOutputStyles.copyCardLabel}>{label}</div>
+      <div className={toolOutputStyles.copyCardHeader}>
+        <span className={toolOutputStyles.copyCardLabel}>{label}</span>
+        <button
+          type="button"
+          className="copy-action"
+          onClick={handleCopy}
+          title="Copy to clipboard"
+        >
+          {isCopied ? '✓ Copied' : 'Copy'}
+        </button>
+      </div>
       <div className={toolOutputStyles.copyCardValue}>{value}</div>
-      <button
-        className={toolOutputStyles.copyCardButton}
-        onClick={handleCopy}
-        title="Copy to clipboard"
-      >
-        {isCopied ? '✓ Copied' : 'Copy'}
-      </button>
     </div>
   )
 }
