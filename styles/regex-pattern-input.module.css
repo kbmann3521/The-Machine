@@ -6,20 +6,20 @@
 
 .inputWrapper {
   position: relative;
-  border: 1px solid var(--border-color, #e0e0e0);
+  border: 1px solid var(--color-border, #e0e0e0);
   border-radius: 8px;
-  background: var(--input-bg, #ffffff);
+  background: var(--color-background-secondary, #ffffff);
   overflow: hidden;
   transition: all 0.2s ease;
 }
 
 .inputWrapper.focused {
-  border-color: var(--primary-color, #4a90e2);
+  border-color: #4a90e2;
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
 .inputWrapper.error {
-  border-color: var(--error-color, #dc3545);
+  border-color: #dc3545;
   background-color: rgba(220, 53, 69, 0.02);
 }
 
