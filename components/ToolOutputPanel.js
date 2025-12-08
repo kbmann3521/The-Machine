@@ -1948,7 +1948,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'OUTPUT',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     } else if (displayResult.error) {
       // Show error message in OUTPUT tab if formatting failed
@@ -2136,7 +2136,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'OUTPUT',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     } else if (displayResult.error) {
       // Show error message in OUTPUT tab if formatting failed
@@ -2323,7 +2323,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2876,7 +2876,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Output',
         content: typeof displayResult.formatted === 'string' ? displayResult.formatted : JSON.stringify(displayResult.formatted, null, 2),
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2976,7 +2976,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'output',
         label: 'Output',
         content: primaryXml,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2985,7 +2985,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'result',
         label: 'Result',
         content: displayResult.result,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
@@ -2994,7 +2994,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'formatted',
         label: 'Formatted',
         content: displayResult.formatted,
-        contentType: 'codemirror',
+        contentType: 'code',
       })
     }
 
