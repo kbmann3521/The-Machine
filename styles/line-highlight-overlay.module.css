@@ -1,0 +1,36 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.5;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+.highlightLine {
+  flex: 0 0 auto;
+  height: 1.5em;
+  width: 100%;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.errorLine {
+  background-color: rgba(239, 83, 80, 0.15);
+  border-left: 3px solid #ef5350;
+}
+
+.warningLine {
+  background-color: rgba(255, 167, 38, 0.12);
+  border-left: 3px solid #ffa726;
+}
