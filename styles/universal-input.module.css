@@ -63,6 +63,7 @@
   overflow: hidden;
   height: 255px;
   z-index: 0;
+  background-attachment: fixed;
 }
 
 .inputField:hover {
