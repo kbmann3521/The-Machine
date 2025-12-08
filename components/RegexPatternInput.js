@@ -209,6 +209,7 @@ export default function RegexPatternInput({
   warnings,
   placeholder = 'Enter regex pattern...',
   disabled = false,
+  selectedTemplate = null,
 }) {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
