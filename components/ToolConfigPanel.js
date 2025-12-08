@@ -639,8 +639,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             return (
               <div className={styles.fieldsContainer}>
                 {tool.configSchema.map(field => {
-                  // Skip flags field for regex-tester
-                  if (tool.toolId === 'regex-tester' && field.id === 'flags') {
+                  // Skip fields handled by RegexToolkit for regex-tester
+                  if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                     return null;
                   }
 
