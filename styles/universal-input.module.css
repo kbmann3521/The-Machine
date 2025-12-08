@@ -121,6 +121,7 @@
   align-items: flex-end;
   justify-content: flex-end;
   transition: all 0.2s ease;
+  z-index: 3;
 }
 
 .resizeHandle::after {
