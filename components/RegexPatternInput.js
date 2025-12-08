@@ -240,10 +240,6 @@ export default function RegexPatternInput({
       </div>
 
       <div className={styles.flagsContainer}>
-        <div className={styles.flagsHeader}>
-          <label className={styles.flagLabel}>Regex Flags</label>
-          <span className={styles.flagsHint}>Click to enable/disable</span>
-        </div>
         <div className={styles.flagsGrid}>
           {getFlagsList().map((flagInfo) => (
             <button
