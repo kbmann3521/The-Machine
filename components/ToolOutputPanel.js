@@ -1784,7 +1784,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: primaryTabId,
           label: 'Output',
           content: primaryTabContent,
-          contentType: 'codemirror',
+          contentType: 'code',
         })
       }
     }
@@ -2950,7 +2950,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           id: 'formatted',
           label: 'Output',
           content: displayResult,
-          contentType: 'codemirror',
+          contentType: 'code',
         },
       ]
       return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
