@@ -337,10 +337,40 @@
     color: transparent;
   }
 
-  .flagButton {
+  .flagsContainer {
     background: var(--color-background-secondary, #2a2a2a);
+  }
+
+  .flagLabel {
     color: var(--color-text-primary, #e0e0e0);
+  }
+
+  .flagsHint {
+    color: var(--color-text-secondary, #999);
+  }
+
+  .flagItem {
+    background: var(--color-background-tertiary, #3a3a3a);
     border-color: var(--color-border, #444);
+    color: var(--color-text-primary, #e0e0e0);
+  }
+
+  .flagItem:hover:not(:disabled) {
+    background: rgba(74, 144, 226, 0.12);
+    border-color: #4a90e2;
+  }
+
+  .flagToggle {
+    background: var(--color-background-secondary, #2a2a2a);
+    border-color: var(--color-border, #444);
+  }
+
+  .flagName {
+    color: var(--color-text-primary, #e0e0e0);
+  }
+
+  .flagDesc {
+    color: var(--color-text-secondary, #999);
   }
 
   .tokenLiteral {
