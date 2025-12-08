@@ -284,15 +284,48 @@ export default function RegexPatternInput({
   );
 }
 
+function getFlagsList() {
+  return [
+    {
+      flag: 'g',
+      name: 'Global',
+      description: 'Find all matches instead of just the first one',
+    },
+    {
+      flag: 'i',
+      name: 'Case-Insensitive',
+      description: 'Match letters regardless of upper/lowercase',
+    },
+    {
+      flag: 'm',
+      name: 'Multiline',
+      description: 'Anchors ^ and $ match line breaks, not just string edges',
+    },
+    {
+      flag: 's',
+      name: 'DotAll',
+      description: 'Dot (.) matches newline characters',
+    },
+    {
+      flag: 'd',
+      name: 'HasIndices',
+      description: 'Capture group indices in match results',
+    },
+    {
+      flag: 'u',
+      name: 'Unicode',
+      description: 'Enable Unicode mode and Unicode character classes',
+    },
+    {
+      flag: 'y',
+      name: 'Sticky',
+      description: 'Match must start at exact position (advanced)',
+    },
+  ];
+}
+
 function getFlagDescription(flag) {
-  const descriptions = {
-    g: 'Global - find all matches',
-    i: 'Case-insensitive',
-    m: 'Multiline - ^ and $ match line breaks',
-    s: 'DotAll - . matches newlines',
-    d: 'HasIndices - capture group indices',
-    u: 'Unicode mode',
-    y: 'Sticky - match from lastIndex',
-  };
-  return descriptions[flag] || '';
+  const flagsList = getFlagsList();
+  const flagInfo = flagsList.find(f => f.flag === flag);
+  return flagInfo ? flagInfo.description : '';
 }
