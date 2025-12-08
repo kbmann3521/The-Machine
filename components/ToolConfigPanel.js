@@ -94,6 +94,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     // Special handling for regex-tester pattern field with syntax highlighting
     if (tool.toolId === 'regex-tester' && field.id === 'pattern') {
       const warnings = result?.warnings || []
+      const selectedTemplate = selectedTemplateId ? getPatternTemplate(selectedTemplateId) : null
       return (
         <RegexPatternInput
           value={value || ''}
@@ -103,6 +104,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
           warnings={warnings}
           placeholder={field.placeholder || 'Enter regex pattern...'}
           disabled={isFieldDisabled}
+          selectedTemplate={selectedTemplate}
         />
       )
     }
