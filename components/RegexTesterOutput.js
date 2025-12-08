@@ -234,6 +234,11 @@ export default function RegexTesterOutput({ result, inputText }) {
 
   return (
     <div className={styles.container}>
+      {/* Warnings panel */}
+      {result.warnings && result.warnings.length > 0 && (
+        <WarningsPanel warnings={result.warnings} />
+      )}
+
       {/* Match count summary */}
       <div className={styles.summary}>
         <span className={styles.matchCount}>
