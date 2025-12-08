@@ -108,7 +108,7 @@
 }
 
 .tokenLiteral {
-  color: var(--text-color, #333);
+  color: var(--color-text-primary, #333);
 }
 
 .flagsContainer {
