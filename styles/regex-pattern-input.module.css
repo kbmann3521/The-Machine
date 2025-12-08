@@ -226,6 +226,35 @@
   margin-top: 2px;
 }
 
+.templateInfo {
+  padding: 10px 12px;
+  background: rgba(74, 144, 226, 0.08);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 6px;
+  display: flex;
+  gap: 10px;
+}
+
+.templateInfoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.templateBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a90e2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.templateDescription {
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
 @media (prefers-color-scheme: dark) {
   .inputWrapper {
     border-color: var(--color-border, #444);
