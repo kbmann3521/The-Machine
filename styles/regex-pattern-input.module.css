@@ -61,7 +61,7 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   color: transparent;
-  caret-color: var(--text-color, #333);
+  caret-color: var(--color-text-primary, #333);
   resize: none;
   outline: none;
   z-index: 2;
@@ -121,7 +121,7 @@
 .flagLabel {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary, #666);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -136,10 +136,10 @@
   min-width: 32px;
   height: 32px;
   padding: 4px 8px;
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--color-border, #ddd);
   border-radius: 4px;
-  background: var(--input-bg, #ffffff);
-  color: var(--text-color, #333);
+  background: var(--color-background-secondary, #ffffff);
+  color: var(--color-text-primary, #333);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -150,14 +150,14 @@
 }
 
 .flagButton:hover:not(:disabled) {
-  border-color: var(--primary-color, #4a90e2);
-  background: var(--primary-light, #f0f5ff);
+  border-color: #4a90e2;
+  background: #f0f5ff;
 }
 
 .flagButton.flagActive {
-  background: var(--primary-color, #4a90e2);
+  background: #4a90e2;
   color: white;
-  border-color: var(--primary-color, #4a90e2);
+  border-color: #4a90e2;
 }
 
 .flagButton:disabled {
@@ -189,17 +189,17 @@
 
 .warningError {
   background: rgba(220, 53, 69, 0.08);
-  border-left-color: var(--error-color, #dc3545);
+  border-left-color: #dc3545;
 }
 
 .warningRegular {
   background: rgba(255, 193, 7, 0.08);
-  border-left-color: var(--warning-color, #ffc107);
+  border-left-color: #ffc107;
 }
 
 .warningInfo {
   background: rgba(17, 103, 201, 0.08);
-  border-left-color: var(--info-color, #1167c9);
+  border-left-color: #1167c9;
 }
 
 .warningIcon {
@@ -217,28 +217,28 @@
 
 .warningMessage {
   font-weight: 600;
-  color: var(--text-color, #333);
+  color: var(--color-text-primary, #333);
 }
 
 .warningSuggestion {
   font-size: 12px;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary, #666);
   margin-top: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
   .inputWrapper {
-    border-color: var(--border-color, #444);
-    background: var(--input-bg, #2a2a2a);
+    border-color: var(--color-border, #444);
+    background: var(--color-background-secondary, #2a2a2a);
   }
 
   .patternDisplay {
-    background: var(--pattern-display-bg, #1e1e1e);
-    border-bottom-color: var(--border-color, #444);
+    background: var(--color-background-tertiary, #1e1e1e);
+    border-bottom-color: var(--color-border, #444);
   }
 
   .slash {
-    color: var(--border-color, #555);
+    color: var(--color-border, #555);
   }
 
   .input {
@@ -246,24 +246,24 @@
   }
 
   .flagButton {
-    background: var(--input-bg, #2a2a2a);
-    color: var(--text-color, #e0e0e0);
-    border-color: var(--border-color, #444);
+    background: var(--color-background-secondary, #2a2a2a);
+    color: var(--color-text-primary, #e0e0e0);
+    border-color: var(--color-border, #444);
   }
 
   .tokenLiteral {
-    color: var(--text-color, #e0e0e0);
+    color: var(--color-text-primary, #e0e0e0);
   }
 
   .flagLabel {
-    color: var(--text-secondary, #999);
+    color: var(--color-text-secondary, #999);
   }
 
   .warningMessage {
-    color: var(--text-color, #e0e0e0);
+    color: var(--color-text-primary, #e0e0e0);
   }
 
   .warningSuggestion {
-    color: var(--text-secondary, #999);
+    color: var(--color-text-secondary, #999);
   }
 }
