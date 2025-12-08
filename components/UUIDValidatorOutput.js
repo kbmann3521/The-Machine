@@ -245,6 +245,9 @@ export default function UUIDValidatorOutput({ result }) {
             onToggle={() => setExpandedExplanation(!expandedExplanation)}
           />
 
+          {/* Security Notes */}
+          <SecurityNotes version={result.version} />
+
           {/* Database Recommendation */}
           <DatabaseSuggestion version={result.version} />
 
