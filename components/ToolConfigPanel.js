@@ -77,29 +77,6 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id)) ||
       (isChecksumAutoDetect && checksumDisabledFields.includes(field.id))
 
-    // Special handling for regex-tester pattern field with syntax highlighting
-    if (tool.toolId === 'regex-tester' && field.id === 'pattern') {
-      const warnings = result?.warnings || []
-      const selectedTemplate = selectedTemplateId ? getPatternTemplate(selectedTemplateId) : null
-      return (
-        <RegexPatternInput
-          value={value || ''}
-          onChange={(newValue) => handleFieldChange(field.id, newValue)}
-          flags={config.flags || 'g'}
-          onFlagsChange={(newFlags) => handleFieldChange('flags', newFlags)}
-          warnings={warnings}
-          placeholder={field.placeholder || 'Enter regex pattern...'}
-          disabled={isFieldDisabled}
-          selectedTemplate={selectedTemplate}
-        />
-      )
-    }
-
-    // Skip rendering the flags field separately if using regex-tester, as it's handled by RegexPatternInput
-    if (tool.toolId === 'regex-tester' && field.id === 'flags') {
-      return null
-    }
-
     switch (field.type) {
       case 'text':
         // Special handling for color inputs with autocomplete
