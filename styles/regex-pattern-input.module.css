@@ -1,0 +1,269 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inputWrapper {
+  position: relative;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--input-bg, #ffffff);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.inputWrapper.focused {
+  border-color: var(--primary-color, #4a90e2);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.inputWrapper.error {
+  border-color: var(--error-color, #dc3545);
+  background-color: rgba(220, 53, 69, 0.02);
+}
+
+.patternDisplay {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--pattern-display-bg, #f8f9fa);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  min-height: 40px;
+}
+
+.slash {
+  color: var(--border-color, #ccc);
+  margin: 0 4px;
+  font-weight: 300;
+}
+
+.highlightedPattern {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  word-break: break-all;
+}
+
+.input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  color: transparent;
+  caret-color: var(--text-color, #333);
+  resize: none;
+  outline: none;
+  z-index: 2;
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tokenCharClass {
+  color: var(--token-char-class, #d63384);
+  font-weight: 500;
+}
+
+.tokenGroup {
+  color: var(--token-group, #0066cc);
+  font-weight: 500;
+}
+
+.tokenQuantifier {
+  color: var(--token-quantifier, #e68600);
+  font-weight: 600;
+}
+
+.tokenEscape {
+  color: var(--token-escape, #28a745);
+  font-weight: 500;
+}
+
+.tokenAnchor {
+  color: var(--token-anchor, #6610f2);
+  font-weight: 600;
+}
+
+.tokenOperator {
+  color: var(--token-operator, #e85d75);
+  font-weight: 600;
+}
+
+.tokenDot {
+  color: var(--token-dot, #fd7e14);
+  font-weight: 600;
+}
+
+.tokenLiteral {
+  color: var(--text-color, #333);
+}
+
+.flagsContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.flagLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.flagButtons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.flagButton {
+  min-width: 32px;
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 4px;
+  background: var(--input-bg, #ffffff);
+  color: var(--text-color, #333);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flagButton:hover:not(:disabled) {
+  border-color: var(--primary-color, #4a90e2);
+  background: var(--primary-light, #f0f5ff);
+}
+
+.flagButton.flagActive {
+  background: var(--primary-color, #4a90e2);
+  color: white;
+  border-color: var(--primary-color, #4a90e2);
+}
+
+.flagButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.warningsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.warningGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.warning {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.warningError {
+  background: rgba(220, 53, 69, 0.08);
+  border-left-color: var(--error-color, #dc3545);
+}
+
+.warningRegular {
+  background: rgba(255, 193, 7, 0.08);
+  border-left-color: var(--warning-color, #ffc107);
+}
+
+.warningInfo {
+  background: rgba(17, 103, 201, 0.08);
+  border-left-color: var(--info-color, #1167c9);
+}
+
+.warningIcon {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.warningContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.warningMessage {
+  font-weight: 600;
+  color: var(--text-color, #333);
+}
+
+.warningSuggestion {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin-top: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .inputWrapper {
+    border-color: var(--border-color, #444);
+    background: var(--input-bg, #2a2a2a);
+  }
+
+  .patternDisplay {
+    background: var(--pattern-display-bg, #1e1e1e);
+    border-bottom-color: var(--border-color, #444);
+  }
+
+  .slash {
+    color: var(--border-color, #555);
+  }
+
+  .input {
+    color: transparent;
+  }
+
+  .flagButton {
+    background: var(--input-bg, #2a2a2a);
+    color: var(--text-color, #e0e0e0);
+    border-color: var(--border-color, #444);
+  }
+
+  .tokenLiteral {
+    color: var(--text-color, #e0e0e0);
+  }
+
+  .flagLabel {
+    color: var(--text-secondary, #999);
+  }
+
+  .warningMessage {
+    color: var(--text-color, #e0e0e0);
+  }
+
+  .warningSuggestion {
+    color: var(--text-secondary, #999);
+  }
+}
