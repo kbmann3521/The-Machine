@@ -1,20 +1,21 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect } from 'react'
 import styles from '../styles/line-highlight-overlay.module.css'
 
 export default function LineHighlightOverlay({ inputText, validationErrors = [], lintingWarnings = [] }) {
   const overlayRef = useRef(null)
-  const [scrollOffset, setScrollOffset] = useState(0)
 
   useEffect(() => {
     const textarea = overlayRef.current?.parentElement?.querySelector('textarea')
-    if (!textarea) return
+    const overlay = overlayRef.current
+    if (!textarea || !overlay) return
 
-    const handleScroll = () => {
-      setScrollOffset(textarea.scrollTop)
+    const syncScroll = () => {
+      overlay.scrollTop = textarea.scrollTop
+      overlay.scrollLeft = textarea.scrollLeft
     }
 
-    textarea.addEventListener('scroll', handleScroll)
-    return () => textarea.removeEventListener('scroll', handleScroll)
+    textarea.addEventListener('scroll', syncScroll)
+    return () => textarea.removeEventListener('scroll', syncScroll)
   }, [])
 
   if (!inputText || (!validationErrors.length && !lintingWarnings.length)) {
