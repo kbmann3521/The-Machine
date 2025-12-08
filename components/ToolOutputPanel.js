@@ -4815,6 +4815,43 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           />
         )
       }
+
+      case 'regex-tester': {
+        const tabs = []
+
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: displayResult ? (
+            <RegexTesterOutput result={displayResult} inputText={inputText} />
+          ) : 'No output',
+          contentType: 'component'
+        })
+
+        if (displayResult?.matches) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify({
+              pattern: displayResult.pattern,
+              flags: displayResult.flags,
+              matchCount: displayResult.matchCount,
+              matches: displayResult.matches,
+              replacement: displayResult.replacement
+            }, null, 2),
+            contentType: 'json'
+          })
+        }
+
+        return (
+          <OutputTabs
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
+
       case 'uuid-validator': {
         const mode = configOptions?.mode || 'validate'
 
