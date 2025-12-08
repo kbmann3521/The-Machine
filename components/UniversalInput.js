@@ -3,8 +3,6 @@ import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
 import styles from '../styles/universal-input.module.css'
 
 export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
-  const { theme } = useTheme()
-
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type or paste content here..."
