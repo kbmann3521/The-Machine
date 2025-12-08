@@ -93,7 +93,7 @@
   height: 100%;
   padding: 10px;
   border: none;
-  background-color: var(--color-background-secondary);
+  background-color: rgba(var(--color-bg-secondary-rgb, 255 255 255), 0.85);
   color: var(--color-text-primary);
   font-size: 13px;
   font-family: 'Courier New', monospace;
