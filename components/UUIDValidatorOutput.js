@@ -62,9 +62,9 @@ export default function UUIDValidatorOutput({ result }) {
       {/* Summary */}
       <CopyCard label="Summary" value={result.summary} />
 
-      {/* Valid Reason */}
-      {result.validReason && (
-        <CopyCard label="Valid Reason" value={result.validReason} />
+      {/* Valid Reason - Only show for invalid UUIDs */}
+      {!result.valid && result.validReason && (
+        <CopyCard label="Validation Reason" value={result.validReason} />
       )}
 
       {/* Status */}
