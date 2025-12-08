@@ -93,8 +93,7 @@
   height: 100%;
   padding: 10px;
   border: none;
-  background: linear-gradient(var(--color-background-secondary), var(--color-background-secondary)) no-repeat,
-              transparent;
+  background-color: var(--color-background-secondary);
   color: var(--color-text-primary);
   font-size: 13px;
   font-family: 'Courier New', monospace;
@@ -103,6 +102,8 @@
   outline: none;
   position: relative;
   z-index: 2;
+  background-attachment: local;
+  box-shadow: inset 0 0 0 9999px var(--color-background-secondary);
 }
 
 .resizeHandle {
