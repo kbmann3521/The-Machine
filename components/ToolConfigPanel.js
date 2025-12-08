@@ -600,7 +600,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   {Object.keys(rows).sort((a, b) => a - b).map(rowNum => (
                     <div key={`row-${rowNum}`} className={styles.fieldsContainer}>
                       {rows[rowNum].map(field => {
-                        if (tool.toolId === 'regex-tester' && field.id === 'flags') {
+                        if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                           return null;
                         }
                         return (
