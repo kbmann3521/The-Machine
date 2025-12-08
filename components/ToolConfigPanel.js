@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 import { getSuggestionsForColor } from '../lib/tools/colorConverter'
-import RegexPatternInput from './RegexPatternInput'
-import PatternTemplateSelector from './PatternTemplateSelector'
-import { getPatternTemplate } from '../lib/regexPatterns'
+import RegexToolkit from './RegexToolkit'
 
 export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
   const [config, setConfig] = useState({})
