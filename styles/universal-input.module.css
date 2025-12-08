@@ -93,7 +93,7 @@
   height: 100%;
   padding: 10px;
   border: none;
-  background-color: rgba(var(--color-background-secondary-rgb, 250 250 250), 0.9);
+  background-color: rgba(255, 255, 255, 0.92);
   color: var(--color-text-primary);
   font-size: 13px;
   font-family: 'Courier New', monospace;
@@ -102,6 +102,10 @@
   outline: none;
   position: relative;
   z-index: 2;
+}
+
+:root[data-theme="dark"] .simpleTextarea {
+  background-color: rgba(45, 45, 45, 0.92);
 }
 
 .resizeHandle {
