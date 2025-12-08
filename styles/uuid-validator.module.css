@@ -5,6 +5,111 @@
   width: 100%;
 }
 
+.badgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeDefault {
+  background-color: rgba(100, 108, 255, 0.1);
+  color: #646cff;
+  border: 1px solid rgba(100, 108, 255, 0.3);
+}
+
+.badgeSuccess {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.badgeWarning {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.badgeInfo {
+  background-color: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
+  border: 1px solid rgba(0, 102, 204, 0.3);
+}
+
+.collapsibleSection {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.collapsibleHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease;
+}
+
+.collapsibleHeader:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+}
+
+.collapsibleHeader svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.collapsibleContent {
+  padding: 12px;
+  background-color: var(--color-background-primary);
+  border-top: 1px solid var(--color-border);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.databaseSuggestion {
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(100, 108, 255, 0.05) 100%);
+  border: 1px solid rgba(0, 102, 204, 0.2);
+  border-radius: 6px;
+  border-left: 4px solid #0066cc;
+}
+
+.suggestionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0066cc;
+  margin-bottom: 6px;
+}
+
+.suggestionText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
 .sectionHeader {
   font-size: 11px;
   font-weight: 700;
