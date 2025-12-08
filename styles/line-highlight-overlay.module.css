@@ -27,9 +27,8 @@
 }
 
 .errorLine {
-  background-color: rgba(239, 83, 80, 0.25);
-  border-left: 4px solid #ef5350;
-  box-shadow: inset 3px 0 0 0 #ef5350;
+  background-color: rgba(244, 67, 54, 0.3);
+  border-left: 4px solid #f44336;
 }
 
 .warningLine {
