@@ -60,10 +60,11 @@
   height: 100%;
   border: none;
   background: transparent;
-  padding: 8px 12px;
+  padding: 8px 11px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   line-height: 24px;
+  letter-spacing: 0;
   color: transparent;
   caret-color: var(--color-text-primary, #333);
   resize: none;
