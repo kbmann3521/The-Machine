@@ -617,7 +617,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   {fieldsWithoutRow.length > 0 && (
                     <div className={styles.fieldsContainer}>
                       {fieldsWithoutRow.map(field => {
-                        if (tool.toolId === 'regex-tester' && field.id === 'flags') {
+                        if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                           return null;
                         }
                         return (
