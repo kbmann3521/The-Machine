@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/uuid-validator.module.css'
 import toolOutputStyles from '../styles/tool-output.module.css'
 
@@ -21,7 +22,7 @@ function CopyCard({ label, value }) {
           onClick={handleCopy}
           title="Copy to clipboard"
         >
-          {isCopied ? '✓ Copied' : 'Copy'}
+          {isCopied ? '✓ Copied' : <><FaCopy /> Copy</>}
         </button>
       </div>
       <div className={toolOutputStyles.copyCardValue}>{value}</div>
