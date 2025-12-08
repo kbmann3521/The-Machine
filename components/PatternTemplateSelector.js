@@ -1,14 +1,39 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import styles from '../styles/pattern-template-selector.module.css'
 import { getPatternTemplatesByCategory } from '../lib/regexPatterns'
 
 export default function PatternTemplateSelector({ onSelectTemplate, selectedTemplateId }) {
   const [expandedCategory, setExpandedCategory] = useState('Common');
+  const [searchQuery, setSearchQuery] = useState('');
   const categories = getPatternTemplatesByCategory();
   const categoryList = Object.keys(categories).sort((a, b) => {
     const order = ['Common', 'Identifiers', 'Network', 'Colors', 'Business', 'Text', 'Web', 'Social', 'Payment', 'Location'];
     return (order.indexOf(a) !== -1 ? order.indexOf(a) : 999) - (order.indexOf(b) !== -1 ? order.indexOf(b) : 999);
   });
+
+  // Filter templates based on search query
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return categories;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = {};
+
+    Object.entries(categories).forEach(([category, templates]) => {
+      const matchedTemplates = templates.filter(template =>
+        template.name.toLowerCase().includes(query) ||
+        template.description.toLowerCase().includes(query) ||
+        template.pattern.toLowerCase().includes(query)
+      );
+
+      if (matchedTemplates.length > 0) {
+        filtered[category] = matchedTemplates;
+      }
+    });
+
+    return filtered;
+  }, [categories, searchQuery]);
 
   return (
     <div className={styles.container}>
