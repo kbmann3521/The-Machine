@@ -37,19 +37,17 @@ export default function UUIDValidatorOutput({ result }) {
   // Standard validation mode - display main content only (tabs handle JSON)
   return (
     <div className={styles.container}>
+      {/* Summary */}
+      <CopyCard label="Summary" value={result.summary} />
+
       {/* Status */}
-      <div className={toolOutputStyles.copyCard}>
-        <div className={toolOutputStyles.copyCardHeader}>
-          <span className={toolOutputStyles.copyCardLabel}>
-            {result.valid ? 'Status: Valid UUID' : 'Status: Invalid UUID'}
-          </span>
+      {!result.valid && result.errors && result.errors.length > 0 && (
+        <div className={styles.errorsWarning}>
+          {result.errors.map((error, idx) => (
+            <div key={idx} className={styles.errorItem}>✗ {error}</div>
+          ))}
         </div>
-        {result.error && (
-          <div className={styles.errorMessage}>
-            <strong>Error:</strong> {result.error}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Common Mistakes Warning */}
       {result.commonMistakes && result.commonMistakes.length > 0 && (
@@ -62,33 +60,43 @@ export default function UUIDValidatorOutput({ result }) {
 
       {result.valid && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Version & Variant */}
+          {/* Input Format */}
+          <CopyCard label="Input Format" value={result.inputFormat} />
+
+          {/* Normalization Status */}
+          <CopyCard label="Was Normalized" value={result.wasNormalized ? 'Yes' : 'No'} />
+
+          {/* Version & Type Info */}
           <CopyCard label="UUID Version" value={`v${result.version} (${result.versionName})`} />
+          <CopyCard label="Type" value={result.type} />
           <CopyCard label="Variant" value={result.variant} />
 
           {/* Normalized UUID */}
           <CopyCard label="Normalized" value={result.normalized} />
 
+          {/* Bit Breakdown */}
+          {result.bits && (
+            <>
+              <div className={styles.sectionHeader}>Bit Fields</div>
+              <CopyCard label="Time Low" value={result.bits.time_low} />
+              <CopyCard label="Time Mid" value={result.bits.time_mid} />
+              <CopyCard label="Time High & Version" value={result.bits.time_high_and_version} />
+              <CopyCard label="Clock Sequence" value={result.bits.clock_seq} />
+              <CopyCard label="Node" value={result.bits.node} />
+            </>
+          )}
+
           {/* Alternative Formats */}
+          <div className={styles.sectionHeader}>Alternative Formats</div>
           <CopyCard label="Hex" value={result.hex} />
           <CopyCard label="Base64" value={result.base64} />
           <CopyCard label="URN" value={result.urn} />
 
-          {/* Version-Specific Metadata */}
-          {result.version === 1 && result.metadata.timeLow && (
+          {/* Version 1 Timestamp */}
+          {result.version === 1 && result.timestamp && (
             <>
-              <CopyCard label="Time Low" value={result.metadata.timeLow} />
-              <CopyCard label="Time Mid" value={result.metadata.timeMid} />
-              <CopyCard label="Time High" value={result.metadata.timeHigh} />
-              <CopyCard label="Clock Sequence" value={result.metadata.clockSequence} />
-              <CopyCard label="Node (MAC)" value={result.metadata.node} />
-            </>
-          )}
-
-          {result.version === 7 && result.metadata.date && (
-            <>
-              <CopyCard label="Timestamp (ms)" value={result.metadata.timestampMs?.toString() || ''} />
-              <CopyCard label="Date/Time" value={result.metadata.date} />
+              <div className={styles.sectionHeader}>Time Information</div>
+              <CopyCard label="Generated At" value={result.timestamp} />
             </>
           )}
         </div>
