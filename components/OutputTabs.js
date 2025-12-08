@@ -291,8 +291,8 @@ export default function OutputTabs({
 
     if (!activeTabConfig) return
 
-    // For JSON/code/codemirror content types, use the formatted string
-    if (activeTabConfig?.contentType === 'json' || activeTabConfig?.contentType === 'code' || activeTabConfig?.contentType === 'codemirror') {
+    // For JSON/code content types, use the formatted string
+    if (activeTabConfig?.contentType === 'json' || activeTabConfig?.contentType === 'code') {
       textToCopy = getJsonString()
     } else if (activeTabConfig?.contentType === 'text') {
       // For text, just use the content as-is
