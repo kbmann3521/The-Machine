@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaCopy } from 'react-icons/fa6'
+import { FaCopy, FaChevronDown, FaChevronRight } from 'react-icons/fa6'
 import styles from '../styles/uuid-validator.module.css'
 import toolOutputStyles from '../styles/tool-output.module.css'
 
@@ -47,6 +47,62 @@ function CopyCard({ label, value }) {
         </button>
       </div>
       <div className={toolOutputStyles.copyCardValue}>{value}</div>
+    </div>
+  )
+}
+
+function Badge({ label, variant = 'default' }) {
+  const badgeClasses = {
+    default: styles.badgeDefault,
+    success: styles.badgeSuccess,
+    warning: styles.badgeWarning,
+    info: styles.badgeInfo,
+  }
+
+  return <span className={`${styles.badge} ${badgeClasses[variant]}`}>{label}</span>
+}
+
+function VersionExplanation({ version, expanded, onToggle }) {
+  const explanations = {
+    1: 'Time-based UUID generated from MAC address and timestamp. Useful for sorting and chronological ordering, but reveals the MAC address.',
+    3: 'Name-based UUID using MD5 hash. Deterministic - same namespace and name always produce the same UUID. Good for consistency but less random.',
+    4: 'Randomly generated UUID using cryptographic randomness. Most common choice for distributed systems with no ordering requirements.',
+    5: 'Name-based UUID using SHA-1 hash. Like v3 but with better security properties. Deterministic for same namespace/name.',
+    7: 'Unix timestamp-based UUID with random component. Ordered by time, database-friendly for sorting, modern alternative to v1 without privacy concerns.',
+  }
+
+  return (
+    <div className={styles.collapsibleSection}>
+      <button
+        type="button"
+        className={styles.collapsibleHeader}
+        onClick={onToggle}
+      >
+        {expanded ? <FaChevronDown /> : <FaChevronRight />}
+        <span>About UUID v{version}</span>
+      </button>
+      {expanded && (
+        <div className={styles.collapsibleContent}>
+          {explanations[version]}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DatabaseSuggestion({ version }) {
+  const suggestions = {
+    1: 'Suitable for chronological ordering. ⚠️ Privacy concern: MAC address is embedded.',
+    3: 'Not recommended for primary use. Better for deterministic generation in name-spaces.',
+    4: 'Best for distributed systems, sharding, and random distribution. No ordering guarantees.',
+    5: 'Similar to v3 but with SHA-1. Use when deterministic UUIDs are required.',
+    7: '✓ Best for modern databases. Ordered by timestamp, optimized for B-tree indexing, excellent for sorting and range queries.',
+  }
+
+  return (
+    <div className={styles.databaseSuggestion}>
+      <div className={styles.suggestionLabel}>Database Recommendation</div>
+      <div className={styles.suggestionText}>{suggestions[version]}</div>
     </div>
   )
 }
