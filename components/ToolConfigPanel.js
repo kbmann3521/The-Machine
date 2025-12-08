@@ -651,14 +651,19 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   ))}
                   {fieldsWithoutRow.length > 0 && (
                     <div className={styles.fieldsContainer}>
-                      {fieldsWithoutRow.map(field => (
-                        <div key={field.id} className={styles.field}>
-                          <label className={styles.fieldLabel} htmlFor={field.id}>
-                            {field.label}
-                          </label>
-                          {renderField(field)}
-                        </div>
-                      ))}
+                      {fieldsWithoutRow.map(field => {
+                        if (tool.toolId === 'regex-tester' && field.id === 'flags') {
+                          return null;
+                        }
+                        return (
+                          <div key={field.id} className={styles.field}>
+                            <label className={styles.fieldLabel} htmlFor={field.id}>
+                              {field.label}
+                            </label>
+                            {renderField(field)}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </>
