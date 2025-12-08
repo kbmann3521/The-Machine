@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import SyntaxHighlighter from './SyntaxHighlighter'
-import CodeMirrorOutput from './CodeMirrorOutput'
 import { isScriptingLanguageTool } from '../lib/tools'
 import styles from '../styles/output-tabs.module.css'
 
