@@ -1,17 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import CodeMirror from '@uiw/react-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
-import { markdown } from '@codemirror/lang-markdown'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
-import { xml } from '@codemirror/lang-xml'
-import { json } from '@codemirror/lang-json'
-import { sql } from '@codemirror/lang-sql'
-import { python } from '@codemirror/lang-python'
-import { yaml } from '@codemirror/lang-yaml'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
-import { useTheme } from '../lib/ThemeContext'
-import { createCustomTheme } from '../lib/codeMirrorTheme'
 import styles from '../styles/universal-input.module.css'
 
 export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
