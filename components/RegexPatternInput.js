@@ -219,11 +219,6 @@ export default function RegexPatternInput({
   return (
     <div className={styles.container}>
       <div className={`${styles.inputWrapper} ${focused ? styles.focused : ''} ${hasErrors ? styles.error : ''}`}>
-        <div className={styles.patternDisplay}>
-          <div className={styles.slash}>/</div>
-          <SyntaxHighlightedPattern pattern={value} />
-          <div className={styles.slash}>/</div>
-        </div>
         <input
           ref={inputRef}
           type="text"
