@@ -3,7 +3,7 @@ import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
 import LineHighlightOverlay from './LineHighlightOverlay'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
+export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, validationErrors = [], lintingWarnings = [] }) {
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type or paste content here..."
