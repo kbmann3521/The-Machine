@@ -5,16 +5,6 @@
   width: 100%;
 }
 
-.validCard {
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  background-color: rgba(76, 175, 80, 0.05);
-}
-
-.invalidCard {
-  border: 1px solid rgba(244, 67, 54, 0.3);
-  background-color: rgba(244, 67, 54, 0.05);
-}
-
 .errorMessage {
   padding: 8px;
   background-color: rgba(244, 67, 54, 0.1);
