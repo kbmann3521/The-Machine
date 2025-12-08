@@ -240,23 +240,31 @@ export default function RegexPatternInput({
       </div>
 
       <div className={styles.flagsContainer}>
-        <label className={styles.flagLabel}>Flags:</label>
-        <div className={styles.flagButtons}>
-          {['g', 'i', 'm', 's', 'd', 'u', 'y'].map((flag) => (
+        <div className={styles.flagsHeader}>
+          <label className={styles.flagLabel}>Regex Flags</label>
+          <span className={styles.flagsHint}>Click to enable/disable</span>
+        </div>
+        <div className={styles.flagsGrid}>
+          {getFlagsList().map((flagInfo) => (
             <button
-              key={flag}
-              className={`${styles.flagButton} ${flags && flags.includes(flag) ? styles.flagActive : ''}`}
+              key={flagInfo.flag}
+              className={`${styles.flagItem} ${flags && flags.includes(flagInfo.flag) ? styles.flagItemActive : ''}`}
               onClick={() => {
                 const currentFlags = flags || '';
-                const newFlags = currentFlags.includes(flag)
-                  ? currentFlags.replace(flag, '')
-                  : currentFlags + flag;
+                const newFlags = currentFlags.includes(flagInfo.flag)
+                  ? currentFlags.replace(flagInfo.flag, '')
+                  : currentFlags + flagInfo.flag;
                 onFlagsChange(newFlags);
               }}
-              title={getFlagDescription(flag)}
               disabled={disabled}
             >
-              {flag}
+              <div className={styles.flagToggle}>
+                <span className={styles.flagLetter}>{flagInfo.flag}</span>
+              </div>
+              <div className={styles.flagInfo}>
+                <div className={styles.flagName}>{flagInfo.name}</div>
+                <div className={styles.flagDesc}>{flagInfo.description}</div>
+              </div>
             </button>
           ))}
         </div>
