@@ -674,6 +674,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             return (
               <div className={styles.fieldsContainer}>
                 {tool.configSchema.map(field => {
+                  // Skip flags field for regex-tester
+                  if (tool.toolId === 'regex-tester' && field.id === 'flags') {
+                    return null;
+                  }
+
                   // Check visibility
                   if (field.visibleWhen) {
                     const { field: conditionField, value: conditionValue } = field.visibleWhen
