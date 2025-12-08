@@ -4814,8 +4814,115 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           />
         )
       }
-      case 'uuid-validator':
-        return <UUIDValidatorOutput result={displayResult} selectedMode={configOptions?.mode} />
+      case 'uuid-validator': {
+        const mode = configOptions?.mode || 'validate'
+
+        // Generation modes
+        if (mode.startsWith('generate-')) {
+          const tabs = []
+          const generated = displayResult?.generated
+
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: generated ? (
+              <UUIDValidatorGeneratedOutput result={displayResult} />
+            ) : 'No output',
+            contentType: 'component'
+          })
+
+          if (generated) {
+            tabs.push({
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify({ generated, version: displayResult.version }, null, 2),
+              contentType: 'json'
+            })
+          }
+
+          return (
+            <OutputTabs
+              toolId={toolId}
+              tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+              showCopyButton={true}
+            />
+          )
+        }
+
+        // Bulk validation mode
+        if (mode === 'bulk-validate') {
+          const tabs = []
+          const results = displayResult?.results
+
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: results ? (
+              <UUIDValidatorBulkOutput result={displayResult} />
+            ) : 'No output',
+            contentType: 'component'
+          })
+
+          if (results) {
+            tabs.push({
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(results, null, 2),
+              contentType: 'json'
+            })
+          }
+
+          return (
+            <OutputTabs
+              toolId={toolId}
+              tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+              showCopyButton={true}
+            />
+          )
+        }
+
+        // Standard validation mode
+        const tabs = []
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: <UUIDValidatorOutput result={displayResult} />,
+          contentType: 'component'
+        })
+
+        if (displayResult?.normalized) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(
+              {
+                input: displayResult.input,
+                valid: displayResult.valid,
+                version: displayResult.version,
+                versionName: displayResult.versionName,
+                variant: displayResult.variant,
+                normalized: displayResult.normalized,
+                hex: displayResult.hex,
+                base64: displayResult.base64,
+                urn: displayResult.urn,
+                ...(displayResult.metadata?.node && { node: displayResult.metadata.node }),
+                ...(displayResult.metadata?.date && { timestamp: displayResult.metadata.date }),
+              },
+              null,
+              2
+            ),
+            contentType: 'json'
+          })
+        }
+
+        return (
+          <OutputTabs
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
       default: {
         const tabs = []
 
