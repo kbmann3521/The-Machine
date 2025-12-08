@@ -209,6 +209,7 @@ export default function UUIDValidatorOutput({ result }) {
           {result.validRFC4122 && <Badge label="RFC 4122 ✓" variant="success" />}
           {hasTimestamp && <Badge label="Has Timestamp ✓" variant="success" />}
           {hasTimestampV7 && <Badge label="Time-Ordered ✓" variant="success" />}
+          <SortabilityBadge version={result.version} />
         </div>
       )}
 
