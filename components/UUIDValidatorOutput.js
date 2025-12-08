@@ -1,75 +1,38 @@
 import React, { useState } from 'react'
 import styles from '../styles/uuid-validator.module.css'
+import toolOutputStyles from '../styles/tool-output.module.css'
 
-export default function UUIDValidatorOutput({ result, selectedMode = 'validate' }) {
-  const [copiedField, setCopiedField] = useState(null)
+function CopyCard({ label, value, onCopy }) {
+  const [isCopied, setIsCopied] = useState(false)
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value)
+    setIsCopied(true)
+    setTimeout(() => setIsCopied(false), 2000)
+    if (onCopy) onCopy()
+  }
+
+  return (
+    <div className={toolOutputStyles.copyCard}>
+      <div className={toolOutputStyles.copyCardLabel}>{label}</div>
+      <div className={toolOutputStyles.copyCardValue}>{value}</div>
+      <button
+        className={toolOutputStyles.copyCardButton}
+        onClick={handleCopy}
+        title="Copy to clipboard"
+      >
+        {isCopied ? '✓ Copied' : 'Copy'}
+      </button>
+    </div>
+  )
+}
+
+export default function UUIDValidatorOutput({ result }) {
   if (!result) {
     return null
   }
 
-  const copyToClipboard = (text, fieldName) => {
-    navigator.clipboard.writeText(text)
-    setCopiedField(fieldName)
-    setTimeout(() => setCopiedField(null), 2000)
-  }
-
-  // Generation mode
-  if (result.generated) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.generatedSection}>
-          <h3>Generated UUID {result.version}</h3>
-          <div className={styles.generatedBox}>
-            <code>{result.generated}</code>
-            <button
-              className={styles.copyButton}
-              onClick={() => copyToClipboard(result.generated, 'generated')}
-            >
-              {copiedField === 'generated' ? '✓ Copied' : 'Copy'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Bulk validation mode
-  if (result.mode === 'bulk') {
-    return (
-      <div className={styles.container}>
-        <div className={styles.bulkSection}>
-          <h3>Bulk Validation Results</h3>
-          <div className={styles.bulkTable}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Row</th>
-                  <th>Input</th>
-                  <th>Valid</th>
-                  <th>Version</th>
-                  <th>Error</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.results.map((row, idx) => (
-                  <tr key={idx} className={row.valid ? styles.validRow : styles.invalidRow}>
-                    <td>{row.row}</td>
-                    <td>{row.input}</td>
-                    <td>{row.valid ? '✓' : '✗'}</td>
-                    <td>{row.version ? `v${row.version}` : '—'}</td>
-                    <td>{row.error || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Standard validation mode
+  // Standard validation mode - display main content only (tabs handle JSON)
   return (
     <div className={styles.container}>
       {/* Validity Status */}
