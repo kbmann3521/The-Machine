@@ -8,6 +8,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
+  const [selectedTemplateId, setSelectedTemplateId] = useState(null)
 
   useEffect(() => {
     if (tool?.configSchema) {
