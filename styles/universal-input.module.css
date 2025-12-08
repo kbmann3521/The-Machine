@@ -93,7 +93,8 @@
   height: 100%;
   padding: 10px;
   border: none;
-  background-color: rgba(var(--color-bg-secondary-rgb, 255 255 255), 0.85);
+  background: linear-gradient(var(--color-background-secondary), var(--color-background-secondary)) no-repeat,
+              transparent;
   color: var(--color-text-primary);
   font-size: 13px;
   font-family: 'Courier New', monospace;
