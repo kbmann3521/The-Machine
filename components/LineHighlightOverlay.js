@@ -56,8 +56,8 @@ export default function LineHighlightOverlay({ inputText, validationErrors = [],
 
   return (
     <div
-      ref={overlayRef}
       className={styles.overlay}
+      style={{ transform: `translateY(-${scrollTop}px)` }}
     >
       {lines.map((line, idx) => {
         const highlight = lineHighlights[idx]
