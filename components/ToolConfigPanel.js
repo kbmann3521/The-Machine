@@ -596,6 +596,13 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
         <div>
+          {tool.toolId === 'regex-tester' && (
+            <PatternTemplateSelector
+              onSelectTemplate={handleTemplateSelect}
+              selectedTemplateId={selectedTemplateId}
+            />
+          )}
+
           {(() => {
             // Group fields by row number (if specified)
             const rows = {}
