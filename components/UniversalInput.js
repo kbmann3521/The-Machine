@@ -287,6 +287,11 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               accept="image/*"
               className={styles.fileInput}
             />
+            <LineHighlightOverlay
+              inputText={inputText}
+              validationErrors={validationErrors}
+              lintingWarnings={lintingWarnings}
+            />
             <textarea
               value={inputText}
               onChange={(e) => handleTextChange(e.target.value)}
