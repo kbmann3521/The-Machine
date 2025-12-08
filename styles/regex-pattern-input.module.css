@@ -44,45 +44,6 @@
   cursor: not-allowed;
 }
 
-.tokenCharClass {
-  color: var(--token-char-class, #d63384);
-  font-weight: 500;
-}
-
-.tokenGroup {
-  color: var(--token-group, #0066cc);
-  font-weight: 500;
-}
-
-.tokenQuantifier {
-  color: var(--token-quantifier, #e68600);
-  font-weight: 600;
-}
-
-.tokenEscape {
-  color: var(--token-escape, #28a745);
-  font-weight: 500;
-}
-
-.tokenAnchor {
-  color: var(--token-anchor, #6610f2);
-  font-weight: 600;
-}
-
-.tokenOperator {
-  color: var(--token-operator, #e85d75);
-  font-weight: 600;
-}
-
-.tokenDot {
-  color: var(--token-dot, #fd7e14);
-  font-weight: 600;
-}
-
-.tokenLiteral {
-  color: var(--color-text-primary, #333);
-}
-
 .flagsContainer {
   display: flex;
   flex-direction: column;
