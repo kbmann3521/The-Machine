@@ -6,10 +6,31 @@ import toolOutputStyles from '../styles/tool-output.module.css'
 function CopyCard({ label, value }) {
   const [isCopied, setIsCopied] = useState(false)
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value)
-    setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 2000)
+  const fallbackCopy = (text) => {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+    document.body.removeChild(textarea)
+  }
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      fallbackCopy(value)
+    }
   }
 
   return (
@@ -22,7 +43,7 @@ function CopyCard({ label, value }) {
           onClick={handleCopy}
           title="Copy to clipboard"
         >
-          {isCopied ? '✓ Copied' : <><FaCopy /> Copy</>}
+          {isCopied ? '✓' : <FaCopy />}
         </button>
       </div>
       <div className={toolOutputStyles.copyCardValue}>{value}</div>
