@@ -206,7 +206,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       'caesar-cipher': 'Apply Caesar cipher with custom character shift amount',
       'css-formatter': 'Format and beautify CSS code with proper indentation',
       'sql-formatter': 'Format SQL queries with readable line breaks and indentation',
-      'http-status-lookup': 'Look up HTTP status codes and their meanings',
+      'http-status-lookup': 'Paste status code, log line, or description to auto-detect and get dev guidance',
       'mime-type-lookup': 'Find MIME types by file extension',
       'http-header-parser': 'Parse and analyze HTTP request and response headers',
       'uuid-validator': 'Validate UUID format and detect version',
