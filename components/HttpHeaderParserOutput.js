@@ -543,17 +543,39 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
   const { statusLine, headers, headerAnalysis, analysis, overallStatus, securityScore, groupedHeaders, parseErrors, cacheSimulation, transformations, strictMode } = result
 
   // Collect all issues from the analysis
-  const allRfcIssues = [
-    ...(analysis.rfcCompliance?.headerConflicts || []),
-    ...(analysis.rfcCompliance?.headerNormalization || []),
-    ...(analysis.rfcCompliance?.validatorConflicts || []),
-    ...(analysis.rfcCompliance?.compressionValidity || []),
-    ...(analysis.http2Incompatibilities || []),
-    ...(analysis.cacheHeuristics?.issues || []),
-    ...(analysis.headerFolding || []),
-    ...(analysis.security?.warnings?.map(w => ({ level: 'warning', message: w })) || []),
-    ...(analysis.security?.conflicts?.map(c => ({ level: 'warning', message: c })) || []),
-  ]
+  const allRfcIssues = []
+
+  if (analysis.rfcCompliance?.headerConflicts) {
+    allRfcIssues.push(...analysis.rfcCompliance.headerConflicts)
+  }
+  if (analysis.rfcCompliance?.headerNormalization) {
+    allRfcIssues.push(...analysis.rfcCompliance.headerNormalization)
+  }
+  if (analysis.rfcCompliance?.validatorConflicts) {
+    allRfcIssues.push(...analysis.rfcCompliance.validatorConflicts)
+  }
+  if (analysis.rfcCompliance?.compressionValidity) {
+    allRfcIssues.push(...analysis.rfcCompliance.compressionValidity)
+  }
+  if (analysis.http2Incompatibilities) {
+    allRfcIssues.push(...analysis.http2Incompatibilities)
+  }
+  if (analysis.cacheHeuristics?.issues) {
+    allRfcIssues.push(...analysis.cacheHeuristics.issues)
+  }
+  if (analysis.headerFolding) {
+    allRfcIssues.push(...analysis.headerFolding)
+  }
+  if (analysis.security?.warnings) {
+    analysis.security.warnings.forEach(w => {
+      allRfcIssues.push({ level: 'warning', message: w })
+    })
+  }
+  if (analysis.security?.conflicts) {
+    analysis.security.conflicts.forEach(c => {
+      allRfcIssues.push({ level: 'warning', message: c })
+    })
+  }
 
   return (
     <div className={styles.container}>
