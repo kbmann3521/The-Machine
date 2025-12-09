@@ -151,6 +151,11 @@
   font-weight: 600;
 }
 
+.infoCount {
+  color: #2196f3;
+  font-weight: 600;
+}
+
 .errorBanner {
   display: flex;
   gap: 12px;
