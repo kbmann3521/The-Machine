@@ -198,6 +198,34 @@ function ExportModal({ headers }) {
   )
 }
 
+function OverallStatusBadge({ status }) {
+  if (!status) return null
+
+  const riskColors = {
+    high: { icon: '🔴', label: 'High Risk', color: '#ef5350' },
+    medium: { icon: '🟡', label: 'Warnings', color: '#ffc107' },
+    low: { icon: '🟢', label: 'Safe', color: '#66bb6a' },
+  }
+
+  const riskInfo = riskColors[status.riskLevel] || riskColors.low
+
+  return (
+    <div className={styles.overallStatusContainer}>
+      <div className={styles.overallStatusBadge} style={{ borderLeftColor: riskInfo.color }}>
+        <span style={{ fontSize: '20px', marginRight: '8px' }}>{riskInfo.icon}</span>
+        <div className={styles.overallStatusContent}>
+          <div className={styles.overallStatusLabel}>{riskInfo.label}</div>
+          <div className={styles.overallStatusStats}>
+            {status.errors > 0 && <span className={styles.errorCount}>{status.errors} error{status.errors !== 1 ? 's' : ''}</span>}
+            {status.warnings > 0 && <span className={styles.warningCount}>{status.warnings} warning{status.warnings !== 1 ? 's' : ''}</span>}
+            {status.errors === 0 && status.warnings === 0 && <span className={styles.validCount}>All clear</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function HttpHeaderParserOutput({ result }) {
   const [showExport, setShowExport] = useState(false)
 
@@ -213,7 +241,7 @@ export default function HttpHeaderParserOutput({ result }) {
     )
   }
 
-  const { statusLine, headers, headerAnalysis, analysis, groupedHeaders, parseErrors } = result
+  const { statusLine, headers, headerAnalysis, analysis, overallStatus, groupedHeaders, parseErrors } = result
 
   return (
     <div className={styles.container}>
