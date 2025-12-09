@@ -207,6 +207,15 @@
   border-radius: 6px;
   background-color: var(--color-background-secondary);
   margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestionCard:hover {
+  background-color: var(--color-background-primary);
+  border-color: #0066cc;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+  transform: translateY(-2px);
 }
 
 .suggestionCard:last-child {
