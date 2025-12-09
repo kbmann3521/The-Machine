@@ -665,6 +665,143 @@ export default function HttpHeaderParserOutput({ result }) {
         </div>
       </StatusSection>
 
+      {analysis.responseAnomalies && analysis.responseAnomalies.length > 0 && (
+        <StatusSection title="Response Anomalies" icon="⚠️">
+          <div className={styles.anomaliesList}>
+            {analysis.responseAnomalies.map((anomaly, idx) => (
+              <div key={idx} className={`${styles.anomalyItem} ${styles[`anomaly-${anomaly.level}`]}`}>
+                <span className={styles.anomalyIcon}>
+                  {anomaly.level === 'error' ? '✕' : anomaly.level === 'warning' ? '⚠' : 'ℹ'}
+                </span>
+                <span>{anomaly.message}</span>
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
+      {cacheSimulation && (
+        <StatusSection title="Cache Behavior Simulation" icon="🔄">
+          <div className={styles.cacheSimGrid}>
+            <div className={styles.cacheSimCard}>
+              <div className={styles.cacheSimTitle}>Browser Cache</div>
+              <div className={styles.cacheSimContent}>
+                <div className={styles.cacheSimItem}>
+                  <span className={styles.simLabel}>Cacheable:</span>
+                  <span className={styles.simValue}>
+                    {cacheSimulation.browser.cacheable ? (
+                      <HeaderBadge level="success" text="Yes" />
+                    ) : (
+                      <HeaderBadge level="error" text="No" />
+                    )}
+                  </span>
+                </div>
+                <div className={styles.cacheSimItem}>
+                  <span className={styles.simLabel}>TTL:</span>
+                  <span className={styles.simValue}>
+                    {cacheSimulation.browser.ttl > 0 ? `${cacheSimulation.browser.ttl}s` : 'No cache'}
+                  </span>
+                </div>
+                <div className={styles.cacheSimItem}>
+                  <span className={styles.simLabel}>Revalidation:</span>
+                  <span className={styles.simValue}>
+                    {cacheSimulation.browser.revalidationRequired ? (
+                      <HeaderBadge level="warning" text="Required" />
+                    ) : (
+                      <HeaderBadge level="success" text="Not needed" />
+                    )}
+                  </span>
+                </div>
+                {cacheSimulation.browser.reason && (
+                  <div className={styles.cacheSimReason}>{cacheSimulation.browser.reason}</div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.cacheSimCard}>
+              <div className={styles.cacheSimTitle}>CDN Cache</div>
+              <div className={styles.cacheSimContent}>
+                <div className={styles.cacheSimItem}>
+                  <span className={styles.simLabel}>Cacheable:</span>
+                  <span className={styles.simValue}>
+                    {cacheSimulation.cdn.cacheable ? (
+                      <HeaderBadge level="success" text="Yes" />
+                    ) : (
+                      <HeaderBadge level="error" text="No" />
+                    )}
+                  </span>
+                </div>
+                <div className={styles.cacheSimItem}>
+                  <span className={styles.simLabel}>TTL:</span>
+                  <span className={styles.simValue}>
+                    {cacheSimulation.cdn.ttl > 0 ? `${cacheSimulation.cdn.ttl}s` : 'No cache'}
+                  </span>
+                </div>
+                <div className={styles.cacheSimItem}>
+                  <span className={styles.simLabel}>Revalidation:</span>
+                  <span className={styles.simValue}>
+                    {cacheSimulation.cdn.revalidationRequired ? (
+                      <HeaderBadge level="warning" text="Required" />
+                    ) : (
+                      <HeaderBadge level="success" text="Not needed" />
+                    )}
+                  </span>
+                </div>
+                {cacheSimulation.cdn.reason && (
+                  <div className={styles.cacheSimReason}>{cacheSimulation.cdn.reason}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </StatusSection>
+      )}
+
+      {transformations && (
+        <StatusSection title="Header Transformations" icon="🔀">
+          <div className={styles.transformationsGrid}>
+            {[
+              { label: 'Canonical Format', key: 'canonical' },
+              { label: 'Lowercase (Node.js style)', key: 'lowercase' },
+              { label: 'JSON Object', key: 'jsonObject' },
+              { label: 'cURL Headers', key: 'curlHeaders' },
+              { label: 'fetch() Init', key: 'fetchInit' },
+            ].map(({ label, key }) => (
+              <div key={key} className={styles.transformBlock}>
+                <button
+                  className={styles.transformToggle}
+                  onClick={() => setExpandedTransforms(expandedTransforms === key ? null : key)}
+                >
+                  {expandedTransforms === key ? '▼' : '▶'} {label}
+                </button>
+                {expandedTransforms === key && (
+                  <div className={styles.transformContent}>
+                    <div className={toolOutputStyles.copyCard}>
+                      <div className={toolOutputStyles.copyCardHeader}>
+                        <span className={toolOutputStyles.copyCardLabel}>{label}</span>
+                        <button
+                          type="button"
+                          className="copy-action"
+                          onClick={() => {
+                            navigator.clipboard.writeText(transformations[key])
+                            // Show feedback
+                          }}
+                          title="Copy to clipboard"
+                        >
+                          <FaCopy />
+                        </button>
+                      </div>
+                      <div className={`${toolOutputStyles.copyCardValue} ${styles.transformValue}`}>
+                        {transformations[key]}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
       <div className={styles.exportButton}>
         <button onClick={() => setShowExport(!showExport)} className={styles.exportToggle}>
           {showExport ? '▼' : '▶'} Export Headers
