@@ -219,7 +219,7 @@ export default function HttpHeaderParserOutput({ result }) {
     <div className={styles.container}>
       {parseErrors.length > 0 && (
         <div className={styles.errorBanner}>
-          <FaExclamationTriangle className={styles.errorIcon} />
+          <span className={styles.errorIcon}>❌</span>
           <div>
             <strong>Parse Errors:</strong>
             <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px' }}>
