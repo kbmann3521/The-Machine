@@ -365,7 +365,8 @@ function OverallStatusBadge({ status }) {
           <div className={styles.overallStatusStats}>
             {status.errors > 0 && <span className={styles.errorCount}>{status.errors} error{status.errors !== 1 ? 's' : ''}</span>}
             {status.warnings > 0 && <span className={styles.warningCount}>{status.warnings} warning{status.warnings !== 1 ? 's' : ''}</span>}
-            {status.errors === 0 && status.warnings === 0 && <span className={styles.validCount}>All clear</span>}
+            {status.infos > 0 && <span className={styles.infoCount}>{status.infos} info{status.infos !== 1 ? 's' : ''}</span>}
+            {status.errors === 0 && status.warnings === 0 && status.infos === 0 && <span className={styles.validCount}>All clear</span>}
           </div>
         </div>
       </div>
