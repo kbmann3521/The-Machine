@@ -361,6 +361,12 @@ export default function HttpHeaderParserOutput({ result }) {
             </span>
           </div>
           <div className={styles.analysisItem}>
+            <span className={styles.analysisLabel}>Exposed to Shared Cache:</span>
+            <span className={styles.analysisValue}>
+              {analysis.caching.exposedToSharedCache ? <HeaderBadge level="warning" text="Yes" /> : <HeaderBadge level="success" text="No" />}
+            </span>
+          </div>
+          <div className={styles.analysisItem}>
             <span className={styles.analysisLabel}>Revalidation Required:</span>
             <span className={styles.analysisValue}>
               {analysis.caching.requiresRevalidation ? <HeaderBadge level="warning" text="Yes" /> : <HeaderBadge level="success" text="No" />}
