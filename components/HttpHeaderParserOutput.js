@@ -81,7 +81,7 @@ function StatusSection({ title, icon, children }) {
   )
 }
 
-function HeaderCard({ name, value, analysis }) {
+function HeaderCard({ name, value, analysis, tokenType }) {
   const [expanded, setExpanded] = useState(false)
 
   let status = 'valid'
@@ -102,6 +102,12 @@ function HeaderCard({ name, value, analysis }) {
         <div className={styles.headerNameValue}>
           <div className={styles.headerName}>{name}</div>
           <div className={styles.headerValue}>{value}</div>
+          {tokenType && (
+            <div className={styles.tokenTypeInfo}>
+              <span className={styles.tokenTypeLabel}>{tokenType.type}</span>
+              <span className={styles.tokenTypeDetail}>{tokenType.format}</span>
+            </div>
+          )}
         </div>
         {status === 'valid' && <HeaderBadge level="success" text="Valid" />}
         {status === 'warning' && <HeaderBadge level="warning" text="Warning" />}
