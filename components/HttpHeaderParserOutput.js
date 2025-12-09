@@ -538,6 +538,7 @@ export default function HttpHeaderParserOutput({ result }) {
   return (
     <div className={styles.container}>
       {securityScore && <SecurityScoreCard securityScore={securityScore} />}
+      <ProtocolDiagnostics issues={allRfcIssues} strictMode={strictMode} />
       {overallStatus && <OverallStatusBadge status={overallStatus} />}
 
       {parseErrors.length > 0 && (
