@@ -204,6 +204,50 @@ function ExportModal({ headers }) {
   )
 }
 
+function SecurityScoreCard({ securityScore }) {
+  if (!securityScore) return null
+
+  const getScoreColor = (score) => {
+    if (score >= 90) return { color: '#66bb6a', bg: 'rgba(102, 187, 106, 0.1)' }
+    if (score >= 80) return { color: '#ffc107', bg: 'rgba(255, 193, 7, 0.1)' }
+    if (score >= 70) return { color: '#ff9800', bg: 'rgba(255, 152, 0, 0.1)' }
+    return { color: '#ef5350', bg: 'rgba(239, 83, 80, 0.1)' }
+  }
+
+  const colors = getScoreColor(securityScore.score)
+
+  return (
+    <div className={styles.securityScoreContainer}>
+      <div className={styles.securityScoreCard} style={{ backgroundColor: colors.bg, borderColor: colors.color }}>
+        <div className={styles.scoreCircle} style={{ borderColor: colors.color, color: colors.color }}>
+          <div className={styles.scoreNumber}>{securityScore.score}</div>
+          <div className={styles.scoreGrade}>{securityScore.grade}</div>
+        </div>
+        <div className={styles.scoreContent}>
+          <div className={styles.scoreTitle}>Security Best Practices Score</div>
+          <div className={styles.scoreDescription}>Based on critical security headers and configurations</div>
+          {securityScore.deductions && securityScore.deductions.length > 0 && (
+            <div className={styles.deductionsList}>
+              <div className={styles.deductionsTitle}>Deductions:</div>
+              {securityScore.deductions.slice(0, 3).map((d, idx) => (
+                <div key={idx} className={styles.deductionItem}>
+                  <span className={styles.deductionPoints}>-{d.points}</span>
+                  <span className={styles.deductionName}>{d.name}</span>
+                </div>
+              ))}
+              {securityScore.deductions.length > 3 && (
+                <div className={styles.deductionItem}>
+                  <span className={styles.deductionMore}>+{securityScore.deductions.length - 3} more</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function OverallStatusBadge({ status }) {
   if (!status) return null
 
