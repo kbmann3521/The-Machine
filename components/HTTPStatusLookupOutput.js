@@ -131,6 +131,8 @@ function ValidationWarning({ message, type = 'warning' }) {
 }
 
 export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
+  const [selectedSuggestion, setSelectedSuggestion] = useState(null)
+
   if (!result) {
     return null
   }
@@ -140,6 +142,117 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
     if (!result.suggestions || result.suggestions.length === 0) {
       return <NoMatchesCard />
     }
+
+    // If a suggestion was clicked, show its full details
+    if (selectedSuggestion) {
+      const framework = configOptions.framework || 'node'
+      const modeLabels = {
+        'auto-code': '📋 Direct code match',
+        'auto-log': '📋 Found in log',
+        'auto-search': '🔍 Text search match',
+        'code': '📋 Direct code match',
+        'log': '📋 Log analysis',
+        'search': '🔍 Text search'
+      }
+      const modeLabel = modeLabels['search'] || '📋 Code match'
+
+      return (
+        <div className={styles.container}>
+          <div style={{ marginBottom: '12px' }}>
+            <button
+              onClick={() => setSelectedSuggestion(null)}
+              style={{
+                padding: '6px 12px',
+                background: 'transparent',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-secondary)',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                fontSize: '12px',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'var(--color-background-secondary)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'transparent'
+              }}
+            >
+              ← Back to suggestions
+            </button>
+          </div>
+
+          <ValidationWarning
+            message={`${modeLabel}: "${selectedSuggestion.name}"`}
+            type="info"
+          />
+
+          <div className={styles.headerSection}>
+            <div className={styles.statusCodeLarge}>{selectedSuggestion.code}</div>
+            <div className={styles.statusName}>{selectedSuggestion.name}</div>
+            <div className={styles.badgesRow}>
+              <StatusBadge variant="info" label={selectedSuggestion.category} />
+              <StatusBadge
+                variant={selectedSuggestion.retryable ? 'warning' : 'info'}
+                label={selectedSuggestion.retryable ? '🔄 Retryable' : 'No Retry'}
+              />
+              <StatusBadge
+                variant={selectedSuggestion.cacheable ? 'success' : 'info'}
+                label={selectedSuggestion.cacheable ? '💾 Cacheable' : 'Not Cacheable'}
+              />
+            </div>
+          </div>
+
+          <div className={styles.descriptionSection}>
+            <SectionTitle>Description</SectionTitle>
+            <SectionContent>
+              <p className={styles.descriptionText}>{selectedSuggestion.description}</p>
+            </SectionContent>
+          </div>
+
+          <div className={styles.typicalUseSection}>
+            <SectionTitle>Typical Use</SectionTitle>
+            <SectionContent>
+              <p className={styles.descriptionText}>{selectedSuggestion.typicalUse}</p>
+            </SectionContent>
+          </div>
+
+          {selectedSuggestion.commonCauses && selectedSuggestion.commonCauses.length > 0 && (
+            <div className={styles.commonCausesSection}>
+              <SectionTitle>Common Causes</SectionTitle>
+              <SectionContent>
+                <ul className={styles.causesList}>
+                  {selectedSuggestion.commonCauses.map((cause, idx) => (
+                    <li key={idx} className={styles.causeItem}>{cause}</li>
+                  ))}
+                </ul>
+              </SectionContent>
+            </div>
+          )}
+
+          {selectedSuggestion.devNotes && (
+            <div className={styles.devNotesSection}>
+              <SectionTitle>💡 Dev Notes</SectionTitle>
+              <SectionContent>
+                <p className={styles.devNotesText}>{selectedSuggestion.devNotes}</p>
+              </SectionContent>
+            </div>
+          )}
+
+          {selectedSuggestion.exampleSnippet && (
+            <div className={styles.codeExampleSection}>
+              <SectionTitle>Code Example ({framework})</SectionTitle>
+              <SectionContent>
+                <pre className={styles.codeBlock}>
+                  <code>{selectedSuggestion.exampleSnippet}</code>
+                </pre>
+              </SectionContent>
+            </div>
+          )}
+        </div>
+      )
+    }
+
     // Handle search suggestions mode
     return (
       <div className={styles.container}>
@@ -150,7 +263,12 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
         <SectionTitle>Suggested Matches</SectionTitle>
         <SectionContent>
           {result.suggestions.map((code, idx) => (
-            <div key={idx} className={styles.suggestionCard}>
+            <div
+              key={idx}
+              className={styles.suggestionCard}
+              onClick={() => setSelectedSuggestion(code)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className={styles.statusCodeLarge}>{code.code}</div>
               <div className={styles.statusName}>{code.name}</div>
               <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
