@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FaCopy, FaCheck, FaExclamationTriangle } from 'react-icons/fa6'
+import { FaCopy, FaCheck } from 'react-icons/fa6'
 import styles from '../styles/http-header-parser.module.css'
 import toolOutputStyles from '../styles/tool-output.module.css'
 
