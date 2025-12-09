@@ -519,7 +519,7 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle }) {
   )
 }
 
-export default function HttpHeaderParserOutput({ result }) {
+export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
   const [showExport, setShowExport] = useState(false)
   const [expandedTransforms, setExpandedTransforms] = useState(null)
 
