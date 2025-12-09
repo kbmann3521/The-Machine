@@ -33,8 +33,10 @@ function CopyCard({ label, value, variant = 'default' }) {
     }
   }
 
+  const variantClass = variant === 'highlight' ? styles.cardHighlight : styles.cardDefault
+
   return (
-    <div className={`${toolOutputStyles.copyCard} ${styles[`card-${variant}`]}`}>
+    <div className={`${toolOutputStyles.copyCard} ${variantClass}`}>
       <div className={toolOutputStyles.copyCardHeader}>
         <span className={toolOutputStyles.copyCardLabel}>{label}</span>
         <button
