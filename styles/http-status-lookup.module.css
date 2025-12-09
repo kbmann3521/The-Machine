@@ -346,3 +346,16 @@
   color: var(--color-text-primary);
   font-weight: 600;
 }
+
+/* Validation Warning */
+.validationWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid;
+  border-radius: 6px;
+  border-left: 3px solid;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
