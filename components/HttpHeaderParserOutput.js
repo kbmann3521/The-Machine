@@ -186,6 +186,58 @@ function HeaderCard({ name, value, analysis, tokenType }) {
         </div>
       )
     }
+
+    // Special rendering for Strict-Transport-Security
+    if (analysis.maxAge !== undefined && name === 'Strict-Transport-Security') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.hstsInfo}>
+            {analysis.maxAge !== null && (
+              <div className={styles.hstsItem}>
+                <span className={styles.hstsLabel}>Max Age:</span>
+                <span className={styles.hstsValue}>{analysis.maxAge} seconds ({(analysis.maxAge / 31536000).toFixed(2)} years)</span>
+              </div>
+            )}
+            <div className={styles.hstsItem}>
+              <span className={styles.hstsLabel}>Include Subdomains:</span>
+              <span className={styles.hstsValue}>{analysis.includeSubDomains ? 'Yes' : 'No'}</span>
+            </div>
+            <div className={styles.hstsItem}>
+              <span className={styles.hstsLabel}>Preload:</span>
+              <span className={styles.hstsValue}>{analysis.preload ? 'Yes' : 'No'}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Special rendering for X-Content-Type-Options
+    if (analysis.value !== undefined && name === 'X-Content-Type-Options') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.optionsInfo}>
+            <div className={styles.optionsItem}>
+              <span className={styles.optionsLabel}>Value:</span>
+              <span className={styles.optionsValue}>{analysis.value}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Special rendering for X-Frame-Options
+    if (analysis.value !== undefined && name === 'X-Frame-Options') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.optionsInfo}>
+            <div className={styles.optionsItem}>
+              <span className={styles.optionsLabel}>Value:</span>
+              <span className={styles.optionsValue}>{analysis.value}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
   }
 
   return (
