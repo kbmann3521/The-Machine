@@ -74,6 +74,30 @@ function SectionContent({ children }) {
   return <div className={styles.sectionContent}>{children}</div>
 }
 
+function NoMatchesCard() {
+  return (
+    <div className={styles.noMatchesContainer}>
+      <div className={styles.noMatchesCard}>
+        <div className={styles.noMatchesIcon}>❌</div>
+        <div className={styles.noMatchesTitle}>No matches found</div>
+        <p className={styles.noMatchesMessage}>
+          The input doesn't contain a valid HTTP status code or recognizable pattern.
+        </p>
+
+        <div className={styles.suggestionsSection}>
+          <div className={styles.suggestionsTitle}>Try entering:</div>
+          <ul className={styles.suggestionsList}>
+            <li><strong>A status code:</strong> 404, 500, 429</li>
+            <li><strong>A log line:</strong> "Server error: 500 occurred"</li>
+            <li><strong>Error description:</strong> "payload too large", "unauthorized"</li>
+            <li><strong>Multiple codes:</strong> "200, 401, 500"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
   if (!result) {
     return null
@@ -82,11 +106,7 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
   // Handle empty result or no codes found
   if (!result.codes || result.codes.length === 0) {
     if (!result.suggestions || result.suggestions.length === 0) {
-      return (
-        <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-          No matching HTTP status codes found. Try a different input or mode.
-        </div>
-      )
+      return <NoMatchesCard />
     }
     // Handle search suggestions mode
     return (
