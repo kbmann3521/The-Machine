@@ -167,8 +167,28 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
   const primaryCode = result.codes[0]
   const framework = configOptions.framework || 'node'
 
+  // Show info about which mode was used
+  const modeLabels = {
+    'auto-code': '📋 Direct code match',
+    'auto-log': '📋 Found in log',
+    'auto-search': '🔍 Text search match',
+    'code': '📋 Direct code match',
+    'log': '📋 Log analysis',
+    'search': '🔍 Text search'
+  }
+
+  const modeLabel = modeLabels[result.modeUsed] || '📋 Code match'
+
   return (
     <div className={styles.container}>
+      {/* Mode indicator */}
+      {result.modeUsed && (
+        <ValidationWarning
+          message={`${modeLabel}: "${result.rawInput}"`}
+          type="info"
+        />
+      )}
+
       {/* Status Code Header */}
       <div className={styles.headerSection}>
         <div className={styles.statusCodeLarge}>{primaryCode.code}</div>
