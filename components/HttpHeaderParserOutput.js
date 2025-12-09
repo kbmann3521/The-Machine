@@ -440,7 +440,13 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle }) {
       <div className={styles.protocolDiagnosticsContainer}>
         <div className={styles.diagnosticsHeader}>
           <h3 className={styles.diagnosticsTitle}>Protocol Diagnostics</h3>
-          <span className={styles.strictModeLabel}>{strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF'}</span>
+          <button
+            className={`${styles.strictModeToggle} ${strictMode ? styles.strictModeOn : styles.strictModeOff}`}
+            onClick={onStrictModeToggle}
+            title="Toggle Strict RFC Mode"
+          >
+            {strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF'}
+          </button>
         </div>
         <div className={styles.diagnosticsContent}>
           <div className={styles.diagnosticsEmpty}>✓ No protocol violations detected</div>
