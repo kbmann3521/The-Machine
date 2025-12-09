@@ -208,7 +208,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       'sql-formatter': 'Format SQL queries with readable line breaks and indentation',
       'http-status-lookup': 'Paste status code, log line, or description to auto-detect and get dev guidance',
       'mime-type-lookup': 'Find MIME types by file extension',
-      'http-header-parser': 'Parse and analyze HTTP request and response headers',
+      'http-header-parser': 'Parse, validate, and analyze HTTP headers with security checks',
       'uuid-validator': 'Validate UUID format and detect version',
       'json-path-extractor': 'Extract data from JSON using JSONPath expressions',
       'image-to-base64': 'Convert images to base64 for embedding in HTML or CSS',
