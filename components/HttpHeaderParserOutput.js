@@ -245,6 +245,8 @@ export default function HttpHeaderParserOutput({ result }) {
 
   return (
     <div className={styles.container}>
+      {overallStatus && <OverallStatusBadge status={overallStatus} />}
+
       {parseErrors.length > 0 && (
         <div className={styles.errorBanner}>
           <span className={styles.errorIcon}>❌</span>
