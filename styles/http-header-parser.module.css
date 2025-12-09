@@ -1,0 +1,363 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+}
+
+.errorBanner {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background-color: rgba(239, 83, 80, 0.1);
+  border: 1px solid rgba(239, 83, 80, 0.3);
+  border-left: 3px solid #ef5350;
+  border-radius: 4px;
+  color: #ef5350;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.errorIcon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+
+.emptyMessage {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionIcon {
+  font-size: 18px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statusLineGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeSuccess {
+  background-color: rgba(102, 187, 106, 0.15);
+  color: #66bb6a;
+  border: 1px solid rgba(102, 187, 106, 0.3);
+}
+
+.badgeWarning {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.badgeError {
+  background-color: rgba(239, 83, 80, 0.15);
+  color: #ef5350;
+  border: 1px solid rgba(239, 83, 80, 0.3);
+}
+
+.badgeInfo {
+  background-color: rgba(33, 150, 243, 0.15);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.headerList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headerCard {
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-background-secondary);
+  overflow: hidden;
+}
+
+.headerValid {
+  border-color: rgba(102, 187, 106, 0.3);
+}
+
+.headerWarning {
+  border-color: rgba(255, 193, 7, 0.3);
+  background-color: rgba(255, 193, 7, 0.05);
+}
+
+.headerError {
+  border-color: rgba(239, 83, 80, 0.3);
+  background-color: rgba(239, 83, 80, 0.05);
+}
+
+.headerCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.headerCardHeader:hover {
+  background-color: var(--color-background-tertiary);
+}
+
+.headerNameValue {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  word-break: break-word;
+  margin-bottom: 4px;
+}
+
+.headerValue {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  word-break: break-all;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.headerCardDetails {
+  border-top: 1px solid var(--color-border);
+  padding: 8px 12px;
+  background-color: var(--color-background-tertiary);
+}
+
+.issue {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.issue:last-child {
+  margin-bottom: 0;
+}
+
+.issueError {
+  color: #ef5350;
+}
+
+.issueWarning {
+  color: #ffc107;
+}
+
+.issueIcon {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.warningList,
+.conflictList,
+.missingList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.warningItem,
+.conflictItem,
+.missingItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  border-left: 3px solid #ffc107;
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.conflictItem {
+  border-left-color: #ef5350;
+}
+
+.missingItem {
+  border-left-color: #2196f3;
+}
+
+.warningIcon,
+.conflictIcon,
+.missingIcon {
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.warningIcon {
+  color: #ffc107;
+}
+
+.conflictIcon {
+  color: #ef5350;
+}
+
+.missingIcon {
+  color: #2196f3;
+}
+
+.analysisList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analysisItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  border-left: 3px solid rgba(33, 150, 243, 0.3);
+}
+
+.analysisLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.analysisValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.exportButton {
+  margin-top: 8px;
+}
+
+.exportToggle {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.exportToggle:hover {
+  background-color: var(--color-background-tertiary);
+  border-color: rgba(33, 150, 243, 0.5);
+}
+
+.exportModal {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.exportTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.exportFormat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exportLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardDefault {
+}
+
+.cardHighlight {
+  border-color: rgba(33, 150, 243, 0.5);
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+@media (max-width: 768px) {
+  .statusLineGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    gap: 12px;
+  }
+}
