@@ -98,6 +98,38 @@ function NoMatchesCard() {
   )
 }
 
+function ValidationWarning({ message, type = 'warning' }) {
+  const variantStyles = {
+    warning: {
+      background: 'rgba(255, 193, 7, 0.05)',
+      border: 'rgba(255, 193, 7, 0.2)',
+      color: '#ffc107',
+      icon: '⚠️'
+    },
+    info: {
+      background: 'rgba(0, 102, 204, 0.05)',
+      border: 'rgba(0, 102, 204, 0.2)',
+      color: '#0066cc',
+      icon: 'ℹ️'
+    }
+  }
+
+  const variant = variantStyles[type] || variantStyles.warning
+
+  return (
+    <div className={styles.validationWarning} style={{
+      background: `linear-gradient(135deg, ${variant.background} 0%, transparent 100%)`,
+      borderColor: variant.border,
+      borderLeftColor: variant.color
+    }}>
+      <span style={{ fontSize: '16px', marginRight: '8px' }}>{variant.icon}</span>
+      <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+        {message}
+      </span>
+    </div>
+  )
+}
+
 export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
   if (!result) {
     return null
@@ -111,6 +143,10 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
     // Handle search suggestions mode
     return (
       <div className={styles.container}>
+        <ValidationWarning
+          message={`Showing best matches for: "${result.rawInput}"`}
+          type="info"
+        />
         <SectionTitle>Suggested Matches</SectionTitle>
         <SectionContent>
           {result.suggestions.map((code, idx) => (
