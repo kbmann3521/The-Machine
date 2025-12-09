@@ -426,14 +426,19 @@ function OverallStatusBadge({ status }) {
   )
 }
 
-function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle }) {
+function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallStatus }) {
   const [expanded, setExpanded] = useState(false)
 
   const errors = issues.filter(i => i.level === 'error')
   const warnings = issues.filter(i => i.level === 'warning')
   const infos = issues.filter(i => i.level === 'info')
 
-  const hasIssues = errors.length > 0 || warnings.length > 0 || infos.length > 0
+  // Use overallStatus counts if available (includes ALL issues, not just RFC ones)
+  const errorCount = overallStatus?.errors || errors.length
+  const warningCount = overallStatus?.warnings || warnings.length
+  const infoCount = overallStatus?.infos || infos.length
+
+  const hasIssues = errorCount > 0 || warningCount > 0 || infoCount > 0
 
   if (!hasIssues) {
     return (
