@@ -5010,6 +5010,35 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         )
       }
 
+      case 'http-header-parser': {
+        const tabs = []
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: <HttpHeaderParserOutput result={displayResult} />,
+          contentType: 'component'
+        })
+
+        if (displayResult && !displayResult.error) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          })
+        }
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
+
       default: {
         const tabs = []
 
