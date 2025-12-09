@@ -291,10 +291,11 @@ export default function HttpHeaderParserOutput({ result }) {
     )
   }
 
-  const { statusLine, headers, headerAnalysis, analysis, overallStatus, groupedHeaders, parseErrors } = result
+  const { statusLine, headers, headerAnalysis, analysis, overallStatus, securityScore, groupedHeaders, parseErrors } = result
 
   return (
     <div className={styles.container}>
+      {securityScore && <SecurityScoreCard securityScore={securityScore} />}
       {overallStatus && <OverallStatusBadge status={overallStatus} />}
 
       {parseErrors.length > 0 && (
