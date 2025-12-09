@@ -266,7 +266,7 @@ export default function HttpHeaderParserOutput({ result }) {
           <div className={styles.warningList}>
             {analysis.security.warnings.map((warning, idx) => (
               <div key={idx} className={styles.warningItem}>
-                <FaExclamationTriangle className={styles.warningIcon} />
+                <span className={styles.warningIcon}>⚠️</span>
                 <span>{warning}</span>
               </div>
             ))}
