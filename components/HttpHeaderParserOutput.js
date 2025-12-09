@@ -500,21 +500,21 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
               <div key={idx} className={styles.diagnosticsItem}>
                 <span className={styles.itemIcon}>✕</span>
                 <span className={styles.itemLevel}>Error:</span>
-                <span>{issue.message}</span>
+                <span>{issue?.message || JSON.stringify(issue)}</span>
               </div>
             ))}
             {warnings.map((issue, idx) => (
               <div key={idx} className={styles.diagnosticsItem}>
                 <span className={styles.itemIcon}>⚠</span>
                 <span className={styles.itemLevel}>Warning:</span>
-                <span>{issue.message}</span>
+                <span>{issue?.message || JSON.stringify(issue)}</span>
               </div>
             ))}
             {infos.map((issue, idx) => (
               <div key={idx} className={styles.diagnosticsItem}>
                 <span className={styles.itemIcon}>ℹ</span>
                 <span className={styles.itemLevel}>Info:</span>
-                <span>{issue.message}</span>
+                <span>{issue?.message || JSON.stringify(issue)}</span>
               </div>
             ))}
           </div>
