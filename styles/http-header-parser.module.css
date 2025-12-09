@@ -1057,13 +1057,42 @@
   margin: 0;
 }
 
-.strictModeLabel {
+.strictModeToggle {
   font-size: 12px;
   font-weight: 500;
-  padding: 4px 8px;
+  padding: 6px 10px;
   background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
   border-radius: 3px;
   color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.strictModeToggle:hover {
+  border-color: rgba(33, 150, 243, 0.5);
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+.strictModeOn {
+  background-color: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffc107;
+}
+
+.strictModeOn:hover {
+  background-color: rgba(255, 193, 7, 0.25);
+}
+
+.strictModeOff {
+  background-color: rgba(102, 187, 106, 0.15);
+  border-color: rgba(102, 187, 106, 0.5);
+  color: #66bb6a;
+}
+
+.strictModeOff:hover {
+  background-color: rgba(102, 187, 106, 0.25);
 }
 
 .diagnosticsRisk {
