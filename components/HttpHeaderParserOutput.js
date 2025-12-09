@@ -426,7 +426,7 @@ function OverallStatusBadge({ status }) {
   )
 }
 
-function ProtocolDiagnostics({ issues, strictMode }) {
+function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle }) {
   const [expanded, setExpanded] = useState(false)
 
   const errors = issues.filter(i => i.level === 'error')
