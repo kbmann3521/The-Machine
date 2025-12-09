@@ -290,9 +290,13 @@ export default function HttpHeaderParserOutput({ result }) {
       {Object.keys(groupedHeaders).map(groupName => (
         <StatusSection key={groupName} title={`${groupName.charAt(0).toUpperCase() + groupName.slice(1)} Headers`} icon="📦">
           <div className={styles.headerList}>
-            {Object.entries(groupedHeaders[groupName]).map(([name, value]) => (
-              <HeaderCard key={name} name={name} value={value} analysis={headerAnalysis[name]} />
-            ))}
+            {Object.entries(groupedHeaders[groupName]).map(([name, value]) => {
+              const headerAnal = headerAnalysis[name]
+              const tokenType = name === 'Authorization' && headerAnal && headerAnal.tokenType ? headerAnal.tokenType : null
+              return (
+                <HeaderCard key={name} name={name} value={value} analysis={headerAnal} tokenType={tokenType} />
+              )
+            })}
           </div>
         </StatusSection>
       ))}
