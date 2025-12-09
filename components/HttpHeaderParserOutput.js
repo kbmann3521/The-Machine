@@ -482,6 +482,61 @@ export default function HttpHeaderParserOutput({ result }) {
         </StatusSection>
       )}
 
+      {analysis.hopByHopHeaders && analysis.hopByHopHeaders.length > 0 && (
+        <StatusSection title="Hop-by-Hop Headers (RFC 7230)" icon="🔄">
+          <div className={styles.hopByHopList}>
+            {analysis.hopByHopHeaders.map((header, idx) => (
+              <div key={idx} className={styles.hopByHopItem}>
+                <span className={styles.hopByHopIcon}>🔗</span>
+                <span className={styles.hopByHopName}>{header}</span>
+                <span className={styles.hopByHopNote}>Must not be forwarded by proxies</span>
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
+      {analysis.http2Compatibility && analysis.http2Compatibility.length > 0 && (
+        <StatusSection title="HTTP/2 Compatibility" icon="⚡">
+          <div className={styles.compatibilityList}>
+            {analysis.http2Compatibility.map((issue, idx) => (
+              <div key={idx} className={`${styles.compatibilityItem} ${styles[`compat-${issue.level}`]}`}>
+                <span className={styles.compatIcon}>
+                  {issue.level === 'error' ? '✕' : issue.level === 'warning' ? '⚠' : 'ℹ'}
+                </span>
+                <span>{issue.message}</span>
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
+      {analysis.headerFolding && analysis.headerFolding.length > 0 && (
+        <StatusSection title="Header Folding Detection" icon="📋">
+          <div className={styles.foldingList}>
+            {analysis.headerFolding.map((issue, idx) => (
+              <div key={idx} className={styles.foldingItem}>
+                <span className={styles.foldingIcon}>⚠</span>
+                <span>{issue.message}</span>
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
+      {analysis.compressionRecommendations && analysis.compressionRecommendations.length > 0 && (
+        <StatusSection title="Compression Recommendations" icon="📦">
+          <div className={styles.recommendationsList}>
+            {analysis.compressionRecommendations.map((rec, idx) => (
+              <div key={idx} className={styles.recommendationItem}>
+                <span className={styles.recommendationIcon}>💡</span>
+                <span>{rec}</span>
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
       <StatusSection title="Caching Analysis" icon="💾">
         <div className={styles.analysisList}>
           <div className={styles.analysisItem}>
