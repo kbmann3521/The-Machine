@@ -426,6 +426,87 @@ function OverallStatusBadge({ status }) {
   )
 }
 
+function ProtocolDiagnostics({ issues, strictMode }) {
+  const [expanded, setExpanded] = useState(false)
+
+  const errors = issues.filter(i => i.level === 'error')
+  const warnings = issues.filter(i => i.level === 'warning')
+  const infos = issues.filter(i => i.level === 'info')
+
+  const hasIssues = errors.length > 0 || warnings.length > 0 || infos.length > 0
+
+  if (!hasIssues) {
+    return (
+      <div className={styles.protocolDiagnosticsContainer}>
+        <div className={styles.diagnosticsHeader}>
+          <h3 className={styles.diagnosticsTitle}>Protocol Diagnostics</h3>
+          <span className={styles.strictModeLabel}>{strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF'}</span>
+        </div>
+        <div className={styles.diagnosticsContent}>
+          <div className={styles.diagnosticsEmpty}>✓ No protocol violations detected</div>
+        </div>
+      </div>
+    )
+  }
+
+  const getRiskLevel = () => {
+    if (errors.length > 0) return 'high'
+    if (warnings.length > 0) return 'medium'
+    return 'low'
+  }
+
+  const riskIcon = { high: '🔴', medium: '🟡', low: '🟢' }
+  const riskLabel = { high: 'HIGH', medium: 'MEDIUM', low: 'LOW' }
+  const riskLevel = getRiskLevel()
+
+  return (
+    <div className={styles.protocolDiagnosticsContainer}>
+      <div className={styles.diagnosticsHeader}>
+        <h3 className={styles.diagnosticsTitle}>Protocol Diagnostics</h3>
+        <span className={styles.strictModeLabel}>{strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF'}</span>
+      </div>
+      <div className={styles.diagnosticsRisk}>
+        <span>{riskIcon[riskLevel]} Risk Level: {riskLabel[riskLevel]}</span>
+        <span className={styles.issueCounts}>
+          {errors.length > 0 && <span className={styles.errorBadge}>{errors.length} error{errors.length !== 1 ? 's' : ''}</span>}
+          {warnings.length > 0 && <span className={styles.warningBadge}>{warnings.length} warning{warnings.length !== 1 ? 's' : ''}</span>}
+          {infos.length > 0 && <span className={styles.infoBadge}>{infos.length} info</span>}
+        </span>
+      </div>
+      <div className={styles.diagnosticsContent}>
+        <button className={styles.expandButton} onClick={() => setExpanded(!expanded)}>
+          {expanded ? '▼' : '▶'} {expanded ? 'Hide' : 'Show'} Details
+        </button>
+        {expanded && (
+          <div className={styles.diagnosticsDetails}>
+            {errors.map((issue, idx) => (
+              <div key={idx} className={styles.diagnosticsItem}>
+                <span className={styles.itemIcon}>✕</span>
+                <span className={styles.itemLevel}>Error:</span>
+                <span>{issue.message}</span>
+              </div>
+            ))}
+            {warnings.map((issue, idx) => (
+              <div key={idx} className={styles.diagnosticsItem}>
+                <span className={styles.itemIcon}>⚠</span>
+                <span className={styles.itemLevel}>Warning:</span>
+                <span>{issue.message}</span>
+              </div>
+            ))}
+            {infos.map((issue, idx) => (
+              <div key={idx} className={styles.diagnosticsItem}>
+                <span className={styles.itemIcon}>ℹ</span>
+                <span className={styles.itemLevel}>Info:</span>
+                <span>{issue.message}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function HttpHeaderParserOutput({ result }) {
   const [showExport, setShowExport] = useState(false)
   const [expandedTransforms, setExpandedTransforms] = useState(null)
@@ -442,7 +523,17 @@ export default function HttpHeaderParserOutput({ result }) {
     )
   }
 
-  const { statusLine, headers, headerAnalysis, analysis, overallStatus, securityScore, groupedHeaders, parseErrors, cacheSimulation, transformations } = result
+  const { statusLine, headers, headerAnalysis, analysis, overallStatus, securityScore, groupedHeaders, parseErrors, cacheSimulation, transformations, strictMode } = result
+
+  // Collect all RFC compliance issues
+  const allRfcIssues = [
+    ...(analysis.rfcCompliance?.headerConflicts || []),
+    ...(analysis.rfcCompliance?.headerNormalization || []),
+    ...(analysis.rfcCompliance?.validatorConflicts || []),
+    ...(analysis.rfcCompliance?.compressionValidity || []),
+    ...(analysis.http2Incompatibilities || []),
+    ...(analysis.caching?.issues || []),
+  ]
 
   return (
     <div className={styles.container}>
