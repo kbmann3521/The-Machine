@@ -86,6 +86,7 @@ function HeaderCard({ name, value, analysis, tokenType }) {
 
   let status = 'valid'
   let issues = []
+  let content = null
 
   if (analysis) {
     if (analysis.issues) {
@@ -94,11 +95,102 @@ function HeaderCard({ name, value, analysis, tokenType }) {
       status = errors.length > 0 ? 'error' : warnings.length > 0 ? 'warning' : 'valid'
       issues = analysis.issues
     }
+
+    // Special rendering for CSP
+    if (analysis.directives && name === 'Content-Security-Policy') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.directivesGrid}>
+            {Object.entries(analysis.directives).map(([dir, sources]) => (
+              <div key={dir} className={styles.directiveItem}>
+                <span className={styles.directiveName}>{dir}</span>
+                <span className={styles.directiveSources}>
+                  {Array.isArray(sources) ? sources.join(', ') || 'none' : sources}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // Special rendering for Referrer-Policy
+    if (analysis.strength && name === 'Referrer-Policy') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.policyEvaluation}>
+            <div className={styles.policyItem}>
+              <span className={styles.policyLabel}>Strength:</span>
+              <span className={styles.policyValue}>{analysis.strength}</span>
+            </div>
+            <div className={styles.policyItem}>
+              <span className={styles.policyLabel}>Leaks sensitive data:</span>
+              <span className={styles.policyValue}>
+                {analysis.allowsSensitiveLeakage ? 'Yes' : 'No'}
+              </span>
+            </div>
+            {analysis.recommendation && (
+              <div className={styles.policyRecommendation}>
+                {analysis.recommendation}
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    // Special rendering for Permissions-Policy
+    if (analysis.permissions && name === 'Permissions-Policy') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.permissionsGrid}>
+            {Object.entries(analysis.permissions).map(([feature, status]) => (
+              <div key={feature} className={`${styles.permissionItem} ${styles[`permission-${status.toLowerCase()}`]}`}>
+                <span className={styles.featureName}>{feature}</span>
+                <span className={styles.featureStatus}>{status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // Special rendering for ETag
+    if (analysis.type && name === 'ETag') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.etagInfo}>
+            <div className={styles.etagItem}>
+              <span className={styles.etagLabel}>Type:</span>
+              <span className={styles.etagValue}>{analysis.type}</span>
+            </div>
+            <div className={styles.etagItem}>
+              <span className={styles.etagLabel}>Quoted:</span>
+              <span className={styles.etagValue}>{analysis.quoted ? 'Yes' : 'No'}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Special rendering for Last-Modified
+    if (analysis.date && name === 'Last-Modified') {
+      content = (
+        <div className={styles.analysisDetail}>
+          <div className={styles.dateInfo}>
+            <div className={styles.dateItem}>
+              <span className={styles.dateLabel}>ISO Format:</span>
+              <span className={styles.dateValue}>{analysis.date}</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
   }
 
   return (
     <div className={`${styles.headerCard} ${styles[`header-${status}`]}`}>
-      <div className={styles.headerCardHeader} onClick={() => issues.length > 0 && setExpanded(!expanded)}>
+      <div className={styles.headerCardHeader} onClick={() => (issues.length > 0 || content) && setExpanded(!expanded)}>
         <div className={styles.headerNameValue}>
           <div className={styles.headerName}>{name}</div>
           <div className={styles.headerValue}>{value}</div>
@@ -113,16 +205,21 @@ function HeaderCard({ name, value, analysis, tokenType }) {
         {status === 'warning' && <HeaderBadge level="warning" text="Warning" />}
         {status === 'error' && <HeaderBadge level="error" text="Error" />}
       </div>
-      {expanded && issues.length > 0 && (
+      {expanded && (issues.length > 0 || content) && (
         <div className={styles.headerCardDetails}>
-          {issues.map((issue, idx) => (
-            <div key={idx} className={`${styles.issue} ${styles[`issue-${issue.level}`]}`}>
-              <span className={styles.issueIcon}>
-                {issue.level === 'error' ? '✕' : '⚠'}
-              </span>
-              <span>{issue.message}</span>
+          {content && <div className={styles.contentSection}>{content}</div>}
+          {issues.length > 0 && (
+            <div className={styles.issuesSection}>
+              {issues.map((issue, idx) => (
+                <div key={idx} className={`${styles.issue} ${styles[`issue-${issue.level}`]}`}>
+                  <span className={styles.issueIcon}>
+                    {issue.level === 'error' ? '✕' : issue.level === 'warning' ? '⚠' : 'ℹ'}
+                  </span>
+                  <span>{issue.message}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
