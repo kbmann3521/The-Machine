@@ -542,14 +542,17 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
 
   const { statusLine, headers, headerAnalysis, analysis, overallStatus, securityScore, groupedHeaders, parseErrors, cacheSimulation, transformations, strictMode } = result
 
-  // Collect all RFC compliance issues
+  // Collect all issues from the analysis
   const allRfcIssues = [
     ...(analysis.rfcCompliance?.headerConflicts || []),
     ...(analysis.rfcCompliance?.headerNormalization || []),
     ...(analysis.rfcCompliance?.validatorConflicts || []),
     ...(analysis.rfcCompliance?.compressionValidity || []),
     ...(analysis.http2Incompatibilities || []),
-    ...(analysis.caching?.issues || []),
+    ...(analysis.cacheHeuristics?.issues || []),
+    ...(analysis.headerFolding || []),
+    ...(analysis.security?.warnings?.map(w => ({ level: 'warning', message: w })) || []),
+    ...(analysis.security?.conflicts?.map(c => ({ level: 'warning', message: c })) || []),
   ]
 
   return (
