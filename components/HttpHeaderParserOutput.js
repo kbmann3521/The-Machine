@@ -428,6 +428,7 @@ function OverallStatusBadge({ status }) {
 
 export default function HttpHeaderParserOutput({ result }) {
   const [showExport, setShowExport] = useState(false)
+  const [expandedTransforms, setExpandedTransforms] = useState(null)
 
   if (!result || result.error) {
     return (
@@ -441,7 +442,7 @@ export default function HttpHeaderParserOutput({ result }) {
     )
   }
 
-  const { statusLine, headers, headerAnalysis, analysis, overallStatus, securityScore, groupedHeaders, parseErrors } = result
+  const { statusLine, headers, headerAnalysis, analysis, overallStatus, securityScore, groupedHeaders, parseErrors, cacheSimulation, transformations } = result
 
   return (
     <div className={styles.container}>
