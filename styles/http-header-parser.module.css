@@ -889,6 +889,150 @@
   margin-top: 1px;
 }
 
+.anomaliesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.anomalyItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  border-left: 3px solid #ffc107;
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.anomalyWarning {
+  border-left-color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.05);
+}
+
+.anomalyError {
+  border-left-color: #ef5350;
+  background-color: rgba(239, 83, 80, 0.05);
+}
+
+.anomalyInfo {
+  border-left-color: #2196f3;
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+.anomalyIcon {
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cacheSimGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.cacheSimCard {
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cacheSimTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px;
+}
+
+.cacheSimContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cacheSimItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 2px;
+}
+
+.simLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.simValue {
+  font-size: 11px;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.cacheSimReason {
+  padding: 6px;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-left: 2px solid #ffc107;
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--color-text-primary);
+  margin-top: 4px;
+}
+
+.transformationsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transformBlock {
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background-color: var(--color-background-secondary);
+  overflow: hidden;
+}
+
+.transformToggle {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: var(--color-background-secondary);
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.transformToggle:hover {
+  background-color: var(--color-background-tertiary);
+}
+
+.transformContent {
+  padding: 8px;
+}
+
+.transformValue {
+  white-space: pre-wrap;
+  font-size: 11px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
 @media (max-width: 768px) {
   .statusLineGrid {
     grid-template-columns: 1fr;
