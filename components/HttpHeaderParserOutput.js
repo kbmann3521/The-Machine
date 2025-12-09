@@ -461,8 +461,8 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
   }
 
   const getRiskLevel = () => {
-    if (errors.length > 0) return 'high'
-    if (warnings.length > 0) return 'medium'
+    if (errorCount > 0) return 'high'
+    if (warningCount > 0) return 'medium'
     return 'low'
   }
 
@@ -485,9 +485,9 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
       <div className={styles.diagnosticsRisk}>
         <span>{riskIcon[riskLevel]} Risk Level: {riskLabel[riskLevel]}</span>
         <span className={styles.issueCounts}>
-          {errors.length > 0 && <span className={styles.errorBadge}>{errors.length} error{errors.length !== 1 ? 's' : ''}</span>}
-          {warnings.length > 0 && <span className={styles.warningBadge}>{warnings.length} warning{warnings.length !== 1 ? 's' : ''}</span>}
-          {infos.length > 0 && <span className={styles.infoBadge}>{infos.length} info</span>}
+          {errorCount > 0 && <span className={styles.errorBadge}>{errorCount} error{errorCount !== 1 ? 's' : ''}</span>}
+          {warningCount > 0 && <span className={styles.warningBadge}>{warningCount} warning{warningCount !== 1 ? 's' : ''}</span>}
+          {infoCount > 0 && <span className={styles.infoBadge}>{infoCount} info</span>}
         </span>
       </div>
       <div className={styles.diagnosticsContent}>
