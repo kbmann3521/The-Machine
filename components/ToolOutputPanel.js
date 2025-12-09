@@ -5011,11 +5011,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       }
 
       case 'http-header-parser': {
+        const handleStrictModeToggle = () => {
+          if (onConfigChange) {
+            onConfigChange({
+              ...configOptions,
+              strictMode: !configOptions.strictMode
+            })
+          }
+        }
+
         const tabs = []
         tabs.push({
           id: 'output',
           label: 'OUTPUT',
-          content: <HttpHeaderParserOutput result={displayResult} />,
+          content: <HttpHeaderParserOutput result={displayResult} onStrictModeToggle={handleStrictModeToggle} />,
           contentType: 'component'
         })
 
