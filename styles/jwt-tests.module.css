@@ -448,6 +448,20 @@
   color: var(--color-text-secondary) !important;
 }
 
+.consoleHint {
+  padding: 10px 12px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 4px;
+  font-size: 12px !important;
+  color: var(--color-text-primary) !important;
+  margin: 12px 0 !important;
+}
+
+.consoleHint strong {
+  color: #2196f3;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
