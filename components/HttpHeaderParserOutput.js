@@ -951,7 +951,8 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
 
       <div className={styles.exportButton}>
         <button onClick={() => setShowExport(!showExport)} className={styles.exportToggle}>
-          {showExport ? '▼' : '▶'} Export Headers
+          <span className={`${styles.expandChevron} ${showExport ? styles.expandChevronOpen : ''}`}>▶</span>
+          Export Headers
         </button>
         {showExport && <ExportModal headers={headers} />}
       </div>
