@@ -167,7 +167,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
       return
     }
 
-    const { header, alg } = result.token
+    const alg = result.token.header?.alg
     if (alg !== 'HS256') {
       setClientSignatureVerification(null)
       return
