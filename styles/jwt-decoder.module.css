@@ -1006,6 +1006,101 @@
   line-height: 1.4;
 }
 
+/* Phase 5: JWKS Auto-Discovery UI */
+.keySourceSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+}
+
+.keySourceLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.keySourceOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.radioOption:hover {
+  background-color: rgba(30, 64, 175, 0.05);
+}
+
+.radioOption input[type="radio"] {
+  cursor: pointer;
+  accent-color: #1e40af;
+}
+
+.radioLabel {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+.jwksInfoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  border-left: 2px solid #1e40af;
+}
+
+.jwksInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jwksLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-secondary);
+}
+
+.jwksValue {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  word-break: break-all;
+}
+
+.jwksVerificationMetadata {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: rgba(102, 187, 106, 0.05);
+  border-left: 2px solid #66bb6a;
+  border-radius: 2px;
+}
+
+.metadataItem {
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
 @media (max-width: 768px) {
   .tokenStructure {
     grid-template-columns: 1fr;
