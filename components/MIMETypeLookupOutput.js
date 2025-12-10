@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FaCopy, FaCheck, FaShieldAlt, FaTag, FaDatabase, FaLightbulb } from 'react-icons/fa6'
+import { FaCopy, FaCheck } from 'react-icons/fa6'
 import styles from '../styles/mime-type-lookup.module.css'
 
 function CopyButton({ value, size = 'sm' }) {
