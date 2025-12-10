@@ -102,6 +102,55 @@ function ClaimRow({ name, value, isTimestamp, timestamp }) {
   )
 }
 
+// Helper function for client-side HS256 verification using Web Crypto API
+async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, secret) {
+  try {
+    if (!secret) {
+      return {
+        verified: null,
+        reason: 'Secret not provided — cannot verify signature',
+      }
+    }
+
+    const encoder = new TextEncoder()
+    const data = encoder.encode(`${rawHeader}.${rawPayload}`)
+    const secretData = encoder.encode(secret)
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      secretData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+
+    const signature = await crypto.subtle.sign('HMAC', key, data)
+    const signatureArray = new Uint8Array(signature)
+
+    // Convert to base64url
+    let binaryString = ''
+    for (let i = 0; i < signatureArray.byteLength; i++) {
+      binaryString += String.fromCharCode(signatureArray[i])
+    }
+    const base64 = btoa(binaryString)
+    const base64url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+    const verified = base64url === signatureB64Url
+
+    return {
+      verified,
+      reason: verified
+        ? 'Recomputed HMAC matches token signature'
+        : 'Signature does not match. The secret is incorrect or token has been tampered with.',
+    }
+  } catch (error) {
+    return {
+      verified: false,
+      reason: `Verification error: ${error.message}`,
+    }
+  }
+}
+
 export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [expandedHeader, setExpandedHeader] = useState(false)
   const [expandedPayload, setExpandedPayload] = useState(true)
@@ -109,6 +158,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [expandedRawPayload, setExpandedRawPayload] = useState(false)
   const [verificationSecret, setVerificationSecret] = useState('')
   const [showSecretInput, setShowSecretInput] = useState(false)
+  const [clientSignatureVerification, setClientSignatureVerification] = useState(null)
 
   if (!result || !result.decoded) {
     return (
