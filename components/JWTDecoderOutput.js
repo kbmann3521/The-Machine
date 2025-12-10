@@ -560,9 +560,10 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
               </div>
             )}
             {(() => {
-              // Use client-side verification for HS256 and RSA algorithms, fall back to server-side for others
+              // Use client-side verification for HMAC and RSA algorithms, fall back to server-side for others
+              const hmacAlgorithms = ['HS256', 'HS384', 'HS512']
               const rsaAlgorithms = ['RS256', 'RS384', 'RS512']
-              const verificationToDisplay = (signatureVerification.algorithm === 'HS256' || rsaAlgorithms.includes(signatureVerification.algorithm)) && clientSignatureVerification
+              const verificationToDisplay = (hmacAlgorithms.includes(signatureVerification.algorithm) || rsaAlgorithms.includes(signatureVerification.algorithm)) && clientSignatureVerification
                 ? clientSignatureVerification
                 : signatureVerification
 
