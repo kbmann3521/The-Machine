@@ -2815,7 +2815,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderJwtDecoderOutput = () => {
     if (!displayResult) return null
 
-    const friendlyView = () => <JWTDecoderOutput result={displayResult} />
+    const handleSecretChange = (secret) => {
+      // Update the config with the new secret
+      const newConfig = {
+        ...configOptions,
+        verificationSecret: secret,
+      }
+      setExpandedSection('formatted')
+
+      // Notify parent to re-run the tool with the new secret
+      if (onConfigChange) {
+        onConfigChange(newConfig)
+      }
+    }
+
+    const friendlyView = () => <JWTDecoderOutput result={displayResult} onSecretChange={handleSecretChange} />
 
     const tabs = [
       {
