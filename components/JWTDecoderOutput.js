@@ -114,7 +114,8 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
 
     // Use exact original segments - already trimmed by parser
     const encoder = new TextEncoder()
-    const data = encoder.encode(`${rawHeader}.${rawPayload}`)
+    const message = `${rawHeader}.${rawPayload}`
+    const data = encoder.encode(message)
     const secretData = encoder.encode(secret)
 
     const key = await crypto.subtle.importKey(
@@ -137,6 +138,17 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
     const base64url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 
     const verified = base64url === signatureB64Url
+
+    // Debug info
+    console.log('[JWT Debug] Client-side HS256 Verification:', {
+      headerLen: rawHeader.length,
+      payloadLen: rawPayload.length,
+      signatureLen: signatureB64Url.length,
+      messageLen: message.length,
+      expectedSig: base64url,
+      providedSig: signatureB64Url,
+      match: verified,
+    })
 
     return {
       verified,
