@@ -353,7 +353,7 @@ function ExportModal({ headers }) {
   )
 }
 
-function SecurityScoreCard({ securityScore, securityRiskLevel }) {
+function SecurityScoreCard({ securityScore, overallStatus }) {
   if (!securityScore) return null
 
   const getScoreColor = (score) => {
@@ -370,6 +370,7 @@ function SecurityScoreCard({ securityScore, securityRiskLevel }) {
   }
 
   const colors = getScoreColor(securityScore.score)
+  const securityRiskLevel = overallStatus?.security?.riskLevel || 'low'
   const riskInfo = getRiskLevelInfo(securityRiskLevel)
 
   return (
