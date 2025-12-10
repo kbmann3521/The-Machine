@@ -160,6 +160,33 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [showSecretInput, setShowSecretInput] = useState(false)
   const [clientSignatureVerification, setClientSignatureVerification] = useState(null)
 
+  // Re-verify signature when secret changes (client-side for HS256)
+  React.useEffect(() => {
+    if (!result || !result.decoded || !result.rawSegments) {
+      setClientSignatureVerification(null)
+      return
+    }
+
+    const { header, alg } = result.token
+    if (alg !== 'HS256') {
+      setClientSignatureVerification(null)
+      return
+    }
+
+    // Verify asynchronously
+    const verify = async () => {
+      const verification = await verifyHS256ClientSide(
+        result.rawSegments.header,
+        result.rawSegments.payload,
+        result.rawSegments.signature,
+        verificationSecret
+      )
+      setClientSignatureVerification(verification)
+    }
+
+    verify()
+  }, [result, verificationSecret])
+
   if (!result || !result.decoded) {
     return (
       <div className={styles.container}>
