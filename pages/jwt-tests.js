@@ -142,6 +142,32 @@ export default function JWTTestSuite() {
               {/* Test Details (Expandable) */}
               {expandedTests[test.id] && (
                 <div className={styles.testDetails}>
+                  {/* Validation Steps */}
+                  {test.validations && test.validations.length > 0 && (
+                    <div className={styles.validationSection}>
+                      <div className={styles.sectionTitle}>Validation Steps</div>
+                      <div className={styles.validationList}>
+                        {test.validations.map((validation, idx) => (
+                          <div
+                            key={idx}
+                            className={`${styles.validationItem} ${validation.passed ? styles.validationPassed : styles.validationFailed}`}
+                          >
+                            <span className={styles.validationIcon}>
+                              {validation.passed ? '✓' : '✕'}
+                            </span>
+                            <div className={styles.validationContent}>
+                              <div className={styles.validationName}>{validation.name}</div>
+                              <div className={styles.validationComparison}>
+                                <div>Expected: <code>{JSON.stringify(validation.expected)}</code></div>
+                                <div>Actual: <code>{JSON.stringify(validation.actual)}</code></div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Errors */}
                   {test.errors.length > 0 && (
                     <div className={styles.errorSection}>
