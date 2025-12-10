@@ -353,7 +353,7 @@ function ExportModal({ headers }) {
   )
 }
 
-function SecurityScoreCard({ securityScore }) {
+function SecurityScoreCard({ securityScore, securityRiskLevel }) {
   if (!securityScore) return null
 
   const getScoreColor = (score) => {
@@ -363,7 +363,14 @@ function SecurityScoreCard({ securityScore }) {
     return { color: '#ef5350', bg: 'rgba(239, 83, 80, 0.1)' }
   }
 
+  const getRiskLevelInfo = (level) => {
+    if (level === 'high') return { icon: '🔴', label: 'High Risk' }
+    if (level === 'medium') return { icon: '🟡', label: 'Medium Risk' }
+    return { icon: '🟢', label: 'Low Risk' }
+  }
+
   const colors = getScoreColor(securityScore.score)
+  const riskInfo = getRiskLevelInfo(securityRiskLevel)
 
   return (
     <div className={styles.securityScoreContainer}>
@@ -375,6 +382,9 @@ function SecurityScoreCard({ securityScore }) {
         <div className={styles.scoreContent}>
           <div className={styles.scoreTitle}>Security Best Practices Score</div>
           <div className={styles.scoreDescription}>Based on critical security headers and configurations</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(0, 0, 0, 0.1)' }}>
+            <span>{riskInfo.icon} Security Risk: {riskInfo.label}</span>
+          </div>
           {securityScore.deductions && securityScore.deductions.length > 0 && (
             <div className={styles.deductionsList}>
               <div className={styles.deductionsTitle}>Deductions:</div>
