@@ -494,6 +494,11 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
               ? clientSignatureVerification
               : signatureVerification
 
+            const kid = token?.header?.kid
+            const iss = token?.payload?.iss
+            const hasJwks = rsaAlgorithms.includes(signatureVerification.algorithm) && kid && iss
+            const keySource = signatureVerification.keySource || 'manual'
+
             return (
               <div className={styles.signatureVerificationSection}>
                 <div className={styles.signatureVerificationCard}>
@@ -534,33 +539,104 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                   )}
 
                   {rsaAlgorithms.includes(signatureVerification.algorithm) && (
-                    <div className={styles.verificationInputSection}>
-                      <label htmlFor="verification-public-key" className={styles.verificationInputLabel}>
-                        <span>Public Key (PEM Format)</span>
-                        {verificationPublicKey && (
-                          <span className={styles.verificationInputIndicator}>✓ Provided</span>
-                        )}
-                      </label>
-                      <textarea
-                        id="verification-public-key"
-                        value={verificationPublicKey}
-                        onChange={(e) => {
-                          setVerificationPublicKey(e.target.value)
-                        }}
-                        placeholder={`-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu5...\n-----END PUBLIC KEY-----`}
-                        className={styles.publicKeyInput}
-                      />
-                      {showPublicKeyInput && (
-                        <div className={styles.publicKeyDetails}>
-                          <p className={styles.detailsLabel}>📌 Expected Format:</p>
-                          <code className={styles.detailsCode}>
+                    <>
+                      {hasJwks && (
+                        <div className={styles.keySourceSelector}>
+                          <div className={styles.keySourceLabel}>Key Source</div>
+                          <div className={styles.keySourceOptions}>
+                            <label className={styles.radioOption}>
+                              <input
+                                type="radio"
+                                name="keySource"
+                                value="auto"
+                                checked={useAutoFetch}
+                                onChange={() => setUseAutoFetch(true)}
+                              />
+                              <span className={styles.radioLabel}>Auto-fetch from issuer (recommended)</span>
+                            </label>
+                            <label className={styles.radioOption}>
+                              <input
+                                type="radio"
+                                name="keySource"
+                                value="manual"
+                                checked={!useAutoFetch}
+                                onChange={() => setUseAutoFetch(false)}
+                              />
+                              <span className={styles.radioLabel}>Provide public key manually</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+
+                      {useAutoFetch && hasJwks && (
+                        <div className={styles.jwksInfoSection}>
+                          <div className={styles.jwksInfoItem}>
+                            <span className={styles.jwksLabel}>Issuer:</span>
+                            <span className={styles.jwksValue}>{iss}</span>
+                          </div>
+                          <div className={styles.jwksInfoItem}>
+                            <span className={styles.jwksLabel}>Key ID:</span>
+                            <span className={styles.jwksValue}>{kid}</span>
+                          </div>
+                          {signatureVerification.jwksUrl && (
+                            <div className={styles.jwksInfoItem}>
+                              <span className={styles.jwksLabel}>JWKS URL:</span>
+                              <span className={styles.jwksValue}>{signatureVerification.jwksUrl}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {!useAutoFetch && (
+                        <div className={styles.verificationInputSection}>
+                          <label htmlFor="verification-public-key" className={styles.verificationInputLabel}>
+                            <span>Public Key (PEM Format)</span>
+                            {verificationPublicKey && (
+                              <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                            )}
+                          </label>
+                          <textarea
+                            id="verification-public-key"
+                            value={verificationPublicKey}
+                            onChange={(e) => {
+                              setVerificationPublicKey(e.target.value)
+                            }}
+                            placeholder={`-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu5...\n-----END PUBLIC KEY-----`}
+                            className={styles.publicKeyInput}
+                          />
+                          {showPublicKeyInput && (
+                            <div className={styles.publicKeyDetails}>
+                              <p className={styles.detailsLabel}>📌 Expected Format:</p>
+                              <code className={styles.detailsCode}>
 {`-----BEGIN PUBLIC KEY-----
 [base64-encoded key data]
 -----END PUBLIC KEY-----`}
-                          </code>
+                              </code>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
+
+                      {!hasJwks && (
+                        <div className={styles.verificationInputSection}>
+                          <label htmlFor="verification-public-key" className={styles.verificationInputLabel}>
+                            <span>Public Key (PEM Format)</span>
+                            {verificationPublicKey && (
+                              <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                            )}
+                          </label>
+                          <textarea
+                            id="verification-public-key"
+                            value={verificationPublicKey}
+                            onChange={(e) => {
+                              setVerificationPublicKey(e.target.value)
+                            }}
+                            placeholder={`-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu5...\n-----END PUBLIC KEY-----`}
+                            className={styles.publicKeyInput}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <div className={`${styles.verificationStatus} ${styles[`status-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
@@ -588,6 +664,15 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                     <span className={styles.reasonLabel}>Details:</span>
                     <span className={styles.reasonText}>{verificationToDisplay.reason}</span>
                   </div>
+
+                  {keySource === 'jwks' && signatureVerification.keyId && (
+                    <div className={styles.jwksVerificationMetadata}>
+                      <span className={styles.metadataItem}>🔑 Verified with key ID: <strong>{signatureVerification.keyId}</strong></span>
+                      {signatureVerification.issuer && (
+                        <span className={styles.metadataItem}>📍 Issuer: <strong>{signatureVerification.issuer}</strong></span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )
