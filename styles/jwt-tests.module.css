@@ -239,6 +239,88 @@
   margin-bottom: 8px;
 }
 
+/* Validation Section */
+.validationSection {
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.validationList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.validationItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background-primary);
+}
+
+.validationItem.validationPassed {
+  border-left: 3px solid #66bb6a;
+  background-color: rgba(102, 187, 106, 0.05);
+}
+
+.validationItem.validationFailed {
+  border-left: 3px solid #ef5350;
+  background-color: rgba(239, 83, 80, 0.05);
+}
+
+.validationIcon {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.validationItem.validationPassed .validationIcon {
+  color: #66bb6a;
+}
+
+.validationItem.validationFailed .validationIcon {
+  color: #ef5350;
+}
+
+.validationContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.validationName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.validationComparison {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.validationComparison code {
+  padding: 2px 6px;
+  background-color: var(--color-background-secondary);
+  border-radius: 2px;
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
 /* Error Section */
 .errorSection {
   padding: 12px;
