@@ -287,7 +287,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [showPublicKeyInput, setShowPublicKeyInput] = useState(false)
   const [clientSignatureVerification, setClientSignatureVerification] = useState(null)
 
-  // Re-verify signature when secret/public key changes (client-side for HS256/RS256)
+  // Re-verify signature when secret/public key changes (client-side for HS256/RS256/RS384/RS512)
   useEffect(() => {
     if (!result || !result.decoded || !result.rawSegments) {
       setClientSignatureVerification(null)
@@ -295,6 +295,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
     }
 
     const alg = result.token.header?.alg
+    const rsaAlgorithms = ['RS256', 'RS384', 'RS512']
 
     if (alg === 'HS256') {
       // Verify asynchronously
@@ -309,10 +310,11 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
       }
 
       verify()
-    } else if (alg === 'RS256') {
+    } else if (rsaAlgorithms.includes(alg)) {
       // Verify asynchronously
       const verify = async () => {
-        const verification = await verifyRS256ClientSide(
+        const verification = await verifyRSAClientSide(
+          alg,
           result.rawSegments.header,
           result.rawSegments.payload,
           result.rawSegments.signature,
