@@ -208,7 +208,7 @@ function ResultCard({ result }) {
               className={styles.sectionToggle}
               onClick={() => toggleSection('security')}
             >
-              <FaShieldAlt />
+              <span>🔒</span>
               Security & Safety
               <span className={expandedSections.security ? '▼' : '▶'}>
                 {expandedSections.security ? '▼' : '▶'}
