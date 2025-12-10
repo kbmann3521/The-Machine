@@ -74,7 +74,7 @@ export default function JWTTestSuite() {
       <div className={styles.container}>
         <div className={styles.header}>
           <h1>🔐 JWT Crypto Test Suite</h1>
-          <p className={styles.subtitle}>Phase 3: HS256 + alg:none Verification</p>
+          <p className={styles.subtitle}>Phase 3-4: HS256, RS256 + alg:none Verification</p>
         </div>
 
         {/* Summary Card */}
