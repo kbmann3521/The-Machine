@@ -499,13 +499,16 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
         <button
           className={`${styles.strictModeToggle} ${strictMode ? styles.strictModeOn : styles.strictModeOff}`}
           onClick={onStrictModeToggle}
-          title="Strict Mode: Enables RFC 9110/7230 compliance checking. Issues are classified more strictly (warnings → errors, infos → warnings). Does not affect your Security Score."
+          title="Strict Mode applies strict RFC 9110/7230 validation rules. Issues may be reclassified (info → warning, warning → error). This affects Protocol Diagnostics only and does not reduce your Security Score."
         >
           {strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF'}
         </button>
       </div>
       <div className={styles.diagnosticsRisk}>
-        <span>{riskIcon[protocolRiskLevel]} Compliance Risk: {riskLabel[protocolRiskLevel]}</span>
+        <div className={styles.riskInfo}>
+          <span>{riskIcon[protocolRiskLevel]} Compliance Risk: {riskLabel[protocolRiskLevel]}</span>
+          <span className={styles.strictModeLabel}>{strictMode ? 'RFC Enforcement Active' : 'Practical Mode (lenient parsing)'}</span>
+        </div>
         <span className={styles.issueCounts}>
           {protocolErrorCount > 0 && <span className={styles.errorBadge}>{protocolErrorCount} error{protocolErrorCount !== 1 ? 's' : ''}</span>}
           {protocolWarningCount > 0 && <span className={styles.warningBadge}>{protocolWarningCount} warning{protocolWarningCount !== 1 ? 's' : ''}</span>}
