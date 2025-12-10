@@ -584,7 +584,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
 
   return (
     <div className={styles.container}>
-      {securityScore && <SecurityScoreCard securityScore={securityScore} securityRiskLevel={overallStatus?.securityRiskLevel} />}
+      {securityScore && <SecurityScoreCard securityScore={securityScore} overallStatus={overallStatus} />}
       <ProtocolDiagnostics issues={allRfcIssues} strictMode={strictMode} onStrictModeToggle={onStrictModeToggle} overallStatus={overallStatus} />
 
       {parseErrors.length > 0 && (
