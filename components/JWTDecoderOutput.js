@@ -346,9 +346,6 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                   value={verificationSecret}
                   onChange={(e) => {
                     setVerificationSecret(e.target.value)
-                    if (onSecretChange) {
-                      onSecretChange(e.target.value)
-                    }
                   }}
                   placeholder="Enter the secret used to sign this token"
                   className={styles.secretInput}
@@ -363,36 +360,45 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                 </button>
               </div>
             )}
-            <div className={`${styles.signatureVerificationCard} ${styles[`verification-${signatureVerification.verified === true ? 'valid' : signatureVerification.verified === false ? 'invalid' : 'unknown'}`]}`}>
-              <div className={styles.verificationAlgorithm}>
-                <span className={styles.algoLabel}>Algorithm:</span>
-                <span className={styles.algoValue}>{signatureVerification.algorithm}</span>
-              </div>
-              <div className={`${styles.verificationStatus} ${styles[`status-${signatureVerification.verified === true ? 'valid' : signatureVerification.verified === false ? 'invalid' : 'unknown'}`]}`}>
-                {signatureVerification.verified === true && (
-                  <>
-                    <span className={styles.statusIcon}>✅</span>
-                    <span className={styles.statusText}>Signature Valid</span>
-                  </>
-                )}
-                {signatureVerification.verified === false && (
-                  <>
-                    <span className={styles.statusIcon}>❌</span>
-                    <span className={styles.statusText}>Signature Invalid</span>
-                  </>
-                )}
-                {signatureVerification.verified === null && (
-                  <>
-                    <span className={styles.statusIcon}>❓</span>
-                    <span className={styles.statusText}>Cannot Verify</span>
-                  </>
-                )}
-              </div>
-              <div className={styles.verificationReason}>
-                <span className={styles.reasonLabel}>Details:</span>
-                <span className={styles.reasonText}>{signatureVerification.reason}</span>
-              </div>
-            </div>
+            {(() => {
+              // Use client-side verification for HS256, fall back to server-side for others
+              const verificationToDisplay = signatureVerification.algorithm === 'HS256' && clientSignatureVerification
+                ? clientSignatureVerification
+                : signatureVerification
+
+              return (
+                <div className={`${styles.signatureVerificationCard} ${styles[`verification-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
+                  <div className={styles.verificationAlgorithm}>
+                    <span className={styles.algoLabel}>Algorithm:</span>
+                    <span className={styles.algoValue}>{signatureVerification.algorithm}</span>
+                  </div>
+                  <div className={`${styles.verificationStatus} ${styles[`status-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
+                    {verificationToDisplay.verified === true && (
+                      <>
+                        <span className={styles.statusIcon}>✅</span>
+                        <span className={styles.statusText}>Signature Valid</span>
+                      </>
+                    )}
+                    {verificationToDisplay.verified === false && (
+                      <>
+                        <span className={styles.statusIcon}>❌</span>
+                        <span className={styles.statusText}>Signature Invalid</span>
+                      </>
+                    )}
+                    {verificationToDisplay.verified === null && (
+                      <>
+                        <span className={styles.statusIcon}>❓</span>
+                        <span className={styles.statusText}>Cannot Verify</span>
+                      </>
+                    )}
+                  </div>
+                  <div className={styles.verificationReason}>
+                    <span className={styles.reasonLabel}>Details:</span>
+                    <span className={styles.reasonText}>{verificationToDisplay.reason}</span>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         </StatusSection>
       )}
