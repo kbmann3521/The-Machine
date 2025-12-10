@@ -102,6 +102,33 @@ function ClaimRow({ name, value, isTimestamp, timestamp }) {
   )
 }
 
+// Helper function to convert PEM to ArrayBuffer
+function pemToArrayBuffer(pem) {
+  const binaryString = atob(
+    pem
+      .replace(/-----BEGIN PUBLIC KEY-----/g, '')
+      .replace(/-----END PUBLIC KEY-----/g, '')
+      .replace(/\n/g, '')
+      .replace(/\r/g, '')
+  )
+  const bytes = new Uint8Array(binaryString.length)
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes.buffer
+}
+
+// Helper function to convert base64url to Uint8Array
+function base64urlToUint8Array(base64url) {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
+  const binaryString = atob(base64)
+  const bytes = new Uint8Array(binaryString.length)
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes
+}
+
 // Helper function for client-side HS256 verification using Web Crypto API
 async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, secret) {
   try {
@@ -160,6 +187,75 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
     return {
       verified: false,
       reason: `Verification error: ${error.message}`,
+    }
+  }
+}
+
+// Helper function for client-side RS256 verification using Web Crypto API
+async function verifyRS256ClientSide(rawHeader, rawPayload, signatureB64Url, publicKeyPem) {
+  try {
+    if (!publicKeyPem) {
+      return {
+        verified: null,
+        reason: 'Public key not provided — cannot verify signature',
+      }
+    }
+
+    // Validate PEM format
+    if (!publicKeyPem.includes('BEGIN PUBLIC KEY') || !publicKeyPem.includes('END PUBLIC KEY')) {
+      return {
+        verified: false,
+        reason: 'Invalid PEM format. Public key must start with "-----BEGIN PUBLIC KEY-----" and end with "-----END PUBLIC KEY-----"',
+      }
+    }
+
+    // Convert PEM to ArrayBuffer
+    const publicKeyBuffer = pemToArrayBuffer(publicKeyPem)
+
+    // Import the public key
+    const publicKey = await crypto.subtle.importKey(
+      'spki',
+      publicKeyBuffer,
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        hash: 'SHA-256',
+      },
+      false,
+      ['verify']
+    )
+
+    // Convert signature from base64url to bytes
+    const signatureBytes = base64urlToUint8Array(signatureB64Url)
+
+    // Create the message that was signed
+    const encoder = new TextEncoder()
+    const message = encoder.encode(`${rawHeader}.${rawPayload}`)
+
+    // Verify the signature
+    const verified = await crypto.subtle.verify(
+      'RSASSA-PKCS1-v1_5',
+      publicKey,
+      signatureBytes,
+      message
+    )
+
+    console.log('[JWT Debug] Client-side RS256 Verification:', {
+      verified,
+      headerLen: rawHeader.length,
+      payloadLen: rawPayload.length,
+      signatureLen: signatureB64Url.length,
+    })
+
+    return {
+      verified,
+      reason: verified
+        ? 'RSA-SHA256 signature matches token contents'
+        : 'Signature does not match. The public key does not match the private key used to sign.',
+    }
+  } catch (error) {
+    return {
+      verified: false,
+      reason: `Verification error: ${error.message}. Ensure the public key is valid.`,
     }
   }
 }
