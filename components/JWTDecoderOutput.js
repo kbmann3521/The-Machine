@@ -112,8 +112,13 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
       }
     }
 
+    // Sanitize whitespace from input segments (handles line breaks, newlines, etc.)
+    const cleanHeader = rawHeader.replace(/\s+/g, '')
+    const cleanPayload = rawPayload.replace(/\s+/g, '')
+    const cleanSignature = signatureB64Url.replace(/\s+/g, '')
+
     const encoder = new TextEncoder()
-    const data = encoder.encode(`${rawHeader}.${rawPayload}`)
+    const data = encoder.encode(`${cleanHeader}.${cleanPayload}`)
     const secretData = encoder.encode(secret)
 
     const key = await crypto.subtle.importKey(
@@ -135,7 +140,7 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
     const base64 = btoa(binaryString)
     const base64url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 
-    const verified = base64url === signatureB64Url
+    const verified = base64url === cleanSignature
 
     return {
       verified,
