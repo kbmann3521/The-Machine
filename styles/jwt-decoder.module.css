@@ -792,7 +792,77 @@
 .signatureVerificationSection {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.secretInputContainer {
+  position: relative;
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+}
+
+.secretInputHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.secretLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.secretIndicator {
+  font-size: 11px;
+  color: #66bb6a;
+  font-weight: 500;
+}
+
+.secretInput {
+  padding: 8px 32px 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  transition: all 0.2s;
+}
+
+.secretInput:focus {
+  outline: none;
+  border-color: #2196f3;
+  background-color: var(--color-background-tertiary);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.secretInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.secretToggleButton {
+  position: absolute;
+  right: 14px;
+  top: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.secretToggleButton:hover {
+  transform: scale(1.1);
 }
 
 .signatureVerificationCard {
