@@ -172,6 +172,39 @@ export default function JWTDecoderOutput({ result }) {
         </div>
       </StatusSection>
 
+      {/* Raw Decoded Text (Phase 1.5) */}
+      <StatusSection title="Decoded Values" icon="📝">
+        <div className={styles.rawDecodedSection}>
+          {/* Header */}
+          <div className={styles.rawDecodedItem}>
+            <button
+              className={styles.rawExpandButton}
+              onClick={() => setExpandedRawHeader(!expandedRawHeader)}
+            >
+              <span className={`${styles.rawExpandChevron} ${expandedRawHeader ? styles.rawExpandChevronOpen : ''}`}>▶</span>
+              Header (raw decoded)
+            </button>
+            {expandedRawHeader && (
+              <CopyCard label="Header" value={raw.header} />
+            )}
+          </div>
+
+          {/* Payload */}
+          <div className={styles.rawDecodedItem}>
+            <button
+              className={styles.rawExpandButton}
+              onClick={() => setExpandedRawPayload(!expandedRawPayload)}
+            >
+              <span className={`${styles.rawExpandChevron} ${expandedRawPayload ? styles.rawExpandChevronOpen : ''}`}>▶</span>
+              Payload (raw decoded)
+            </button>
+            {expandedRawPayload && (
+              <CopyCard label="Payload" value={raw.payload} />
+            )}
+          </div>
+        </div>
+      </StatusSection>
+
       {/* Header */}
       <StatusSection title="Header" icon="📋">
         <div className={styles.expandableSection}>
