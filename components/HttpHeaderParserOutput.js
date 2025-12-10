@@ -443,14 +443,14 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
   const warnings = issues.filter(i => i.level === 'warning')
   const infos = issues.filter(i => i.level === 'info')
 
-  // Use overallStatus counts if available (includes ALL issues, not just RFC ones)
-  const errorCount = overallStatus?.errors || errors.length
-  const warningCount = overallStatus?.warnings || warnings.length
-  const infoCount = overallStatus?.infos || infos.length
+  // Use protocol-specific counts from overallStatus
+  const protocolErrorCount = overallStatus?.protocolErrors || errors.length
+  const protocolWarningCount = overallStatus?.protocolWarnings || warnings.length
+  const protocolInfoCount = overallStatus?.protocolInfos || infos.length
 
-  const hasIssues = errorCount > 0 || warningCount > 0 || infoCount > 0
+  const hasProtocolIssues = protocolErrorCount > 0 || protocolWarningCount > 0 || protocolInfoCount > 0
 
-  if (!hasIssues) {
+  if (!hasProtocolIssues) {
     return (
       <div className={styles.protocolDiagnosticsContainer}>
         <div className={styles.diagnosticsHeader}>
@@ -470,15 +470,9 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
     )
   }
 
-  const getRiskLevel = () => {
-    if (errorCount > 0) return 'high'
-    if (warningCount > 0) return 'medium'
-    return 'low'
-  }
-
+  const protocolRiskLevel = overallStatus?.protocolRiskLevel || 'low'
   const riskIcon = { high: '🔴', medium: '🟡', low: '🟢' }
   const riskLabel = { high: 'HIGH', medium: 'MEDIUM', low: 'LOW' }
-  const riskLevel = getRiskLevel()
 
   return (
     <div className={styles.protocolDiagnosticsContainer}>
@@ -493,11 +487,11 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
         </button>
       </div>
       <div className={styles.diagnosticsRisk}>
-        <span>{riskIcon[riskLevel]} Risk Level: {riskLabel[riskLevel]}</span>
+        <span>{riskIcon[protocolRiskLevel]} Compliance Risk: {riskLabel[protocolRiskLevel]}</span>
         <span className={styles.issueCounts}>
-          {errorCount > 0 && <span className={styles.errorBadge}>{errorCount} error{errorCount !== 1 ? 's' : ''}</span>}
-          {warningCount > 0 && <span className={styles.warningBadge}>{warningCount} warning{warningCount !== 1 ? 's' : ''}</span>}
-          {infoCount > 0 && <span className={styles.infoBadge}>{infoCount} info</span>}
+          {protocolErrorCount > 0 && <span className={styles.errorBadge}>{protocolErrorCount} error{protocolErrorCount !== 1 ? 's' : ''}</span>}
+          {protocolWarningCount > 0 && <span className={styles.warningBadge}>{protocolWarningCount} warning{protocolWarningCount !== 1 ? 's' : ''}</span>}
+          {protocolInfoCount > 0 && <span className={styles.infoBadge}>{protocolInfoCount} info</span>}
         </span>
       </div>
       <div className={styles.diagnosticsContent}>
