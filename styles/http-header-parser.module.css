@@ -303,12 +303,23 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 12px;
-  cursor: pointer;
+  gap: 12px;
   transition: background-color 0.2s;
 }
 
-.headerCardHeader:hover {
+.headerCardHeaderExpandable {
+  cursor: pointer;
+}
+
+.headerCardHeaderExpandable:hover {
   background-color: var(--color-background-tertiary);
+}
+
+.headerCardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .headerNameValue {
