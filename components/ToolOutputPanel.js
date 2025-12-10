@@ -2850,6 +2850,29 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
+  const renderMIMETypeLookupOutput = () => {
+    if (!displayResult) return null
+
+    const friendlyView = () => <MIMETypeLookupOutput result={displayResult} />
+
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
   const renderJsonFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
 
