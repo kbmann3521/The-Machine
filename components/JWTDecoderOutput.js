@@ -298,6 +298,8 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [verificationPublicKey, setVerificationPublicKey] = useState('')
   const [showPublicKeyInput, setShowPublicKeyInput] = useState(false)
   const [clientSignatureVerification, setClientSignatureVerification] = useState(null)
+  const [useAutoFetch, setUseAutoFetch] = useState(true)
+  const [showKeyDetails, setShowKeyDetails] = useState(false)
 
   // Re-verify signature when secret/public key changes (client-side for HS256/384/512 and RS256/384/512)
   useEffect(() => {
