@@ -228,6 +228,10 @@ export default function JWTTestSuite() {
             JWT Crypto Test Pack – Phase 3 (HS256 + alg:none) |{' '}
             <code>lib/jwtTestPack.js</code>
           </p>
+          <p className={styles.consoleHint}>
+            💡 <strong>Verify Integrity:</strong> Press F12 or Ctrl+Shift+J to open DevTools → Console tab.
+            Each test logs detailed validation steps. Look for checkmarks (✓) or crosses (✕) to confirm validation logic.
+          </p>
           <p className={styles.timestamp}>
             Last run: {new Date(testResults.timestamp).toLocaleString()}
           </p>
