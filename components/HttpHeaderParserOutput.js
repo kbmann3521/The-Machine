@@ -917,7 +917,8 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
                   className={styles.transformToggle}
                   onClick={() => setExpandedTransforms(expandedTransforms === key ? null : key)}
                 >
-                  {expandedTransforms === key ? '▼' : '▶'} {label}
+                  <span className={`${styles.expandChevron} ${expandedTransforms === key ? styles.expandChevronOpen : ''}`}>▶</span>
+                  {label}
                 </button>
                 {expandedTransforms === key && (
                   <div className={styles.transformContent}>
