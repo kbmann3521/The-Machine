@@ -514,7 +514,8 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
       </div>
       <div className={styles.diagnosticsContent}>
         <button className={styles.expandButton} onClick={() => setExpanded(!expanded)}>
-          {expanded ? '▼' : '▶'} {expanded ? 'Hide' : 'Show'} Details
+          <span className={`${styles.expandChevron} ${expanded ? styles.expandChevronOpen : ''}`}>▶</span>
+          {expanded ? 'Hide' : 'Show'} Details
         </button>
         {expanded && (
           <div className={styles.diagnosticsDetails}>
