@@ -312,16 +312,6 @@ export default function JWTDecoderOutput({ result }) {
         </div>
       </StatusSection>
 
-      {/* Raw JSON */}
-      <StatusSection title="Raw JSON" icon="📄">
-        <div className={styles.rawJsonSection}>
-          <h4 className={styles.rawJsonTitle}>Header (decoded)</h4>
-          <CopyCard label="Header JSON" value={raw.header} />
-
-          <h4 className={styles.rawJsonTitle} style={{ marginTop: '16px' }}>Payload (decoded)</h4>
-          <CopyCard label="Payload JSON" value={raw.payload} />
-        </div>
-      </StatusSection>
     </div>
   )
 }
