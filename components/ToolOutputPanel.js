@@ -4719,6 +4719,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderColorConverterOutput()
       case 'jwt-decoder':
         return renderJwtDecoderOutput()
+      case 'mime-type-lookup':
+        return renderMIMETypeLookupOutput()
       case 'json-formatter':
         return renderJsonFormatterOutput()
       case 'xml-formatter':
