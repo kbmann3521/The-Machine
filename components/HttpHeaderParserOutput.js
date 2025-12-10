@@ -483,7 +483,12 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
   return (
     <div className={styles.protocolDiagnosticsContainer}>
       <div className={styles.diagnosticsHeader}>
-        <h3 className={styles.diagnosticsTitle}>Protocol Diagnostics</h3>
+        <div>
+          <h3 className={styles.diagnosticsTitle}>Protocol Diagnostics</h3>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '6px 0 0 0' }}>
+            Protocol compliance issues do not affect your Security Score. Strict Mode applies RFC parsing rules but does not reduce your grade.
+          </p>
+        </div>
         <button
           className={`${styles.strictModeToggle} ${strictMode ? styles.strictModeOn : styles.strictModeOff}`}
           onClick={onStrictModeToggle}
