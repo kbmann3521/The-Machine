@@ -524,8 +524,8 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
               </div>
             )}
             {(() => {
-              // Use client-side verification for HS256, fall back to server-side for others
-              const verificationToDisplay = signatureVerification.algorithm === 'HS256' && clientSignatureVerification
+              // Use client-side verification for HS256 and RS256, fall back to server-side for others
+              const verificationToDisplay = (signatureVerification.algorithm === 'HS256' || signatureVerification.algorithm === 'RS256') && clientSignatureVerification
                 ? clientSignatureVerification
                 : signatureVerification
 
