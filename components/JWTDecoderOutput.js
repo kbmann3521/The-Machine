@@ -105,6 +105,8 @@ function ClaimRow({ name, value, isTimestamp, timestamp }) {
 export default function JWTDecoderOutput({ result }) {
   const [expandedHeader, setExpandedHeader] = useState(false)
   const [expandedPayload, setExpandedPayload] = useState(true)
+  const [expandedRawHeader, setExpandedRawHeader] = useState(false)
+  const [expandedRawPayload, setExpandedRawPayload] = useState(false)
 
   if (!result || !result.decoded) {
     return (
@@ -113,6 +115,18 @@ export default function JWTDecoderOutput({ result }) {
           <div className={styles.emptyIcon}>❌</div>
           <div className={styles.emptyTitle}>Unable to decode</div>
           <p className={styles.emptyMessage}>{result?.error || 'Invalid JWT format'}</p>
+          {result?.raw?.header && (
+            <div className={styles.rawDecodeFailureSection}>
+              <p className={styles.failureLabel}>Raw decoded header:</p>
+              <CopyCard label="Header (decoded)" value={result.raw.header} />
+            </div>
+          )}
+          {result?.raw?.payload && (
+            <div className={styles.rawDecodeFailureSection}>
+              <p className={styles.failureLabel}>Raw decoded payload:</p>
+              <CopyCard label="Payload (decoded)" value={result.raw.payload} />
+            </div>
+          )}
         </div>
       </div>
     )
