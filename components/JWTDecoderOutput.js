@@ -102,11 +102,13 @@ function ClaimRow({ name, value, isTimestamp, timestamp }) {
   )
 }
 
-export default function JWTDecoderOutput({ result }) {
+export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [expandedHeader, setExpandedHeader] = useState(false)
   const [expandedPayload, setExpandedPayload] = useState(true)
   const [expandedRawHeader, setExpandedRawHeader] = useState(false)
   const [expandedRawPayload, setExpandedRawPayload] = useState(false)
+  const [verificationSecret, setVerificationSecret] = useState('')
+  const [showSecretInput, setShowSecretInput] = useState(false)
 
   if (!result || !result.decoded) {
     return (
