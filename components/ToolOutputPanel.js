@@ -12,6 +12,7 @@ import RegexTesterOutput from './RegexTesterOutput'
 import URLToolkitOutput from '../lib/tools/URLToolkitOutput'
 import HTTPStatusLookupOutput from './HTTPStatusLookupOutput'
 import HttpHeaderParserOutput from './HttpHeaderParserOutput'
+import JWTDecoderOutput from './JWTDecoderOutput'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [] }) {
   const toolCategory = TOOLS[toolId]?.category
