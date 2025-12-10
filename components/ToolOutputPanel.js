@@ -2813,19 +2813,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderJwtDecoderOutput = () => {
-    if (!displayResult || !displayResult.decoded) return null
+    if (!displayResult) return null
 
-    // Use OutputTabs with JSON-only tab, let it auto-generate the friendly view
-    const tabs = [
-      {
-        id: 'json',
-        label: 'JSON',
-        content: displayResult,
-        contentType: 'json',
-      }
-    ]
-
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    return <JWTDecoderOutput result={displayResult} />
   }
 
   const renderJsonFormatterOutput = () => {
