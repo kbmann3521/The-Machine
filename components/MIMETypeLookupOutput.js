@@ -186,7 +186,7 @@ function ResultCard({ result }) {
         {/* Description */}
         {result.description && (
           <div className={styles.description}>
-            <FaLightbulb className={styles.descriptionIcon} />
+            <span className={styles.descriptionIcon}>💡</span>
             <span>{result.description}</span>
           </div>
         )}
