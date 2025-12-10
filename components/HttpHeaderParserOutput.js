@@ -389,17 +389,12 @@ function SecurityScoreCard({ securityScore, overallStatus }) {
           {securityScore.deductions && securityScore.deductions.length > 0 && (
             <div className={styles.deductionsList}>
               <div className={styles.deductionsTitle}>Deductions:</div>
-              {securityScore.deductions.slice(0, 3).map((d, idx) => (
+              {securityScore.deductions.map((d, idx) => (
                 <div key={idx} className={styles.deductionItem}>
                   <span className={styles.deductionPoints}>-{d.points}</span>
                   <span className={styles.deductionName}>{d.name}</span>
                 </div>
               ))}
-              {securityScore.deductions.length > 3 && (
-                <div className={styles.deductionItem}>
-                  <span className={styles.deductionMore}>+{securityScore.deductions.length - 3} more</span>
-                </div>
-              )}
             </div>
           )}
         </div>
