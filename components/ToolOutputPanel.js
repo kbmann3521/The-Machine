@@ -2815,7 +2815,24 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderJwtDecoderOutput = () => {
     if (!displayResult) return null
 
-    return <JWTDecoderOutput result={displayResult} />
+    const decoderComponent = () => <JWTDecoderOutput result={displayResult} />
+
+    const tabs = [
+      {
+        id: 'decoder',
+        label: 'Output',
+        content: decoderComponent,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJsonFormatterOutput = () => {
