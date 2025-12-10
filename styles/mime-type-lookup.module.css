@@ -280,6 +280,13 @@
   color: #6366f1;
 }
 
+.sectionToggle span:first-child {
+  font-size: 1.125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .sectionToggle span {
   margin-left: auto;
   display: inline-flex;
