@@ -240,9 +240,14 @@ function HeaderCard({ name, value, analysis, tokenType }) {
     }
   }
 
+  const isExpandable = issues.length > 0 || content
+
   return (
     <div className={`${styles.headerCard} ${styles[`header-${status}`]}`}>
-      <div className={styles.headerCardHeader} onClick={() => (issues.length > 0 || content) && setExpanded(!expanded)}>
+      <div
+        className={`${styles.headerCardHeader} ${isExpandable ? styles.headerCardHeaderExpandable : ''}`}
+        onClick={() => isExpandable && setExpanded(!expanded)}
+      >
         <div className={styles.headerNameValue}>
           <div className={styles.headerName}>{name}</div>
           <div className={styles.headerValue}>{value}</div>
@@ -253,11 +258,18 @@ function HeaderCard({ name, value, analysis, tokenType }) {
             </div>
           )}
         </div>
-        {status === 'valid' && <HeaderBadge level="success" text="Valid" />}
-        {status === 'warning' && <HeaderBadge level="warning" text="Warning" />}
-        {status === 'error' && <HeaderBadge level="error" text="Error" />}
+        <div className={styles.headerCardActions}>
+          {isExpandable && (
+            <span className={`${styles.expandChevron} ${expanded ? styles.expandChevronOpen : ''}`}>
+              ▶
+            </span>
+          )}
+          {status === 'valid' && <HeaderBadge level="success" text="Valid" />}
+          {status === 'warning' && <HeaderBadge level="warning" text="Warning" />}
+          {status === 'error' && <HeaderBadge level="error" text="Error" />}
+        </div>
       </div>
-      {expanded && (issues.length > 0 || content) && (
+      {expanded && isExpandable && (
         <div className={styles.headerCardDetails}>
           {content && <div className={styles.contentSection}>{content}</div>}
           {issues.length > 0 && (
