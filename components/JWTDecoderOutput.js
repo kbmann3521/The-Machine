@@ -154,6 +154,99 @@ export default function JWTDecoderOutput({ result }) {
         </div>
       </div>
 
+      {/* Phase 2: Token Type Analysis */}
+      {tokenType && (
+        <StatusSection title="Token Intelligence" icon="🧠">
+          <div className={styles.tokenTypeSection}>
+            <div className={styles.tokenTypeCard}>
+              <div className={styles.tokenTypeLabel}>Type</div>
+              <div className={styles.tokenTypeValue}>{tokenType.type}</div>
+              <div className={styles.tokenTypeConfidence}>
+                <span className={`${styles.confidenceBadge} ${styles[`confidence-${tokenType.confidence}`]}`}>
+                  {tokenType.confidence} confidence
+                </span>
+              </div>
+              {tokenType.signals.length > 0 && (
+                <div className={styles.tokenTypeSignals}>
+                  <div className={styles.signalsLabel}>Signals:</div>
+                  <div className={styles.signalsList}>
+                    {tokenType.signals.map((signal, idx) => (
+                      <span key={idx} className={styles.signalTag}>{signal}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* TTL Analysis */}
+            {ttlAnalysis && (
+              <div className={styles.ttlAnalysisCard}>
+                <div className={styles.ttlLabel}>Time-to-Live (TTL)</div>
+                {ttlAnalysis.ttlSeconds !== null ? (
+                  <>
+                    <div className={styles.ttlValue}>
+                      {ttlAnalysis.ttlSeconds} seconds ({(ttlAnalysis.ttlSeconds / 3600).toFixed(1)} hours)
+                    </div>
+                    <div className={`${styles.ttlStatus} ${styles[`ttlStatus-${ttlAnalysis.status}`]}`}>
+                      {ttlAnalysis.status}
+                    </div>
+                    {ttlAnalysis.notes.length > 0 && (
+                      <div className={styles.ttlNotes}>
+                        {ttlAnalysis.notes.map((note, idx) => (
+                          <div key={idx} className={styles.ttlNote}>• {note}</div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className={styles.ttlMissing}>Expiration time not available</div>
+                )}
+              </div>
+            )}
+          </div>
+        </StatusSection>
+      )}
+
+      {/* Phase 2: Sensitive Data Detection */}
+      {sensitiveData && (sensitiveData.containsPII || sensitiveData.containsSensitive || sensitiveData.containsFreeText) && (
+        <StatusSection title="Security & Privacy" icon="🔒">
+          <div className={styles.sensitiveDataWarnings}>
+            {sensitiveData.containsSensitive && (
+              <div className={`${styles.sensitiveAlert} ${styles.sensitiveAlertError}`}>
+                <span className={styles.alertIcon}>🚨</span>
+                <span className={styles.alertText}>Payload contains sensitive data fields. Never store secrets or keys in tokens.</span>
+              </div>
+            )}
+            {sensitiveData.containsPII && (
+              <div className={`${styles.sensitiveAlert} ${styles.sensitiveAlertWarning}`}>
+                <span className={styles.alertIcon}>⚠️</span>
+                <span className={styles.alertText}>Payload contains personally identifiable information (PII). Consider minimizing personal data in tokens.</span>
+              </div>
+            )}
+            {sensitiveData.containsFreeText && (
+              <div className={`${styles.sensitiveAlert} ${styles.sensitiveAlertInfo}`}>
+                <span className={styles.alertIcon}>ℹ️</span>
+                <span className={styles.alertText}>Payload contains unstructured free-text data. Consider using structured fields instead.</span>
+              </div>
+            )}
+          </div>
+        </StatusSection>
+      )}
+
+      {/* Phase 2: Header Security Warnings */}
+      {headerSecurityWarnings && headerSecurityWarnings.length > 0 && (
+        <StatusSection title="Header Analysis" icon="📌">
+          <div className={styles.headerWarningsList}>
+            {headerSecurityWarnings.map((warning, idx) => (
+              <div key={idx} className={`${styles.headerWarningItem} ${styles[`headerWarning-${warning.level}`]}`}>
+                <IssueBadge level={warning.level} />
+                <span className={styles.warningText}>{warning.message}</span>
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
       {/* Token Structure */}
       <StatusSection title="Token Structure" icon="🔐">
         <div className={styles.tokenStructure}>
