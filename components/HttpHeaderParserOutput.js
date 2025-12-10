@@ -581,16 +581,6 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
   if (analysis.headerFolding) {
     allRfcIssues.push(...analysis.headerFolding)
   }
-  if (analysis.security?.warnings) {
-    analysis.security.warnings.forEach(w => {
-      allRfcIssues.push({ level: 'warning', message: w })
-    })
-  }
-  if (analysis.security?.conflicts) {
-    analysis.security.conflicts.forEach(c => {
-      allRfcIssues.push({ level: 'warning', message: c })
-    })
-  }
 
   return (
     <div className={styles.container}>
