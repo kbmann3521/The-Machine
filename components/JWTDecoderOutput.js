@@ -1,0 +1,280 @@
+import { useState } from 'react'
+import { FaCopy, FaCheck } from 'react-icons/fa6'
+import styles from '../styles/jwt-decoder.module.css'
+import toolOutputStyles from '../styles/tool-output.module.css'
+
+function CopyCard({ label, value, variant = 'default' }) {
+  const [isCopied, setIsCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+  }
+
+  return (
+    <div className={`${toolOutputStyles.copyCard} ${variant === 'highlight' ? styles.cardHighlight : ''}`}>
+      <div className={toolOutputStyles.copyCardHeader}>
+        <span className={toolOutputStyles.copyCardLabel}>{label}</span>
+        <button
+          type="button"
+          className="copy-action"
+          onClick={handleCopy}
+          title="Copy to clipboard"
+        >
+          {isCopied ? <FaCheck /> : <FaCopy />}
+        </button>
+      </div>
+      <div className={toolOutputStyles.copyCardValue}>{value}</div>
+    </div>
+  )
+}
+
+function IssueBadge({ level }) {
+  const config = {
+    error: { icon: '✕', label: 'Error', color: '#ef5350' },
+    warning: { icon: '⚠', label: 'Warning', color: '#ffc107' },
+    info: { icon: 'ℹ', label: 'Info', color: '#2196f3' },
+  }
+  const cfg = config[level] || config.info
+
+  return (
+    <span className={`${styles.issueBadge} ${styles[`issueBadge-${level}`]}`}>
+      {cfg.icon} {cfg.label}
+    </span>
+  )
+}
+
+function StatusSection({ title, icon, children }) {
+  return (
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionIcon}>{icon}</span>
+        <h3 className={styles.sectionTitle}>{title}</h3>
+      </div>
+      <div className={styles.sectionContent}>{children}</div>
+    </div>
+  )
+}
+
+function ClaimRow({ name, value, isTimestamp, timestamp }) {
+  const [expanded, setExpanded] = useState(false)
+  const hasTimestampData = isTimestamp && timestamp
+
+  return (
+    <div className={styles.claimRow}>
+      <div className={styles.claimName}>{name}</div>
+      <div className={styles.claimValue}>
+        {JSON.stringify(value)}
+      </div>
+      {hasTimestampData && (
+        <button
+          className={styles.expandClaimButton}
+          onClick={() => setExpanded(!expanded)}
+          title={expanded ? 'Hide details' : 'Show details'}
+        >
+          {expanded ? '▼' : '▶'}
+        </button>
+      )}
+      {expanded && hasTimestampData && (
+        <div className={styles.timestampDetails}>
+          <div className={styles.timestampItem}>
+            <span className={styles.timestampLabel}>UTC:</span>
+            <span className={styles.timestampValue}>{timestamp.utc}</span>
+          </div>
+          <div className={styles.timestampItem}>
+            <span className={styles.timestampLabel}>Local:</span>
+            <span className={styles.timestampValue}>{timestamp.local}</span>
+          </div>
+          <div className={styles.timestampItem}>
+            <span className={styles.timestampLabel}>Status:</span>
+            <span className={`${styles.timestampValue} ${styles[`status-${timestamp.status}`]}`}>
+              {timestamp.status === 'expired' ? '❌' : timestamp.status === 'future' ? '⏳' : '✅'} {timestamp.relative}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function JWTDecoderOutput({ result }) {
+  const [expandedHeader, setExpandedHeader] = useState(false)
+  const [expandedPayload, setExpandedPayload] = useState(true)
+
+  if (!result || !result.decoded) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>❌</div>
+          <div className={styles.emptyTitle}>Unable to decode</div>
+          <p className={styles.emptyMessage}>{result?.error || 'Invalid JWT format'}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const { token, raw, validation, timestamps, claims, diagnostics, summary } = result
+
+  return (
+    <div className={styles.container}>
+      {/* Summary Badge */}
+      <div className={styles.summarySection}>
+        <div className={`${styles.summaryBadge} ${summary.valid ? styles.summaryValid : styles.summaryInvalid}`}>
+          <span className={styles.summaryIcon}>{summary.valid ? '✅' : '⚠️'}</span>
+          <div className={styles.summaryContent}>
+            <div className={styles.summaryStatus}>
+              {summary.valid ? 'Valid JWT Structure' : 'Issues Found'}
+            </div>
+            <div className={styles.summaryStats}>
+              {summary.errorCount > 0 && <span className={styles.errorCount}>{summary.errorCount} error{summary.errorCount !== 1 ? 's' : ''}</span>}
+              {summary.warningCount > 0 && <span className={styles.warningCount}>{summary.warningCount} warning{summary.warningCount !== 1 ? 's' : ''}</span>}
+              {summary.infoCount > 0 && <span className={styles.infoCount}>{summary.infoCount} info</span>}
+              {summary.errorCount === 0 && summary.warningCount === 0 && summary.infoCount === 0 && <span className={styles.validCount}>No issues</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Token Structure */}
+      <StatusSection title="Token Structure" icon="🔐">
+        <div className={styles.tokenStructure}>
+          <div className={styles.tokenPart}>
+            <div className={styles.tokenPartLabel}>Header</div>
+            <div className={styles.tokenPartValue}>{raw.header.substring(0, 50)}{raw.header.length > 50 ? '...' : ''}</div>
+          </div>
+          <div className={styles.tokenPart}>
+            <div className={styles.tokenPartLabel}>Payload</div>
+            <div className={styles.tokenPartValue}>{raw.payload.substring(0, 50)}{raw.payload.length > 50 ? '...' : ''}</div>
+          </div>
+          <div className={styles.tokenPart}>
+            <div className={styles.tokenPartLabel}>Signature</div>
+            <div className={styles.tokenPartValue}>{token.signature.substring(0, 50)}{token.signature.length > 50 ? '...' : ''}</div>
+          </div>
+        </div>
+      </StatusSection>
+
+      {/* Header */}
+      <StatusSection title="Header" icon="📋">
+        <div className={styles.expandableSection}>
+          <button
+            className={styles.expandButton}
+            onClick={() => setExpandedHeader(!expandedHeader)}
+          >
+            <span className={`${styles.expandChevron} ${expandedHeader ? styles.expandChevronOpen : ''}`}>▶</span>
+            {expandedHeader ? 'Hide' : 'Show'} Header Details
+          </button>
+          {expandedHeader && (
+            <div className={styles.detailsContent}>
+              <div className={styles.claimsGrid}>
+                {Object.entries(token.header).map(([key, value]) => (
+                  <div key={key} className={styles.headerRow}>
+                    <span className={styles.claimName}>{key}</span>
+                    <span className={styles.claimValue}>{JSON.stringify(value)}</span>
+                  </div>
+                ))}
+              </div>
+              {validation.headerDuplicateKeys && validation.headerDuplicateKeys.length > 0 && (
+                <div className={styles.duplicateKeysWarning}>
+                  <span className={styles.warningIcon}>⚠️</span>
+                  <span>Duplicate keys found: {validation.headerDuplicateKeys.join(', ')}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </StatusSection>
+
+      {/* Payload */}
+      <StatusSection title="Payload (Claims)" icon="📦">
+        <div className={styles.expandableSection}>
+          <button
+            className={styles.expandButton}
+            onClick={() => setExpandedPayload(!expandedPayload)}
+          >
+            <span className={`${styles.expandChevron} ${expandedPayload ? styles.expandChevronOpen : ''}`}>▶</span>
+            {expandedPayload ? 'Hide' : 'Show'} Claims
+          </button>
+          {expandedPayload && (
+            <div className={styles.detailsContent}>
+              <div className={styles.claimsGrid}>
+                {Object.entries(token.payload).map(([key, value]) => (
+                  <ClaimRow
+                    key={key}
+                    name={key}
+                    value={value}
+                    isTimestamp={['exp', 'iat', 'nbf'].includes(key)}
+                    timestamp={timestamps[key]}
+                  />
+                ))}
+              </div>
+              {validation.payloadDuplicateKeys && validation.payloadDuplicateKeys.length > 0 && (
+                <div className={styles.duplicateKeysWarning}>
+                  <span className={styles.warningIcon}>⚠️</span>
+                  <span>Duplicate keys found: {validation.payloadDuplicateKeys.join(', ')}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </StatusSection>
+
+      {/* Signature */}
+      <StatusSection title="Signature" icon="✍️">
+        <CopyCard label="Signature Value" value={token.signature} variant="highlight" />
+        <p className={styles.signatureNote}>
+          ℹ️ This tool cannot verify the signature without the secret key. Use your backend or jwt.io to verify.
+        </p>
+      </StatusSection>
+
+      {/* Diagnostics */}
+      {diagnostics.length > 0 && (
+        <StatusSection title="Claim Analysis" icon="🔍">
+          <div className={styles.diagnosticsList}>
+            {diagnostics.map((issue, idx) => (
+              <div key={idx} className={`${styles.diagnosticsItem} ${styles[`diagnostics-${issue.level}`]}`}>
+                <IssueBadge level={issue.level} />
+                <span className={styles.diagnosticMessage}>{issue.message}</span>
+              </div>
+            ))}
+          </div>
+        </StatusSection>
+      )}
+
+      {/* Claim Presence */}
+      <StatusSection title="Claim Presence" icon="📌">
+        <div className={styles.claimPresenceList}>
+          <div className={styles.claimPresenceGroup}>
+            <h4 className={styles.claimPresenceTitle}>Present Claims ({claims.present.length})</h4>
+            {claims.present.length > 0 ? (
+              <div className={styles.claimPresenceItems}>
+                {claims.present.map((claim) => (
+                  <span key={claim} className={styles.claimPresenceBadge}>
+                    ✅ {claim}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.claimPresenceEmpty}>No standard claims found</p>
+            )}
+          </div>
+        </div>
+      </StatusSection>
+
+      {/* Raw JSON */}
+      <StatusSection title="Raw JSON" icon="📄">
+        <div className={styles.rawJsonSection}>
+          <h4 className={styles.rawJsonTitle}>Header (decoded)</h4>
+          <CopyCard label="Header JSON" value={raw.header} />
+
+          <h4 className={styles.rawJsonTitle} style={{ marginTop: '16px' }}>Payload (decoded)</h4>
+          <CopyCard label="Payload JSON" value={raw.payload} />
+        </div>
+      </StatusSection>
+    </div>
+  )
+}
