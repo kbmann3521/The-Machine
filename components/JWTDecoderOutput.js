@@ -490,11 +490,11 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
       {signatureVerification && (
         <StatusSection title="Signature Verification" icon="🔐">
           <div className={styles.signatureVerificationSection}>
-            {signatureVerification.algorithm === 'HS256' && (
+            {['HS256', 'HS384', 'HS512'].includes(signatureVerification.algorithm) && (
               <div className={styles.secretInputContainer}>
                 <div className={styles.secretInputHeader}>
                   <label htmlFor="verification-secret" className={styles.secretLabel}>
-                    HS256 Verification Secret:
+                    {signatureVerification.algorithm} Verification Secret:
                   </label>
                   {verificationSecret && (
                     <span className={styles.secretIndicator}>✓ Secret provided</span>
