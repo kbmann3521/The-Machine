@@ -129,13 +129,29 @@ function base64urlToUint8Array(base64url) {
   return bytes
 }
 
-// Helper function for client-side HS256 verification using Web Crypto API
-async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, secret) {
+// Helper function for client-side HMAC verification using Web Crypto API
+// Supports HS256, HS384, HS512
+async function verifyHMACClientSide(algorithm, rawHeader, rawPayload, signatureB64Url, secret) {
   try {
     if (!secret) {
       return {
         verified: null,
         reason: 'Secret not provided — cannot verify signature',
+      }
+    }
+
+    // Map HMAC algorithm to Web Crypto hash algorithm
+    const hashMap = {
+      HS256: 'SHA-256',
+      HS384: 'SHA-384',
+      HS512: 'SHA-512',
+    }
+
+    const hashAlg = hashMap[algorithm]
+    if (!hashAlg) {
+      return {
+        verified: false,
+        reason: `Unsupported algorithm: ${algorithm}`,
       }
     }
 
@@ -148,7 +164,7 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
     const key = await crypto.subtle.importKey(
       'raw',
       secretData,
-      { name: 'HMAC', hash: 'SHA-256' },
+      { name: 'HMAC', hash: hashAlg },
       false,
       ['sign']
     )
@@ -167,7 +183,7 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
     const verified = base64url === signatureB64Url
 
     // Debug info
-    console.log('[JWT Debug] Client-side HS256 Verification:', {
+    console.log(`[JWT Debug] Client-side ${algorithm} Verification:`, {
       headerLen: rawHeader.length,
       payloadLen: rawPayload.length,
       signatureLen: signatureB64Url.length,
@@ -180,7 +196,7 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
     return {
       verified,
       reason: verified
-        ? 'Recomputed HMAC matches token signature'
+        ? `Recomputed ${algorithm} (${hashAlg}) HMAC matches token signature`
         : 'Signature does not match. The secret is incorrect or token has been tampered with.',
     }
   } catch (error) {
