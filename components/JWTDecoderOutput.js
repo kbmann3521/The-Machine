@@ -132,7 +132,7 @@ export default function JWTDecoderOutput({ result }) {
     )
   }
 
-  const { token, raw, validation, timestamps, claims, diagnostics, summary, tokenType, ttlAnalysis, sensitiveData, headerSecurityWarnings } = result
+  const { token, raw, validation, timestamps, claims, diagnostics, summary, tokenType, ttlAnalysis, sensitiveData, headerSecurityWarnings, signatureVerification } = result
 
   return (
     <div className={styles.container}>
