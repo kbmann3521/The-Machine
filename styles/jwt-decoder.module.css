@@ -111,17 +111,17 @@
 }
 
 .errorCount {
-  color: #ef5350;
+  color: #c41e3a;
   font-weight: 600;
 }
 
 .warningCount {
-  color: #ffc107;
+  color: #92400e;
   font-weight: 600;
 }
 
 .infoCount {
-  color: #2196f3;
+  color: #1e40af;
   font-weight: 600;
 }
 
@@ -358,18 +358,18 @@
 }
 
 .diagnosticsError {
-  border-left-color: #ef5350;
-  background-color: rgba(239, 83, 80, 0.05);
+  border-left-color: #c41e3a;
+  background-color: rgba(196, 30, 58, 0.05);
 }
 
 .diagnosticsWarning {
-  border-left-color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.05);
+  border-left-color: #92400e;
+  background-color: rgba(146, 64, 14, 0.05);
 }
 
 .diagnosticsInfo {
-  border-left-color: #2196f3;
-  background-color: rgba(33, 150, 243, 0.05);
+  border-left-color: #1e40af;
+  background-color: rgba(30, 64, 175, 0.05);
 }
 
 .issueBadge {
@@ -385,18 +385,18 @@
 }
 
 .issueBadgeError {
-  background-color: rgba(239, 83, 80, 0.15);
-  color: #ef5350;
+  background-color: rgba(196, 30, 58, 0.15);
+  color: #c41e3a;
 }
 
 .issueBadgeWarning {
-  background-color: rgba(255, 193, 7, 0.15);
-  color: #ffc107;
+  background-color: rgba(146, 64, 14, 0.15);
+  color: #92400e;
 }
 
 .issueBadgeInfo {
-  background-color: rgba(33, 150, 243, 0.15);
-  color: #2196f3;
+  background-color: rgba(30, 64, 175, 0.15);
+  color: #1e40af;
 }
 
 .diagnosticMessage {
@@ -698,21 +698,21 @@
 }
 
 .sensitiveAlertError {
-  background-color: rgba(239, 83, 80, 0.1);
-  border-left-color: #ef5350;
-  color: #d32f2f;
+  background-color: rgba(196, 30, 58, 0.05);
+  border-left-color: #c41e3a;
+  color: #c41e3a;
 }
 
 .sensitiveAlertWarning {
-  background-color: rgba(255, 193, 7, 0.1);
-  border-left-color: #ffc107;
-  color: #f57f17;
+  background-color: rgba(146, 64, 14, 0.05);
+  border-left-color: #92400e;
+  color: #92400e;
 }
 
 .sensitiveAlertInfo {
-  background-color: rgba(33, 150, 243, 0.1);
-  border-left-color: #2196f3;
-  color: #0d47a1;
+  background-color: rgba(30, 64, 175, 0.05);
+  border-left-color: #1e40af;
+  color: #1e40af;
 }
 
 .alertIcon {
@@ -743,18 +743,18 @@
 }
 
 .headerWarningError {
-  border-left-color: #ef5350;
-  background-color: rgba(239, 83, 80, 0.05);
+  border-left-color: #c41e3a;
+  background-color: rgba(196, 30, 58, 0.05);
 }
 
 .headerWarningWarning {
-  border-left-color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.05);
+  border-left-color: #92400e;
+  background-color: rgba(146, 64, 14, 0.05);
 }
 
 .headerWarningInfo {
-  border-left-color: #2196f3;
-  background-color: rgba(33, 150, 243, 0.05);
+  border-left-color: #1e40af;
+  background-color: rgba(30, 64, 175, 0.05);
 }
 
 .warningText {
@@ -771,33 +771,57 @@
 .signatureVerificationSection {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
-.secretInputContainer {
-  position: relative;
-  padding: 12px;
-  background-color: var(--color-background-secondary);
+.signatureVerificationCard {
+  padding: 16px;
   border: 1px solid var(--color-border);
   border-radius: 4px;
+  background-color: var(--color-background-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.verificationAlgorithm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.algoLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 80px;
+}
+
+.algoValue {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.verificationInputSection {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.secretInputHeader {
+.verificationInputLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.secretLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.secretIndicator {
+.verificationInputIndicator {
   font-size: 11px;
   color: #66bb6a;
   font-weight: 500;
@@ -812,23 +836,29 @@
   font-size: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   transition: all 0.2s;
+  position: relative;
 }
 
 .secretInput:focus {
   outline: none;
-  border-color: #2196f3;
+  border-color: #1e40af;
   background-color: var(--color-background-tertiary);
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
 .secretInput::placeholder {
   color: var(--color-text-secondary);
 }
 
+.secretInputWrapper {
+  position: relative;
+}
+
 .secretToggleButton {
   position: absolute;
-  right: 14px;
-  top: 32px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
@@ -838,58 +868,37 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  color: var(--color-text-secondary);
 }
 
 .secretToggleButton:hover {
-  transform: scale(1.1);
-}
-
-.signatureVerificationCard {
-  padding: 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  border-left: 4px solid;
-  background-color: var(--color-background-tertiary);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.verificationValid {
-  border-left-color: #66bb6a;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(102, 187, 106, 0.05) 100%);
-}
-
-.verificationInvalid {
-  border-left-color: #ef5350;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(239, 83, 80, 0.05) 100%);
-}
-
-.verificationUnknown {
-  border-left-color: #2196f3;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(33, 150, 243, 0.05) 100%);
-}
-
-.verificationAlgorithm {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background-color: var(--color-background-secondary);
-  border-radius: 3px;
-  font-size: 12px;
-}
-
-.algoLabel {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  min-width: 70px;
-}
-
-.algoValue {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   color: var(--color-text-primary);
-  font-weight: 500;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.publicKeyInput {
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  font-size: 11px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  transition: all 0.2s;
+  resize: vertical;
+  min-height: 100px;
+  max-height: 250px;
+}
+
+.publicKeyInput:focus {
+  outline: none;
+  border-color: #1e40af;
+  background-color: var(--color-background-tertiary);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.publicKeyInput::placeholder {
+  color: var(--color-text-secondary);
 }
 
 .verificationStatus {
@@ -908,17 +917,17 @@
 }
 
 .statusInvalid {
-  background-color: rgba(239, 83, 80, 0.15);
-  color: #ef5350;
+  background-color: rgba(196, 30, 58, 0.15);
+  color: #c41e3a;
 }
 
 .statusUnknown {
-  background-color: rgba(33, 150, 243, 0.15);
-  color: #2196f3;
+  background-color: rgba(30, 64, 175, 0.15);
+  color: #1e40af;
 }
 
 .statusIcon {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .statusText {
@@ -929,9 +938,10 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px;
-  background-color: var(--color-background-secondary);
+  padding: 10px 12px;
+  background-color: var(--color-background-tertiary);
   border-radius: 3px;
+  border-left: 2px solid var(--color-border);
 }
 
 .reasonLabel {
@@ -948,86 +958,33 @@
   line-height: 1.4;
 }
 
-.publicKeyInputContainer {
-  position: relative;
-  padding: 12px;
-  background-color: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+.publicKeyDetails {
+  padding: 10px 12px;
+  background-color: rgba(30, 64, 175, 0.05);
+  border: 1px solid rgba(30, 64, 175, 0.2);
+  border-radius: 3px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.publicKeyInputHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.publicKeyLabel {
-  font-size: 12px;
+.detailsLabel {
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-text-primary);
+  margin: 0;
 }
 
-.publicKeyIndicator {
-  font-size: 11px;
-  color: #66bb6a;
-  font-weight: 500;
-}
-
-.publicKeyInput {
-  padding: 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  background-color: var(--color-background-tertiary);
-  color: var(--color-text-primary);
-  font-size: 11px;
+.detailsCode {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  transition: all 0.2s;
-  resize: vertical;
-  min-height: 120px;
-  max-height: 300px;
-}
-
-.publicKeyInput:focus {
-  outline: none;
-  border-color: #2196f3;
-  background-color: var(--color-background-tertiary);
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-}
-
-.publicKeyInput::placeholder {
+  font-size: 10px;
   color: var(--color-text-secondary);
-}
-
-.publicKeyToggleButton {
-  align-self: flex-start;
-  padding: 6px 12px;
-  background: none;
-  border: 1px solid rgba(33, 150, 243, 0.3);
-  border-radius: 3px;
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.publicKeyToggleButton:hover {
-  background-color: rgba(33, 150, 243, 0.1);
-  border-color: rgba(33, 150, 243, 0.5);
-  color: #2196f3;
-}
-
-.publicKeyDetails {
-  padding: 10px;
-  background-color: rgba(33, 150, 243, 0.05);
-  border: 1px solid rgba(33, 150, 243, 0.2);
-  border-radius: 3px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background-color: var(--color-background-secondary);
+  padding: 8px;
+  border-radius: 2px;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.4;
 }
 
 .detailsLabel {
