@@ -485,82 +485,82 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
       {/* 5. Signature Verification */}
       {signatureVerification && (
         <StatusSection title="Signature Verification" icon="🔐">
-          <div className={styles.signatureVerificationSection}>
-            {['HS256', 'HS384', 'HS512'].includes(signatureVerification.algorithm) && (
-              <div className={styles.secretInputContainer}>
-                <div className={styles.secretInputHeader}>
-                  <label htmlFor="verification-secret" className={styles.secretLabel}>
-                    {signatureVerification.algorithm} Verification Secret:
-                  </label>
-                  {verificationSecret && (
-                    <span className={styles.secretIndicator}>✓ Secret provided</span>
-                  )}
-                </div>
-                <input
-                  id="verification-secret"
-                  type={showSecretInput ? 'text' : 'password'}
-                  value={verificationSecret}
-                  onChange={(e) => {
-                    setVerificationSecret(e.target.value)
-                  }}
-                  placeholder="Enter the secret used to sign this token"
-                  className={styles.secretInput}
-                />
-                <button
-                  type="button"
-                  className={styles.secretToggleButton}
-                  onClick={() => setShowSecretInput(!showSecretInput)}
-                  title={showSecretInput ? 'Hide secret' : 'Show secret'}
-                >
-                  {showSecretInput ? '🙈' : '👁️'}
-                </button>
-              </div>
-            )}
-            {['RS256', 'RS384', 'RS512'].includes(signatureVerification.algorithm) && (
-              <div className={styles.publicKeyInputContainer}>
-                <div className={styles.publicKeyInputHeader}>
-                  <label htmlFor="verification-public-key" className={styles.publicKeyLabel}>
-                    {signatureVerification.algorithm} Public Key (PEM Format):
-                  </label>
-                  {verificationPublicKey && (
-                    <span className={styles.publicKeyIndicator}>✓ Key provided</span>
-                  )}
-                </div>
-                <textarea
-                  id="verification-public-key"
-                  value={verificationPublicKey}
-                  onChange={(e) => {
-                    setVerificationPublicKey(e.target.value)
-                  }}
-                  placeholder={`-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu5...\n-----END PUBLIC KEY-----`}
-                  className={styles.publicKeyInput}
-                />
-                {showPublicKeyInput && (
-                  <div className={styles.publicKeyDetails}>
-                    <p className={styles.detailsLabel}>📌 Expected Format:</p>
-                    <code className={styles.detailsCode}>
-{`-----BEGIN PUBLIC KEY-----
-[base64-encoded key data]
------END PUBLIC KEY-----`}
-                    </code>
-                  </div>
-                )}
-              </div>
-            )}
-            {(() => {
-              // Use client-side verification for HMAC and RSA algorithms, fall back to server-side for others
-              const hmacAlgorithms = ['HS256', 'HS384', 'HS512']
-              const rsaAlgorithms = ['RS256', 'RS384', 'RS512']
-              const verificationToDisplay = (hmacAlgorithms.includes(signatureVerification.algorithm) || rsaAlgorithms.includes(signatureVerification.algorithm)) && clientSignatureVerification
-                ? clientSignatureVerification
-                : signatureVerification
+          {(() => {
+            const hmacAlgorithms = ['HS256', 'HS384', 'HS512']
+            const rsaAlgorithms = ['RS256', 'RS384', 'RS512']
+            const verificationToDisplay = (hmacAlgorithms.includes(signatureVerification.algorithm) || rsaAlgorithms.includes(signatureVerification.algorithm)) && clientSignatureVerification
+              ? clientSignatureVerification
+              : signatureVerification
 
-              return (
-                <div className={`${styles.signatureVerificationCard} ${styles[`verification-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
+            return (
+              <div className={styles.signatureVerificationSection}>
+                <div className={styles.signatureVerificationCard}>
                   <div className={styles.verificationAlgorithm}>
                     <span className={styles.algoLabel}>Algorithm:</span>
                     <span className={styles.algoValue}>{signatureVerification.algorithm}</span>
                   </div>
+
+                  {hmacAlgorithms.includes(signatureVerification.algorithm) && (
+                    <div className={styles.verificationInputSection}>
+                      <label htmlFor="verification-secret" className={styles.verificationInputLabel}>
+                        <span>Verification Secret</span>
+                        {verificationSecret && (
+                          <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                        )}
+                      </label>
+                      <div className={styles.secretInputWrapper}>
+                        <input
+                          id="verification-secret"
+                          type={showSecretInput ? 'text' : 'password'}
+                          value={verificationSecret}
+                          onChange={(e) => {
+                            setVerificationSecret(e.target.value)
+                          }}
+                          placeholder="Enter the secret used to sign this token"
+                          className={styles.secretInput}
+                        />
+                        <button
+                          type="button"
+                          className={styles.secretToggleButton}
+                          onClick={() => setShowSecretInput(!showSecretInput)}
+                          title={showSecretInput ? 'Hide secret' : 'Show secret'}
+                        >
+                          {showSecretInput ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {rsaAlgorithms.includes(signatureVerification.algorithm) && (
+                    <div className={styles.verificationInputSection}>
+                      <label htmlFor="verification-public-key" className={styles.verificationInputLabel}>
+                        <span>Public Key (PEM Format)</span>
+                        {verificationPublicKey && (
+                          <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                        )}
+                      </label>
+                      <textarea
+                        id="verification-public-key"
+                        value={verificationPublicKey}
+                        onChange={(e) => {
+                          setVerificationPublicKey(e.target.value)
+                        }}
+                        placeholder={`-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu5...\n-----END PUBLIC KEY-----`}
+                        className={styles.publicKeyInput}
+                      />
+                      {showPublicKeyInput && (
+                        <div className={styles.publicKeyDetails}>
+                          <p className={styles.detailsLabel}>📌 Expected Format:</p>
+                          <code className={styles.detailsCode}>
+{`-----BEGIN PUBLIC KEY-----
+[base64-encoded key data]
+-----END PUBLIC KEY-----`}
+                          </code>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className={`${styles.verificationStatus} ${styles[`status-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
                     {verificationToDisplay.verified === true && (
                       <>
@@ -581,14 +581,15 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                       </>
                     )}
                   </div>
+
                   <div className={styles.verificationReason}>
                     <span className={styles.reasonLabel}>Details:</span>
                     <span className={styles.reasonText}>{verificationToDisplay.reason}</span>
                   </div>
                 </div>
-              )
-            })()}
-          </div>
+              </div>
+            )
+          })()}
         </StatusSection>
       )}
 
