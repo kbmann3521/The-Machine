@@ -191,8 +191,9 @@ async function verifyHS256ClientSide(rawHeader, rawPayload, signatureB64Url, sec
   }
 }
 
-// Helper function for client-side RS256 verification using Web Crypto API
-async function verifyRS256ClientSide(rawHeader, rawPayload, signatureB64Url, publicKeyPem) {
+// Helper function for client-side RSA signature verification using Web Crypto API
+// Supports RS256, RS384, RS512
+async function verifyRSAClientSide(algorithm, rawHeader, rawPayload, signatureB64Url, publicKeyPem) {
   try {
     if (!publicKeyPem) {
       return {
@@ -209,6 +210,21 @@ async function verifyRS256ClientSide(rawHeader, rawPayload, signatureB64Url, pub
       }
     }
 
+    // Map RSA algorithm to Web Crypto hash algorithm
+    const hashMap = {
+      RS256: 'SHA-256',
+      RS384: 'SHA-384',
+      RS512: 'SHA-512',
+    }
+
+    const hashAlg = hashMap[algorithm]
+    if (!hashAlg) {
+      return {
+        verified: false,
+        reason: `Unsupported algorithm: ${algorithm}`,
+      }
+    }
+
     // Convert PEM to ArrayBuffer
     const publicKeyBuffer = pemToArrayBuffer(publicKeyPem)
 
@@ -218,7 +234,7 @@ async function verifyRS256ClientSide(rawHeader, rawPayload, signatureB64Url, pub
       publicKeyBuffer,
       {
         name: 'RSASSA-PKCS1-v1_5',
-        hash: 'SHA-256',
+        hash: hashAlg,
       },
       false,
       ['verify']
@@ -239,7 +255,7 @@ async function verifyRS256ClientSide(rawHeader, rawPayload, signatureB64Url, pub
       message
     )
 
-    console.log('[JWT Debug] Client-side RS256 Verification:', {
+    console.log(`[JWT Debug] Client-side ${algorithm} Verification:`, {
       verified,
       headerLen: rawHeader.length,
       payloadLen: rawPayload.length,
@@ -249,7 +265,7 @@ async function verifyRS256ClientSide(rawHeader, rawPayload, signatureB64Url, pub
     return {
       verified,
       reason: verified
-        ? 'RSA-SHA256 signature matches token contents'
+        ? `${algorithm} (${hashAlg}) signature matches token contents`
         : 'Signature does not match. The public key does not match the private key used to sign.',
     }
   } catch (error) {
