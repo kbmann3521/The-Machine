@@ -247,6 +247,44 @@ export default function JWTDecoderOutput({ result }) {
         </StatusSection>
       )}
 
+      {/* Phase 3: Signature Verification */}
+      {signatureVerification && (
+        <StatusSection title="Signature Verification" icon="🔐">
+          <div className={styles.signatureVerificationSection}>
+            <div className={`${styles.signatureVerificationCard} ${styles[`verification-${signatureVerification.verified === true ? 'valid' : signatureVerification.verified === false ? 'invalid' : 'unknown'}`]}`}>
+              <div className={styles.verificationAlgorithm}>
+                <span className={styles.algoLabel}>Algorithm:</span>
+                <span className={styles.algoValue}>{signatureVerification.algorithm}</span>
+              </div>
+              <div className={`${styles.verificationStatus} ${styles[`status-${signatureVerification.verified === true ? 'valid' : signatureVerification.verified === false ? 'invalid' : 'unknown'}`]}`}>
+                {signatureVerification.verified === true && (
+                  <>
+                    <span className={styles.statusIcon}>✅</span>
+                    <span className={styles.statusText}>Signature Valid</span>
+                  </>
+                )}
+                {signatureVerification.verified === false && (
+                  <>
+                    <span className={styles.statusIcon}>❌</span>
+                    <span className={styles.statusText}>Signature Invalid</span>
+                  </>
+                )}
+                {signatureVerification.verified === null && (
+                  <>
+                    <span className={styles.statusIcon}>❓</span>
+                    <span className={styles.statusText}>Cannot Verify</span>
+                  </>
+                )}
+              </div>
+              <div className={styles.verificationReason}>
+                <span className={styles.reasonLabel}>Details:</span>
+                <span className={styles.reasonText}>{signatureVerification.reason}</span>
+              </div>
+            </div>
+          </div>
+        </StatusSection>
+      )}
+
       {/* Token Structure */}
       <StatusSection title="Token Structure" icon="🔐">
         <div className={styles.tokenStructure}>
