@@ -450,7 +450,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* Phase 3: Signature Verification */}
+      {/* Phase 3-4: Signature Verification */}
       {signatureVerification && (
         <StatusSection title="Signature Verification" icon="🔐">
           <div className={styles.signatureVerificationSection}>
@@ -482,6 +482,45 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                 >
                   {showSecretInput ? '🙈' : '👁️'}
                 </button>
+              </div>
+            )}
+            {signatureVerification.algorithm === 'RS256' && (
+              <div className={styles.publicKeyInputContainer}>
+                <div className={styles.publicKeyInputHeader}>
+                  <label htmlFor="verification-public-key" className={styles.publicKeyLabel}>
+                    RS256 Public Key (PEM Format):
+                  </label>
+                  {verificationPublicKey && (
+                    <span className={styles.publicKeyIndicator}>✓ Key provided</span>
+                  )}
+                </div>
+                <textarea
+                  id="verification-public-key"
+                  value={verificationPublicKey}
+                  onChange={(e) => {
+                    setVerificationPublicKey(e.target.value)
+                  }}
+                  placeholder={`-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu5...\n-----END PUBLIC KEY-----`}
+                  className={styles.publicKeyInput}
+                />
+                <button
+                  type="button"
+                  className={styles.publicKeyToggleButton}
+                  onClick={() => setShowPublicKeyInput(!showPublicKeyInput)}
+                  title={showPublicKeyInput ? 'Hide details' : 'Show details'}
+                >
+                  {showPublicKeyInput ? 'Hide Details' : 'Show Details'}
+                </button>
+                {showPublicKeyInput && (
+                  <div className={styles.publicKeyDetails}>
+                    <p className={styles.detailsLabel}>📌 Expected Format:</p>
+                    <code className={styles.detailsCode}>
+{`-----BEGIN PUBLIC KEY-----
+[base64-encoded key data]
+-----END PUBLIC KEY-----`}
+                    </code>
+                  </div>
+                )}
               </div>
             )}
             {(() => {
