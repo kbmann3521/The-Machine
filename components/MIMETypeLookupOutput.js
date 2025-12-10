@@ -236,7 +236,7 @@ function ResultCard({ result }) {
               className={styles.sectionToggle}
               onClick={() => toggleSection('applications')}
             >
-              <FaDatabase />
+              <span>🗂️</span>
               Common Applications
               <span className={expandedSections.applications ? '▼' : '▶'}>
                 {expandedSections.applications ? '▼' : '▶'}
