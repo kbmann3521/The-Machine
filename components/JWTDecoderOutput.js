@@ -253,6 +253,39 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
       {signatureVerification && (
         <StatusSection title="Signature Verification" icon="🔐">
           <div className={styles.signatureVerificationSection}>
+            {signatureVerification.algorithm === 'HS256' && (
+              <div className={styles.secretInputContainer}>
+                <div className={styles.secretInputHeader}>
+                  <label htmlFor="verification-secret" className={styles.secretLabel}>
+                    HS256 Verification Secret:
+                  </label>
+                  {verificationSecret && (
+                    <span className={styles.secretIndicator}>✓ Secret provided</span>
+                  )}
+                </div>
+                <input
+                  id="verification-secret"
+                  type={showSecretInput ? 'text' : 'password'}
+                  value={verificationSecret}
+                  onChange={(e) => {
+                    setVerificationSecret(e.target.value)
+                    if (onSecretChange) {
+                      onSecretChange(e.target.value)
+                    }
+                  }}
+                  placeholder="Enter the secret used to sign this token"
+                  className={styles.secretInput}
+                />
+                <button
+                  type="button"
+                  className={styles.secretToggleButton}
+                  onClick={() => setShowSecretInput(!showSecretInput)}
+                  title={showSecretInput ? 'Hide secret' : 'Show secret'}
+                >
+                  {showSecretInput ? '🙈' : '👁️'}
+                </button>
+              </div>
+            )}
             <div className={`${styles.signatureVerificationCard} ${styles[`verification-${signatureVerification.verified === true ? 'valid' : signatureVerification.verified === false ? 'invalid' : 'unknown'}`]}`}>
               <div className={styles.verificationAlgorithm}>
                 <span className={styles.algoLabel}>Algorithm:</span>
