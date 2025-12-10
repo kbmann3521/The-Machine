@@ -788,6 +788,117 @@
   background-color: rgba(33, 150, 243, 0.05);
 }
 
+/* Phase 3: Signature Verification */
+.signatureVerificationSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signatureVerificationCard {
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  border-left: 4px solid;
+  background-color: var(--color-background-tertiary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.verificationValid {
+  border-left-color: #66bb6a;
+  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(102, 187, 106, 0.05) 100%);
+}
+
+.verificationInvalid {
+  border-left-color: #ef5350;
+  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(239, 83, 80, 0.05) 100%);
+}
+
+.verificationUnknown {
+  border-left-color: #2196f3;
+  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(33, 150, 243, 0.05) 100%);
+}
+
+.verificationAlgorithm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: var(--color-background-secondary);
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.algoLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 70px;
+}
+
+.algoValue {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.verificationStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.statusValid {
+  background-color: rgba(102, 187, 106, 0.15);
+  color: #66bb6a;
+}
+
+.statusInvalid {
+  background-color: rgba(239, 83, 80, 0.15);
+  color: #ef5350;
+}
+
+.statusUnknown {
+  background-color: rgba(33, 150, 243, 0.15);
+  color: #2196f3;
+}
+
+.statusIcon {
+  font-size: 14px;
+}
+
+.statusText {
+  flex: 1;
+}
+
+.verificationReason {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background-color: var(--color-background-secondary);
+  border-radius: 3px;
+}
+
+.reasonLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-secondary);
+}
+
+.reasonText {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
 @media (max-width: 768px) {
   .tokenStructure {
     grid-template-columns: 1fr;
