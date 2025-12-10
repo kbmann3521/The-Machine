@@ -293,10 +293,6 @@ async function verifyRSAClientSide(algorithm, rawHeader, rawPayload, signatureB6
 }
 
 export default function JWTDecoderOutput({ result, onSecretChange }) {
-  const [expandedHeader, setExpandedHeader] = useState(false)
-  const [expandedPayload, setExpandedPayload] = useState(true)
-  const [expandedRawHeader, setExpandedRawHeader] = useState(false)
-  const [expandedRawPayload, setExpandedRawPayload] = useState(false)
   const [verificationSecret, setVerificationSecret] = useState('')
   const [showSecretInput, setShowSecretInput] = useState(false)
   const [verificationPublicKey, setVerificationPublicKey] = useState('')
@@ -375,7 +371,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
   return (
     <div className={styles.container}>
-      {/* Summary Badge */}
+      {/* 0. Status Summary */}
       <div className={styles.summarySection}>
         <div className={`${styles.summaryBadge} ${summary.valid ? styles.summaryValid : styles.summaryInvalid}`}>
           <span className={styles.summaryIcon}>{summary.valid ? '✅' : '⚠️'}</span>
@@ -393,7 +389,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </div>
       </div>
 
-      {/* Phase 2: Token Type Analysis */}
+      {/* 1. Token Intelligence + 2. Time-to-Live */}
       {tokenType && (
         <StatusSection title="Token Intelligence" icon="🧠">
           <div className={styles.tokenTypeSection}>
@@ -417,7 +413,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
               )}
             </div>
 
-            {/* TTL Analysis */}
+            {/* Time-to-Live (TTL) Analysis */}
             {ttlAnalysis && (
               <div className={styles.ttlAnalysisCard}>
                 <div className={styles.ttlLabel}>Time-to-Live (TTL)</div>
@@ -446,7 +442,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* Phase 2: Sensitive Data Detection */}
+      {/* 3. Security & Privacy Analysis */}
       {sensitiveData && (sensitiveData.containsPII || sensitiveData.containsSensitive || sensitiveData.containsFreeText) && (
         <StatusSection title="Security & Privacy" icon="🔒">
           <div className={styles.sensitiveDataWarnings}>
@@ -472,7 +468,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* Phase 2: Header Security Warnings */}
+      {/* 4. Header Analysis */}
       {headerSecurityWarnings && headerSecurityWarnings.length > 0 && (
         <StatusSection title="Header Analysis" icon="📌">
           <div className={styles.headerWarningsList}>
@@ -486,7 +482,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* Phase 3-4: Signature Verification */}
+      {/* 5. Signature Verification */}
       {signatureVerification && (
         <StatusSection title="Signature Verification" icon="🔐">
           <div className={styles.signatureVerificationSection}>
@@ -539,14 +535,6 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                   placeholder={`-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu5...\n-----END PUBLIC KEY-----`}
                   className={styles.publicKeyInput}
                 />
-                <button
-                  type="button"
-                  className={styles.publicKeyToggleButton}
-                  onClick={() => setShowPublicKeyInput(!showPublicKeyInput)}
-                  title={showPublicKeyInput ? 'Hide details' : 'Show details'}
-                >
-                  {showPublicKeyInput ? 'Hide Details' : 'Show Details'}
-                </button>
                 {showPublicKeyInput && (
                   <div className={styles.publicKeyDetails}>
                     <p className={styles.detailsLabel}>📌 Expected Format:</p>
@@ -604,8 +592,8 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* Token Structure */}
-      <StatusSection title="Token Structure" icon="🔐">
+      {/* 6. Token Structure (Header / Payload / Signature) */}
+      <StatusSection title="Token Structure" icon="🧱">
         <div className={styles.tokenStructure}>
           <div className={styles.tokenPart}>
             <div className={styles.tokenPartLabel}>Header</div>
@@ -622,113 +610,44 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </div>
       </StatusSection>
 
-      {/* Raw Decoded Text (Phase 1.5) */}
-      <StatusSection title="Decoded Values" icon="📝">
-        <div className={styles.rawDecodedSection}>
-          {/* Header */}
-          <div className={styles.rawDecodedItem}>
-            <button
-              className={styles.rawExpandButton}
-              onClick={() => setExpandedRawHeader(!expandedRawHeader)}
-            >
-              <span className={`${styles.rawExpandChevron} ${expandedRawHeader ? styles.rawExpandChevronOpen : ''}`}>▶</span>
-              Header (raw decoded)
-            </button>
-            {expandedRawHeader && (
-              <CopyCard label="Header" value={raw.header} />
-            )}
+      {/* 7. Decoded JSON (Raw) - Header and Payload prettified */}
+      <StatusSection title="Decoded JSON" icon="📝">
+        <div className={styles.decodedJsonSection}>
+          <div className={styles.decodedJsonItem}>
+            <div className={styles.decodedJsonItemTitle}>Header</div>
+            <CopyCard label="Header" value={raw.header} />
           </div>
-
-          {/* Payload */}
-          <div className={styles.rawDecodedItem}>
-            <button
-              className={styles.rawExpandButton}
-              onClick={() => setExpandedRawPayload(!expandedRawPayload)}
-            >
-              <span className={`${styles.rawExpandChevron} ${expandedRawPayload ? styles.rawExpandChevronOpen : ''}`}>▶</span>
-              Payload (raw decoded)
-            </button>
-            {expandedRawPayload && (
-              <CopyCard label="Payload" value={raw.payload} />
-            )}
+          <div className={styles.decodedJsonItem}>
+            <div className={styles.decodedJsonItemTitle}>Payload</div>
+            <CopyCard label="Payload" value={raw.payload} />
           </div>
         </div>
       </StatusSection>
 
-      {/* Header */}
-      <StatusSection title="Header" icon="📋">
-        <div className={styles.expandableSection}>
-          <button
-            className={styles.expandButton}
-            onClick={() => setExpandedHeader(!expandedHeader)}
-          >
-            <span className={`${styles.expandChevron} ${expandedHeader ? styles.expandChevronOpen : ''}`}>▶</span>
-            {expandedHeader ? 'Hide' : 'Show'} Header Details
-          </button>
-          {expandedHeader && (
-            <div className={styles.detailsContent}>
-              <div className={styles.claimsGrid}>
-                {Object.entries(token.header).map(([key, value]) => (
-                  <div key={key} className={styles.headerRow}>
-                    <span className={styles.claimName}>{key}</span>
-                    <span className={styles.claimValue}>{JSON.stringify(value)}</span>
-                  </div>
-                ))}
-              </div>
-              {validation.headerDuplicateKeys && validation.headerDuplicateKeys.length > 0 && (
-                <div className={styles.duplicateKeysWarning}>
-                  <span className={styles.warningIcon}>⚠️</span>
-                  <span>Duplicate keys found: {validation.headerDuplicateKeys.join(', ')}</span>
-                </div>
-              )}
+      {/* 8. Claims (Field-by-field View) */}
+      <StatusSection title="Claims" icon="📋">
+        <div className={styles.claimsFieldByFieldSection}>
+          <div className={styles.claimsGrid}>
+            {Object.entries(token.payload).map(([key, value]) => (
+              <ClaimRow
+                key={key}
+                name={key}
+                value={value}
+                isTimestamp={['exp', 'iat', 'nbf'].includes(key)}
+                timestamp={timestamps[key]}
+              />
+            ))}
+          </div>
+          {validation.payloadDuplicateKeys && validation.payloadDuplicateKeys.length > 0 && (
+            <div className={styles.duplicateKeysWarning}>
+              <span className={styles.warningIcon}>⚠️</span>
+              <span>Duplicate keys found: {validation.payloadDuplicateKeys.join(', ')}</span>
             </div>
           )}
         </div>
       </StatusSection>
 
-      {/* Payload */}
-      <StatusSection title="Payload (Claims)" icon="📦">
-        <div className={styles.expandableSection}>
-          <button
-            className={styles.expandButton}
-            onClick={() => setExpandedPayload(!expandedPayload)}
-          >
-            <span className={`${styles.expandChevron} ${expandedPayload ? styles.expandChevronOpen : ''}`}>▶</span>
-            {expandedPayload ? 'Hide' : 'Show'} Claims
-          </button>
-          {expandedPayload && (
-            <div className={styles.detailsContent}>
-              <div className={styles.claimsGrid}>
-                {Object.entries(token.payload).map(([key, value]) => (
-                  <ClaimRow
-                    key={key}
-                    name={key}
-                    value={value}
-                    isTimestamp={['exp', 'iat', 'nbf'].includes(key)}
-                    timestamp={timestamps[key]}
-                  />
-                ))}
-              </div>
-              {validation.payloadDuplicateKeys && validation.payloadDuplicateKeys.length > 0 && (
-                <div className={styles.duplicateKeysWarning}>
-                  <span className={styles.warningIcon}>⚠️</span>
-                  <span>Duplicate keys found: {validation.payloadDuplicateKeys.join(', ')}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </StatusSection>
-
-      {/* Signature */}
-      <StatusSection title="Signature" icon="✍️">
-        <CopyCard label="Signature Value" value={token.signature} variant="highlight" />
-        <p className={styles.signatureNote}>
-          ℹ️ This tool cannot verify the signature without the secret key. Use your backend or jwt.io to verify.
-        </p>
-      </StatusSection>
-
-      {/* Diagnostics */}
+      {/* 9. Claim Analysis (Semantic Validation) */}
       {diagnostics.length > 0 && (
         <StatusSection title="Claim Analysis" icon="🔍">
           <div className={styles.diagnosticsList}>
@@ -742,7 +661,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* Claim Presence */}
+      {/* 10. Claim Presence Summary */}
       <StatusSection title="Claim Presence" icon="📌">
         <div className={styles.claimPresenceList}>
           <div className={styles.claimPresenceGroup}>
@@ -761,7 +680,6 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
           </div>
         </div>
       </StatusSection>
-
     </div>
   )
 }
