@@ -502,11 +502,11 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                 </button>
               </div>
             )}
-            {signatureVerification.algorithm === 'RS256' && (
+            {['RS256', 'RS384', 'RS512'].includes(signatureVerification.algorithm) && (
               <div className={styles.publicKeyInputContainer}>
                 <div className={styles.publicKeyInputHeader}>
                   <label htmlFor="verification-public-key" className={styles.publicKeyLabel}>
-                    RS256 Public Key (PEM Format):
+                    {signatureVerification.algorithm} Public Key (PEM Format):
                   </label>
                   {verificationPublicKey && (
                     <span className={styles.publicKeyIndicator}>✓ Key provided</span>
