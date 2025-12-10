@@ -969,6 +969,107 @@
   line-height: 1.4;
 }
 
+.publicKeyInputContainer {
+  position: relative;
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.publicKeyInputHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.publicKeyLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.publicKeyIndicator {
+  font-size: 11px;
+  color: #66bb6a;
+  font-weight: 500;
+}
+
+.publicKeyInput {
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  font-size: 11px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  transition: all 0.2s;
+  resize: vertical;
+  min-height: 120px;
+  max-height: 300px;
+}
+
+.publicKeyInput:focus {
+  outline: none;
+  border-color: #2196f3;
+  background-color: var(--color-background-tertiary);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.publicKeyInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.publicKeyToggleButton {
+  align-self: flex-start;
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  border-radius: 3px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.publicKeyToggleButton:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.5);
+  color: #2196f3;
+}
+
+.publicKeyDetails {
+  padding: 10px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detailsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.detailsCode {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-secondary);
+  padding: 8px;
+  border-radius: 2px;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.4;
+}
+
 @media (max-width: 768px) {
   .tokenStructure {
     grid-template-columns: 1fr;
