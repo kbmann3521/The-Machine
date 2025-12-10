@@ -300,13 +300,25 @@ export default function OutputTabs({
     } else if (typeof activeTabConfig?.content === 'string') {
       // If content is a string, copy it directly
       textToCopy = activeTabConfig.content
-    } else if (typeof activeTabConfig?.content === 'function') {
+    } else if (typeof activeTabConfig?.content === 'function' || React.isValidElement(activeTabConfig?.content)) {
       // For component/function types, we can't copy - show a message or skip
       console.warn('Cannot copy component content')
       return
     } else {
-      // Fallback for objects
-      textToCopy = JSON.stringify(activeTabConfig.content, null, 2)
+      // Fallback for serializable objects - with circular reference protection
+      try {
+        textToCopy = JSON.stringify(activeTabConfig.content, (key, value) => {
+          // Skip DOM elements and React Fiber nodes
+          if (value && typeof value === 'object' && (value.nodeType || value.__reactFiber$ || value.__reactProps$)) {
+            return undefined
+          }
+          return value
+        }, 2)
+      } catch (err) {
+        // If serialization fails, skip copying
+        console.warn('Cannot copy content: ', err)
+        return
+      }
     }
 
     try {

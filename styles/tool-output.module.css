@@ -405,10 +405,32 @@
   border-radius: 3px !important;
   line-height: 1.4 !important;
   border: 1px solid var(--color-border) !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  max-height: 40px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  max-height: 200px !important;
   transition: none !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--color-border) transparent !important;
+}
+
+.copyCardValue::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.copyCardValue::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.copyCardValue::-webkit-scrollbar-thumb {
+  background-color: var(--color-border) !important;
+  border-radius: 3px !important;
+  border: 2px solid transparent !important;
+  background-clip: content-box !important;
+}
+
+.copyCardValue::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-secondary) !important;
+  background-clip: content-box !important;
 }
 
 .jsonFallback {

@@ -344,12 +344,18 @@ export default function Home() {
             }
             // Handle fetch errors gracefully
             if (fetchError.name === 'AbortError') {
-              console.debug('Predict API request timed out after 20 seconds')
+              console.debug('Predict API request aborted (expected during cleanup)')
+              // Don't throw - let the outer catch handle the graceful fallback
+              response = null
             } else {
               console.debug('Predict API fetch failed:', fetchError.message)
+              throw new Error('Prediction service unavailable')
             }
-            // Fall through to use local prediction
-            throw new Error('Prediction service unavailable')
+          }
+
+          // If response is null (aborted), fall back gracefully
+          if (!response) {
+            return
           }
 
           if (abortTimeoutRef.current) {

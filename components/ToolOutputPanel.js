@@ -9,6 +9,11 @@ import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
 import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
 import RegexTesterOutput from './RegexTesterOutput'
+import URLToolkitOutput from '../lib/tools/URLToolkitOutput'
+import HTTPStatusLookupOutput from './HTTPStatusLookupOutput'
+import HttpHeaderParserOutput from './HttpHeaderParserOutput'
+import JWTDecoderOutput from './JWTDecoderOutput'
+import MIMETypeLookupOutput from './MIMETypeLookupOutput'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [] }) {
   const toolCategory = TOOLS[toolId]?.category
@@ -1449,6 +1454,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
+  // URL toolkit custom output
+  if (toolId === 'url-toolkit' && displayResult?.components) {
+    return <URLToolkitOutput result={displayResult} toolCategory={toolCategory} toolId={toolId} />
+  }
+
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
@@ -2804,16 +2814,60 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   const renderJwtDecoderOutput = () => {
-    if (!displayResult || !displayResult.decoded) return null
+    if (!displayResult) return null
 
-    // Use OutputTabs with JSON-only tab, let it auto-generate the friendly view
+    const handleSecretChange = (secret) => {
+      // Update the config with the new secret
+      const newConfig = {
+        ...configOptions,
+        verificationSecret: secret,
+      }
+      setExpandedSection('formatted')
+
+      // Notify parent to re-run the tool with the new secret
+      if (onConfigChange) {
+        onConfigChange(newConfig)
+      }
+    }
+
+    const friendlyView = () => <JWTDecoderOutput result={displayResult} onSecretChange={handleSecretChange} />
+
     const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
+        contentType: 'component',
+      },
       {
         id: 'json',
         label: 'JSON',
         content: displayResult,
         contentType: 'json',
-      }
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderMIMETypeLookupOutput = () => {
+    if (!displayResult) return null
+
+    const friendlyView = () => <MIMETypeLookupOutput result={displayResult} />
+
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
     ]
 
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
@@ -4665,6 +4719,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderColorConverterOutput()
       case 'jwt-decoder':
         return renderJwtDecoderOutput()
+      case 'mime-type-lookup':
+        return renderMIMETypeLookupOutput()
       case 'json-formatter':
         return renderJsonFormatterOutput()
       case 'xml-formatter':
@@ -4972,6 +5028,74 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           />
         )
       }
+
+      case 'http-status-lookup': {
+        const tabs = []
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: <HTTPStatusLookupOutput result={displayResult} configOptions={configOptions} />,
+          contentType: 'component'
+        })
+
+        if (displayResult) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          })
+        }
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
+
+      case 'http-header-parser': {
+        const handleStrictModeToggle = () => {
+          if (onConfigChange) {
+            onConfigChange({
+              ...configOptions,
+              strictMode: !configOptions.strictMode
+            })
+          }
+        }
+
+        const tabs = []
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: <HttpHeaderParserOutput result={displayResult} onStrictModeToggle={handleStrictModeToggle} />,
+          contentType: 'component'
+        })
+
+        if (displayResult && !displayResult.error) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          })
+        }
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
+
       default: {
         const tabs = []
 
