@@ -2815,13 +2815,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const renderJwtDecoderOutput = () => {
     if (!displayResult) return null
 
-    const decoderComponent = () => <JWTDecoderOutput result={displayResult} />
+    const friendlyView = () => <JWTDecoderOutput result={displayResult} />
 
     const tabs = [
       {
-        id: 'decoder',
-        label: 'Output',
-        content: decoderComponent,
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
         contentType: 'component',
       },
       {
