@@ -267,9 +267,11 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [expandedRawPayload, setExpandedRawPayload] = useState(false)
   const [verificationSecret, setVerificationSecret] = useState('')
   const [showSecretInput, setShowSecretInput] = useState(false)
+  const [verificationPublicKey, setVerificationPublicKey] = useState('')
+  const [showPublicKeyInput, setShowPublicKeyInput] = useState(false)
   const [clientSignatureVerification, setClientSignatureVerification] = useState(null)
 
-  // Re-verify signature when secret changes (client-side for HS256)
+  // Re-verify signature when secret/public key changes (client-side for HS256/RS256)
   useEffect(() => {
     if (!result || !result.decoded || !result.rawSegments) {
       setClientSignatureVerification(null)
@@ -277,24 +279,37 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
     }
 
     const alg = result.token.header?.alg
-    if (alg !== 'HS256') {
+
+    if (alg === 'HS256') {
+      // Verify asynchronously
+      const verify = async () => {
+        const verification = await verifyHS256ClientSide(
+          result.rawSegments.header,
+          result.rawSegments.payload,
+          result.rawSegments.signature,
+          verificationSecret
+        )
+        setClientSignatureVerification(verification)
+      }
+
+      verify()
+    } else if (alg === 'RS256') {
+      // Verify asynchronously
+      const verify = async () => {
+        const verification = await verifyRS256ClientSide(
+          result.rawSegments.header,
+          result.rawSegments.payload,
+          result.rawSegments.signature,
+          verificationPublicKey
+        )
+        setClientSignatureVerification(verification)
+      }
+
+      verify()
+    } else {
       setClientSignatureVerification(null)
-      return
     }
-
-    // Verify asynchronously
-    const verify = async () => {
-      const verification = await verifyHS256ClientSide(
-        result.rawSegments.header,
-        result.rawSegments.payload,
-        result.rawSegments.signature,
-        verificationSecret
-      )
-      setClientSignatureVerification(verification)
-    }
-
-    verify()
-  }, [result, verificationSecret])
+  }, [result, verificationSecret, verificationPublicKey])
 
   if (!result || !result.decoded) {
     return (
