@@ -471,7 +471,7 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
           <button
             className={`${styles.strictModeToggle} ${strictMode ? styles.strictModeOn : styles.strictModeOff}`}
             onClick={onStrictModeToggle}
-            title="Toggle Strict RFC Mode"
+            title="Strict Mode: Enables RFC 9110/7230 compliance checking. Issues are classified more strictly (warnings → errors, infos → warnings). Does not affect your Security Score."
           >
             {strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF'}
           </button>
@@ -499,7 +499,7 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
         <button
           className={`${styles.strictModeToggle} ${strictMode ? styles.strictModeOn : styles.strictModeOff}`}
           onClick={onStrictModeToggle}
-          title="Toggle Strict RFC Mode"
+          title="Strict Mode: Enables RFC 9110/7230 compliance checking. Issues are classified more strictly (warnings → errors, infos → warnings). Does not affect your Security Score."
         >
           {strictMode ? 'Strict Mode: ON' : 'Strict Mode: OFF'}
         </button>
