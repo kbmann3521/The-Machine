@@ -445,9 +445,9 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
   const infos = issues.filter(i => i.level === 'info')
 
   // Use protocol-specific counts from overallStatus
-  const protocolErrorCount = overallStatus?.protocolErrors || errors.length
-  const protocolWarningCount = overallStatus?.protocolWarnings || warnings.length
-  const protocolInfoCount = overallStatus?.protocolInfos || infos.length
+  const protocolErrorCount = overallStatus?.protocol?.errors ?? errors.length
+  const protocolWarningCount = overallStatus?.protocol?.warnings ?? warnings.length
+  const protocolInfoCount = overallStatus?.protocol?.infos ?? infos.length
 
   const hasProtocolIssues = protocolErrorCount > 0 || protocolWarningCount > 0 || protocolInfoCount > 0
 
@@ -471,7 +471,7 @@ function ProtocolDiagnostics({ issues, strictMode, onStrictModeToggle, overallSt
     )
   }
 
-  const protocolRiskLevel = overallStatus?.protocolRiskLevel || 'low'
+  const protocolRiskLevel = overallStatus?.protocol?.riskLevel || 'low'
   const riskIcon = { high: '🔴', medium: '🟡', low: '🟢' }
   const riskLabel = { high: 'HIGH', medium: 'MEDIUM', low: 'LOW' }
 
