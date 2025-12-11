@@ -488,6 +488,59 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
     }
   }, [result, verificationSecret, verificationPublicKey])
 
+  // JWE Decryption (Phase 7B) - Decrypt JWE with dir + A256GCM using Web Crypto API
+  useEffect(() => {
+    if (!result || !result.decoded || result.kind !== 'JWE') {
+      setJweDecryption(null)
+      return
+    }
+
+    const jweHeader = result.jwe?.protectedHeader
+    if (!jweHeader || jweHeader.alg !== 'dir' || jweHeader.enc !== 'A256GCM') {
+      setJweDecryption(null)
+      return
+    }
+
+    if (!jweKey) {
+      setJweDecryption({
+        status: 'waiting',
+        verified: null,
+        reason: 'Decryption key not provided',
+      })
+      return
+    }
+
+    let cancelled = false
+
+    const performDecryption = async () => {
+      try {
+        const dec = await decryptJWE_Dir_A256GCM(result.jwe, jweKey)
+        if (cancelled) return
+
+        setJweDecryption({
+          status: 'ok',
+          verified: true,
+          reason: 'Decryption successful',
+          payload: dec.payload,
+          plaintext: dec.plaintext,
+        })
+      } catch (err) {
+        if (cancelled) return
+        setJweDecryption({
+          status: 'error',
+          verified: false,
+          reason: `Decryption failed: ${err.message}`,
+        })
+      }
+    }
+
+    performDecryption()
+
+    return () => {
+      cancelled = true
+    }
+  }, [result, jweKey])
+
   if (!result || !result.decoded) {
     return (
       <div className={styles.container}>
