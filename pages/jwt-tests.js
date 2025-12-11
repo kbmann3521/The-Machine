@@ -12,7 +12,12 @@ export default function JWTTestSuite() {
     const runTests = async () => {
       setLoading(true)
       try {
-        const results = runJWTTests()
+        // Call server-side API endpoint to run tests with Node.js crypto available
+        const response = await fetch('/api/jwt-tests')
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        const results = await response.json()
         setTestResults(results)
       } catch (error) {
         console.error('Test execution error:', error)
