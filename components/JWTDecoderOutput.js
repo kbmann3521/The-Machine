@@ -369,7 +369,7 @@ async function verifyECClientSide(algorithm, rawHeader, rawPayload, signatureB64
     return {
       verified,
       reason: verified
-        ? `${algorithm} (${algConfig.hash} with ${algConfig.curve} curve) signature matches token contents`
+        ? `${algorithm} (${algConfig.hash} with ${algConfig.namedCurve} curve) signature matches token contents`
         : 'Signature does not match. The public key does not match the private key used to sign.',
     }
   } catch (error) {
