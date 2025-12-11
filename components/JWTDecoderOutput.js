@@ -535,8 +535,8 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </div>
       </div>
 
-      {/* 1. Token Intelligence + 2. Time-to-Live */}
-      {tokenType && (
+      {/* 1. Token Intelligence + 2. Time-to-Live (hidden for JWE - payload is encrypted) */}
+      {tokenType && !isJWE && (
         <StatusSection title="Token Intelligence" icon="🧠">
           <div className={styles.tokenTypeSection}>
             <div className={styles.tokenTypeCard}>
