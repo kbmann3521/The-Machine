@@ -318,6 +318,12 @@ export default function Home() {
           // Fetch with 20 second timeout
           const controller = new AbortController()
           abortControllerRef.current = controller
+
+          // Check if signal is already aborted before setting up timeout
+          if (controller.signal.aborted) {
+            return
+          }
+
           abortTimeoutRef.current = setTimeout(() => {
             try {
               controller.abort()
@@ -328,15 +334,20 @@ export default function Home() {
 
           let response
           try {
-            response = await fetch('/api/tools/predict', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                inputText: text,
-                inputImage: preview ? 'image' : null,
-              }),
-              signal: controller.signal,
-            })
+            // Check again if signal was aborted during the delay
+            if (controller.signal.aborted) {
+              response = null
+            } else {
+              response = await fetch('/api/tools/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  inputText: text,
+                  inputImage: preview ? 'image' : null,
+                }),
+                signal: controller.signal,
+              })
+            }
           } catch (fetchError) {
             if (abortTimeoutRef.current) {
               clearTimeout(abortTimeoutRef.current)
