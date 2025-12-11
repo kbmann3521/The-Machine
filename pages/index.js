@@ -155,7 +155,7 @@ export default function Home() {
           response = await fetch('/api/tools/get-metadata', {
             signal: controller.signal,
             headers: { 'Content-Type': 'application/json' },
-            cache: 'force-cache',
+            cache: 'no-cache',
           })
         } catch (fetchError) {
           clearTimeout(timeoutId)
