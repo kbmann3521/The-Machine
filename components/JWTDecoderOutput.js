@@ -292,6 +292,94 @@ async function verifyRSAClientSide(algorithm, rawHeader, rawPayload, signatureB6
   }
 }
 
+// Helper function for client-side EC signature verification using Web Crypto API
+// Supports ES256, ES384, ES512
+async function verifyECClientSide(algorithm, rawHeader, rawPayload, signatureB64Url, publicKeyPem) {
+  try {
+    if (!publicKeyPem) {
+      return {
+        verified: null,
+        reason: 'Public key not provided — cannot verify signature',
+      }
+    }
+
+    // Validate PEM format
+    if (!publicKeyPem.includes('BEGIN PUBLIC KEY') || !publicKeyPem.includes('END PUBLIC KEY')) {
+      return {
+        verified: false,
+        reason: 'Invalid PEM format. Public key must start with "-----BEGIN PUBLIC KEY-----" and end with "-----END PUBLIC KEY-----"',
+      }
+    }
+
+    // Map EC algorithm to Web Crypto hash algorithm and curve name
+    const hashMap = {
+      ES256: { hash: 'SHA-256', curve: 'P-256' },
+      ES384: { hash: 'SHA-384', curve: 'P-384' },
+      ES512: { hash: 'SHA-512', curve: 'P-521' },
+    }
+
+    const algConfig = hashMap[algorithm]
+    if (!algConfig) {
+      return {
+        verified: false,
+        reason: `Unsupported algorithm: ${algorithm}`,
+      }
+    }
+
+    // Convert PEM to ArrayBuffer
+    const publicKeyBuffer = pemToArrayBuffer(publicKeyPem)
+
+    // Import the public key
+    const publicKey = await crypto.subtle.importKey(
+      'spki',
+      publicKeyBuffer,
+      {
+        name: 'ECDSA',
+        hash: algConfig.hash,
+      },
+      false,
+      ['verify']
+    )
+
+    // Convert signature from base64url to bytes
+    const signatureBytes = base64urlToUint8Array(signatureB64Url)
+
+    // Create the message that was signed
+    const encoder = new TextEncoder()
+    const message = encoder.encode(`${rawHeader}.${rawPayload}`)
+
+    // Verify the signature
+    const verified = await crypto.subtle.verify(
+      {
+        name: 'ECDSA',
+        hash: algConfig.hash,
+      },
+      publicKey,
+      signatureBytes,
+      message
+    )
+
+    console.log(`[JWT Debug] Client-side ${algorithm} Verification:`, {
+      verified,
+      headerLen: rawHeader.length,
+      payloadLen: rawPayload.length,
+      signatureLen: signatureB64Url.length,
+    })
+
+    return {
+      verified,
+      reason: verified
+        ? `${algorithm} (${algConfig.hash} with ${algConfig.curve} curve) signature matches token contents`
+        : 'Signature does not match. The public key does not match the private key used to sign.',
+    }
+  } catch (error) {
+    return {
+      verified: false,
+      reason: `Verification error: ${error.message}. Ensure the public key is valid.`,
+    }
+  }
+}
+
 export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [verificationSecret, setVerificationSecret] = useState('')
   const [showSecretInput, setShowSecretInput] = useState(false)
