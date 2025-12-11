@@ -49,21 +49,6 @@ export default function Phase5TestSuite() {
     }))
   }
 
-  if (loading) {
-    return (
-      <>
-        <Head>
-          <title>Phase 5 Test Suite</title>
-        </Head>
-        <div className={styles.container}>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}></div>
-            <p>Running Phase 5 tests...</p>
-          </div>
-        </div>
-      </>
-    )
-  }
 
   return (
     <>
