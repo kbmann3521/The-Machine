@@ -1101,6 +1101,19 @@
   color: var(--color-text-primary);
 }
 
+.publicKeyHint {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: rgba(66, 165, 245, 0.08);
+  border-left: 2px solid #42a5f5;
+  border-radius: 2px;
+}
+
+.hintText {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
 @media (max-width: 768px) {
   .tokenStructure {
     grid-template-columns: 1fr;
