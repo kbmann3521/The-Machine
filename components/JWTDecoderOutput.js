@@ -918,63 +918,106 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* 6. Token Structure (Header / Payload / Signature) */}
+      {/* 6. Token Structure (Header / Payload / Signature for JWS, or 5 parts for JWE) */}
       <StatusSection title="Token Structure" icon="🧱">
         <div className={styles.tokenStructure}>
-          <div className={styles.tokenPart}>
-            <div className={styles.tokenPartLabel}>Header</div>
-            <div className={styles.tokenPartValue}>{raw.header.substring(0, 50)}{raw.header.length > 50 ? '...' : ''}</div>
-          </div>
-          <div className={styles.tokenPart}>
-            <div className={styles.tokenPartLabel}>Payload</div>
-            <div className={styles.tokenPartValue}>{raw.payload.substring(0, 50)}{raw.payload.length > 50 ? '...' : ''}</div>
-          </div>
-          <div className={styles.tokenPart}>
-            <div className={styles.tokenPartLabel}>Signature</div>
-            <div className={styles.tokenPartValue}>{token.signature.substring(0, 50)}{token.signature.length > 50 ? '...' : ''}</div>
-          </div>
-        </div>
-      </StatusSection>
-
-      {/* 7. Decoded JSON (Raw) - Header and Payload prettified */}
-      <StatusSection title="Decoded JSON" icon="📝">
-        <div className={styles.decodedJsonSection}>
-          <div className={styles.decodedJsonItem}>
-            <div className={styles.decodedJsonItemTitle}>Header</div>
-            <CopyCard label="Header" value={raw.header} />
-          </div>
-          <div className={styles.decodedJsonItem}>
-            <div className={styles.decodedJsonItemTitle}>Payload</div>
-            <CopyCard label="Payload" value={raw.payload} />
-          </div>
-        </div>
-      </StatusSection>
-
-      {/* 8. Claims (Field-by-field View) */}
-      <StatusSection title="Claims" icon="📋">
-        <div className={styles.claimsFieldByFieldSection}>
-          <div className={styles.claimsGrid}>
-            {Object.entries(token.payload).map(([key, value]) => (
-              <ClaimRow
-                key={key}
-                name={key}
-                value={value}
-                isTimestamp={['exp', 'iat', 'nbf'].includes(key)}
-                timestamp={timestamps[key]}
-              />
-            ))}
-          </div>
-          {validation.payloadDuplicateKeys && validation.payloadDuplicateKeys.length > 0 && (
-            <div className={styles.duplicateKeysWarning}>
-              <span className={styles.warningIcon}>⚠️</span>
-              <span>Duplicate keys found: {validation.payloadDuplicateKeys.join(', ')}</span>
-            </div>
+          {isJWE ? (
+            <>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Protected Header</div>
+                <div className={styles.tokenPartValue}>{jwe.rawSegments.protectedHeader.substring(0, 50)}{jwe.rawSegments.protectedHeader.length > 50 ? '...' : ''}</div>
+              </div>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Encrypted Key</div>
+                <div className={styles.tokenPartValue}>{jwe.rawSegments.encryptedKey.substring(0, 50)}{jwe.rawSegments.encryptedKey.length > 50 ? '...' : ''}</div>
+              </div>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Initialization Vector (IV)</div>
+                <div className={styles.tokenPartValue}>{jwe.rawSegments.iv.substring(0, 50)}{jwe.rawSegments.iv.length > 50 ? '...' : ''}</div>
+              </div>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Ciphertext</div>
+                <div className={styles.tokenPartValue}>{jwe.rawSegments.ciphertext.substring(0, 50)}{jwe.rawSegments.ciphertext.length > 50 ? '...' : ''}</div>
+              </div>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Authentication Tag</div>
+                <div className={styles.tokenPartValue}>{jwe.rawSegments.tag.substring(0, 50)}{jwe.rawSegments.tag.length > 50 ? '...' : ''}</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Header</div>
+                <div className={styles.tokenPartValue}>{raw.header.substring(0, 50)}{raw.header.length > 50 ? '...' : ''}</div>
+              </div>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Payload</div>
+                <div className={styles.tokenPartValue}>{raw.payload.substring(0, 50)}{raw.payload.length > 50 ? '...' : ''}</div>
+              </div>
+              <div className={styles.tokenPart}>
+                <div className={styles.tokenPartLabel}>Signature</div>
+                <div className={styles.tokenPartValue}>{token.signature.substring(0, 50)}{token.signature.length > 50 ? '...' : ''}</div>
+              </div>
+            </>
           )}
         </div>
       </StatusSection>
 
-      {/* 9. Claim Analysis (Semantic Validation) */}
-      {diagnostics.length > 0 && (
+      {/* 7. Decoded JSON (Raw) - Header and Payload prettified (only for JWS) */}
+      {!isJWE && (
+        <StatusSection title="Decoded JSON" icon="📝">
+          <div className={styles.decodedJsonSection}>
+            <div className={styles.decodedJsonItem}>
+              <div className={styles.decodedJsonItemTitle}>Header</div>
+              <CopyCard label="Header" value={raw.header} />
+            </div>
+            <div className={styles.decodedJsonItem}>
+              <div className={styles.decodedJsonItemTitle}>Payload</div>
+              <CopyCard label="Payload" value={raw.payload} />
+            </div>
+          </div>
+        </StatusSection>
+      )}
+
+      {/* 7b. Protected Header JSON (only for JWE) */}
+      {isJWE && jwe.protectedHeader && (
+        <StatusSection title="Protected Header (Decrypted)" icon="📝">
+          <div className={styles.decodedJsonSection}>
+            <div className={styles.decodedJsonItem}>
+              <div className={styles.decodedJsonItemTitle}>Protected Header</div>
+              <CopyCard label="Protected Header" value={JSON.stringify(jwe.protectedHeader, null, 2)} />
+            </div>
+          </div>
+        </StatusSection>
+      )}
+
+      {/* 8. Claims (Field-by-field View) - only for JWS */}
+      {!isJWE && (
+        <StatusSection title="Claims" icon="📋">
+          <div className={styles.claimsFieldByFieldSection}>
+            <div className={styles.claimsGrid}>
+              {Object.entries(token.payload).map(([key, value]) => (
+                <ClaimRow
+                  key={key}
+                  name={key}
+                  value={value}
+                  isTimestamp={['exp', 'iat', 'nbf'].includes(key)}
+                  timestamp={timestamps[key]}
+                />
+              ))}
+            </div>
+            {validation.payloadDuplicateKeys && validation.payloadDuplicateKeys.length > 0 && (
+              <div className={styles.duplicateKeysWarning}>
+                <span className={styles.warningIcon}>⚠️</span>
+                <span>Duplicate keys found: {validation.payloadDuplicateKeys.join(', ')}</span>
+              </div>
+            )}
+          </div>
+        </StatusSection>
+      )}
+
+      {/* 9. Claim Analysis (Semantic Validation) - only for JWS */}
+      {!isJWE && diagnostics.length > 0 && (
         <StatusSection title="Claim Analysis" icon="🔍">
           <div className={styles.diagnosticsList}>
             {diagnostics.map((issue, idx) => (
