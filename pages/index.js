@@ -426,8 +426,14 @@ export default function Home() {
         }
       }
 
+      // Execute predictTools asynchronously without blocking
+      // All errors are caught inside the function, so we don't need an outer catch
       predictTools().catch(err => {
-        console.debug('Unhandled error in predictTools:', err?.message || err)
+        // This should rarely happen as errors are caught inside predictTools
+        // but we catch it just in case
+        if (err?.name !== 'AbortError') {
+          console.debug('Unhandled error in predictTools:', err?.message || err)
+        }
       })
     }, 300)
   }, [fastLocalClassification, previousInputLength])
