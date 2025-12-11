@@ -1310,8 +1310,18 @@
 
 .encryptionAlgorithm {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.encryptionAlgorithm .algoLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 80px;
 }
 
 .encryptionStatus {
