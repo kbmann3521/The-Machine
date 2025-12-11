@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { FaCopy, FaCheck } from 'react-icons/fa6'
 import styles from '../styles/jwt-decoder.module.css'
 import toolOutputStyles from '../styles/tool-output.module.css'
+import { decryptJWE_Dir_A256GCM } from '../lib/jwtDecoderClient'
 
 function CopyCard({ label, value, variant = 'default' }) {
   const [isCopied, setIsCopied] = useState(false)
