@@ -389,7 +389,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [useAutoFetch, setUseAutoFetch] = useState(true)
   const [showKeyDetails, setShowKeyDetails] = useState(false)
 
-  // Re-verify signature when secret/public key changes (client-side for HS256/384/512 and RS256/384/512)
+  // Re-verify signature when secret/public key changes (client-side for HS256/384/512, RS256/384/512, and ES256/384/512)
   useEffect(() => {
     if (!result || !result.decoded || !result.rawSegments) {
       setClientSignatureVerification(null)
@@ -399,6 +399,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
     const alg = result.token.header?.alg
     const hmacAlgorithms = ['HS256', 'HS384', 'HS512']
     const rsaAlgorithms = ['RS256', 'RS384', 'RS512']
+    const ecAlgorithms = ['ES256', 'ES384', 'ES512']
 
     if (hmacAlgorithms.includes(alg)) {
       // Verify asynchronously
@@ -418,6 +419,20 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
       // Verify asynchronously
       const verify = async () => {
         const verification = await verifyRSAClientSide(
+          alg,
+          result.rawSegments.header,
+          result.rawSegments.payload,
+          result.rawSegments.signature,
+          verificationPublicKey
+        )
+        setClientSignatureVerification(verification)
+      }
+
+      verify()
+    } else if (ecAlgorithms.includes(alg)) {
+      // Verify asynchronously
+      const verify = async () => {
+        const verification = await verifyECClientSide(
           alg,
           result.rawSegments.header,
           result.rawSegments.payload,
