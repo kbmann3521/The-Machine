@@ -98,7 +98,15 @@ export default function Phase5TestSuite() {
           </div>
         )}
 
-        {/* Structured Tests Mode */}
+        {/* Structured Tests Mode - Empty State */}
+        {testMode === 'structured' && !testResults && !loading && (
+          <div className={styles.emptyState}>
+            <p>Phase 5 includes 13 comprehensive test cases for JWKS auto-discovery and real-world token structures.</p>
+            <p>Click "Run Tests" above to validate JWKS discovery logic, token structure validation, and real-world provider structures (Auth0, Firebase, Okta, Azure AD).</p>
+          </div>
+        )}
+
+        {/* Structured Tests Mode - Results */}
         {testMode === 'structured' && testResults && !loading && (
           <>
             {/* Summary Card */}
