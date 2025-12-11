@@ -9,29 +9,6 @@ function toBase64Url(buffer) {
     .replace(/=+$/, '')
 }
 
-// Helper to create JWT
-function createECToken(header, payload, privateKeyPem) {
-  const headerB64 = toBase64Url(Buffer.from(JSON.stringify(header)))
-  const payloadB64 = toBase64Url(Buffer.from(JSON.stringify(payload)))
-  const message = `${headerB64}.${payloadB64}`
-
-  // Determine hash algorithm from header.alg
-  const algMap = {
-    ES256: 'sha256',
-    ES384: 'sha384',
-    ES512: 'sha512',
-  }
-  const hashAlg = algMap[header.alg]
-
-  const signer = crypto.createSign(hashMap[header.alg])
-  signer.update(message)
-  signer.end()
-
-  const signature = signer.sign(privateKeyPem)
-  const signatureB64 = toBase64Url(signature)
-
-  return `${message}.${signatureB64}`
-}
 
 // Generate EC keypairs for testing
 const curves = [
