@@ -593,7 +593,8 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
           {(() => {
             const hmacAlgorithms = ['HS256', 'HS384', 'HS512']
             const rsaAlgorithms = ['RS256', 'RS384', 'RS512']
-            const verificationToDisplay = (hmacAlgorithms.includes(signatureVerification.algorithm) || rsaAlgorithms.includes(signatureVerification.algorithm)) && clientSignatureVerification
+            const ecAlgorithms = ['ES256', 'ES384', 'ES512']
+            const verificationToDisplay = (hmacAlgorithms.includes(signatureVerification.algorithm) || rsaAlgorithms.includes(signatureVerification.algorithm) || ecAlgorithms.includes(signatureVerification.algorithm)) && clientSignatureVerification
               ? clientSignatureVerification
               : signatureVerification
 
