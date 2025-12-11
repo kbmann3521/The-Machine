@@ -624,6 +624,12 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
+      {/* Privacy Notice Banner */}
+      <div className={styles.privacyNoticeBanner}>
+        <span className={styles.privacyIcon}>🔒</span>
+        <span className={styles.privacyText}>For your protection, all JWT debugging and validation happens in the browser.</span>
+      </div>
+
       {/* 5. Signature Verification */}
       {signatureVerification && (
         <StatusSection title="Signature Verification" icon="🔐">
