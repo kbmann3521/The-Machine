@@ -879,9 +879,9 @@
 
 .publicKeyInput {
   padding: 10px;
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(255, 193, 7, 0.5);
   border-radius: 3px;
-  background-color: var(--color-background-tertiary);
+  background-color: rgba(255, 193, 7, 0.08);
   color: var(--color-text-primary);
   font-size: 11px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
@@ -894,7 +894,7 @@
 .publicKeyInput:focus {
   outline: none;
   border-color: #1e40af;
-  background-color: var(--color-background-tertiary);
+  background-color: rgba(30, 64, 175, 0.08);
   box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
 }
 
