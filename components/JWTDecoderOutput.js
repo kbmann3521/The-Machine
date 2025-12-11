@@ -792,7 +792,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                         id="verification-public-key-ec"
                         value={verificationPublicKey}
                         onChange={(e) => {
-                          setVerificationPublicKey(e.target.value)
+                          handlePublicKeyChange(e.target.value)
                         }}
                         placeholder={`-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE4fqY4ilv...\n-----END PUBLIC KEY-----`}
                         className={styles.publicKeyInput}
