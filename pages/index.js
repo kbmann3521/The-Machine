@@ -84,9 +84,12 @@ export default function Home() {
       clearTimeout(abortTimeoutRef.current)
       abortTimeoutRef.current = null
     }
+    // Only abort if the signal hasn't already been aborted
     if (abortControllerRef.current) {
       try {
-        abortControllerRef.current.abort()
+        if (!abortControllerRef.current.signal.aborted) {
+          abortControllerRef.current.abort()
+        }
       } catch (e) {
         // Ignore abort errors during cleanup
       }
