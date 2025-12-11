@@ -721,11 +721,6 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                 <span className={styles.statusText}>Payload Encrypted</span>
               </div>
 
-              <div className={styles.encryptionReason}>
-                <span className={styles.reasonLabel}>Status:</span>
-                <span className={styles.reasonText}>Payload is encrypted and cannot be inspected without the decryption key. Phase 7B will support decryption.</span>
-              </div>
-
               {jwe.encryptionDiagnostics && jwe.encryptionDiagnostics.length > 0 && (
                 <div className={styles.diagnosticsList}>
                   {jwe.encryptionDiagnostics.map((issue, idx) => (
@@ -737,18 +732,89 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                 </div>
               )}
 
-              <div className={styles.verificationInputSection}>
-                <label htmlFor="decryption-key" className={styles.verificationInputLabel}>
-                  <span>Decryption Key (Coming in Phase 7B)</span>
-                </label>
-                <textarea
-                  id="decryption-key"
-                  disabled
-                  placeholder="Decryption support coming in Phase 7B. Supports: RSA-OAEP, AES-KW, direct encryption, and more."
-                  className={styles.publicKeyInput}
-                  value=""
-                />
-              </div>
+              {/* JWE Decryption (Phase 7B) - Show key input only for dir + A256GCM */}
+              {jwe.algorithms?.alg === 'dir' && jwe.algorithms?.enc === 'A256GCM' && (
+                <>
+                  <div className={styles.verificationInputSection}>
+                    <label htmlFor="jwe-decryption-key" className={styles.verificationInputLabel}>
+                      <span>Decryption Key (AES-256, base64url)</span>
+                      {jweKey && <span className={styles.verificationInputIndicator}>✓ Provided</span>}
+                    </label>
+                    <input
+                      id="jwe-decryption-key"
+                      type="text"
+                      value={jweKey}
+                      onChange={(e) => setJweKey(e.target.value.trim())}
+                      placeholder="Base64url-encoded 32-byte (256-bit) AES key"
+                      className={styles.secretInput}
+                    />
+                    <p className={styles.keyInputHint}>
+                      🔒 Key is never sent to our servers. Decryption happens entirely in your browser.
+                    </p>
+                  </div>
+
+                  {/* Decryption Status */}
+                  {jweDecryption && (
+                    <div className={`${styles.decryptionStatus} ${styles[`decryptionStatus-${jweDecryption.status}`]}`}>
+                      <div className={styles.decryptionStatusHeader}>
+                        <span className={styles.decryptionStatusIcon}>
+                          {jweDecryption.status === 'ok' ? '✅' : jweDecryption.status === 'error' ? '❌' : '⏳'}
+                        </span>
+                        <span className={styles.decryptionStatusText}>
+                          {jweDecryption.status === 'ok'
+                            ? 'Decryption Successful'
+                            : jweDecryption.status === 'error'
+                            ? 'Decryption Failed'
+                            : 'Waiting for key'}
+                        </span>
+                      </div>
+                      <div className={styles.decryptionStatusDetails}>
+                        <span className={styles.decryptionAlgorithm}>Algorithm: A256GCM (dir)</span>
+                        {jweDecryption.reason && (
+                          <div className={styles.decryptionReason}>{jweDecryption.reason}</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Decrypted Payload */}
+                  {jweDecryption?.status === 'ok' && jweDecryption?.payload && (
+                    <div className={styles.decryptedPayloadSection}>
+                      <h4 className={styles.decryptedPayloadTitle}>Decrypted Payload</h4>
+                      <CopyCard label="Payload (JSON)" value={JSON.stringify(jweDecryption.payload, null, 2)} />
+
+                      {/* Show claims from decrypted payload */}
+                      {typeof jweDecryption.payload === 'object' && jweDecryption.payload !== null && (
+                        <div className={styles.decryptedClaimsSection}>
+                          <h5 className={styles.decryptedClaimsTitle}>Claims</h5>
+                          <div className={styles.decryptedClaimsGrid}>
+                            {Object.entries(jweDecryption.payload).map(([key, value]) => (
+                              <div key={key} className={styles.decryptedClaimRow}>
+                                <span className={styles.decryptedClaimName}>{key}</span>
+                                <span className={styles.decryptedClaimValue}>{JSON.stringify(value)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Info message for unsupported algorithms */}
+              {(jwe.algorithms?.alg !== 'dir' || jwe.algorithms?.enc !== 'A256GCM') && (
+                <div className={styles.encryptionReason}>
+                  <span className={styles.reasonLabel}>Note:</span>
+                  <span className={styles.reasonText}>
+                    {jwe.algorithms?.alg && jwe.algorithms?.alg !== 'dir'
+                      ? `Decryption for alg: "${jwe.algorithms.alg}" is not yet supported. Currently supported: dir`
+                      : jwe.algorithms?.enc && jwe.algorithms?.enc !== 'A256GCM'
+                      ? `Decryption for enc: "${jwe.algorithms.enc}" is not yet supported. Currently supported: A256GCM`
+                      : 'Decryption requires both alg: "dir" and enc: "A256GCM"'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </StatusSection>
