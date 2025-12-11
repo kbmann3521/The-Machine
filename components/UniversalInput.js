@@ -214,7 +214,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       'image-to-base64': 'Convert images to base64 for embedding in HTML or CSS',
       'svg-optimizer': 'Optimize SVG files by removing unnecessary code',
       'unit-converter': 'Convert between different units of measurement',
-      'number-formatter': 'Format numbers with separators, decimals, or scientific notation',
+      'number-formatter': 'Format numbers with separators, decimals, percentages, abbreviations, and scientific notation',
       'timezone-converter': 'Convert times between different timezones',
       'base-converter': 'Convert numbers between different bases (binary, octal, hex)',
       'math-evaluator': 'Evaluate mathematical expressions and get results',
