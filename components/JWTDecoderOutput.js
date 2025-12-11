@@ -869,7 +869,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                           onClick={() => setShowSecretInput(!showSecretInput)}
                           title={showSecretInput ? 'Hide secret' : 'Show secret'}
                         >
-                          {showSecretInput ? '🙈' : '👁️'}
+                          {showSecretInput ? '👁️' : '👁️‍🗨️'}
                         </button>
                       </div>
                     </div>
