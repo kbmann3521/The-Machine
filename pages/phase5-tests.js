@@ -90,8 +90,16 @@ export default function Phase5TestSuite() {
           )}
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className={styles.loadingState}>
+            <div className={styles.spinner}></div>
+            <p>Running tests...</p>
+          </div>
+        )}
+
         {/* Structured Tests Mode */}
-        {testMode === 'structured' && testResults && (
+        {testMode === 'structured' && testResults && !loading && (
           <>
             {/* Summary Card */}
             <div className={styles.summaryCard}>
