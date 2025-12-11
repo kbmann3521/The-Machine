@@ -494,34 +494,42 @@ export default function Home() {
           }
         }
 
-        const response = await fetch('/api/tools/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            toolId: tool.toolId,
-            inputText: textToUse,
-            inputImage: imageInput,
-            config: finalConfig,
-          }),
-        })
+        // JWT Decoder uses client-side decoding only (no JWT sent to server)
+        if (tool.toolId === 'jwt-decoder') {
+          const { jwtDecoderClient } = await import('../lib/jwtDecoderClient.js')
+          const result = jwtDecoderClient(textToUse, finalConfig)
+          setOutputResult(result)
+          setOutputWarnings([])
+        } else {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: tool.toolId,
+              inputText: textToUse,
+              inputImage: imageInput,
+              config: finalConfig,
+            }),
+          })
 
-        if (!response) {
-          throw new Error('No response from server')
+          if (!response) {
+            throw new Error('No response from server')
+          }
+
+          let data
+          try {
+            data = await response.json()
+          } catch (jsonError) {
+            throw new Error('Invalid response from server')
+          }
+
+          if (!response.ok) {
+            throw new Error(data?.error || `Server error: ${response.status}`)
+          }
+
+          setOutputResult(data.result)
+          setOutputWarnings(data.warnings || [])
         }
-
-        let data
-        try {
-          data = await response.json()
-        } catch (jsonError) {
-          throw new Error('Invalid response from server')
-        }
-
-        if (!response.ok) {
-          throw new Error(data?.error || `Server error: ${response.status}`)
-        }
-
-        setOutputResult(data.result)
-        setOutputWarnings(data.warnings || [])
       } catch (err) {
         const errorMessage = err?.message || 'Tool execution failed'
         setError(errorMessage)
