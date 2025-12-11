@@ -634,8 +634,72 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         <span className={styles.privacyText}>For your protection, all JWT debugging and validation happens in the browser.</span>
       </div>
 
-      {/* 5. Signature Verification */}
-      {signatureVerification && (
+      {/* 5. Encryption (JWE) or Signature Verification (JWS) */}
+      {isJWE && jwe && (
+        <StatusSection title="Encryption (JWE)" icon="🔐">
+          <div className={styles.encryptionSection}>
+            <div className={styles.encryptionCard}>
+              <div className={styles.encryptionAlgorithm}>
+                <span className={styles.algoLabel}>Key Encryption Algorithm (alg):</span>
+                <span className={styles.algoValue}>{jwe.algorithms?.alg || 'Not specified'}</span>
+              </div>
+              <div className={styles.encryptionAlgorithm}>
+                <span className={styles.algoLabel}>Content Encryption Algorithm (enc):</span>
+                <span className={styles.algoValue}>{jwe.algorithms?.enc || 'Not specified'}</span>
+              </div>
+              {jwe.algorithms?.kid && (
+                <div className={styles.encryptionAlgorithm}>
+                  <span className={styles.algoLabel}>Key ID (kid):</span>
+                  <span className={styles.algoValue}>{jwe.algorithms.kid}</span>
+                </div>
+              )}
+              {jwe.algorithms?.zip && (
+                <div className={styles.encryptionAlgorithm}>
+                  <span className={styles.algoLabel}>Compression (zip):</span>
+                  <span className={styles.algoValue}>{jwe.algorithms.zip}</span>
+                </div>
+              )}
+
+              <div className={styles.encryptionStatus}>
+                <span className={styles.statusIcon}>🔒</span>
+                <span className={styles.statusText}>Payload Encrypted</span>
+              </div>
+
+              <div className={styles.encryptionReason}>
+                <span className={styles.reasonLabel}>Status:</span>
+                <span className={styles.reasonText}>Payload is encrypted and cannot be inspected without the decryption key. Phase 7B will support decryption.</span>
+              </div>
+
+              {jwe.encryptionDiagnostics && jwe.encryptionDiagnostics.length > 0 && (
+                <div className={styles.diagnosticsList}>
+                  {jwe.encryptionDiagnostics.map((issue, idx) => (
+                    <div key={idx} className={`${styles.diagnosticsItem} ${styles[`diagnostics-${issue.level}`]}`}>
+                      <IssueBadge level={issue.level} />
+                      <span className={styles.diagnosticMessage}>{issue.message}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className={styles.verificationInputSection}>
+                <label htmlFor="decryption-key" className={styles.verificationInputLabel}>
+                  <span>Decryption Key (Coming in Phase 7B)</span>
+                </label>
+                <textarea
+                  id="decryption-key"
+                  disabled
+                  placeholder="Decryption support coming in Phase 7B. Supports: RSA-OAEP, AES-KW, direct encryption, and more."
+                  className={styles.publicKeyInput}
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </StatusSection>
+      )}
+
+      {/* Signature Verification (JWS only) */}
+      {!isJWE && signatureVerification && (
         <StatusSection title="Signature Verification" icon="🔐">
           {(() => {
             const hmacAlgorithms = ['HS256', 'HS384', 'HS512']
