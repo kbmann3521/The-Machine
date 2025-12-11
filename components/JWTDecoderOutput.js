@@ -509,11 +509,14 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
     )
   }
 
-  const { token, raw, validation, timestamps, claims, diagnostics, summary, tokenType, ttlAnalysis, sensitiveData, headerSecurityWarnings, signatureVerification } = result
+  const { token, raw, validation, timestamps, claims, diagnostics, summary, tokenType, ttlAnalysis, sensitiveData, headerSecurityWarnings, signatureVerification, kind, jwe } = result
+
+  // Determine if this is JWE (encrypted) or JWS (signed)
+  const isJWE = kind === 'JWE'
 
   return (
     <div className={styles.container}>
-      {/* 0. Status Summary */}
+      {/* 0. Status Summary + Token Kind */}
       <div className={styles.summarySection}>
         <div className={`${styles.summaryBadge} ${summary.valid ? styles.summaryValid : styles.summaryInvalid}`}>
           <span className={styles.summaryIcon}>{summary.valid ? '✅' : '⚠️'}</span>
