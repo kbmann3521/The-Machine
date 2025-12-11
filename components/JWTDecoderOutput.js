@@ -389,6 +389,43 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [useAutoFetch, setUseAutoFetch] = useState(true)
   const [showKeyDetails, setShowKeyDetails] = useState(false)
 
+  // Load verification keys from localStorage on mount
+  useEffect(() => {
+    const savedSecret = typeof window !== 'undefined' ? localStorage.getItem('jwtVerificationSecret') : null
+    const savedPublicKey = typeof window !== 'undefined' ? localStorage.getItem('jwtVerificationPublicKey') : null
+
+    if (savedSecret) {
+      setVerificationSecret(savedSecret)
+    }
+    if (savedPublicKey) {
+      setVerificationPublicKey(savedPublicKey)
+    }
+  }, [])
+
+  // Save verification secret to localStorage when it changes
+  const handleSecretChange = (value) => {
+    setVerificationSecret(value)
+    if (typeof window !== 'undefined') {
+      if (value) {
+        localStorage.setItem('jwtVerificationSecret', value)
+      } else {
+        localStorage.removeItem('jwtVerificationSecret')
+      }
+    }
+  }
+
+  // Save verification public key to localStorage when it changes
+  const handlePublicKeyChange = (value) => {
+    setVerificationPublicKey(value)
+    if (typeof window !== 'undefined') {
+      if (value) {
+        localStorage.setItem('jwtVerificationPublicKey', value)
+      } else {
+        localStorage.removeItem('jwtVerificationPublicKey')
+      }
+    }
+  }
+
   // Re-verify signature when secret/public key changes (client-side for HS256/384/512, RS256/384/512, and ES256/384/512)
   useEffect(() => {
     if (!result || !result.decoded || !result.rawSegments) {
