@@ -1461,73 +1461,127 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Number formatter custom output
   if (toolId === 'number-formatter' && displayResult?.output) {
-    const { type, output, formatted, results, config } = displayResult
+    const { type, output, formatted, results, input, config } = displayResult
 
     let outputContent
-    if (type === 'bulk' && results) {
-      outputContent = (
-        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{
-            fontSize: '12px',
-            fontWeight: '600',
-            color: 'var(--color-text-secondary)',
-            marginBottom: '8px',
-            paddingBottom: '8px',
-            borderBottom: '1px solid var(--color-border)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            Formatted Numbers ({results.length})
-          </div>
-          {results.map((result, idx) => (
-            <div key={idx} className={styles.copyCard}>
-              <div className={styles.copyCardHeader}>
-                <span className={styles.copyCardLabel}>Result {idx + 1}</span>
+    let resultsList = results || (output ? [output] : [])
+    let inputList = type === 'bulk' && Array.isArray(input) ? input : (input ? [input] : [])
+
+    outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{
+          fontSize: '12px',
+          fontWeight: '600',
+          color: 'var(--color-text-secondary)',
+          paddingBottom: '8px',
+          borderBottom: '1px solid var(--color-border)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+        }}>
+          {resultsList.length === 1 ? 'Formatted Number' : `Formatted Numbers (${resultsList.length})`}
+        </div>
+
+        {resultsList.map((result, idx) => {
+          const inputNum = inputList[idx]
+          return (
+            <div key={idx} style={{
+              padding: '12px',
+              borderRadius: '6px',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'rgba(0, 102, 204, 0.05)',
+              transition: 'all 200ms ease',
+            }} onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(0, 102, 204, 0.4)'
+              e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.1)'
+            }} onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border)'
+              e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.05)'
+            }}>
+              {inputNum !== undefined && (
+                <div style={{
+                  fontSize: '11px',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '6px',
+                  paddingBottom: '6px',
+                  borderBottom: '1px solid rgba(0, 102, 204, 0.2)',
+                }}>
+                  <span style={{ fontWeight: '500' }}>Input:</span> {inputNum}
+                </div>
+              )}
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '12px',
+              }}>
+                <div style={{
+                  flex: 1,
+                  minWidth: 0,
+                }}>
+                  <div style={{
+                    fontSize: '11px',
+                    color: 'var(--color-text-secondary)',
+                    marginBottom: '4px',
+                    fontWeight: '500',
+                  }}>
+                    Output:
+                  </div>
+                  <div style={{
+                    fontFamily: 'monospace',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: 'var(--color-text)',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}>
+                    {result}
+                  </div>
+                </div>
+
                 <button
                   type="button"
-                  className="copy-action"
                   onClick={() => handleCopyField(result, `number-${idx}`)}
-                  title="Copy to clipboard"
+                  title={copiedField === `number-${idx}` ? 'Copied!' : 'Copy to clipboard'}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    width: '28px',
-                    height: '28px',
+                    width: '36px',
+                    height: '36px',
                     padding: '0',
-                    borderRadius: '4px',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: 'transparent',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(0, 102, 204, 0.3)',
+                    backgroundColor: copiedField === `number-${idx}` ? 'rgba(76, 175, 80, 0.1)' : 'rgba(0, 102, 204, 0.1)',
                     color: copiedField === `number-${idx}` ? '#4caf50' : 'var(--color-text-secondary)',
                     cursor: 'pointer',
                     transition: 'all 200ms ease',
-                    fontSize: '14px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    border: copiedField === `number-${idx}` ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(0, 102, 204, 0.3)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (copiedField !== `number-${idx}`) {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.2)'
+                      e.currentTarget.style.borderColor = 'rgba(0, 102, 204, 0.5)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (copiedField !== `number-${idx}`) {
+                      e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.1)'
+                      e.currentTarget.style.borderColor = 'rgba(0, 102, 204, 0.3)'
+                    }
                   }}
                 >
                   <FaCopy />
                 </button>
               </div>
-              <div style={{
-                fontFamily: 'monospace',
-                fontSize: '14px',
-                color: 'var(--color-text)',
-                padding: '8px 0',
-                wordBreak: 'break-all',
-              }}>
-                {result}
-              </div>
             </div>
-          ))}
-        </div>
-      )
-    } else {
-      outputContent = (
-        <div style={{ padding: '16px', fontFamily: 'monospace', fontSize: '14px', color: 'var(--color-text)' }}>
-          {output}
-        </div>
-      )
-    }
+          )
+        })}
+      </div>
+    )
 
     return (
       <OutputTabs
