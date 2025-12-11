@@ -1459,6 +1459,100 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <URLToolkitOutput result={displayResult} toolCategory={toolCategory} toolId={toolId} />
   }
 
+  // Number formatter custom output
+  if (toolId === 'number-formatter' && displayResult?.output) {
+    const { type, output, formatted, results, config } = displayResult
+
+    let outputContent
+    if (type === 'bulk' && results) {
+      outputContent = (
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '8px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Formatted Numbers ({results.length})
+          </div>
+          {results.map((result, idx) => (
+            <div key={idx} className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>Result {idx + 1}</span>
+                <button
+                  type="button"
+                  className="copy-action"
+                  onClick={() => handleCopyField(result, `number-${idx}`)}
+                  title="Copy to clipboard"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    width: '28px',
+                    height: '28px',
+                    padding: '0',
+                    borderRadius: '4px',
+                    border: '1px solid var(--color-border)',
+                    backgroundColor: 'transparent',
+                    color: copiedField === `number-${idx}` ? '#4caf50' : 'var(--color-text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 200ms ease',
+                    fontSize: '14px',
+                  }}
+                >
+                  <FaCopy />
+                </button>
+              </div>
+              <div style={{
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                color: 'var(--color-text)',
+                padding: '8px 0',
+                wordBreak: 'break-all',
+              }}>
+                {result}
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    } else {
+      outputContent = (
+        <div style={{ padding: '16px', fontFamily: 'monospace', fontSize: '14px', color: 'var(--color-text)' }}>
+          {output}
+        </div>
+      )
+    }
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json',
+          },
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
