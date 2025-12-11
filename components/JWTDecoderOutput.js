@@ -522,7 +522,8 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
           <span className={styles.summaryIcon}>{summary.valid ? '✅' : '⚠️'}</span>
           <div className={styles.summaryContent}>
             <div className={styles.summaryStatus}>
-              {summary.valid ? 'Valid JWT Structure' : 'Issues Found'}
+              {summary.valid ? (isJWE ? 'Valid JWE Structure' : 'Valid JWT Structure') : 'Issues Found'}
+              {isJWE && <span className={styles.kindBadge}>🔒 Encrypted</span>}
             </div>
             <div className={styles.summaryStats}>
               {summary.errorCount > 0 && <span className={styles.errorCount}>{summary.errorCount} error{summary.errorCount !== 1 ? 's' : ''}</span>}
