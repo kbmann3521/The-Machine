@@ -1467,7 +1467,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const { type, output, formatted, results, input, config } = displayResult
 
-    let outputContent
     let resultsList = (results && Array.isArray(results)) ? results : []
     let inputList = (input && Array.isArray(input)) ? input : []
 
@@ -1476,12 +1475,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return null
     }
 
-    outputContent = (
+    const friendlyView = ({ onCopyCard, copiedCardId }) => (
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{
           fontSize: '12px',
           fontWeight: '600',
           color: 'var(--color-text-secondary)',
+          marginBottom: '12px',
           paddingBottom: '8px',
           borderBottom: '1px solid var(--color-border)',
           textTransform: 'uppercase',
@@ -1490,130 +1490,48 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           {resultsList.length === 1 ? 'Formatted Number' : `Formatted Numbers (${resultsList.length})`}
         </div>
 
-        {resultsList.map((result, idx) => {
-          const inputNum = inputList[idx]
-          return (
-            <div key={idx} style={{
-              padding: '12px',
-              borderRadius: '6px',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'rgba(0, 102, 204, 0.05)',
-              transition: 'all 200ms ease',
-            }} onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(0, 102, 204, 0.4)'
-              e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.1)'
-            }} onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border)'
-              e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.05)'
-            }}>
-              {inputNum !== undefined && (
-                <div style={{
-                  fontSize: '11px',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: '6px',
-                  paddingBottom: '6px',
-                  borderBottom: '1px solid rgba(0, 102, 204, 0.2)',
-                }}>
-                  <span style={{ fontWeight: '500' }}>Input:</span> {inputNum}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {resultsList.map((result, idx) => {
+            const inputNum = inputList[idx]
+            const cardId = `number-${idx}`
+            return (
+              <div key={idx} className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>
+                    {inputNum !== undefined ? `Input: ${inputNum}` : `Number ${idx + 1}`}
+                  </span>
+                  <button
+                    className="copy-action"
+                    onClick={() => onCopyCard(result, cardId)}
+                    title={`Copy ${result}`}
+                  >
+                    {copiedCardId === cardId ? '✓' : <FaCopy />}
+                  </button>
                 </div>
-              )}
-
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '12px',
-              }}>
-                <div style={{
-                  flex: 1,
-                  minWidth: 0,
-                }}>
-                  <div style={{
-                    fontSize: '11px',
-                    color: 'var(--color-text-secondary)',
-                    marginBottom: '4px',
-                    fontWeight: '500',
-                  }}>
-                    Output:
-                  </div>
-                  <div style={{
-                    fontFamily: 'monospace',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: 'var(--color-text)',
-                    wordBreak: 'break-word',
-                    overflowWrap: 'break-word',
-                  }}>
-                    {result}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleCopyField(result, `number-${idx}`)}
-                  title={copiedField === `number-${idx}` ? 'Copied!' : 'Copy to clipboard'}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    width: '36px',
-                    height: '36px',
-                    padding: '0',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(0, 102, 204, 0.3)',
-                    backgroundColor: copiedField === `number-${idx}` ? 'rgba(76, 175, 80, 0.1)' : 'rgba(0, 102, 204, 0.1)',
-                    color: copiedField === `number-${idx}` ? '#4caf50' : 'var(--color-text-secondary)',
-                    cursor: 'pointer',
-                    transition: 'all 200ms ease',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    border: copiedField === `number-${idx}` ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(0, 102, 204, 0.3)',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (copiedField !== `number-${idx}`) {
-                      e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.2)'
-                      e.currentTarget.style.borderColor = 'rgba(0, 102, 204, 0.5)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (copiedField !== `number-${idx}`) {
-                      e.currentTarget.style.backgroundColor = 'rgba(0, 102, 204, 0.1)'
-                      e.currentTarget.style.borderColor = 'rgba(0, 102, 204, 0.3)'
-                    }
-                  }}
-                >
-                  <FaCopy />
-                </button>
+                <div className={styles.copyCardValue}>{result}</div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     )
 
-    return (
-      <OutputTabs
-        key={toolId}
-        tabs={[
-          {
-            id: 'output',
-            label: 'OUTPUT',
-            content: outputContent,
-            contentType: 'component',
-          },
-          {
-            id: 'json',
-            label: 'JSON',
-            content: JSON.stringify(displayResult, null, 2),
-            contentType: 'json',
-          },
-        ]}
-        toolCategory={toolCategory}
-        toolId={toolId}
-        showCopyButton={true}
-      />
-    )
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
   const renderJsFormatterOutput = () => {
