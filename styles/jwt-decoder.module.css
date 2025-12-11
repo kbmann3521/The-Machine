@@ -111,17 +111,17 @@
 }
 
 .errorCount {
-  color: #ef5350;
+  color: #c41e3a;
   font-weight: 600;
 }
 
 .warningCount {
-  color: #ffc107;
+  color: #92400e;
   font-weight: 600;
 }
 
 .infoCount {
-  color: #2196f3;
+  color: #1e40af;
   font-weight: 600;
 }
 
@@ -358,18 +358,18 @@
 }
 
 .diagnosticsError {
-  border-left-color: #ef5350;
-  background-color: rgba(239, 83, 80, 0.05);
+  border-left-color: #c41e3a;
+  background-color: rgba(196, 30, 58, 0.05);
 }
 
 .diagnosticsWarning {
-  border-left-color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.05);
+  border-left-color: #92400e;
+  background-color: rgba(146, 64, 14, 0.05);
 }
 
 .diagnosticsInfo {
-  border-left-color: #2196f3;
-  background-color: rgba(33, 150, 243, 0.05);
+  border-left-color: #1e40af;
+  background-color: rgba(30, 64, 175, 0.05);
 }
 
 .issueBadge {
@@ -385,18 +385,18 @@
 }
 
 .issueBadgeError {
-  background-color: rgba(239, 83, 80, 0.15);
-  color: #ef5350;
+  background-color: rgba(196, 30, 58, 0.15);
+  color: #c41e3a;
 }
 
 .issueBadgeWarning {
-  background-color: rgba(255, 193, 7, 0.15);
-  color: #ffc107;
+  background-color: rgba(146, 64, 14, 0.15);
+  color: #92400e;
 }
 
 .issueBadgeInfo {
-  background-color: rgba(33, 150, 243, 0.15);
-  color: #2196f3;
+  background-color: rgba(30, 64, 175, 0.15);
+  color: #1e40af;
 }
 
 .diagnosticMessage {
@@ -459,54 +459,33 @@
   border-radius: 2px;
 }
 
-.rawDecodedSection {
+/* 7. Decoded JSON (Raw) Section */
+.decodedJsonSection {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.rawDecodedItem {
+.decodedJsonItem {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.rawExpandButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: var(--color-background-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  color: var(--color-text-primary);
+.decodedJsonItemTitle {
   font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
-}
-
-.rawExpandButton:hover {
-  background-color: rgba(33, 150, 243, 0.1);
-  border-color: rgba(33, 150, 243, 0.3);
-}
-
-.rawExpandChevron {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
+  font-weight: 600;
   color: var(--color-text-secondary);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
 }
 
-.rawExpandChevronOpen {
-  transform: rotate(90deg);
-  color: var(--color-text-primary);
+/* 8. Claims (Field-by-field) Section */
+.claimsFieldByFieldSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .rawDecodeFailureSection {
@@ -719,21 +698,21 @@
 }
 
 .sensitiveAlertError {
-  background-color: rgba(239, 83, 80, 0.1);
-  border-left-color: #ef5350;
-  color: #d32f2f;
+  background-color: rgba(196, 30, 58, 0.05);
+  border-left-color: #c41e3a;
+  color: #c41e3a;
 }
 
 .sensitiveAlertWarning {
-  background-color: rgba(255, 193, 7, 0.1);
-  border-left-color: #ffc107;
-  color: #f57f17;
+  background-color: rgba(146, 64, 14, 0.05);
+  border-left-color: #92400e;
+  color: #92400e;
 }
 
 .sensitiveAlertInfo {
-  background-color: rgba(33, 150, 243, 0.1);
-  border-left-color: #2196f3;
-  color: #0d47a1;
+  background-color: rgba(30, 64, 175, 0.05);
+  border-left-color: #1e40af;
+  color: #1e40af;
 }
 
 .alertIcon {
@@ -764,18 +743,18 @@
 }
 
 .headerWarningError {
-  border-left-color: #ef5350;
-  background-color: rgba(239, 83, 80, 0.05);
+  border-left-color: #c41e3a;
+  background-color: rgba(196, 30, 58, 0.05);
 }
 
 .headerWarningWarning {
-  border-left-color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.05);
+  border-left-color: #92400e;
+  background-color: rgba(146, 64, 14, 0.05);
 }
 
 .headerWarningInfo {
-  border-left-color: #2196f3;
-  background-color: rgba(33, 150, 243, 0.05);
+  border-left-color: #1e40af;
+  background-color: rgba(30, 64, 175, 0.05);
 }
 
 .warningText {
@@ -792,111 +771,25 @@
 .signatureVerificationSection {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.secretInputContainer {
-  position: relative;
-  padding: 12px;
-  background-color: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.secretInputHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.secretLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.secretIndicator {
-  font-size: 11px;
-  color: #66bb6a;
-  font-weight: 500;
-}
-
-.secretInput {
-  padding: 8px 32px 8px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  background-color: var(--color-background-tertiary);
-  color: var(--color-text-primary);
-  font-size: 12px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  transition: all 0.2s;
-}
-
-.secretInput:focus {
-  outline: none;
-  border-color: #2196f3;
-  background-color: var(--color-background-tertiary);
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-}
-
-.secretInput::placeholder {
-  color: var(--color-text-secondary);
-}
-
-.secretToggleButton {
-  position: absolute;
-  right: 14px;
-  top: 32px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.secretToggleButton:hover {
-  transform: scale(1.1);
+  gap: 0;
 }
 
 .signatureVerificationCard {
-  padding: 12px;
+  padding: 16px;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  border-left: 4px solid;
-  background-color: var(--color-background-tertiary);
+  background-color: var(--color-background-secondary);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.verificationValid {
-  border-left-color: #66bb6a;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(102, 187, 106, 0.05) 100%);
-}
-
-.verificationInvalid {
-  border-left-color: #ef5350;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(239, 83, 80, 0.05) 100%);
-}
-
-.verificationUnknown {
-  border-left-color: #2196f3;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(33, 150, 243, 0.05) 100%);
+  gap: 14px;
 }
 
 .verificationAlgorithm {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
-  background-color: var(--color-background-secondary);
+  padding: 8px 12px;
+  background-color: var(--color-background-tertiary);
   border-radius: 3px;
   font-size: 12px;
 }
@@ -904,13 +797,109 @@
 .algoLabel {
   font-weight: 600;
   color: var(--color-text-secondary);
-  min-width: 70px;
+  min-width: 80px;
 }
 
 .algoValue {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   color: var(--color-text-primary);
   font-weight: 500;
+}
+
+.verificationInputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.verificationInputLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.verificationInputIndicator {
+  font-size: 11px;
+  color: #66bb6a;
+  font-weight: 500;
+}
+
+.secretInput {
+  width: 100%;
+  padding: 8px 36px 8px 10px;
+  border: 1px solid rgba(255, 193, 7, 0.5);
+  border-radius: 3px;
+  background-color: rgba(255, 193, 7, 0.08);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.secretInput:focus {
+  outline: none;
+  border-color: #1e40af;
+  background-color: rgba(30, 64, 175, 0.08);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.secretInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.secretInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.secretToggleButton {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.secretToggleButton:hover {
+  color: var(--color-text-primary);
+}
+
+.publicKeyInput {
+  padding: 10px;
+  border: 1px solid rgba(255, 193, 7, 0.5);
+  border-radius: 3px;
+  background-color: rgba(255, 193, 7, 0.08);
+  color: var(--color-text-primary);
+  font-size: 11px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  transition: all 0.2s;
+  resize: vertical;
+  min-height: 100px;
+  max-height: 250px;
+}
+
+.publicKeyInput:focus {
+  outline: none;
+  border-color: #1e40af;
+  background-color: rgba(30, 64, 175, 0.08);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.publicKeyInput::placeholder {
+  color: var(--color-text-secondary);
 }
 
 .verificationStatus {
@@ -929,17 +918,17 @@
 }
 
 .statusInvalid {
-  background-color: rgba(239, 83, 80, 0.15);
-  color: #ef5350;
+  background-color: rgba(196, 30, 58, 0.15);
+  color: #c41e3a;
 }
 
 .statusUnknown {
-  background-color: rgba(33, 150, 243, 0.15);
-  color: #2196f3;
+  background-color: rgba(30, 64, 175, 0.15);
+  color: #1e40af;
 }
 
 .statusIcon {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .statusText {
@@ -950,9 +939,10 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px;
-  background-color: var(--color-background-secondary);
+  padding: 10px 12px;
+  background-color: var(--color-background-tertiary);
   border-radius: 3px;
+  border-left: 2px solid var(--color-border);
 }
 
 .reasonLabel {
@@ -969,82 +959,10 @@
   line-height: 1.4;
 }
 
-.publicKeyInputContainer {
-  position: relative;
-  padding: 12px;
-  background-color: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.publicKeyInputHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.publicKeyLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.publicKeyIndicator {
-  font-size: 11px;
-  color: #66bb6a;
-  font-weight: 500;
-}
-
-.publicKeyInput {
-  padding: 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  background-color: var(--color-background-tertiary);
-  color: var(--color-text-primary);
-  font-size: 11px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  transition: all 0.2s;
-  resize: vertical;
-  min-height: 120px;
-  max-height: 300px;
-}
-
-.publicKeyInput:focus {
-  outline: none;
-  border-color: #2196f3;
-  background-color: var(--color-background-tertiary);
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-}
-
-.publicKeyInput::placeholder {
-  color: var(--color-text-secondary);
-}
-
-.publicKeyToggleButton {
-  align-self: flex-start;
-  padding: 6px 12px;
-  background: none;
-  border: 1px solid rgba(33, 150, 243, 0.3);
-  border-radius: 3px;
-  color: var(--color-text-secondary);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.publicKeyToggleButton:hover {
-  background-color: rgba(33, 150, 243, 0.1);
-  border-color: rgba(33, 150, 243, 0.5);
-  color: #2196f3;
-}
-
 .publicKeyDetails {
-  padding: 10px;
-  background-color: rgba(33, 150, 243, 0.05);
-  border: 1px solid rgba(33, 150, 243, 0.2);
+  padding: 10px 12px;
+  background-color: rgba(30, 64, 175, 0.05);
+  border: 1px solid rgba(30, 64, 175, 0.2);
   border-radius: 3px;
   display: flex;
   flex-direction: column;
@@ -1068,6 +986,358 @@
   overflow-x: auto;
   white-space: pre;
   line-height: 1.4;
+}
+
+.detailsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.detailsCode {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-secondary);
+  padding: 8px;
+  border-radius: 2px;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.4;
+}
+
+/* Phase 5: JWKS Auto-Discovery UI */
+.keySourceSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+}
+
+.keySourceLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.keySourceOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.radioOption:hover {
+  background-color: rgba(30, 64, 175, 0.05);
+}
+
+.radioOption input[type="radio"] {
+  cursor: pointer;
+  accent-color: #1e40af;
+}
+
+.radioLabel {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+.jwksInfoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  border-left: 2px solid #1e40af;
+}
+
+.jwksInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jwksLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-secondary);
+}
+
+.jwksValue {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  word-break: break-all;
+}
+
+.jwksVerificationMetadata {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: rgba(102, 187, 106, 0.05);
+  border-left: 2px solid #66bb6a;
+  border-radius: 2px;
+}
+
+.metadataItem {
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.publicKeyHint {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: rgba(66, 165, 245, 0.08);
+  border-left: 2px solid #42a5f5;
+  border-radius: 2px;
+}
+
+.hintText {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.privacyNoticeBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.04) 100%);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 6px;
+  margin: 8px 0;
+}
+
+.privacyIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.privacyText {
+  font-size: 13px;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.kindBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #66bb6a;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* JWE Decryption Key Input */
+.keyInputHint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 8px 0 0 0;
+  padding: 8px;
+  background-color: rgba(76, 175, 80, 0.05);
+  border-left: 2px solid #66bb6a;
+  border-radius: 2px;
+  line-height: 1.4;
+}
+
+/* JWE Decryption Status Box */
+.decryptionStatus {
+  padding: 12px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--color-background-tertiary);
+}
+
+.decryptionStatusOk {
+  border: 1px solid rgba(102, 187, 106, 0.3);
+  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(102, 187, 106, 0.05) 100%);
+}
+
+.decryptionStatusError {
+  border: 1px solid rgba(196, 30, 58, 0.3);
+  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, rgba(196, 30, 58, 0.05) 100%);
+}
+
+.decryptionStatusWaiting {
+  background-color: var(--color-background-tertiary);
+  border: none;
+}
+
+.decryptionStatusHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.decryptionStatusIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.decryptionStatusText {
+  color: var(--color-text-primary);
+}
+
+.decryptionStatusDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.decryptionAlgorithm {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.decryptionReason {
+  color: var(--color-text-primary);
+  padding: 6px 8px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  line-height: 1.4;
+  font-size: 11px;
+}
+
+/* Decrypted Payload Section */
+.decryptedPayloadSection {
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.decryptedPayloadTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.decryptedClaimsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.decryptedClaimsTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.decryptedClaimsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.decryptedClaimRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border-radius: 2px;
+  border-left: 2px solid rgba(33, 150, 243, 0.3);
+  font-size: 11px;
+}
+
+.decryptedClaimName {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.decryptedClaimValue {
+  color: var(--color-text-secondary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  word-break: break-all;
+}
+
+/* JWE Encryption Section */
+.encryptionSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.encryptionCard {
+  padding: 16px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.encryptionAlgorithm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.encryptionAlgorithm .algoLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 80px;
+}
+
+.encryptionStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.tokenStructureJWE {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
 @media (max-width: 768px) {

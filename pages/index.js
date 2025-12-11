@@ -84,9 +84,12 @@ export default function Home() {
       clearTimeout(abortTimeoutRef.current)
       abortTimeoutRef.current = null
     }
+    // Only abort if the signal hasn't already been aborted
     if (abortControllerRef.current) {
       try {
-        abortControllerRef.current.abort()
+        if (!abortControllerRef.current.signal.aborted) {
+          abortControllerRef.current.abort()
+        }
       } catch (e) {
         // Ignore abort errors during cleanup
       }
@@ -152,7 +155,7 @@ export default function Home() {
           response = await fetch('/api/tools/get-metadata', {
             signal: controller.signal,
             headers: { 'Content-Type': 'application/json' },
-            cache: 'force-cache',
+            cache: 'no-cache',
           })
         } catch (fetchError) {
           clearTimeout(timeoutId)
@@ -318,6 +321,12 @@ export default function Home() {
           // Fetch with 20 second timeout
           const controller = new AbortController()
           abortControllerRef.current = controller
+
+          // Check if signal is already aborted before setting up timeout
+          if (controller.signal.aborted) {
+            return
+          }
+
           abortTimeoutRef.current = setTimeout(() => {
             try {
               controller.abort()
@@ -328,15 +337,20 @@ export default function Home() {
 
           let response
           try {
-            response = await fetch('/api/tools/predict', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                inputText: text,
-                inputImage: preview ? 'image' : null,
-              }),
-              signal: controller.signal,
-            })
+            // Check again if signal was aborted during the delay
+            if (controller.signal.aborted) {
+              response = null
+            } else {
+              response = await fetch('/api/tools/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  inputText: text,
+                  inputImage: preview ? 'image' : null,
+                }),
+                signal: controller.signal,
+              })
+            }
           } catch (fetchError) {
             if (abortTimeoutRef.current) {
               clearTimeout(abortTimeoutRef.current)
@@ -415,8 +429,14 @@ export default function Home() {
         }
       }
 
+      // Execute predictTools asynchronously without blocking
+      // All errors are caught inside the function, so we don't need an outer catch
       predictTools().catch(err => {
-        console.debug('Unhandled error in predictTools:', err?.message || err)
+        // This should rarely happen as errors are caught inside predictTools
+        // but we catch it just in case
+        if (err?.name !== 'AbortError') {
+          console.debug('Unhandled error in predictTools:', err?.message || err)
+        }
       })
     }, 300)
   }, [fastLocalClassification, previousInputLength])
@@ -494,34 +514,42 @@ export default function Home() {
           }
         }
 
-        const response = await fetch('/api/tools/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            toolId: tool.toolId,
-            inputText: textToUse,
-            inputImage: imageInput,
-            config: finalConfig,
-          }),
-        })
+        // JWT Decoder uses client-side decoding only (no JWT sent to server)
+        if (tool.toolId === 'jwt-decoder') {
+          const { jwtDecoderClient } = await import('../lib/jwtDecoderClient.js')
+          const result = jwtDecoderClient(textToUse, finalConfig)
+          setOutputResult(result)
+          setOutputWarnings([])
+        } else {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: tool.toolId,
+              inputText: textToUse,
+              inputImage: imageInput,
+              config: finalConfig,
+            }),
+          })
 
-        if (!response) {
-          throw new Error('No response from server')
+          if (!response) {
+            throw new Error('No response from server')
+          }
+
+          let data
+          try {
+            data = await response.json()
+          } catch (jsonError) {
+            throw new Error('Invalid response from server')
+          }
+
+          if (!response.ok) {
+            throw new Error(data?.error || `Server error: ${response.status}`)
+          }
+
+          setOutputResult(data.result)
+          setOutputWarnings(data.warnings || [])
         }
-
-        let data
-        try {
-          data = await response.json()
-        } catch (jsonError) {
-          throw new Error('Invalid response from server')
-        }
-
-        if (!response.ok) {
-          throw new Error(data?.error || `Server error: ${response.status}`)
-        }
-
-        setOutputResult(data.result)
-        setOutputWarnings(data.warnings || [])
       } catch (err) {
         const errorMessage = err?.message || 'Tool execution failed'
         setError(errorMessage)

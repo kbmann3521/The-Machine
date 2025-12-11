@@ -1459,6 +1459,81 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <URLToolkitOutput result={displayResult} toolCategory={toolCategory} toolId={toolId} />
   }
 
+  // Number formatter custom output
+  if (toolId === 'number-formatter') {
+    if (!displayResult || typeof displayResult !== 'object' || displayResult.error) {
+      return null
+    }
+
+    const { type, output, formatted, results, input, config } = displayResult
+
+    let resultsList = (results && Array.isArray(results)) ? results : []
+    let inputList = (input && Array.isArray(input)) ? input : []
+
+    // If no results, return null to let default handler take over
+    if (resultsList.length === 0) {
+      return null
+    }
+
+    const friendlyView = ({ onCopyCard, copiedCardId }) => (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{
+          fontSize: '12px',
+          fontWeight: '600',
+          color: 'var(--color-text-secondary)',
+          marginBottom: '12px',
+          paddingBottom: '8px',
+          borderBottom: '1px solid var(--color-border)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+        }}>
+          {resultsList.length === 1 ? 'Formatted Number' : `Formatted Numbers (${resultsList.length})`}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {resultsList.map((result, idx) => {
+            const inputNum = inputList[idx]
+            const cardId = `number-${idx}`
+            return (
+              <div key={idx} className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>
+                    {inputNum !== undefined ? `Input: ${inputNum}` : `Number ${idx + 1}`}
+                  </span>
+                  <button
+                    className="copy-action"
+                    onClick={() => onCopyCard(result, cardId)}
+                    title={`Copy ${result}`}
+                  >
+                    {copiedCardId === cardId ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue}>{result}</div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: friendlyView,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
   const renderJsFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []

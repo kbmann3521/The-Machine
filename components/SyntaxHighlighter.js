@@ -85,10 +85,10 @@ export default function SyntaxHighlighter({
         fontSize: '13px',
         lineHeight: '1.5',
         fontFamily: "'Courier New', monospace",
-        width: '100%',
+        width: 'fit-content',
+        minWidth: '100%',
         boxSizing: 'border-box',
-        whiteSpace: 'pre-wrap',
-        wordWrap: 'break-word',
+        whiteSpace: 'pre',
       }}
     >
       <code
@@ -100,8 +100,7 @@ export default function SyntaxHighlighter({
           fontSize: '13px',
           lineHeight: '1.5',
           fontFamily: "'Courier New', monospace",
-          whiteSpace: 'pre-wrap',
-          wordWrap: 'break-word',
+          whiteSpace: 'pre',
         }}
       >
         {code}
