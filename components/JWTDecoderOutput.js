@@ -1030,8 +1030,9 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
         </StatusSection>
       )}
 
-      {/* 10. Claim Presence Summary */}
-      <StatusSection title="Claim Presence" icon="📌">
+      {/* 10. Claim Presence Summary - only for JWS */}
+      {!isJWE && (
+        <StatusSection title="Claim Presence" icon="📌">
         <div className={styles.claimPresenceList}>
           <div className={styles.claimPresenceGroup}>
             <h4 className={styles.claimPresenceTitle}>Present Claims ({claims.present.length})</h4>
@@ -1049,6 +1050,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
           </div>
         </div>
       </StatusSection>
+      )}
     </div>
   )
 }
