@@ -1,4 +1,4 @@
-const crypto = require('crypto')
+import crypto from 'crypto'
 import { jwtDecoder } from './lib/tools/jwtDecoder.js'
 
 // Helper to encode base64url
