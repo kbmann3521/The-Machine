@@ -1460,12 +1460,17 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }
 
   // Number formatter custom output
-  if (toolId === 'number-formatter' && displayResult?.output) {
-    const { type, output, formatted, results, input, config } = displayResult
+  if (toolId === 'number-formatter' && typeof displayResult === 'object' && displayResult !== null) {
+    const { type, output, formatted, results, input, config, error } = displayResult
+
+    // Don't handle error messages here - let them fall through to the error handler
+    if (error) {
+      return null
+    }
 
     let outputContent
-    let resultsList = results || (output ? [output] : [])
-    let inputList = type === 'bulk' && Array.isArray(input) ? input : (input ? [input] : [])
+    let resultsList = (results && Array.isArray(results)) ? results : (output ? [output] : [])
+    let inputList = (input && Array.isArray(input)) ? input : (input ? [input] : [])
 
     outputContent = (
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
