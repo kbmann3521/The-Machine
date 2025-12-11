@@ -313,9 +313,9 @@ async function verifyECClientSide(algorithm, rawHeader, rawPayload, signatureB64
 
     // Map EC algorithm to Web Crypto hash algorithm and curve name
     const hashMap = {
-      ES256: { hash: 'SHA-256', curve: 'P-256' },
-      ES384: { hash: 'SHA-384', curve: 'P-384' },
-      ES512: { hash: 'SHA-512', curve: 'P-521' },
+      ES256: { hash: 'SHA-256', namedCurve: 'P-256' },
+      ES384: { hash: 'SHA-384', namedCurve: 'P-384' },
+      ES512: { hash: 'SHA-512', namedCurve: 'P-521' },
     }
 
     const algConfig = hashMap[algorithm]
@@ -335,7 +335,7 @@ async function verifyECClientSide(algorithm, rawHeader, rawPayload, signatureB64
       publicKeyBuffer,
       {
         name: 'ECDSA',
-        hash: algConfig.hash,
+        namedCurve: algConfig.namedCurve,
       },
       false,
       ['verify']
