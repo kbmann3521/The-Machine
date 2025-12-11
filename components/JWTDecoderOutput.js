@@ -389,6 +389,8 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
   const [clientSignatureVerification, setClientSignatureVerification] = useState(null)
   const [useAutoFetch, setUseAutoFetch] = useState(true)
   const [showKeyDetails, setShowKeyDetails] = useState(false)
+  const [jweKey, setJweKey] = useState('')
+  const [jweDecryption, setJweDecryption] = useState(null)
 
   // Load verification keys from localStorage on mount
   useEffect(() => {
