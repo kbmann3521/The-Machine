@@ -62,8 +62,15 @@ console.log('');
 const iv = crypto.randomBytes(12);
 const ivB64Url = bytesToBase64Url(iv);
 
+// AAD (Additional Authenticated Data) must include the protected header
+// In JWE spec, AAD is the ASCII bytes of the protected header (the base64url string)
+const aad = Buffer.from(headerB64Url, 'utf-8');
+
 // Create cipher
 const cipher = crypto.createCipheriv('aes-256-gcm', keyBytes, iv);
+
+// Set AAD before encryption
+cipher.setAAD(aad);
 
 // Encrypt payload
 const ciphertext = Buffer.concat([
