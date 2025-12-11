@@ -304,12 +304,25 @@ export default function Phase5TestSuite() {
                     'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
                   )}
                 >
-                  Sample Endpoints
+                  📋 Sample Endpoints
+                </button>
+                <button
+                  className={styles.runButton}
+                  onClick={handleRunTests}
+                  disabled={loading || !customEndpoints.trim()}
+                >
+                  {loading ? '⏳ Testing...' : '▶ Test Endpoints'}
                 </button>
               </div>
             </div>
 
-            {endpointResults && (
+            {!endpointResults && !loading && (
+              <div className={styles.emptyState}>
+                <p>Enter JWKS endpoint URLs above and click "Test Endpoints" to check their accessibility.</p>
+              </div>
+            )}
+
+            {endpointResults && !loading && (
               <>
                 <div className={styles.endpointResults}>
                   <div className={styles.endpointSummary}>
