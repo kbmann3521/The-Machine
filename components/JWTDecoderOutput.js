@@ -743,6 +743,29 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                     </>
                   )}
 
+                  {ecAlgorithms.includes(signatureVerification.algorithm) && (
+                    <div className={styles.verificationInputSection}>
+                      <label htmlFor="verification-public-key-ec" className={styles.verificationInputLabel}>
+                        <span>Public Key (PEM Format)</span>
+                        {verificationPublicKey && (
+                          <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                        )}
+                      </label>
+                      <textarea
+                        id="verification-public-key-ec"
+                        value={verificationPublicKey}
+                        onChange={(e) => {
+                          setVerificationPublicKey(e.target.value)
+                        }}
+                        placeholder={`-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE4fqY4ilv...\n-----END PUBLIC KEY-----`}
+                        className={styles.publicKeyInput}
+                      />
+                      <div className={styles.publicKeyHint}>
+                        <span className={styles.hintText}>💡 For {signatureVerification.algorithm}, provide an EC public key in PEM format.</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className={`${styles.verificationStatus} ${styles[`status-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
                     {verificationToDisplay.verified === true && (
                       <>
