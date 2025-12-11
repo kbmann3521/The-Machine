@@ -6,42 +6,41 @@ import styles from '../styles/jwt-tests.module.css'
 export default function Phase5TestSuite() {
   const [testResults, setTestResults] = useState(null)
   const [endpointResults, setEndpointResults] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [expandedTests, setExpandedTests] = useState({})
   const [testMode, setTestMode] = useState('structured') // 'structured' or 'endpoints'
   const [customEndpoints, setCustomEndpoints] = useState('')
 
-  useEffect(() => {
-    const runTests = async () => {
-      setLoading(true)
-      try {
-        if (testMode === 'structured') {
-          const results = await runPhase5Tests({
-            skipRealJwksFetch: true,
-            jwksEndpointsToTest: []
-          })
-          setTestResults(results)
-          setEndpointResults(null)
-        } else if (testMode === 'endpoints' && customEndpoints.trim()) {
-          const endpoints = customEndpoints
-            .split('\n')
-            .map(url => url.trim())
-            .filter(url => url.length > 0)
-          const results = await testRealJwksEndpoints(endpoints)
-          setEndpointResults(results)
-          setTestResults(null)
-        }
-      } catch (error) {
-        console.error('Test execution error:', error)
-      } finally {
-        setLoading(false)
+  const handleRunTests = async () => {
+    setLoading(true)
+    try {
+      if (testMode === 'structured') {
+        const results = await runPhase5Tests({
+          skipRealJwksFetch: true,
+          jwksEndpointsToTest: []
+        })
+        setTestResults(results)
+        setEndpointResults(null)
+      } else if (testMode === 'endpoints' && customEndpoints.trim()) {
+        const endpoints = customEndpoints
+          .split('\n')
+          .map(url => url.trim())
+          .filter(url => url.length > 0)
+        const results = await testRealJwksEndpoints(endpoints)
+        setEndpointResults(results)
+        setTestResults(null)
       }
+    } catch (error) {
+      console.error('Test execution error:', error)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    if (testMode === 'structured' || (testMode === 'endpoints' && customEndpoints.trim())) {
-      runTests()
-    }
-  }, [testMode, customEndpoints])
+  useEffect(() => {
+    setTestResults(null)
+    setEndpointResults(null)
+  }, [testMode])
 
   const toggleTestExpanded = (testId) => {
     setExpandedTests(prev => ({
