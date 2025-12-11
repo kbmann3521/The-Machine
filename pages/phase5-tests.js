@@ -94,6 +94,15 @@ export default function Phase5TestSuite() {
               🌐 Real JWKS Endpoints
             </button>
           </div>
+          {!testResults && !endpointResults && (
+            <button
+              className={styles.runButton}
+              onClick={handleRunTests}
+              disabled={loading}
+            >
+              {loading ? '⏳ Running Tests...' : '▶ Run Tests'}
+            </button>
+          )}
         </div>
 
         {/* Structured Tests Mode */}
