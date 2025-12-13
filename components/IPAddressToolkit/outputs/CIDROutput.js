@@ -90,12 +90,14 @@ export default function CIDROutput({ result }) {
     'Last Address': true,
   }
 
-  const renderField = (key, value, uniqueKey) => {
+  const renderField = (key, value, uniqueKey, fieldPath) => {
     const isCopyable = copyableFields[key] && typeof value === 'string'
+    const isChanged = fieldPath && changedFields.has(fieldPath)
+    const highlightClass = isChanged ? styles.changedField : ''
 
     if (isCopyable) {
       return (
-        <div key={uniqueKey} className={toolStyles.copyCard}>
+        <div key={uniqueKey} className={`${toolStyles.copyCard} ${highlightClass}`}>
           <div className={toolStyles.copyCardHeader}>
             <span className={toolStyles.copyCardLabel}>{key}</span>
             <button
@@ -121,7 +123,7 @@ export default function CIDROutput({ result }) {
     }
 
     return (
-      <div key={uniqueKey} className={styles.outputFieldRow}>
+      <div key={uniqueKey} className={`${styles.outputFieldRow} ${highlightClass}`}>
         <span className={styles.outputFieldLabel}>{key}</span>
         <div className={styles.outputFieldValue}>{value}</div>
       </div>
