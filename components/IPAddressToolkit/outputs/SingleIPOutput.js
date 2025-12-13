@@ -45,13 +45,37 @@ export default function SingleIPOutput({ result }) {
   const buildFriendlyOutput = () => {
     const sections = []
 
+    // Input Section (with rawInput if it differs from normalized input)
+    const inputFields = {}
+    if (result.input) {
+      inputFields['Input'] = result.input
+    }
+    if (result.rawInput && result.rawInput !== result.input) {
+      inputFields['Raw Input'] = result.rawInput
+    }
+    if (Object.keys(inputFields).length > 0) {
+      sections.push({
+        title: 'Input',
+        fields: inputFields,
+      })
+    }
+
     if (result.isValid !== undefined) {
+      const validationFields = {
+        'Valid': result.isValid ? '✓ Yes' : '✗ No',
+      }
+      if (result.metadata?.versionString) {
+        validationFields['Version'] = result.metadata.versionString
+      }
+      if (result.isIPv4 !== undefined) {
+        validationFields['IPv4'] = result.isIPv4 ? '✓ Yes' : '✗ No'
+      }
+      if (result.isIPv6 !== undefined) {
+        validationFields['IPv6'] = result.isIPv6 ? '✓ Yes' : '✗ No'
+      }
       sections.push({
         title: 'Validation Status',
-        fields: {
-          'Valid': result.isValid ? '✓ Yes' : '✗ No',
-          ...(result.metadata?.versionString && { 'Version': result.metadata.versionString }),
-        },
+        fields: validationFields,
       })
     }
 
@@ -66,15 +90,19 @@ export default function SingleIPOutput({ result }) {
 
     // Binary octets visualization (Phase 4 foundation)
     if (result.binaryOctets && Array.isArray(result.binaryOctets)) {
+      const binaryFields = {
+        'Octet 1': result.binaryOctets[0] || '',
+        'Octet 2': result.binaryOctets[1] || '',
+        'Octet 3': result.binaryOctets[2] || '',
+        'Octet 4': result.binaryOctets[3] || '',
+        'Combined (Dotted)': result.integerBinary || '',
+      }
+      if (result.binaryContinuous) {
+        binaryFields['Continuous'] = result.binaryContinuous
+      }
       sections.push({
         title: 'Binary Representation',
-        fields: {
-          'Octet 1': result.binaryOctets[0] || '',
-          'Octet 2': result.binaryOctets[1] || '',
-          'Octet 3': result.binaryOctets[2] || '',
-          'Octet 4': result.binaryOctets[3] || '',
-          'Combined': result.integerBinary || '',
-        },
+        fields: binaryFields,
       })
     }
 
