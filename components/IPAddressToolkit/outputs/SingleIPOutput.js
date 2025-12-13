@@ -227,10 +227,38 @@ export default function SingleIPOutput({ result }) {
         rangeFields['Same Classification'] = result.range.classificationMatch ? '✓ Yes' : '✗ No'
       }
 
+      if (result.range.scopeMismatch !== undefined) {
+        rangeFields['Scope Match'] = result.range.scopeMismatch ? '✗ Mismatch' : '✓ Match'
+      }
+
+      if (result.range.warnings && Array.isArray(result.range.warnings)) {
+        rangeFields['Warnings'] = result.range.warnings.map((warning, i) => (
+          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#f57c00' }}>
+            ⚠ {warning}
+          </div>
+        ))
+      }
+
+      if (result.range.separator) {
+        rangeFields['Separator'] = result.range.separator
+      }
+
+      if (result.range.coveringSubnet) {
+        rangeFields['Covering Subnet'] = result.range.coveringSubnet.subnet
+      }
+
       if (result.range.classificationNotes && Array.isArray(result.range.classificationNotes)) {
         rangeFields['Notes'] = result.range.classificationNotes.map((note, i) => (
           <div key={i} style={{ fontSize: '12px', marginBottom: '4px' }}>
             • {note}
+          </div>
+        ))
+      }
+
+      if (result.range.scopeNotes && Array.isArray(result.range.scopeNotes) && result.range.scopeNotes.length > 0) {
+        rangeFields['Scope Issues'] = result.range.scopeNotes.map((note, i) => (
+          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#d32f2f' }}>
+            ✗ {note}
           </div>
         ))
       }
