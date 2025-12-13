@@ -1,8 +1,76 @@
 import React, { useState } from 'react'
+import { FaCopy, FaCheck } from 'react-icons/fa6'
 import OutputTabs from '../../OutputTabs'
 import styles from '../../../styles/ip-toolkit.module.css'
+import toolStyles from '../../../styles/tool-output.module.css'
 
 export default function CIDROutput({ result }) {
+  const [copiedField, setCopiedField] = useState(null)
+
+  const handleCopyField = async (value, fieldName) => {
+    try {
+      await navigator.clipboard.writeText(String(value))
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    } catch (err) {
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    }
+  }
+
+  // High-value copyable fields for networking engineers
+  const copyableFields = {
+    'CIDR Notation': true,
+    'Netmask': true,
+    'Wildcard Mask': true,
+    'Network Address': true,
+    'Broadcast Address': true,
+    'First Host': true,
+    'Last Host': true,
+    'Base IP': true,
+    'Hexadecimal': true,
+    'Integer': true,
+    'First Address': true,
+    'Last Address': true,
+  }
+
+  const renderField = (key, value, uniqueKey) => {
+    const isCopyable = copyableFields[key] && typeof value === 'string'
+
+    if (isCopyable) {
+      return (
+        <div key={uniqueKey} className={toolStyles.copyCard}>
+          <div className={toolStyles.copyCardHeader}>
+            <span className={toolStyles.copyCardLabel}>{key}</span>
+            <button
+              type="button"
+              className="copy-action"
+              onClick={() => handleCopyField(value, uniqueKey)}
+              title="Copy to clipboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                minWidth: '32px',
+                minHeight: '28px',
+              }}
+            >
+              {copiedField === uniqueKey ? '✓' : <FaCopy />}
+            </button>
+          </div>
+          <div className={toolStyles.copyCardValue}>{value}</div>
+        </div>
+      )
+    }
+
+    return (
+      <div key={uniqueKey} className={styles.outputFieldRow}>
+        <span className={styles.outputFieldLabel}>{key}</span>
+        <div className={styles.outputFieldValue}>{value}</div>
+      </div>
+    )
+  }
   // Show empty state if no result
   if (!result) {
     const emptyTabs = [
