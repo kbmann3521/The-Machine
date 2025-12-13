@@ -1,8 +1,87 @@
 import React, { useState } from 'react'
+import { FaCopy, FaCheck } from 'react-icons/fa6'
 import OutputTabs from '../../OutputTabs'
 import styles from '../../../styles/ip-toolkit.module.css'
+import toolStyles from '../../../styles/tool-output.module.css'
 
 export default function SingleIPOutput({ result }) {
+  const [copiedField, setCopiedField] = useState(null)
+
+  const handleCopyField = async (value, fieldName) => {
+    try {
+      await navigator.clipboard.writeText(String(value))
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    } catch (err) {
+      setCopiedField(fieldName)
+      setTimeout(() => setCopiedField(null), 2000)
+    }
+  }
+
+  // Map of fields that should have copy buttons
+  const copyableFields = {
+    'Input': true,
+    'Raw Input': true,
+    'Normalized': true,
+    'Expanded': true,
+    'Compressed': true,
+    'Mapped IPv4': true,
+    'Decimal': true,
+    'Hexadecimal': true,
+    'Continuous': true,
+    'Combined (Dotted)': true,
+    'Binary (128-bit)': true,
+    'Binary (Dotted)': true,
+    'Pointer': true,
+    'Zone ID': true,
+    'Without Zone': true,
+    'Start Address': true,
+    'End Address': true,
+    'Normalized (startIP)': true,
+    'Compressed (startIP)': true,
+    'Expanded (startIP)': true,
+    'Normalized (endIP)': true,
+    'Compressed (endIP)': true,
+    'Expanded (endIP)': true,
+  }
+
+  const renderField = (key, value, uniqueKey) => {
+    const isCopyable = copyableFields[key] && typeof value === 'string'
+
+    if (isCopyable) {
+      return (
+        <div key={uniqueKey} className={toolStyles.copyCard}>
+          <div className={toolStyles.copyCardHeader}>
+            <span className={toolStyles.copyCardLabel}>{key}</span>
+            <button
+              type="button"
+              className="copy-action"
+              onClick={() => handleCopyField(value, uniqueKey)}
+              title="Copy to clipboard"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                minWidth: '32px',
+                minHeight: '28px',
+              }}
+            >
+              {copiedField === uniqueKey ? '✓' : <FaCopy />}
+            </button>
+          </div>
+          <div className={toolStyles.copyCardValue}>{value}</div>
+        </div>
+      )
+    }
+
+    return (
+      <div key={uniqueKey} className={styles.outputFieldRow}>
+        <span className={styles.outputFieldLabel}>{key}</span>
+        <div className={styles.outputFieldValue}>{value}</div>
+      </div>
+    )
+  }
   // Show empty state if no result
   if (!result) {
     const emptyTabs = [
