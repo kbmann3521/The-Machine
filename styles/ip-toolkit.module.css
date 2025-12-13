@@ -778,6 +778,20 @@
   margin-bottom: 2px;
 }
 
+/* CHANGE HIGHLIGHTING - Field highlight animation */
+@keyframes fieldHighlight {
+  0% {
+    background-color: rgba(255, 230, 0, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.changedField {
+  animation: fieldHighlight 1.5s ease-out forwards;
+}
+
 @media (max-width: 480px) {
   .tab {
     padding: 6px 8px;
