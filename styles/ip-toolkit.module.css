@@ -736,12 +736,23 @@
   font-size: 12px;
 }
 
+.outputFieldRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px;
+  background-color: var(--color-background-secondary);
+  border-radius: 4px;
+  font-size: 12px;
+  gap: 12px;
+}
+
 .outputFieldRowDiagnostic {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-  background-color: var(--color-background-secondary);
+  gap: 6px;
+  padding: 10px;
+  background-color: transparent;
   border-radius: 4px;
   font-size: 12px;
 }
@@ -749,6 +760,8 @@
 .outputFieldLabel {
   font-weight: 500;
   color: var(--color-text-secondary);
+  flex-shrink: 0;
+  min-width: 100px;
 }
 
 .outputFieldValue {
@@ -756,12 +769,13 @@
   font-weight: 600;
   word-break: break-word;
   text-align: right;
+  flex: 1;
 }
 
 .outputFieldRowDiagnostic .outputFieldLabel {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 @media (max-width: 480px) {
