@@ -183,12 +183,8 @@ export default function Home() {
             } else {
               console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
             }
-            // Don't throw parse errors, just continue to fallback
-            data = null
-          }
-
-          if (!data) {
-            throw new Error('Failed to parse tool metadata')
+            // Don't throw parse errors, let it fall through to catch block below
+            throw parseError
           }
           if (data?.tools && typeof data.tools === 'object') {
             // Use metadata from Supabase as source of truth
