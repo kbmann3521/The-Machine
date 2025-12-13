@@ -102,12 +102,28 @@ export default function IPToolkitTests() {
     }))
 
     const json = JSON.stringify(allResults, null, 2)
+
     try {
+      // Try modern Clipboard API first
       await navigator.clipboard.writeText(json)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('Copy failed:', err)
+      // Fallback to older document.execCommand method
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = json
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        document.body.removeChild(textarea)
+      } catch (fallbackErr) {
+        console.error('Copy failed:', fallbackErr)
+      }
     }
   }
 
