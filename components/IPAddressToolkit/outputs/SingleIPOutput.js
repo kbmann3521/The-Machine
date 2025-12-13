@@ -199,6 +199,114 @@ export default function SingleIPOutput({ result }) {
       })
     }
 
+    // Range information (Phase 2)
+    if (result.range) {
+      const rangeFields = {}
+
+      if (result.range.start) {
+        rangeFields['Start Address'] = result.range.start
+      }
+
+      if (result.range.end) {
+        rangeFields['End Address'] = result.range.end
+      }
+
+      if (result.range.size !== undefined) {
+        rangeFields['Range Size'] = result.range.size.toLocaleString() + ' addresses'
+      }
+
+      if (result.range.isValid !== undefined) {
+        rangeFields['Valid'] = result.range.isValid ? '✓ Yes' : '✗ No'
+      }
+
+      if (result.range.isIncreasing !== undefined) {
+        rangeFields['Increasing Order'] = result.range.isIncreasing ? '✓ Yes' : '✗ No'
+      }
+
+      if (result.range.classificationMatch !== undefined) {
+        rangeFields['Same Classification'] = result.range.classificationMatch ? '✓ Yes' : '✗ No'
+      }
+
+      if (result.range.classificationNotes && Array.isArray(result.range.classificationNotes)) {
+        rangeFields['Notes'] = result.range.classificationNotes.map((note, i) => (
+          <div key={i} style={{ fontSize: '12px', marginBottom: '4px' }}>
+            • {note}
+          </div>
+        ))
+      }
+
+      if (Object.keys(rangeFields).length > 0) {
+        sections.push({
+          title: 'Range Details',
+          fields: rangeFields,
+        })
+      }
+    }
+
+    // Start IP (for ranges)
+    if (result.startIP) {
+      const startFields = {}
+
+      if (result.startIP.normalized) {
+        startFields['Normalized'] = result.startIP.normalized
+      }
+
+      if (result.startIP.compressed) {
+        startFields['Compressed'] = result.startIP.compressed
+      }
+
+      if (result.startIP.expanded) {
+        startFields['Expanded'] = result.startIP.expanded
+      }
+
+      if (result.startIP.integer !== undefined) {
+        startFields['Integer'] = result.startIP.integer.toString()
+      }
+
+      if (result.startIP.integerHex) {
+        startFields['Hexadecimal'] = result.startIP.integerHex
+      }
+
+      if (Object.keys(startFields).length > 0) {
+        sections.push({
+          title: 'Start IP',
+          fields: startFields,
+        })
+      }
+    }
+
+    // End IP (for ranges)
+    if (result.endIP) {
+      const endFields = {}
+
+      if (result.endIP.normalized) {
+        endFields['Normalized'] = result.endIP.normalized
+      }
+
+      if (result.endIP.compressed) {
+        endFields['Compressed'] = result.endIP.compressed
+      }
+
+      if (result.endIP.expanded) {
+        endFields['Expanded'] = result.endIP.expanded
+      }
+
+      if (result.endIP.integer !== undefined) {
+        endFields['Integer'] = result.endIP.integer.toString()
+      }
+
+      if (result.endIP.integerHex) {
+        endFields['Hexadecimal'] = result.endIP.integerHex
+      }
+
+      if (Object.keys(endFields).length > 0) {
+        sections.push({
+          title: 'End IP',
+          fields: endFields,
+        })
+      }
+    }
+
     // Diagnostics section (showing allIssues if available, otherwise individual sections)
     if (result.allIssues && Array.isArray(result.allIssues) && result.allIssues.length > 0) {
       const allIssuesFields = {}
