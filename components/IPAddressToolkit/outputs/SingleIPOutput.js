@@ -100,6 +100,27 @@ export default function SingleIPOutput({ result }) {
       if (result.hextets && Array.isArray(result.hextets)) {
         ipv6Fields['Hextets'] = result.hextets.join(' : ')
       }
+      if (result.zoneId) {
+        ipv6Fields['Zone ID'] = result.zoneId
+        if (result.normalizedWithoutZone) {
+          ipv6Fields['Without Zone'] = result.normalizedWithoutZone
+        }
+      }
+      if (result.isIPv4Mapped) {
+        ipv6Fields['IPv4-Mapped'] = 'Yes'
+        if (result.mappedIPv4) {
+          ipv6Fields['Mapped IPv4'] = result.mappedIPv4
+        }
+      }
+      if (result.ipv6Special) {
+        ipv6Fields['Special Type'] = result.ipv6Special.type
+        if (result.ipv6Special.description) {
+          ipv6Fields['Description'] = result.ipv6Special.description
+        }
+        if (result.ipv6Special.rfc) {
+          ipv6Fields['RFC'] = result.ipv6Special.rfc
+        }
+      }
       if (Object.keys(ipv6Fields).length > 0) {
         sections.push({
           title: 'IPv6 Format',
