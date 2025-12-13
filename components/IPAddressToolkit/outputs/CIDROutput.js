@@ -63,6 +63,13 @@ export default function CIDROutput({ result }) {
         cidrFields['Prefix Length'] = `/${result.cidr.cidr}`
       }
 
+      if (result.cidr.cidrType) {
+        cidrFields['CIDR Type'] = result.cidr.cidrType
+        if (result.cidr.cidrTypeDescription) {
+          cidrFields['Type Description'] = result.cidr.cidrTypeDescription
+        }
+      }
+
       if (result.cidr.netmask) {
         cidrFields['Netmask'] = result.cidr.netmask
       }
