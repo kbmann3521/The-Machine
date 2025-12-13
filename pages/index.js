@@ -87,13 +87,15 @@ export default function Home() {
     // Only abort if the signal hasn't already been aborted
     if (abortControllerRef.current) {
       try {
-        if (!abortControllerRef.current.signal.aborted) {
+        const signal = abortControllerRef.current.signal
+        if (signal && !signal.aborted) {
           abortControllerRef.current.abort()
         }
       } catch (e) {
         // Ignore abort errors during cleanup
+      } finally {
+        abortControllerRef.current = null
       }
-      abortControllerRef.current = null
     }
   }, [])
 
