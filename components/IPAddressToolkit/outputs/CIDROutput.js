@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaCopy, FaCheck } from 'react-icons/fa6'
 import OutputTabs from '../../OutputTabs'
 import styles from '../../../styles/ip-toolkit.module.css'
@@ -6,6 +6,62 @@ import toolStyles from '../../../styles/tool-output.module.css'
 
 export default function CIDROutput({ result }) {
   const [copiedField, setCopiedField] = useState(null)
+  const [previousResult, setPreviousResult] = useState(null)
+  const [changedFields, setChangedFields] = useState(new Set())
+
+  // Deep comparison helper
+  const getFieldValue = (obj, path) => {
+    return path.split('.').reduce((acc, part) => acc?.[part], obj)
+  }
+
+  // Detect changed fields when result updates
+  useEffect(() => {
+    if (!previousResult || !result) {
+      setPreviousResult(result)
+      setChangedFields(new Set())
+      return
+    }
+
+    const changed = new Set()
+
+    // List of all fields to check
+    const fieldsToCheck = [
+      'cidr.cidr',
+      'cidr.netmask',
+      'cidr.wildcardMask',
+      'cidr.networkAddress',
+      'cidr.broadcastAddress',
+      'cidr.firstHost',
+      'cidr.lastHost',
+      'cidr.totalHosts',
+      'cidr.usableHosts',
+      'cidr.cidrType',
+      'cidr.networkAddress',
+      'cidr.firstAddress',
+      'cidr.lastAddress',
+      'baseIP.normalized',
+      'baseIP.integer',
+      'baseIP.integerHex',
+    ]
+
+    fieldsToCheck.forEach(path => {
+      const oldValue = getFieldValue(previousResult, path)
+      const newValue = getFieldValue(result, path)
+      if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+        changed.add(path)
+      }
+    })
+
+    setChangedFields(changed)
+    setPreviousResult(result)
+
+    // Clear highlights after 1.5 seconds
+    const timeout = setTimeout(() => {
+      setChangedFields(new Set())
+    }, 1500)
+
+    return () => clearTimeout(timeout)
+  }, [result])
 
   const handleCopyField = async (value, fieldName) => {
     try {
