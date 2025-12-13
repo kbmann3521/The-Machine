@@ -143,6 +143,39 @@ export default function CIDROutput({ result }) {
       }
     }
 
+    // IPv6 Network Details (Version 6 only)
+    if (result.version === 6 && result.cidr) {
+      const ipv6Fields = {}
+
+      if (result.cidr.networkAddress) {
+        ipv6Fields['Network Address'] = result.cidr.networkAddress
+      }
+
+      if (result.cidr.firstAddress) {
+        ipv6Fields['First Address'] = result.cidr.firstAddress
+      }
+
+      if (result.cidr.lastAddress) {
+        ipv6Fields['Last Address'] = result.cidr.lastAddress
+      }
+
+      if (result.cidr.hostCount) {
+        if (result.cidr.hostCount.scientific) {
+          ipv6Fields['Total Hosts'] = result.cidr.hostCount.scientific
+        }
+        if (result.cidr.hostCount.approximate) {
+          ipv6Fields['Approximate'] = result.cidr.hostCount.approximate
+        }
+      }
+
+      if (Object.keys(ipv6Fields).length > 0) {
+        sections.push({
+          title: 'IPv6 Network',
+          fields: ipv6Fields,
+        })
+      }
+    }
+
     // Base IP Information
     if (result.baseIP) {
       const baseFields = {}
