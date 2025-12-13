@@ -543,6 +543,27 @@ export default function SingleIPOutput({ result }) {
             <div className={styles.outputSectionContent}>
               {Object.entries(section.fields).map(([key, value]) => {
                 const uniqueKey = `${section.title}-${key}`
+
+                // Map field keys to their data paths for change detection
+                const fieldPathMap = {
+                  'Input': 'input',
+                  'Normalized': 'normalized',
+                  'Expanded': 'expanded',
+                  'Compressed': 'compressed',
+                  'Decimal': 'integer',
+                  'Hexadecimal': 'integerHex',
+                  'Combined (Dotted)': 'integerBinary',
+                  'Continuous': 'binaryContinuous',
+                  'Pointer': 'ptr',
+                  'Mapped IPv4': 'mappedIPv4',
+                  'Binary (128-bit)': 'ipv6Binary',
+                  'Binary (Dotted)': 'ipv6BinaryDotted',
+                  'Zone ID': 'zoneId',
+                  'Without Zone': 'normalizedWithoutZone',
+                }
+
+                const fieldPath = fieldPathMap[key]
+
                 if (section.isDiagnostic || typeof value !== 'string') {
                   return (
                     <div key={uniqueKey} className={section.isDiagnostic ? styles.outputFieldRowDiagnostic : styles.outputFieldRow}>
@@ -551,7 +572,7 @@ export default function SingleIPOutput({ result }) {
                     </div>
                   )
                 }
-                return renderField(key, value, uniqueKey)
+                return renderField(key, value, uniqueKey, fieldPath)
               })}
             </div>
           </div>
