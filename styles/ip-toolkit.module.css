@@ -736,6 +736,16 @@
   font-size: 12px;
 }
 
+.outputFieldRowDiagnostic {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background-color: var(--color-background-secondary);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
 .outputFieldLabel {
   font-weight: 500;
   color: var(--color-text-secondary);
@@ -746,6 +756,12 @@
   font-weight: 600;
   word-break: break-word;
   text-align: right;
+}
+
+.outputFieldRowDiagnostic .outputFieldLabel {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
 }
 
 @media (max-width: 480px) {
