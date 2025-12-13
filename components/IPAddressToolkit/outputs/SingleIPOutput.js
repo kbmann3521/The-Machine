@@ -88,7 +88,27 @@ export default function SingleIPOutput({ result }) {
       })
     }
 
-    // Binary octets visualization (Phase 4 foundation)
+    // IPv6 Expansion/Compression
+    if (result.version === 6) {
+      const ipv6Fields = {}
+      if (result.expanded) {
+        ipv6Fields['Expanded'] = result.expanded
+      }
+      if (result.compressed) {
+        ipv6Fields['Compressed'] = result.compressed
+      }
+      if (result.hextets && Array.isArray(result.hextets)) {
+        ipv6Fields['Hextets'] = result.hextets.join(' : ')
+      }
+      if (Object.keys(ipv6Fields).length > 0) {
+        sections.push({
+          title: 'IPv6 Format',
+          fields: ipv6Fields,
+        })
+      }
+    }
+
+    // Binary octets visualization (IPv4)
     if (result.binaryOctets && Array.isArray(result.binaryOctets)) {
       const binaryFields = {
         'Octet 1': result.binaryOctets[0] || '',
@@ -104,6 +124,23 @@ export default function SingleIPOutput({ result }) {
         title: 'Binary Representation',
         fields: binaryFields,
       })
+    }
+
+    // IPv6 Binary representation
+    if (result.ipv6Binary) {
+      const ipv6BinaryFields = {}
+      if (result.ipv6Binary) {
+        ipv6BinaryFields['Binary (128-bit)'] = result.ipv6Binary
+      }
+      if (result.ipv6BinaryDotted) {
+        ipv6BinaryFields['Binary (Dotted)'] = result.ipv6BinaryDotted
+      }
+      if (Object.keys(ipv6BinaryFields).length > 0) {
+        sections.push({
+          title: 'IPv6 Binary',
+          fields: ipv6BinaryFields,
+        })
+      }
     }
 
     if (result.integer !== null && result.integer !== undefined) {
