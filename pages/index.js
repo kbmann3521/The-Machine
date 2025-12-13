@@ -142,9 +142,13 @@ export default function Home() {
       // First, try to fetch tool metadata from Supabase
       try {
         const controller = new AbortController()
+        let timeoutFired = false
         const timeoutId = setTimeout(() => {
+          timeoutFired = true
           try {
-            controller.abort()
+            if (!controller.signal.aborted) {
+              controller.abort()
+            }
           } catch (e) {
             // Ignore abort errors
           }
@@ -179,7 +183,12 @@ export default function Home() {
             } else {
               console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
             }
-            throw parseError
+            // Don't throw parse errors, just continue to fallback
+            data = null
+          }
+
+          if (!data) {
+            throw new Error('Failed to parse tool metadata')
           }
           if (data?.tools && typeof data.tools === 'object') {
             // Use metadata from Supabase as source of truth
