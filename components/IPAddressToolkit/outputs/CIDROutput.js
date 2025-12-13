@@ -324,16 +324,18 @@ export default function CIDROutput({ result }) {
               {section.title}
             </div>
             <div className={styles.outputSectionContent}>
-              {Object.entries(section.fields).map(([key, value]) => (
-                <div key={key} className={styles.outputFieldRow}>
-                  <span className={styles.outputFieldLabel}>
-                    {key}
-                  </span>
-                  <div className={styles.outputFieldValue}>
-                    {typeof value === 'object' ? value : value}
-                  </div>
-                </div>
-              ))}
+              {Object.entries(section.fields).map(([key, value]) => {
+                const uniqueKey = `${section.title}-${key}`
+                if (typeof value !== 'string') {
+                  return (
+                    <div key={uniqueKey} className={styles.outputFieldRow}>
+                      <span className={styles.outputFieldLabel}>{key}</span>
+                      <div className={styles.outputFieldValue}>{value}</div>
+                    </div>
+                  )
+                }
+                return renderField(key, value, uniqueKey)
+              })}
             </div>
           </div>
         ))}
