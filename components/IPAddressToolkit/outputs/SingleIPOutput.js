@@ -494,16 +494,18 @@ export default function SingleIPOutput({ result }) {
               {section.title}
             </div>
             <div className={styles.outputSectionContent}>
-              {Object.entries(section.fields).map(([key, value]) => (
-                <div key={key} className={section.isDiagnostic ? styles.outputFieldRowDiagnostic : styles.outputFieldRow}>
-                  <span className={styles.outputFieldLabel}>
-                    {key}
-                  </span>
-                  <div className={styles.outputFieldValue}>
-                    {Array.isArray(value) ? value : value}
-                  </div>
-                </div>
-              ))}
+              {Object.entries(section.fields).map(([key, value]) => {
+                const uniqueKey = `${section.title}-${key}`
+                if (section.isDiagnostic || typeof value !== 'string') {
+                  return (
+                    <div key={uniqueKey} className={section.isDiagnostic ? styles.outputFieldRowDiagnostic : styles.outputFieldRow}>
+                      <span className={styles.outputFieldLabel}>{key}</span>
+                      <div className={styles.outputFieldValue}>{value}</div>
+                    </div>
+                  )
+                }
+                return renderField(key, value, uniqueKey)
+              })}
             </div>
           </div>
         ))}
