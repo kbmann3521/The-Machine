@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaCopy, FaCheck } from 'react-icons/fa6'
 import OutputTabs from '../../OutputTabs'
 import styles from '../../../styles/ip-toolkit.module.css'
@@ -6,6 +6,51 @@ import toolStyles from '../../../styles/tool-output.module.css'
 
 export default function SingleIPOutput({ result }) {
   const [copiedField, setCopiedField] = useState(null)
+  const [previousResult, setPreviousResult] = useState(null)
+  const [changedFields, setChangedFields] = useState(new Set())
+
+  // Detect changed fields when result updates
+  useEffect(() => {
+    if (!previousResult || !result || result.inputType !== previousResult.inputType) {
+      setPreviousResult(result)
+      setChangedFields(new Set())
+      return
+    }
+
+    const changed = new Set()
+
+    // Compare all top-level string fields
+    const fieldsToCheck = [
+      'input',
+      'normalized',
+      'expanded',
+      'compressed',
+      'integer',
+      'integerHex',
+      'integerBinary',
+      'binaryContinuous',
+      'ptr',
+      'mappedIPv4',
+    ]
+
+    fieldsToCheck.forEach(field => {
+      const oldValue = previousResult[field]
+      const newValue = result[field]
+      if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+        changed.add(field)
+      }
+    })
+
+    setChangedFields(changed)
+    setPreviousResult(result)
+
+    // Clear highlights after 1.5 seconds
+    const timeout = setTimeout(() => {
+      setChangedFields(new Set())
+    }, 1500)
+
+    return () => clearTimeout(timeout)
+  }, [result])
 
   const handleCopyField = async (value, fieldName) => {
     try {
