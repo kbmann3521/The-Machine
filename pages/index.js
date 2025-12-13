@@ -654,8 +654,8 @@ export default function Home() {
                   errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
                   predictedTools={predictedTools}
                   onSelectTool={handleSelectTool}
-                  validationErrors={outputResult?.diagnostics ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
-                  lintingWarnings={outputResult?.diagnostics ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
+                  validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
+                  lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
                 />
               </div>
 
