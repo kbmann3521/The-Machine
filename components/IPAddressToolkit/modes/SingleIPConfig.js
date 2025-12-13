@@ -104,6 +104,33 @@ export default function SingleIPConfig({ configState = {}, setConfigState }) {
       </div>
 
       <div className={styles.configGroup}>
+        <label className={styles.configLabel}>IPv6 (Phase 2)</label>
+        <div className={styles.toggleGroup}>
+          <label className={styles.toggleLabel}>
+            <input
+              type="checkbox"
+              checked={configState.ipv6Expansion !== false}
+              onChange={() => handleToggle('ipv6Expansion')}
+              className={styles.toggleInput}
+            />
+            <span className={styles.toggleSwitch}></span>
+            <span className={styles.toggleText}>Expand / Compress</span>
+          </label>
+
+          <label className={styles.toggleLabel}>
+            <input
+              type="checkbox"
+              checked={configState.ipv6Binary !== false}
+              onChange={() => handleToggle('ipv6Binary')}
+              className={styles.toggleInput}
+            />
+            <span className={styles.toggleSwitch}></span>
+            <span className={styles.toggleText}>IPv6 Binary</span>
+          </label>
+        </div>
+      </div>
+
+      <div className={styles.configGroup}>
         <label className={styles.configLabel}>Classification & Analysis</label>
         <div className={styles.toggleGroup}>
           <label className={styles.toggleLabel}>
