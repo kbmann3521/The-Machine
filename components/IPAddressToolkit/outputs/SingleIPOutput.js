@@ -162,7 +162,24 @@ export default function SingleIPOutput({ result }) {
       })
     }
 
-    if (result.diagnostics && (result.diagnostics.errors?.length > 0 || result.diagnostics.warnings?.length > 0 || result.diagnostics.tips?.length > 0)) {
+    // Diagnostics section (showing allIssues if available, otherwise individual sections)
+    if (result.allIssues && Array.isArray(result.allIssues) && result.allIssues.length > 0) {
+      const allIssuesFields = {}
+      allIssuesFields['Issues'] = result.allIssues.map((issue, i) => {
+        const severityColor = issue.severity === 'error' ? '#f44336' : issue.severity === 'warning' ? '#ff9800' : '#4caf50'
+        const severityIcon = issue.severity === 'error' ? '❌' : issue.severity === 'warning' ? '⚠️' : '💡'
+        return (
+          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: severityColor }}>
+            {severityIcon} <strong>{issue.code}:</strong> {issue.message}
+          </div>
+        )
+      })
+      sections.push({
+        title: 'Diagnostics',
+        fields: allIssuesFields,
+        isDiagnostic: true,
+      })
+    } else if (result.diagnostics && (result.diagnostics.errors?.length > 0 || result.diagnostics.warnings?.length > 0 || result.diagnostics.tips?.length > 0)) {
       const diagnosticFields = {}
 
       if (result.diagnostics.errors?.length > 0) {
