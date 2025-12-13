@@ -50,7 +50,7 @@ export default function SingleIPOutput({ result }) {
         title: 'Validation Status',
         fields: {
           'Valid': result.isValid ? '✓ Yes' : '✗ No',
-          ...(result.version && { 'Version': `IPv${result.version}` }),
+          ...(result.metadata?.versionString && { 'Version': result.metadata.versionString }),
         },
       })
     }
@@ -64,13 +64,26 @@ export default function SingleIPOutput({ result }) {
       })
     }
 
+    // Binary octets visualization (Phase 4 foundation)
+    if (result.binaryOctets && Array.isArray(result.binaryOctets)) {
+      sections.push({
+        title: 'Binary Representation',
+        fields: {
+          'Octet 1': result.binaryOctets[0] || '',
+          'Octet 2': result.binaryOctets[1] || '',
+          'Octet 3': result.binaryOctets[2] || '',
+          'Octet 4': result.binaryOctets[3] || '',
+          'Combined': result.integerBinary || '',
+        },
+      })
+    }
+
     if (result.integer !== null && result.integer !== undefined) {
       sections.push({
         title: 'Integer Conversion',
         fields: {
           'Decimal': result.integer.toString(),
           ...(result.integerHex && { 'Hexadecimal': result.integerHex }),
-          ...(result.integerBinary && { 'Binary': result.integerBinary }),
         },
       })
     }
@@ -127,7 +140,7 @@ export default function SingleIPOutput({ result }) {
       if (result.diagnostics.errors?.length > 0) {
         diagnosticFields['❌ Errors'] = result.diagnostics.errors.map((e, i) => (
           <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#f44336' }}>
-            {e}
+            <strong>{e.code}:</strong> {e.message}
           </div>
         ))
       }
@@ -135,7 +148,7 @@ export default function SingleIPOutput({ result }) {
       if (result.diagnostics.warnings?.length > 0) {
         diagnosticFields['⚠️ Warnings'] = result.diagnostics.warnings.map((w, i) => (
           <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#ff9800' }}>
-            {w}
+            <strong>{w.code}:</strong> {w.message}
           </div>
         ))
       }
@@ -143,7 +156,7 @@ export default function SingleIPOutput({ result }) {
       if (result.diagnostics.tips?.length > 0) {
         diagnosticFields['💡 Tips'] = result.diagnostics.tips.map((t, i) => (
           <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#4caf50' }}>
-            {t}
+            <strong>{t.code}:</strong> {t.message}
           </div>
         ))
       }
