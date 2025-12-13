@@ -50,7 +50,7 @@ export default function SingleIPOutput({ result }) {
         title: 'Validation Status',
         fields: {
           'Valid': result.isValid ? '✓ Yes' : '✗ No',
-          ...(result.version && { 'Version': result.version }),
+          ...(result.version && { 'Version': `IPv${result.version}` }),
         },
       })
     }
@@ -68,9 +68,19 @@ export default function SingleIPOutput({ result }) {
       sections.push({
         title: 'Integer Conversion',
         fields: {
-          'Decimal': result.integer,
+          'Decimal': result.integer.toString(),
           ...(result.integerHex && { 'Hexadecimal': result.integerHex }),
           ...(result.integerBinary && { 'Binary': result.integerBinary }),
+        },
+      })
+    }
+
+    if (result.ptr) {
+      sections.push({
+        title: 'PTR (Reverse DNS)',
+        fields: {
+          'Pointer': result.ptr,
+          'Type': result.version === 4 ? 'in-addr.arpa' : 'ip6.arpa',
         },
       })
     }
@@ -78,22 +88,70 @@ export default function SingleIPOutput({ result }) {
     if (result.classification) {
       const classFields = {
         'Type': result.classification.type,
-        ...(result.classification.isPrivate !== undefined && {
-          'Private': result.classification.isPrivate ? 'Yes' : 'No',
-        }),
-        ...(result.classification.isLoopback && {
-          'Loopback': 'Yes',
-        }),
-        ...(result.classification.isMulticast && {
-          'Multicast': 'Yes',
-        }),
-        ...(result.classification.isLinkLocal && {
-          'Link-Local': 'Yes',
-        }),
+        ...(result.classification.subtype && { 'Subtype': result.classification.subtype }),
+        ...(result.classification.rfc && { 'RFC': result.classification.rfc }),
+        ...(result.classification.scope && { 'Scope': result.classification.scope }),
       }
+
+      if (result.classification.isPrivate !== undefined) {
+        classFields['Private'] = result.classification.isPrivate ? 'Yes' : 'No'
+      }
+      if (result.classification.isPublic !== undefined) {
+        classFields['Public'] = result.classification.isPublic ? 'Yes' : 'No'
+      }
+      if (result.classification.isLoopback) {
+        classFields['Loopback'] = 'Yes'
+      }
+      if (result.classification.isMulticast) {
+        classFields['Multicast'] = 'Yes'
+      }
+      if (result.classification.isLinkLocal) {
+        classFields['Link-Local'] = 'Yes'
+      }
+      if (result.classification.isDocumentation) {
+        classFields['Documentation'] = 'Yes'
+      }
+      if (result.classification.range) {
+        classFields['Range'] = result.classification.range
+      }
+
       sections.push({
-        title: 'Classification',
+        title: 'RFC Classification',
         fields: classFields,
+      })
+    }
+
+    if (result.diagnostics && (result.diagnostics.errors?.length > 0 || result.diagnostics.warnings?.length > 0 || result.diagnostics.tips?.length > 0)) {
+      const diagnosticFields = {}
+
+      if (result.diagnostics.errors?.length > 0) {
+        diagnosticFields['❌ Errors'] = result.diagnostics.errors.map((e, i) => (
+          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#f44336' }}>
+            {e}
+          </div>
+        ))
+      }
+
+      if (result.diagnostics.warnings?.length > 0) {
+        diagnosticFields['⚠️ Warnings'] = result.diagnostics.warnings.map((w, i) => (
+          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#ff9800' }}>
+            {w}
+          </div>
+        ))
+      }
+
+      if (result.diagnostics.tips?.length > 0) {
+        diagnosticFields['💡 Tips'] = result.diagnostics.tips.map((t, i) => (
+          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#4caf50' }}>
+            {t}
+          </div>
+        ))
+      }
+
+      sections.push({
+        title: 'Diagnostics',
+        fields: diagnosticFields,
+        isDiagnostic: true,
       })
     }
 
@@ -106,13 +164,13 @@ export default function SingleIPOutput({ result }) {
             </div>
             <div className={styles.outputSectionContent}>
               {Object.entries(section.fields).map(([key, value]) => (
-                <div key={key} className={styles.outputFieldRow}>
+                <div key={key} className={section.isDiagnostic ? styles.outputFieldRowDiagnostic : styles.outputFieldRow}>
                   <span className={styles.outputFieldLabel}>
                     {key}
                   </span>
-                  <span className={styles.outputFieldValue}>
-                    {value}
-                  </span>
+                  <div className={styles.outputFieldValue}>
+                    {Array.isArray(value) ? value : value}
+                  </div>
                 </div>
               ))}
             </div>
