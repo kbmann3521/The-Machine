@@ -312,13 +312,19 @@ export default function Home() {
           abortControllerRef.current = controller
 
           // Check if signal is already aborted before setting up timeout
-          if (controller.signal.aborted) {
+          try {
+            if (controller.signal.aborted) {
+              return
+            }
+          } catch (e) {
             return
           }
 
           abortTimeoutRef.current = setTimeout(() => {
             try {
-              controller.abort()
+              if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+                abortControllerRef.current.abort()
+              }
             } catch (e) {
               // Ignore abort errors
             }
@@ -327,7 +333,14 @@ export default function Home() {
           let response
           try {
             // Check again if signal was aborted during the delay
-            if (controller.signal.aborted) {
+            let isAborted = false
+            try {
+              isAborted = controller.signal.aborted
+            } catch (e) {
+              isAborted = true
+            }
+
+            if (isAborted) {
               response = null
             } else {
               response = await fetch('/api/tools/predict', {
