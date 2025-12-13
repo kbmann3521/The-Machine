@@ -11,34 +11,16 @@ import {
   getToolBaseWeight,
   getToolBiasWeight,
 } from '../../../lib/toolMappings'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
 
 /**
- * Fetch tool visibility from Supabase
+ * Get tool visibility from local TOOLS configuration
  */
-async function getVisibilityMap() {
-  try {
-    const { data: tools } = await supabase
-      .from('tools')
-      .select('id, show_in_recommendations')
-
-    const visibilityMap = {}
-    if (tools && Array.isArray(tools)) {
-      tools.forEach(tool => {
-        visibilityMap[tool.id] =
-          tool.show_in_recommendations !== false
-      })
-    }
-    return visibilityMap
-  } catch (error) {
-    console.error('Error fetching tool visibility:', error)
-    return {}
-  }
+function getVisibilityMap() {
+  const visibilityMap = {}
+  Object.entries(TOOLS).forEach(([toolId, toolData]) => {
+    visibilityMap[toolId] = toolData.show_in_recommendations !== false
+  })
+  return visibilityMap
 }
 
 export default async function handler(req, res) {
@@ -55,7 +37,7 @@ export default async function handler(req, res) {
         .json({ error: 'No input provided' })
     }
 
-    const visibilityMap = await getVisibilityMap()
+    const visibilityMap = getVisibilityMap()
     let predictedTools = []
 
     // ========== IMAGE PATH ==========
