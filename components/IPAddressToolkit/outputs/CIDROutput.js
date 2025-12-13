@@ -384,6 +384,28 @@ export default function CIDROutput({ result }) {
             <div className={styles.outputSectionContent}>
               {Object.entries(section.fields).map(([key, value]) => {
                 const uniqueKey = `${section.title}-${key}`
+
+                // Map field keys to their data paths for change detection
+                const fieldPathMap = {
+                  'Prefix Length': 'cidr.cidr',
+                  'Netmask': 'cidr.netmask',
+                  'Wildcard Mask': 'cidr.wildcardMask',
+                  'Network Address': 'cidr.networkAddress',
+                  'Broadcast Address': 'cidr.broadcastAddress',
+                  'First Host': 'cidr.firstHost',
+                  'Last Host': 'cidr.lastHost',
+                  'Total Hosts': 'cidr.totalHosts',
+                  'Usable Hosts': 'cidr.usableHosts',
+                  'CIDR Type': 'cidr.cidrType',
+                  'First Address': 'cidr.firstAddress',
+                  'Last Address': 'cidr.lastAddress',
+                  'Base IP': 'baseIP.normalized',
+                  'Integer': 'baseIP.integer',
+                  'Hexadecimal': 'baseIP.integerHex',
+                }
+
+                const fieldPath = fieldPathMap[key]
+
                 if (typeof value !== 'string') {
                   return (
                     <div key={uniqueKey} className={styles.outputFieldRow}>
@@ -392,7 +414,7 @@ export default function CIDROutput({ result }) {
                     </div>
                   )
                 }
-                return renderField(key, value, uniqueKey)
+                return renderField(key, value, uniqueKey, fieldPath)
               })}
             </div>
           </div>
