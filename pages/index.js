@@ -170,7 +170,17 @@ export default function Home() {
         clearTimeout(timeoutId)
 
         if (response.ok) {
-          const data = await response.json()
+          let data
+          try {
+            data = await response.json()
+          } catch (parseError) {
+            if (parseError.name === 'AbortError') {
+              console.debug('Tool metadata parsing was aborted')
+            } else {
+              console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
+            }
+            throw parseError
+          }
           if (data?.tools && typeof data.tools === 'object') {
             // Use metadata from Supabase as source of truth
             allTools = Object.entries(data.tools).map(([toolId, toolData]) => {
