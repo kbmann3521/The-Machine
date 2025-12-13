@@ -40,6 +40,15 @@ const TEST_CASES = [
   { category: 'Phase 2: Range', input: '192.168.1.1 to 192.168.1.255', description: 'Range with "to"' },
   { category: 'Phase 2: Range', input: '10.0.0.1 to 10.0.0.10', description: 'Small range' },
   { category: 'Phase 2: Range', input: '8.8.8.8 - 1.1.1.1', description: 'Reverse range (invalid)' },
+  { category: 'Phase 2: Range', input: '192.168.1.1..192.168.1.10', description: 'Range with dots (..)' },
+  { category: 'Phase 2: Range', input: '10.0.0.1…10.0.0.5', description: 'Range with ellipsis (…)' },
+
+  // Phase 2: IPv6 Advanced Features
+  { category: 'Phase 2: IPv6 Advanced', input: 'fe80::1%eth0', description: 'IPv6 with zone index' },
+  { category: 'Phase 2: IPv6 Advanced', input: '::ffff:192.168.1.1', description: 'IPv4-mapped IPv6' },
+  { category: 'Phase 2: IPv6 Advanced', input: '2002:c0a8:101::1', description: '6to4 address' },
+  { category: 'Phase 2: IPv6 Advanced', input: 'fd00::1', description: 'ULA (Unique Local Address)' },
+  { category: 'Phase 2: IPv6 Advanced', input: '2001::1', description: 'Teredo address' },
 
   // Edge Cases: Whitespace & Formatting
   { category: 'Edge Cases', input: '  192.168.1.1  ', description: 'Leading/trailing spaces' },
