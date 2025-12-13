@@ -141,49 +141,23 @@ export default function Home() {
 
       // First, try to fetch tool metadata from Supabase
       try {
-        const controller = new AbortController()
-        let timeoutFired = false
-        const timeoutId = setTimeout(() => {
-          timeoutFired = true
-          try {
-            if (!controller.signal.aborted) {
-              controller.abort()
-            }
-          } catch (e) {
-            // Ignore abort errors
-          }
-        }, 5000) // 5 second timeout
-
         let response
         try {
           response = await fetch('/api/tools/get-metadata', {
-            signal: controller.signal,
             headers: { 'Content-Type': 'application/json' },
             cache: 'no-cache',
           })
         } catch (fetchError) {
-          clearTimeout(timeoutId)
-          if (fetchError.name === 'AbortError') {
-            console.debug('Tool metadata request timed out')
-          } else {
-            console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
-          }
+          console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
           throw fetchError
         }
-
-        clearTimeout(timeoutId)
 
         if (response.ok) {
           let data
           try {
             data = await response.json()
           } catch (parseError) {
-            if (parseError.name === 'AbortError') {
-              console.debug('Tool metadata parsing was aborted')
-            } else {
-              console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
-            }
-            // Don't throw parse errors, let it fall through to catch block below
+            console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
             throw parseError
           }
           if (data?.tools && typeof data.tools === 'object') {
