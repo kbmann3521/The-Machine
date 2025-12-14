@@ -316,17 +316,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
             color: 'var(--color-text-secondary)',
             marginTop: '8px',
             paddingLeft: '12px',
-            lineHeight: '1.5',
+            lineHeight: '1.4',
           }}>
-            <div style={{ marginBottom: '4px' }}>
-              💡 <strong>Tip:</strong> You can enter:
-            </div>
-            <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div>• Single IP: <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px' }}>192.168.1.1</code></div>
-              <div>• IPv6: <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px' }}>2001:db8::1</code></div>
-              <div>• CIDR: <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px' }}>192.168.1.0/24</code></div>
-              <div>• Range: <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '2px 4px', borderRadius: '2px' }}>192.168.1.1 to 192.168.1.10</code></div>
-            </div>
+            💡 <strong>Tip:</strong> Enter single IP, IPv6, CIDR (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.0/24</code>), or range (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.1 to 192.168.1.10</code>)
           </div>
         )}
 
