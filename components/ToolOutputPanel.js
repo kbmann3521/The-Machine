@@ -3834,7 +3834,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           { label: 'Converted Time (ISO)', value: result.convertedTime },
           { label: 'Converted Time (Readable)', value: result.convertedReadable },
           { label: 'Output Timezone', value: result.outputTimezone },
-          { label: 'Output Offset', value: result.outputOffsetStr },
+          { label: 'Output Offset', value: result.outputOffset },
           { label: 'Time Difference', value: result.timeDifference },
           { label: 'Day Boundary', value: result.dayBoundaryShift },
           { label: 'Unix Timestamp (seconds)', value: String(result.unixSeconds) },
