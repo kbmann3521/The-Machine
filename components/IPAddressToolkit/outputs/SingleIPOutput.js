@@ -278,7 +278,31 @@ export default function SingleIPOutput({ result, detectedInput }) {
         })
       }
 
-      return sections
+      return (
+        <div>
+          {sections.map((section, idx) => (
+            <div key={idx} className={styles.outputSectionContainer}>
+              <div className={styles.outputSectionTitle}>
+                {section.title}
+              </div>
+              <div className={styles.outputSectionContent}>
+                {Object.entries(section.fields).map(([key, value]) => {
+                  const uniqueKey = `${section.title}-${key}`
+                  if (typeof value !== 'string') {
+                    return (
+                      <div key={uniqueKey} className={styles.outputFieldRow}>
+                        <span className={styles.outputFieldLabel}>{key}</span>
+                        <div className={styles.outputFieldValue}>{value}</div>
+                      </div>
+                    )
+                  }
+                  return renderField(key, value, uniqueKey)
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )
     }
 
     // Input Section (with rawInput if it differs from normalized input)
