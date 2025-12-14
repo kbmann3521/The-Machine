@@ -113,19 +113,19 @@ export default function BulkIPMultiComparison({ results, types }) {
       {/* Type Distribution */}
       <div>
         <div style={{
-          fontSize: '12px',
+          fontSize: '11px',
           fontWeight: '600',
           color: 'var(--color-text-secondary)',
-          marginBottom: '12px',
+          marginBottom: '8px',
           textTransform: 'uppercase',
-          letterSpacing: '0.5px'
+          letterSpacing: '0.4px'
         }}>
           Type Distribution
         </div>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
-          gap: '12px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(75px, 1fr))',
+          gap: '8px'
         }}>
           {Object.entries(analysis.typeDistribution).map(([type, count]) => {
             const typeColors = {
@@ -142,26 +142,26 @@ export default function BulkIPMultiComparison({ results, types }) {
               <div
                 key={type}
                 style={{
-                  padding: '16px',
+                  padding: '10px 12px',
                   backgroundColor: colorScheme.bg,
                   border: `1px solid ${colorScheme.border}`,
-                  borderRadius: '8px',
-                  borderLeft: `4px solid ${colorScheme.border}`,
+                  borderRadius: '6px',
+                  borderLeft: `3px solid ${colorScheme.border}`,
                   transition: 'all 0.2s ease'
                 }}
               >
                 <div style={{
-                  fontSize: '10px',
+                  fontSize: '8px',
                   fontWeight: '700',
                   textTransform: 'uppercase',
                   color: colorScheme.color,
-                  marginBottom: '8px',
-                  letterSpacing: '0.5px'
+                  marginBottom: '4px',
+                  letterSpacing: '0.3px'
                 }}>
                   {type}
                 </div>
                 <div style={{
-                  fontSize: '28px',
+                  fontSize: '18px',
                   fontWeight: '700',
                   color: colorScheme.color
                 }}>
