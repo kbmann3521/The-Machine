@@ -396,29 +396,6 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
                         )}
                       </div>
                     </div>
-
-                    <button
-                      onClick={e => {
-                        e.stopPropagation()
-                        handleCopyItem(result.input)
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '28px',
-                        height: '28px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        color: 'var(--color-text-secondary)',
-                        fontSize: '12px',
-                      }}
-                      title="Copy input"
-                    >
-                      <FaCopy style={{ fontSize: '12px' }} />
-                    </button>
                   </div>
 
                   {/* Card Content (Expanded) - Full output component */}
