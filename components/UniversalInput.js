@@ -316,9 +316,17 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
             color: 'var(--color-text-secondary)',
             marginTop: '8px',
             paddingLeft: '12px',
-            lineHeight: '1.4',
+            lineHeight: '1.5',
           }}>
-            💡 <strong>Tip:</strong> Enter single IP, IPv6, CIDR (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.0/24</code>), or range (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.1 to 192.168.1.10</code>)
+            <div style={{ marginBottom: '6px' }}>
+              💡 <strong>Single mode:</strong> One IP, IPv6, CIDR (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.0/24</code>), or range (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.1 to 192.168.1.10</code>)
+            </div>
+            <div style={{ marginBottom: '6px' }}>
+              📊 <strong>Bulk mode (2 items):</strong> Side-by-side comparison. Example: <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>8.8.8.8</code> <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>1.1.1.1</code>
+            </div>
+            <div>
+              📈 <strong>Bulk mode (3-7 items):</strong> Aggregate analysis. Example: <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>142.250.74.14</code> <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>8.8.8.8</code> <code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>google.com</code> ...
+            </div>
           </div>
         )}
 
