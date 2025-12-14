@@ -66,13 +66,6 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
     }
   }
 
-  const handleCopyItem = async (value) => {
-    try {
-      await navigator.clipboard.writeText(String(value))
-    } catch (err) {
-      console.error('Copy failed:', err)
-    }
-  }
 
   const handleExportJSON = () => {
     const json = exportToJSON(filteredResults.length > 0 ? filteredResults : results)
