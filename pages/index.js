@@ -727,6 +727,7 @@ export default function Home() {
                   <IPToolkitOutputPanel
                     key={selectedTool?.toolId}
                     result={outputResult}
+                    inputText={inputText}
                   />
                 ) : selectedTool?.toolId === 'email-validator' ? (
                   <EmailValidatorOutputPanel
