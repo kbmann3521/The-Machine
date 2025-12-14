@@ -3826,11 +3826,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'time-normalizer':
         if (result.error) return null
         return [
-          { label: 'ISO 8601', value: result.iso },
-          { label: 'Local Date', value: result.local },
+          { label: 'Detected Format', value: result.detectedFormat },
+          { label: 'Input Time (ISO)', value: result.inputTime },
+          { label: 'Input Time (Readable)', value: result.inputReadable },
+          { label: 'Input Timezone', value: result.inputTimezone },
+          { label: 'Input Offset', value: result.inputOffset },
+          { label: 'Converted Time (ISO)', value: result.convertedTime },
+          { label: 'Converted Time (Readable)', value: result.convertedReadable },
+          { label: 'Output Timezone', value: result.outputTimezone },
+          { label: 'Output Offset', value: result.outputOffsetStr },
+          { label: 'Time Difference', value: result.timeDifference },
+          { label: 'Day Boundary', value: result.dayBoundaryShift },
           { label: 'Unix Timestamp (seconds)', value: String(result.unixSeconds) },
           { label: 'Unix Timestamp (milliseconds)', value: String(result.unixMillis) },
-          result.detectedFormat ? { label: 'Detected Format', value: result.detectedFormat } : null,
         ].filter(f => f && f.value !== undefined && f.value !== null)
 
       default:
