@@ -25,7 +25,13 @@ export default function SingleIPOutput({ result, detectedInput }) {
       setDnsError(null)
 
       try {
-        const hostname = detectedInput.description?.split('(')[1]?.slice(0, -1) || ''
+        const hostname = detectedInput.hostname || detectedInput.description?.split('(')[1]?.slice(0, -1) || ''
+        if (!hostname) {
+          setDnsError('No hostname found')
+          setDnsLoading(false)
+          return
+        }
+
         const response = await fetch('/api/tools/dns-lookup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
