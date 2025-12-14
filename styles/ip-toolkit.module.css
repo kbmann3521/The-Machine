@@ -736,9 +736,32 @@
   font-size: 12px;
 }
 
+.outputFieldRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px;
+  background-color: var(--color-background-secondary);
+  border-radius: 4px;
+  font-size: 12px;
+  gap: 12px;
+}
+
+.outputFieldRowDiagnostic {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background-color: transparent;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
 .outputFieldLabel {
   font-weight: 500;
   color: var(--color-text-secondary);
+  flex-shrink: 0;
+  min-width: 100px;
 }
 
 .outputFieldValue {
@@ -746,6 +769,27 @@
   font-weight: 600;
   word-break: break-word;
   text-align: right;
+  flex: 1;
+}
+
+.outputFieldRowDiagnostic .outputFieldLabel {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+/* CHANGE HIGHLIGHTING - Field highlight animation */
+@keyframes fieldHighlight {
+  0% {
+    background-color: rgba(255, 230, 0, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.changedField {
+  animation: fieldHighlight 5s ease-out forwards;
 }
 
 @media (max-width: 480px) {

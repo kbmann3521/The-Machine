@@ -87,13 +87,15 @@ export default function Home() {
     // Only abort if the signal hasn't already been aborted
     if (abortControllerRef.current) {
       try {
-        if (!abortControllerRef.current.signal.aborted) {
+        const signal = abortControllerRef.current.signal
+        if (signal && !signal.aborted) {
           abortControllerRef.current.abort()
         }
       } catch (e) {
         // Ignore abort errors during cleanup
+      } finally {
+        abortControllerRef.current = null
       }
-      abortControllerRef.current = null
     }
   }, [])
 
@@ -141,36 +143,25 @@ export default function Home() {
 
       // First, try to fetch tool metadata from Supabase
       try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => {
-          try {
-            controller.abort()
-          } catch (e) {
-            // Ignore abort errors
-          }
-        }, 5000) // 5 second timeout
-
         let response
         try {
           response = await fetch('/api/tools/get-metadata', {
-            signal: controller.signal,
             headers: { 'Content-Type': 'application/json' },
             cache: 'no-cache',
           })
         } catch (fetchError) {
-          clearTimeout(timeoutId)
-          if (fetchError.name === 'AbortError') {
-            console.debug('Tool metadata request timed out')
-          } else {
-            console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
-          }
+          console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
           throw fetchError
         }
 
-        clearTimeout(timeoutId)
-
         if (response.ok) {
-          const data = await response.json()
+          let data
+          try {
+            data = await response.json()
+          } catch (parseError) {
+            console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
+            throw parseError
+          }
           if (data?.tools && typeof data.tools === 'object') {
             // Use metadata from Supabase as source of truth
             allTools = Object.entries(data.tools).map(([toolId, toolData]) => {
@@ -323,13 +314,19 @@ export default function Home() {
           abortControllerRef.current = controller
 
           // Check if signal is already aborted before setting up timeout
-          if (controller.signal.aborted) {
+          try {
+            if (controller.signal.aborted) {
+              return
+            }
+          } catch (e) {
             return
           }
 
           abortTimeoutRef.current = setTimeout(() => {
             try {
-              controller.abort()
+              if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+                abortControllerRef.current.abort()
+              }
             } catch (e) {
               // Ignore abort errors
             }
@@ -338,7 +335,14 @@ export default function Home() {
           let response
           try {
             // Check again if signal was aborted during the delay
-            if (controller.signal.aborted) {
+            let isAborted = false
+            try {
+              isAborted = controller.signal.aborted
+            } catch (e) {
+              isAborted = true
+            }
+
+            if (isAborted) {
               response = null
             } else {
               response = await fetch('/api/tools/predict', {
@@ -650,8 +654,8 @@ export default function Home() {
                   errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
                   predictedTools={predictedTools}
                   onSelectTool={handleSelectTool}
-                  validationErrors={outputResult?.diagnostics ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
-                  lintingWarnings={outputResult?.diagnostics ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
+                  validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
+                  lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
                 />
               </div>
 
@@ -723,6 +727,7 @@ export default function Home() {
                   <IPToolkitOutputPanel
                     key={selectedTool?.toolId}
                     result={outputResult}
+                    inputText={inputText}
                   />
                 ) : selectedTool?.toolId === 'email-validator' ? (
                   <EmailValidatorOutputPanel

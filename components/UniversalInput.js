@@ -8,6 +8,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     if (!selectedTool) {
       return "Type or paste content here..."
     }
+    if (selectedTool.toolId === 'ip-address-toolkit') {
+      return "Enter an IP address, hostname, CIDR notation, or range (e.g., google.com, 192.168.1.1 to 192.168.1.10)..."
+    }
     return "Type or paste content here..."
   }
 
@@ -306,6 +309,18 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
             />
           </div>
         </div>
+
+        {selectedTool?.toolId === 'ip-address-toolkit' && (
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--color-text-secondary)',
+            marginTop: '8px',
+            paddingLeft: '12px',
+            lineHeight: '1.4',
+          }}>
+            💡 <strong>Tip:</strong> Enter single IP, IPv6, CIDR (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.0/24</code>), or range (<code style={{ fontSize: '11px', backgroundColor: 'rgba(0,0,0,0.1)', padding: '1px 3px', borderRadius: '2px' }}>192.168.1.1 to 192.168.1.10</code>)
+          </div>
+        )}
 
         {predictedTools.length > 0 && inputText && (
           <div className={styles.detectedToolsInsideInput}>

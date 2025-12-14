@@ -1,0 +1,241 @@
+.container {
+  min-height: 100vh;
+  background: #0a0e27;
+  color: #e0e0e0;
+  padding: 40px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.header {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #999;
+  margin: 0;
+}
+
+.controls {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.copyButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.copyButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.copyButton:active {
+  transform: translateY(0);
+}
+
+.stats {
+  font-size: 0.9rem;
+  color: #999;
+  font-family: 'Courier New', monospace;
+}
+
+.testResults {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.categorySection {
+  margin-bottom: 40px;
+}
+
+.categoryTitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 20px;
+  color: #667eea;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #667eea;
+}
+
+.testList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.testItem {
+  background: #1a1f3a;
+  border: 1px solid #2a3055;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.testItem:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.testHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.testHeader:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+.statusIcon {
+  font-size: 1.3rem;
+  min-width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.testInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.input {
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  color: #64f4a9;
+  background: rgba(100, 244, 169, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+  display: inline-block;
+  width: 100%;
+  margin: 0;
+}
+
+.description {
+  font-size: 0.85rem;
+  color: #999;
+  margin: 0;
+}
+
+.toggleChevron {
+  color: #667eea;
+  font-size: 0.9rem;
+  min-width: 20px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.testBody {
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid #2a3055;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.json {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #aec7ff;
+  background: #0f1422;
+  padding: 16px;
+  border-radius: 4px;
+  overflow-x: auto;
+  line-height: 1.5;
+  white-space: pre;
+  word-break: break-all;
+}
+
+.footer {
+  max-width: 1200px;
+  margin: 60px auto 0;
+  padding-top: 20px;
+  border-top: 1px solid #2a3055;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 12px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .testHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .input {
+    font-size: 0.85rem;
+    width: 100%;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .copyButton {
+    width: 100%;
+  }
+}
+
+/* Scrollbar styling */
+.testBody::-webkit-scrollbar {
+  width: 8px;
+}
+
+.testBody::-webkit-scrollbar-track {
+  background: #1a1f3a;
+}
+
+.testBody::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 4px;
+}
+
+.testBody::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
+}
