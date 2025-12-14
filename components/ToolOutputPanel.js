@@ -5527,6 +5527,145 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Universal error handler for all tools - check after all hooks have been called
   if (displayResult?.error) {
+    // Special error handling for time-normalizer with format hints
+    if (toolId === 'time-normalizer' && displayResult.acceptedFormats) {
+      const errorContent = (
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Error Message */}
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(239, 83, 80, 0.1)',
+            border: '1px solid rgba(239, 83, 80, 0.3)',
+            borderRadius: '4px',
+            color: '#ef5350',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px' }}>Parse Error</div>
+            <div style={{ fontSize: '14px', lineHeight: '1.5' }}>{displayResult.error}</div>
+          </div>
+
+          {/* Examples Section */}
+          {displayResult.examples && displayResult.examples.length > 0 && (
+            <div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '12px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid var(--color-border)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}>
+                Quick Examples
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px' }}>
+                {displayResult.examples.map((example, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--color-background-secondary)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(76, 175, 80, 0.5)'
+                      e.currentTarget.style.backgroundColor = 'rgba(76, 175, 80, 0.05)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--color-border)'
+                      e.currentTarget.style.backgroundColor = 'var(--color-background-secondary)'
+                    }}
+                    onClick={() => {
+                      // Dispatch event to update input
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('setToolInput', { detail: example.value }))
+                      }
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
+                      {example.label}
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text)', marginBottom: '4px', fontFamily: 'monospace' }}>
+                      {example.value}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                      {example.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Accepted Formats Section */}
+          {displayResult.acceptedFormats && (
+            <div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '12px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid var(--color-border)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}>
+                Accepted Formats
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                {Object.entries(displayResult.acceptedFormats).map(([category, formats]) => (
+                  <div key={category}>
+                    <div style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: 'var(--color-text)',
+                      marginBottom: '8px',
+                      textTransform: 'capitalize',
+                    }}>
+                      {category.replace(/([A-Z])/g, ' $1').trim()}
+                    </div>
+                    <ul style={{
+                      margin: 0,
+                      paddingLeft: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}>
+                      {formats.map((format, idx) => (
+                        <li key={idx} style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>
+                          {format}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+
+      const tabs = [
+        {
+          id: 'output',
+          label: 'OUTPUT',
+          content: errorContent,
+          contentType: 'component',
+        },
+        {
+          id: 'json',
+          label: 'JSON',
+          content: displayResult,
+          contentType: 'json',
+        }
+      ]
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={false} />
+    }
+
+    // Default error handling for other tools
     const tabs = [
       {
         id: 'output',
