@@ -3823,6 +3823,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // All other sections render as text in OutputTabs, not structured fields
         return null
 
+      case 'time-normalizer':
+        if (result.error) return null
+        return [
+          { label: 'ISO 8601', value: result.iso },
+          { label: 'Local Date', value: result.local },
+          { label: 'Unix Timestamp (seconds)', value: String(result.unixSeconds) },
+          { label: 'Unix Timestamp (milliseconds)', value: String(result.unixMillis) },
+          result.detectedFormat ? { label: 'Detected Format', value: result.detectedFormat } : null,
+        ].filter(f => f && f.value !== undefined && f.value !== null)
+
       default:
         return null
     }
