@@ -702,22 +702,39 @@ export default function Home() {
               )}
 
               {selectedTool?.toolId === 'ip-address-toolkit' && (
-                <div className={styles.toolHeader}>
-                  <div>
-                    <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
-                    {selectedTool.description && (
-                      <p className={styles.toolDescription}>{selectedTool.description}</p>
-                    )}
+                <>
+                  <div className={styles.toolHeader}>
+                    <div>
+                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
+                      {selectedTool.description && (
+                        <p className={styles.toolDescription}>{selectedTool.description}</p>
+                      )}
+                    </div>
+                    <button
+                      className={styles.descriptionToggle}
+                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                      aria-label="Toggle tool description"
+                      title="View tool description"
+                    >
+                      <FaCircleInfo className={styles.descriptionIcon} />
+                    </button>
                   </div>
-                  <button
-                    className={styles.descriptionToggle}
-                    onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                    aria-label="Toggle tool description"
-                    title="View tool description"
-                  >
-                    <FaCircleInfo className={styles.descriptionIcon} />
-                  </button>
-                </div>
+
+                  <div className={styles.ipToolkitTipsContainer}>
+                    <div className={styles.tipItem}>
+                      <span className={styles.tipLabel}>Single mode:</span>
+                      <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
+                    </div>
+                    <div className={styles.tipItem}>
+                      <span className={styles.tipLabel}>Bulk (2 items):</span>
+                      <span className={styles.tipText}>Side-by-side comparison</span>
+                    </div>
+                    <div className={styles.tipItem}>
+                      <span className={styles.tipLabel}>Bulk (3-7 items):</span>
+                      <span className={styles.tipText}>Aggregate analysis & insights</span>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
 
