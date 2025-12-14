@@ -8,6 +8,9 @@ export default function SingleIPOutput({ result, detectedInput }) {
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
   const [changedFields, setChangedFields] = useState(new Set())
+  const [dnsData, setDnsData] = useState(null)
+  const [dnsLoading, setDnsLoading] = useState(false)
+  const [dnsError, setDnsError] = useState(null)
 
   // Detect changed fields when result updates
   useEffect(() => {
