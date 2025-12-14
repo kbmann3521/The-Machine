@@ -414,7 +414,8 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
                             detectedInput={{
                               type: result.inputType,
                               description: result.input,
-                              isHostname: result.inputType === 'Hostname'
+                              isHostname: result.inputType === 'Hostname',
+                              hostname: result.inputType === 'Hostname' ? result.input : undefined,
                             }}
                           />
                         </div>
