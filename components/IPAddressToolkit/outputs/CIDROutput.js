@@ -55,10 +55,10 @@ export default function CIDROutput({ result }) {
     setChangedFields(changed)
     setPreviousResult(result)
 
-    // Clear highlights after 1.5 seconds
+    // Clear highlights after 5 seconds
     const timeout = setTimeout(() => {
       setChangedFields(new Set())
-    }, 1500)
+    }, 5000)
 
     return () => clearTimeout(timeout)
   }, [result])

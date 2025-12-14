@@ -789,7 +789,7 @@
 }
 
 .changedField {
-  animation: fieldHighlight 1.5s ease-out forwards;
+  animation: fieldHighlight 5s ease-out forwards;
 }
 
 @media (max-width: 480px) {
