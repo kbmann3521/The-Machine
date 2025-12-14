@@ -311,29 +311,93 @@ export default function SingleIPOutput({ result, detectedInput }) {
         ]
 
         if (resolvedIPs.length > 0) {
-          // Add DNS Resolution summary section
+          // Add DNS Resolution summary section with copyable individual IPs
           const dnsFields = {}
 
           if (forward.aRecords && forward.aRecords.length > 0) {
-            dnsFields['IPv4 Addresses (A)'] = forward.aRecords.map((record, i) => (
-              <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
-                {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
-              </div>
-            ))
+            if (forward.aRecords.length === 1) {
+              // Single IPv4 - show as copyable field
+              dnsFields[`IPv4 Address (A)`] = forward.aRecords[0].value
+            } else {
+              // Multiple IPv4 - render as individual copyable IPs
+              dnsFields['IPv4 Addresses (A)'] = (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {forward.aRecords.map((record, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'monospace', flex: 1 }}>{record.value}</span>
+                      <button
+                        type="button"
+                        className="copy-action"
+                        onClick={() => handleCopyField(record.value, `ipv4-${i}`)}
+                        title="Copy to clipboard"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          minWidth: '28px',
+                          minHeight: '24px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        {copiedField === `ipv4-${i}` ? '✓' : <FaCopy style={{ fontSize: '12px' }} />}
+                      </button>
+                      <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>TTL: {record.ttl}s</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
           }
 
           if (forward.aaaaRecords && forward.aaaaRecords.length > 0) {
-            dnsFields['IPv6 Addresses (AAAA)'] = forward.aaaaRecords.map((record, i) => (
-              <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
-                {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
-              </div>
-            ))
+            if (forward.aaaaRecords.length === 1) {
+              // Single IPv6 - show as copyable field
+              dnsFields[`IPv6 Address (AAAA)`] = forward.aaaaRecords[0].value
+            } else {
+              // Multiple IPv6 - render as individual copyable IPs
+              dnsFields['IPv6 Addresses (AAAA)'] = (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {forward.aaaaRecords.map((record, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'monospace', flex: 1, wordBreak: 'break-all' }}>{record.value}</span>
+                      <button
+                        type="button"
+                        className="copy-action"
+                        onClick={() => handleCopyField(record.value, `ipv6-${i}`)}
+                        title="Copy to clipboard"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          minWidth: '28px',
+                          minHeight: '24px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        {copiedField === `ipv6-${i}` ? '✓' : <FaCopy style={{ fontSize: '12px' }} />}
+                      </button>
+                      <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>TTL: {record.ttl}s</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
           }
 
           sections.push({
             title: 'DNS Resolution',
             fields: dnsFields,
           })
+
+          // Add single IPv4/IPv6 records to copyableFields for proper styling
+          if (forward.aRecords && forward.aRecords.length === 1) {
+            copyableFields['IPv4 Address (A)'] = true
+          }
+          if (forward.aaaaRecords && forward.aaaaRecords.length === 1) {
+            copyableFields['IPv6 Address (AAAA)'] = true
+          }
 
           // Now add detailed analysis for each IP
           resolvedIPs.forEach(record => {
