@@ -207,6 +207,74 @@ export default function SingleIPOutput({ result, detectedInput }) {
   const buildFriendlyOutput = () => {
     const sections = []
 
+    // For hostnames, skip IP-specific sections and jump to DNS results
+    if (detectedInput?.isHostname) {
+      // Input Section
+      const inputFields = {}
+      if (result?.input) {
+        inputFields['Input'] = result.input
+      }
+      if (Object.keys(inputFields).length > 0) {
+        sections.push({
+          title: 'Input',
+          fields: inputFields,
+        })
+      }
+
+      // DNS Lookup section (if data is available and loaded)
+      if (dnsData && dnsData.forward) {
+        const dnsFields = {}
+        const { forward } = dnsData
+
+        if (forward.aRecords && forward.aRecords.length > 0) {
+          dnsFields['IPv4 Addresses (A)'] = forward.aRecords.map((record, i) => (
+            <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
+              {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
+            </div>
+          ))
+        }
+
+        if (forward.aaaaRecords && forward.aaaaRecords.length > 0) {
+          dnsFields['IPv6 Addresses (AAAA)'] = forward.aaaaRecords.map((record, i) => (
+            <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
+              {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
+            </div>
+          ))
+        }
+
+        if (dnsLoading) {
+          dnsFields['Status'] = 'Loading DNS records...'
+        } else if (dnsError) {
+          dnsFields['Error'] = dnsError
+        } else if (forward.aRecords.length === 0 && forward.aaaaRecords.length === 0) {
+          dnsFields['Result'] = 'No DNS records found'
+        }
+
+        if (Object.keys(dnsFields).length > 0) {
+          sections.push({
+            title: 'DNS Resolution',
+            fields: dnsFields,
+          })
+        }
+      } else if (dnsLoading) {
+        sections.push({
+          title: 'DNS Resolution',
+          fields: {
+            'Status': 'Loading DNS records...',
+          },
+        })
+      } else if (dnsError) {
+        sections.push({
+          title: 'DNS Resolution',
+          fields: {
+            'Error': dnsError,
+          },
+        })
+      }
+
+      return sections
+    }
+
     // Input Section (with rawInput if it differs from normalized input)
     const inputFields = {}
     if (result.input) {
