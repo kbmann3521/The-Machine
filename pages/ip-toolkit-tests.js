@@ -50,6 +50,16 @@ const TEST_CASES = [
   { category: 'Phase 2: IPv6 Advanced', input: 'fd00::1', description: 'ULA (Unique Local Address)' },
   { category: 'Phase 2: IPv6 Advanced', input: '2001::1', description: 'Teredo address' },
 
+  // Phase 3: Hostnames & DNS Resolution
+  { category: 'Phase 3: Hostnames', input: 'google.com', description: 'Major search engine (CDN)' },
+  { category: 'Phase 3: Hostnames', input: 'example.com', description: 'Example domain (RFC 2606)' },
+  { category: 'Phase 3: Hostnames', input: 'github.com', description: 'Major code hosting platform' },
+  { category: 'Phase 3: Hostnames', input: 'localhost', description: 'Localhost (loopback)' },
+  { category: 'Phase 3: Hostnames', input: 'api.example.com', description: 'Subdomain' },
+  { category: 'Phase 3: Hostnames', input: 'my-server.internal.corp', description: 'Internal domain with hyphens' },
+  { category: 'Phase 3: Hostnames', input: 'mail.google.com', description: 'Google Mail subdomain' },
+  { category: 'Phase 3: Hostnames', input: 'cdn.jsdelivr.net', description: 'CDN subdomain' },
+
   // Edge Cases: Whitespace & Formatting
   { category: 'Edge Cases', input: '  192.168.1.1  ', description: 'Leading/trailing spaces' },
   { category: 'Edge Cases', input: '  10.0.0.0/24  ', description: 'CIDR with spaces' },
