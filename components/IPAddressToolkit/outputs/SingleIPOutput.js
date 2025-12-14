@@ -311,6 +311,31 @@ export default function SingleIPOutput({ result, detectedInput }) {
         ]
 
         if (resolvedIPs.length > 0) {
+          // Add DNS Resolution summary section
+          const dnsFields = {}
+
+          if (forward.aRecords && forward.aRecords.length > 0) {
+            dnsFields['IPv4 Addresses (A)'] = forward.aRecords.map((record, i) => (
+              <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
+                {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
+              </div>
+            ))
+          }
+
+          if (forward.aaaaRecords && forward.aaaaRecords.length > 0) {
+            dnsFields['IPv6 Addresses (AAAA)'] = forward.aaaaRecords.map((record, i) => (
+              <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
+                {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
+              </div>
+            ))
+          }
+
+          sections.push({
+            title: 'DNS Resolution',
+            fields: dnsFields,
+          })
+
+          // Now add detailed analysis for each IP
           resolvedIPs.forEach(record => {
             const ipAddr = record.value
             const analysis = ipAnalysisCache[ipAddr]
