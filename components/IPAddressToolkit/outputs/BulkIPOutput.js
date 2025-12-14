@@ -421,70 +421,34 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
                     </button>
                   </div>
 
-                  {/* Card Content (Expanded) */}
+                  {/* Card Content (Expanded) - Full output component */}
                   {isExpanded && (
                     <div style={{
-                      padding: '12px 16px',
                       borderTop: '1px solid var(--color-border)',
                       backgroundColor: 'var(--color-background-primary)',
                     }}>
-                      <div style={{ display: 'grid', gap: '8px', fontSize: '12px' }}>
-                        {result.normalized && (
-                          <div>
-                            <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Normalized</div>
-                            <div style={{ fontFamily: 'monospace', padding: '6px 8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px' }}>
-                              {result.normalized}
-                            </div>
-                          </div>
-                        )}
-
-                        {result.expanded && (
-                          <div>
-                            <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Expanded</div>
-                            <div style={{ fontFamily: 'monospace', padding: '6px 8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px' }}>
-                              {result.expanded}
-                            </div>
-                          </div>
-                        )}
-
-                        {result.integer !== undefined && (
-                          <div>
-                            <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Integer</div>
-                            <div style={{ fontFamily: 'monospace', padding: '6px 8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px' }}>
-                              {result.integer?.toString()}
-                            </div>
-                          </div>
-                        )}
-
-                        {result.cidr && (
-                          <div>
-                            <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>CIDR Details</div>
-                            <div style={{ fontSize: '11px', padding: '6px 8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px' }}>
-                              <div>Netmask: {result.cidr.netmask}</div>
-                              {result.cidr.networkAddress && <div>Network: {result.cidr.networkAddress}</div>}
-                              {result.cidr.broadcastAddress && <div>Broadcast: {result.cidr.broadcastAddress}</div>}
-                              {result.cidr.totalHosts !== undefined && <div>Total Hosts: {result.cidr.totalHosts.toLocaleString()}</div>}
-                            </div>
-                          </div>
-                        )}
-
-                        {result.classification && (
-                          <div>
-                            <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Classification</div>
-                            <div style={{ fontSize: '11px', padding: '6px 8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px' }}>
-                              <div>Type: {result.classification.type}</div>
-                              {result.classification.scope && <div>Scope: {result.classification.scope}</div>}
-                              {result.classification.rfc && <div>RFC: {result.classification.rfc}</div>}
-                            </div>
-                          </div>
-                        )}
-
-                        {result.error && (
-                          <div style={{ color: '#f44336', fontSize: '11px', padding: '6px 8px', backgroundColor: 'rgba(244, 67, 54, 0.1)', borderRadius: '4px' }}>
-                            {result.error}
-                          </div>
-                        )}
-                      </div>
+                      {result.inputType === 'CIDR' ? (
+                        <div style={{ padding: '12px 16px' }}>
+                          <CIDROutput
+                            result={result}
+                            detectedInput={{
+                              type: 'CIDR',
+                              description: result.input
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ padding: '12px 16px' }}>
+                          <SingleIPOutput
+                            result={result}
+                            detectedInput={{
+                              type: result.inputType,
+                              description: result.input,
+                              isHostname: result.inputType === 'Hostname'
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
