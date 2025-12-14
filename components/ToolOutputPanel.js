@@ -3825,21 +3825,55 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       case 'time-normalizer':
         if (result.error) return null
-        return [
-          { label: 'Detected Format', value: result.detectedFormat },
-          { label: 'Input Time (ISO)', value: result.inputTime },
-          { label: 'Input Time (Readable)', value: result.inputReadable },
-          { label: 'Input Timezone', value: result.inputTimezone },
-          { label: 'Input Offset', value: result.inputOffset },
-          { label: 'Converted Time (ISO)', value: result.convertedTime },
-          { label: 'Converted Time (Readable)', value: result.convertedReadable },
-          { label: 'Output Timezone', value: result.outputTimezone },
-          { label: 'Output Offset', value: result.outputOffset },
-          { label: 'Time Difference', value: result.timeDifference },
-          { label: 'Day Boundary', value: result.dayBoundaryShift },
-          { label: 'Unix Timestamp (seconds)', value: String(result.unixSeconds) },
-          { label: 'Unix Timestamp (milliseconds)', value: String(result.unixMillis) },
-        ].filter(f => f && f.value !== undefined && f.value !== null)
+        const fields = []
+
+        // Secondary context layer
+        fields.push({ label: 'From', value: result.humanSummary?.from })
+        fields.push({ label: 'To', value: result.humanSummary?.to })
+
+        if (result.humanSummary?.difference !== undefined) {
+          fields.push({ label: 'Time Difference', value: result.humanSummary.difference })
+        }
+        if (result.humanSummary?.dayShift) {
+          fields.push({ label: 'Day Shift', value: result.humanSummary.dayShift })
+        }
+
+        // Tertiary technical details
+        if (result.detectedFormat) {
+          fields.push({ label: 'Detected Format', value: result.detectedFormat })
+        }
+        if (result.inputTimezone) {
+          fields.push({ label: 'Input Timezone', value: result.inputTimezone })
+        }
+        if (result.inputReadable) {
+          fields.push({ label: 'Input Time (Readable)', value: result.inputReadable })
+        }
+        if (result.inputTime) {
+          fields.push({ label: 'Input Time (ISO)', value: result.inputTime })
+        }
+        if (result.inputOffset) {
+          fields.push({ label: 'Input Offset', value: result.inputOffset })
+        }
+        if (result.convertedReadable) {
+          fields.push({ label: 'Converted Time (Readable)', value: result.convertedReadable })
+        }
+        if (result.convertedTime) {
+          fields.push({ label: 'Converted Time (ISO)', value: result.convertedTime })
+        }
+        if (result.outputTimezone) {
+          fields.push({ label: 'Output Timezone', value: result.outputTimezone })
+        }
+        if (result.outputOffset) {
+          fields.push({ label: 'Output Offset', value: result.outputOffset })
+        }
+        if (result.unixSeconds !== undefined) {
+          fields.push({ label: 'Unix Timestamp (seconds)', value: String(result.unixSeconds) })
+        }
+        if (result.unixMillis !== undefined) {
+          fields.push({ label: 'Unix Timestamp (milliseconds)', value: String(result.unixMillis) })
+        }
+
+        return fields.filter(f => f && f.value !== undefined && f.value !== null)
 
       default:
         return null
