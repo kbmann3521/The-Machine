@@ -5,6 +5,8 @@ import styles from '../../../styles/ip-toolkit.module.css'
 import toolStyles from '../../../styles/tool-output.module.css'
 
 export default function CIDROutput({ result, detectedInput }) {
+  // Note: DNS lookups are for single IPs, so CIDROutput doesn't need DNS functionality
+  // But we accept the prop for consistency
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
   const [changedFields, setChangedFields] = useState(new Set())
