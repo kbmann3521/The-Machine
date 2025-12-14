@@ -4,7 +4,7 @@ import OutputTabs from '../../OutputTabs'
 import styles from '../../../styles/ip-toolkit.module.css'
 import toolStyles from '../../../styles/tool-output.module.css'
 
-export default function CIDROutput({ result }) {
+export default function CIDROutput({ result, detectedInput }) {
   const [copiedField, setCopiedField] = useState(null)
   const [previousResult, setPreviousResult] = useState(null)
   const [changedFields, setChangedFields] = useState(new Set())
@@ -428,7 +428,31 @@ export default function CIDROutput({ result }) {
     {
       id: 'output',
       label: 'OUTPUT',
-      content: buildFriendlyOutput(),
+      content: (
+        <div>
+          {detectedInput && (
+            <div style={{
+              padding: '12px 16px',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
+              borderRadius: '8px',
+              fontSize: '13px',
+              color: '#4caf50',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}>
+              <span style={{ fontSize: '16px' }}>✓</span>
+              <span>
+                Detected: <strong>{detectedInput.type}</strong>
+                {detectedInput.description && ` — ${detectedInput.description}`}
+              </span>
+            </div>
+          )}
+          {buildFriendlyOutput()}
+        </div>
+      ),
       contentType: 'component',
     },
     {
