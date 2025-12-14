@@ -586,48 +586,14 @@ export default function SingleIPOutput({ result, detectedInput }) {
       }
     }
 
-    // DNS Lookup section (if data is available and loaded)
-    if (dnsData && dnsData.forward) {
-      const dnsFields = {}
-      const { forward } = dnsData
-
-      if (forward.aRecords && forward.aRecords.length > 0) {
-        dnsFields['IPv4 Addresses (A)'] = forward.aRecords.map((record, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
-            {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
-          </div>
-        ))
-      }
-
-      if (forward.aaaaRecords && forward.aaaaRecords.length > 0) {
-        dnsFields['IPv6 Addresses (AAAA)'] = forward.aaaaRecords.map((record, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
-            {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
-          </div>
-        ))
-      }
-
-      if (dnsLoading) {
-        dnsFields['Status'] = 'Loading DNS records...'
-      } else if (dnsError) {
-        dnsFields['Error'] = dnsError
-      } else if (forward.aRecords.length === 0 && forward.aaaaRecords.length === 0) {
-        dnsFields['Result'] = 'No DNS records found'
-      }
-
-      if (Object.keys(dnsFields).length > 0) {
-        sections.push({
-          title: 'DNS Resolution',
-          fields: dnsFields,
-        })
-      }
-    } else if (dnsData && dnsData.reverse) {
+    // Reverse DNS lookup section (for IP addresses to hostnames)
+    if (dnsData && dnsData.reverse) {
       const dnsFields = {}
       const { reverse } = dnsData
 
       if (reverse.hostname) {
         dnsFields['Hostname (PTR)'] = reverse.hostname
-        if (reverse.metadata.ttl) {
+        if (reverse.metadata?.ttl) {
           dnsFields['TTL'] = `${reverse.metadata.ttl} seconds`
         }
       } else if (!dnsLoading) {
