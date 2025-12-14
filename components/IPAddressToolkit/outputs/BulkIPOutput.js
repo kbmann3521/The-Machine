@@ -104,37 +104,63 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Summary Card */}
         <div style={{
-          padding: '12px 16px',
-          backgroundColor: 'var(--color-background-secondary)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '8px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+          gap: '8px'
         }}>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-            gap: '12px',
-            fontSize: '12px',
+            padding: '10px 12px',
+            backgroundColor: 'var(--color-background-secondary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            borderLeft: '3px solid var(--color-text-primary)',
           }}>
-            <div>
-              <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Total</div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{summary.total}</div>
-            </div>
-            <div>
-              <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Valid</div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#4caf50' }}>{summary.valid}</div>
-            </div>
-            <div>
-              <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Invalid</div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#f44336' }}>{summary.invalid}</div>
-            </div>
-            <div>
-              <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Private</div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#2196f3' }}>{summary.byPrivacy['Private'] || 0}</div>
-            </div>
-            <div>
-              <div style={{ color: 'var(--color-text-secondary)', fontWeight: '600' }}>Public</div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: '#ff9800' }}>{summary.byPrivacy['Public'] || 0}</div>
-            </div>
+            <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-secondary)', marginBottom: '4px', letterSpacing: '0.3px' }}>Total</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{summary.total}</div>
+          </div>
+
+          <div style={{
+            padding: '10px 12px',
+            backgroundColor: 'rgba(76, 175, 80, 0.08)',
+            border: '1px solid rgba(76, 175, 80, 0.3)',
+            borderRadius: '6px',
+            borderLeft: '3px solid #4caf50',
+          }}>
+            <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#4caf50', marginBottom: '4px', letterSpacing: '0.3px' }}>Valid</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#4caf50' }}>{summary.valid}</div>
+          </div>
+
+          <div style={{
+            padding: '10px 12px',
+            backgroundColor: 'rgba(244, 67, 54, 0.08)',
+            border: '1px solid rgba(244, 67, 54, 0.3)',
+            borderRadius: '6px',
+            borderLeft: '3px solid #f44336',
+          }}>
+            <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#f44336', marginBottom: '4px', letterSpacing: '0.3px' }}>Invalid</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#f44336' }}>{summary.invalid}</div>
+          </div>
+
+          <div style={{
+            padding: '10px 12px',
+            backgroundColor: 'rgba(33, 150, 243, 0.08)',
+            border: '1px solid rgba(33, 150, 243, 0.3)',
+            borderRadius: '6px',
+            borderLeft: '3px solid #2196f3',
+          }}>
+            <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#2196f3', marginBottom: '4px', letterSpacing: '0.3px' }}>Private</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#2196f3' }}>{summary.byPrivacy['Private'] || 0}</div>
+          </div>
+
+          <div style={{
+            padding: '10px 12px',
+            backgroundColor: 'rgba(255, 152, 0, 0.08)',
+            border: '1px solid rgba(255, 152, 0, 0.3)',
+            borderRadius: '6px',
+            borderLeft: '3px solid #ff9800',
+          }}>
+            <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#ff9800', marginBottom: '4px', letterSpacing: '0.3px' }}>Public</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ff9800' }}>{summary.byPrivacy['Public'] || 0}</div>
           </div>
         </div>
 
