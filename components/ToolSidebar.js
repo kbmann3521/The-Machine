@@ -32,7 +32,7 @@ const toolIcons = {
   'svg-optimizer': FaImage,
   'unit-converter': FaRuler,
   'number-formatter': FaHashtag,
-  'timezone-converter': FaClock,
+  'time-normalizer': FaClock,
   'base-converter': FaCode,
   'math-evaluator': FaCalculator,
   'cron-tester': FaClock,
