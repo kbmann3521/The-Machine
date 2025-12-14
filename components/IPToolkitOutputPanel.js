@@ -13,41 +13,21 @@ export default function IPToolkitOutputPanel({ result, inputText }) {
   // Route to appropriate output component based on input type
   const renderOutput = () => {
     if (!result) {
-      return <SingleIPOutput result={result} />
+      return <SingleIPOutput result={result} detectedInput={detectedInput} />
     }
 
     switch (result.inputType) {
       case 'cidr':
-        return <CIDROutput result={result} />
+        return <CIDROutput result={result} detectedInput={detectedInput} />
       case 'range':
-        return <SingleIPOutput result={result} />
+        return <SingleIPOutput result={result} detectedInput={detectedInput} />
       default:
-        return <SingleIPOutput result={result} />
+        return <SingleIPOutput result={result} detectedInput={detectedInput} />
     }
   }
 
   return (
     <div className={styles.outputPanelWrapper}>
-      {detectedInput && (
-        <div style={{
-          padding: '12px 16px',
-          backgroundColor: 'rgba(76, 175, 80, 0.1)',
-          border: '1px solid rgba(76, 175, 80, 0.3)',
-          borderRadius: '8px',
-          fontSize: '13px',
-          color: '#4caf50',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-        }}>
-          <span style={{ fontSize: '16px' }}>✓</span>
-          <span>
-            Detected: <strong>{detectedInput.type}</strong>
-            {detectedInput.description && ` — ${detectedInput.description}`}
-          </span>
-        </div>
-      )}
       {renderOutput()}
     </div>
   )
