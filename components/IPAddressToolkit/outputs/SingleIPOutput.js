@@ -12,6 +12,39 @@ export default function SingleIPOutput({ result, detectedInput }) {
   const [dnsLoading, setDnsLoading] = useState(false)
   const [dnsError, setDnsError] = useState(null)
 
+  // Fetch DNS data when detectedInput is a hostname
+  useEffect(() => {
+    if (!detectedInput?.isHostname) {
+      setDnsData(null)
+      setDnsError(null)
+      return
+    }
+
+    const fetchDNS = async () => {
+      setDnsLoading(true)
+      setDnsError(null)
+
+      try {
+        const hostname = detectedInput.description?.split('(')[1]?.slice(0, -1) || ''
+        const response = await fetch('/api/tools/dns-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: hostname }),
+        })
+
+        if (!response.ok) throw new Error('DNS lookup failed')
+        const data = await response.json()
+        setDnsData(data.data)
+      } catch (err) {
+        setDnsError(err.message)
+      } finally {
+        setDnsLoading(false)
+      }
+    }
+
+    fetchDNS()
+  }, [detectedInput])
+
   // Detect changed fields when result updates
   useEffect(() => {
     if (!previousResult || !result || result.inputType !== previousResult.inputType) {
