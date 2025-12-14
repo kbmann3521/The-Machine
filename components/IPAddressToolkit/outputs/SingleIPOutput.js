@@ -270,12 +270,14 @@ export default function SingleIPOutput({ result, detectedInput }) {
   const buildFriendlyOutput = () => {
     const sections = []
 
-    // For hostnames, skip IP-specific sections and jump to DNS results
+    // For hostnames, show DNS resolution with full IP analysis for each resolved IP
     if (detectedInput?.isHostname) {
       // Input Section
       const inputFields = {}
       if (result?.input) {
         inputFields['Input'] = result.input
+      } else if (detectedInput?.hostname) {
+        inputFields['Input'] = detectedInput.hostname
       }
       if (Object.keys(inputFields).length > 0) {
         sections.push({
@@ -284,42 +286,8 @@ export default function SingleIPOutput({ result, detectedInput }) {
         })
       }
 
-      // DNS Lookup section (if data is available and loaded)
-      if (dnsData && dnsData.forward) {
-        const dnsFields = {}
-        const { forward } = dnsData
-
-        if (forward.aRecords && forward.aRecords.length > 0) {
-          dnsFields['IPv4 Addresses (A)'] = forward.aRecords.map((record, i) => (
-            <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
-              {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
-            </div>
-          ))
-        }
-
-        if (forward.aaaaRecords && forward.aaaaRecords.length > 0) {
-          dnsFields['IPv6 Addresses (AAAA)'] = forward.aaaaRecords.map((record, i) => (
-            <div key={i} style={{ fontSize: '12px', marginBottom: '4px', fontFamily: 'monospace' }}>
-              {record.value} <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>(TTL: {record.ttl}s)</span>
-            </div>
-          ))
-        }
-
-        if (dnsLoading) {
-          dnsFields['Status'] = 'Loading DNS records...'
-        } else if (dnsError) {
-          dnsFields['Error'] = dnsError
-        } else if (forward.aRecords.length === 0 && forward.aaaaRecords.length === 0) {
-          dnsFields['Result'] = 'No DNS records found'
-        }
-
-        if (Object.keys(dnsFields).length > 0) {
-          sections.push({
-            title: 'DNS Resolution',
-            fields: dnsFields,
-          })
-        }
-      } else if (dnsLoading) {
+      // DNS Lookup section with resolved IPs
+      if (dnsLoading) {
         sections.push({
           title: 'DNS Resolution',
           fields: {
@@ -333,6 +301,86 @@ export default function SingleIPOutput({ result, detectedInput }) {
             'Error': dnsError,
           },
         })
+      } else if (dnsData && dnsData.forward) {
+        const { forward } = dnsData
+
+        // Collect all resolved IPs
+        const resolvedIPs = [
+          ...(forward.aRecords || []).map(r => ({ ...r, type: 'IPv4' })),
+          ...(forward.aaaaRecords || []).map(r => ({ ...r, type: 'IPv6' })),
+        ]
+
+        if (resolvedIPs.length > 0) {
+          resolvedIPs.forEach(record => {
+            const ipAddr = record.value
+            const analysis = ipAnalysisCache[ipAddr]
+            const isLoading = ipAnalysisLoading[ipAddr]
+
+            if (isLoading) {
+              sections.push({
+                title: `IP: ${ipAddr} (${record.type})`,
+                fields: {
+                  'Status': 'Analyzing...',
+                  'TTL': `${record.ttl}s`,
+                },
+              })
+              return
+            }
+
+            if (!analysis) {
+              sections.push({
+                title: `IP: ${ipAddr} (${record.type})`,
+                fields: {
+                  'TTL': `${record.ttl}s`,
+                  'Status': 'No analysis available',
+                },
+              })
+              return
+            }
+
+            // Build IP analysis section
+            const ipFields = { 'TTL': `${record.ttl}s` }
+
+            if (analysis.isValid !== undefined) {
+              ipFields['Valid'] = analysis.isValid ? '✓ Yes' : '✗ No'
+            }
+
+            if (analysis.normalized) {
+              ipFields['Normalized'] = analysis.normalized
+            }
+
+            if (analysis.version) {
+              ipFields['Version'] = `IPv${analysis.version}`
+            }
+
+            if (analysis.integer !== null && analysis.integer !== undefined) {
+              ipFields['Integer'] = analysis.integer.toString()
+            }
+
+            if (analysis.integerHex) {
+              ipFields['Hex'] = analysis.integerHex
+            }
+
+            if (analysis.classification) {
+              ipFields['Type'] = analysis.classification.type
+              if (analysis.classification.isPrivate !== undefined) {
+                ipFields['Private'] = analysis.classification.isPrivate ? 'Yes' : 'No'
+              }
+            }
+
+            sections.push({
+              title: `IP: ${ipAddr} (${record.type})`,
+              fields: ipFields,
+            })
+          })
+        } else {
+          sections.push({
+            title: 'DNS Resolution',
+            fields: {
+              'Result': 'No DNS records found',
+            },
+          })
+        }
       }
 
       return (
