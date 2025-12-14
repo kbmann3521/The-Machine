@@ -8,6 +8,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     if (!selectedTool) {
       return "Type or paste content here..."
     }
+    if (selectedTool.toolId === 'ip-address-toolkit') {
+      return "Enter an IP address, CIDR notation, or range (e.g., 192.168.1.1 to 192.168.1.10)..."
+    }
     return "Type or paste content here..."
   }
 
