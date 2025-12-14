@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react'
 import { FaCopy, FaChevronDown, FaDownload, FaFilter } from 'react-icons/fa6'
 import OutputTabs from '../../OutputTabs'
+import SingleIPOutput from './SingleIPOutput'
+import CIDROutput from './CIDROutput'
 import styles from '../../../styles/ip-toolkit.module.css'
 import toolStyles from '../../../styles/tool-output.module.css'
 import {
