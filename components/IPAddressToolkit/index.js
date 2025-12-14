@@ -64,7 +64,7 @@ export default function IPAddressToolkit() {
             <span>Network · IP</span>
           </div>
           <p className={styles.description}>
-            Validate, convert, analyze IPv4/IPv6 and CIDR ranges with advanced diagnostic tools.
+            Validate, convert, analyze IPv4/IPv6, IP ranges, CIDR subnets, and bulk lists with comparison and diagnostic tools.
           </p>
         </div>
       </div>
