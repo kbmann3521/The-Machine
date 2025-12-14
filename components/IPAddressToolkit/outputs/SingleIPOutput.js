@@ -11,10 +11,12 @@ export default function SingleIPOutput({ result, detectedInput }) {
   const [dnsData, setDnsData] = useState(null)
   const [dnsLoading, setDnsLoading] = useState(false)
   const [dnsError, setDnsError] = useState(null)
+  const [ipAnalysisCache, setIpAnalysisCache] = useState({})
+  const [ipAnalysisLoading, setIpAnalysisLoading] = useState({})
 
-  // Fetch DNS data when detectedInput is a hostname
+  // Fetch DNS data for hostname input OR PTR data for IP input
   useEffect(() => {
-    if (!detectedInput?.isHostname) {
+    if (!detectedInput) {
       setDnsData(null)
       setDnsError(null)
       return
@@ -25,9 +27,9 @@ export default function SingleIPOutput({ result, detectedInput }) {
       setDnsError(null)
 
       try {
-        const hostname = detectedInput.hostname || detectedInput.description?.split('(')[1]?.slice(0, -1) || ''
-        if (!hostname) {
-          setDnsError('No hostname found')
+        const input = detectedInput.hostname || detectedInput.description?.split('(')[1]?.slice(0, -1) || ''
+        if (!input) {
+          setDnsError('No input found')
           setDnsLoading(false)
           return
         }
@@ -35,7 +37,7 @@ export default function SingleIPOutput({ result, detectedInput }) {
         const response = await fetch('/api/tools/dns-lookup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: hostname }),
+          body: JSON.stringify({ input }),
         })
 
         if (!response.ok) throw new Error('DNS lookup failed')
@@ -50,6 +52,61 @@ export default function SingleIPOutput({ result, detectedInput }) {
 
     fetchDNS()
   }, [detectedInput])
+
+  // Fetch full IP analysis for each resolved IP from hostname
+  useEffect(() => {
+    if (!dnsData?.forward?.aRecords && !dnsData?.forward?.aaaaRecords) {
+      return
+    }
+
+    const allIPs = [
+      ...(dnsData.forward?.aRecords || []).map(r => r.value),
+      ...(dnsData.forward?.aaaaRecords || []).map(r => r.value),
+    ]
+
+    // Fetch analysis for IPs that aren't in cache
+    allIPs.forEach(ip => {
+      if (!ipAnalysisCache[ip] && !ipAnalysisLoading[ip]) {
+        setIpAnalysisLoading(prev => ({ ...prev, [ip]: true }))
+
+        fetch('/api/tools/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            toolId: 'ip-address-toolkit',
+            inputText: ip,
+            config: {
+              validateIP: true,
+              normalize: true,
+              diagnostics: true,
+              ipToInteger: true,
+              ipToHex: true,
+              ipToBinary: true,
+              ptrRecord: true,
+              classification: true,
+            },
+          }),
+        })
+          .then(res => res.json())
+          .then(data => {
+            setIpAnalysisCache(prev => ({ ...prev, [ip]: data.result }))
+            setIpAnalysisLoading(prev => {
+              const updated = { ...prev }
+              delete updated[ip]
+              return updated
+            })
+          })
+          .catch(err => {
+            console.error(`Failed to analyze IP ${ip}:`, err)
+            setIpAnalysisLoading(prev => {
+              const updated = { ...prev }
+              delete updated[ip]
+              return updated
+            })
+          })
+      }
+    })
+  }, [dnsData])
 
   // Detect changed fields when result updates
   useEffect(() => {
