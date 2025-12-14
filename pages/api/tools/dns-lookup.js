@@ -145,11 +145,18 @@ async function performReverseDNSLookup(ip) {
     }
 
     const response = await fetch(
-      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(reverseDomain)}&type=PTR`,
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(reverseDomain)}&type=PTR&do=false`,
       {
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/dns-json',
+        },
       }
     )
+
+    if (!response.ok) {
+      throw new Error(`DNS query failed with status ${response.status}`)
+    }
+
     const data = await response.json()
 
     if (data.Answer && data.Answer.length > 0) {
