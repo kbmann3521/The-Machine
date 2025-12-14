@@ -191,7 +191,6 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       'json-formatter': 'Validate and format JSON with proper indentation',
       'reverse-text': 'Reverse text characters, words, or lines',
       'regex-tester': 'Test regex patterns with live matching and replacement',
-      'timestamp-converter': 'Convert between Unix timestamps and human-readable dates',
       'csv-json-converter': 'Transform CSV spreadsheet data to JSON format',
       'markdown-html-formatter': 'Format and convert between Markdown and HTML',
       'xml-formatter': 'Validate and format XML with proper structure',
