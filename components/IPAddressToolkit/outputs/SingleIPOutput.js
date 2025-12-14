@@ -824,6 +824,8 @@ export default function SingleIPOutput({ result, detectedInput }) {
         const { reverse } = dnsData
 
         if (reverse.hostname) {
+          // PTR records are copyable
+          copyableFields['Hostname (PTR)'] = true
           dnsFields['Hostname (PTR)'] = reverse.hostname
           if (reverse.metadata?.ttl) {
             dnsFields['TTL'] = `${reverse.metadata.ttl} seconds`
