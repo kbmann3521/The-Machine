@@ -433,7 +433,7 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
     )
   }
 
-  // Create tabs
+  // Build tabs array
   const tabs = [
     {
       id: 'output',
@@ -441,13 +441,39 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
       content: renderBulkOutput(),
       contentType: 'component',
     },
-    {
-      id: 'json',
-      label: 'JSON',
-      content: JSON.stringify(results, null, 2),
-      contentType: 'json',
-    },
   ]
+
+  // Add comparison tab for 2+ items
+  if (results.length >= 2) {
+    const comparisonContent = results.length === 2 ? (
+      <BulkIPComparisonPane
+        resultsA={results[0]}
+        resultsB={results[1]}
+        typeA={results[0].inputType}
+        typeB={results[1].inputType}
+      />
+    ) : (
+      <BulkIPMultiComparison
+        results={results}
+        types={results.map(r => r.inputType)}
+      />
+    )
+
+    tabs.push({
+      id: 'comparison',
+      label: 'COMPARISON',
+      content: comparisonContent,
+      contentType: 'component',
+    })
+  }
+
+  // Add JSON tab
+  tabs.push({
+    id: 'json',
+    label: 'JSON',
+    content: JSON.stringify(results, null, 2),
+    contentType: 'json',
+  })
 
   return <OutputTabs tabs={tabs} showCopyButton={true} />
 }
