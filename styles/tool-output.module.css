@@ -727,7 +727,7 @@
 
 @media (max-width: 1024px) {
   .structuredOutput {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 }
