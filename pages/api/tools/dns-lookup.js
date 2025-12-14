@@ -55,15 +55,22 @@ async function performForwardDNSLookup(hostname) {
   try {
     // Query A records (IPv4)
     const aResponse = await fetch(
-      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=A`,
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=A&do=false`,
       {
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/dns-json',
+        },
       }
     )
+
+    if (!aResponse.ok) {
+      throw new Error(`DNS query failed with status ${aResponse.status}`)
+    }
+
     const aData = await aResponse.json()
 
     if (aData.Answer) {
-      results.aRecords = aData.Answer.map(record => ({
+      results.aRecords = aData.Answer.filter(record => record.type === 1).map(record => ({
         value: record.data,
         ttl: record.TTL,
         type: 'A',
@@ -74,15 +81,22 @@ async function performForwardDNSLookup(hostname) {
 
     // Query AAAA records (IPv6)
     const aaaaResponse = await fetch(
-      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=AAAA`,
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=AAAA&do=false`,
       {
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/dns-json',
+        },
       }
     )
+
+    if (!aaaaResponse.ok) {
+      throw new Error(`DNS query failed with status ${aaaaResponse.status}`)
+    }
+
     const aaaaData = await aaaaResponse.json()
 
     if (aaaaData.Answer) {
-      results.aaaaRecords = aaaaData.Answer.map(record => ({
+      results.aaaaRecords = aaaaData.Answer.filter(record => record.type === 28).map(record => ({
         value: record.data,
         ttl: record.TTL,
         type: 'AAAA',
@@ -93,13 +107,18 @@ async function performForwardDNSLookup(hostname) {
 
     // Query MX records for reference
     const mxResponse = await fetch(
-      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=MX`,
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=MX&do=false`,
       {
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/dns-json',
+        },
       }
     )
-    const mxData = await mxResponse.json()
-    results.hasMX = mxData.Answer && mxData.Answer.length > 0
+
+    if (mxResponse.ok) {
+      const mxData = await mxResponse.json()
+      results.hasMX = mxData.Answer && mxData.Answer.length > 0
+    }
 
     return results
   } catch (error) {
