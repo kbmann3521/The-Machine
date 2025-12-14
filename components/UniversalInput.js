@@ -217,7 +217,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       'svg-optimizer': 'Optimize SVG files by removing unnecessary code',
       'unit-converter': 'Convert between different units of measurement',
       'number-formatter': 'Format numbers with separators, decimals, percentages, abbreviations, and scientific notation',
-      'timezone-converter': 'Convert times between different timezones',
+      'time-normalizer': 'Convert and normalize times between different timezones',
       'base-converter': 'Convert numbers between different bases (binary, octal, hex)',
       'math-evaluator': 'Evaluate mathematical expressions and get results',
       'cron-tester': 'Test cron expressions and preview execution schedule',
