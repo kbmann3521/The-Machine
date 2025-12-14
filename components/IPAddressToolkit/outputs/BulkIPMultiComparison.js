@@ -116,41 +116,60 @@ export default function BulkIPMultiComparison({ results, types }) {
           fontSize: '12px',
           fontWeight: '600',
           color: 'var(--color-text-secondary)',
-          marginBottom: '12px'
+          marginBottom: '12px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
         }}>
           Type Distribution
         </div>
         <div style={{
-          padding: '12px 16px',
-          backgroundColor: 'var(--color-background-tertiary)',
-          borderRadius: '6px'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+          gap: '12px'
         }}>
-          <div style={{ display: 'grid', gap: '8px' }}>
-            {Object.entries(analysis.typeDistribution).map(([type, count]) => (
-              <div key={type} style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 0'
-              }}>
-                <div style={{ fontSize: '12px', fontWeight: '600' }}>
+          {Object.entries(analysis.typeDistribution).map(([type, count]) => {
+            const typeColors = {
+              'IPv4': { bg: 'rgba(33, 150, 243, 0.08)', border: '#2196f3', color: '#2196f3' },
+              'IPv6': { bg: 'rgba(156, 39, 176, 0.08)', border: '#9c27b0', color: '#9c27b0' },
+              'CIDR': { bg: 'rgba(255, 152, 0, 0.08)', border: '#ff9800', color: '#ff9800' },
+              'Hostname': { bg: 'rgba(76, 175, 80, 0.08)', border: '#4caf50', color: '#4caf50' },
+              'Range': { bg: 'rgba(244, 67, 54, 0.08)', border: '#f44336', color: '#f44336' },
+              'Invalid': { bg: 'rgba(158, 158, 158, 0.08)', border: '#9e9e9e', color: '#9e9e9e' },
+            }
+            const colorScheme = typeColors[type] || typeColors['Invalid']
+
+            return (
+              <div
+                key={type}
+                style={{
+                  padding: '16px',
+                  backgroundColor: colorScheme.bg,
+                  border: `1px solid ${colorScheme.border}`,
+                  borderRadius: '8px',
+                  borderLeft: `4px solid ${colorScheme.border}`,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  color: colorScheme.color,
+                  marginBottom: '8px',
+                  letterSpacing: '0.5px'
+                }}>
                   {type}
                 </div>
                 <div style={{
-                  fontSize: '12px',
-                  fontFamily: 'monospace',
+                  fontSize: '28px',
                   fontWeight: '700',
-                  padding: '4px 8px',
-                  backgroundColor: 'var(--color-background-secondary)',
-                  borderRadius: '4px',
-                  minWidth: '40px',
-                  textAlign: 'center'
+                  color: colorScheme.color
                 }}>
                   {count}
                 </div>
               </div>
-            ))}
-          </div>
+            )
+          })}
         </div>
       </div>
 
