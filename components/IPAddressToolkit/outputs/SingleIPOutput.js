@@ -187,6 +187,9 @@ export default function SingleIPOutput({ result, detectedInput }) {
     'Normalized (endIP)': true,
     'Compressed (endIP)': true,
     'Expanded (endIP)': true,
+    'IPv4 Address (A)': true,
+    'IPv6 Address (AAAA)': true,
+    'Hostname (PTR)': true,
   }
 
   const renderField = (key, value, uniqueKey, fieldPath) => {
