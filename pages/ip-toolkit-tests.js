@@ -73,6 +73,48 @@ const TEST_CASES = [
   { category: 'Invalid', input: '192.168.1.1/33', description: 'CIDR prefix > 32' },
   { category: 'Invalid', input: 'gggg::gggg', description: 'Invalid IPv6 hex' },
   { category: 'Invalid', input: '', description: 'Empty input' },
+
+  // Edge Cases: IPv4 Leading Zeros
+  { category: 'Edge Cases: IPv4 Leading Zeros', input: '010.000.000.001', description: 'Leading zeros (potential octal interpretation)' },
+  { category: 'Edge Cases: IPv4 Leading Zeros', input: '192.168.001.001', description: 'Mixed leading zeros' },
+  { category: 'Edge Cases: IPv4 Leading Zeros', input: '001.002.003.004', description: 'All octets with leading zeros' },
+
+  // Edge Cases: IPv6 Case Variations
+  { category: 'Edge Cases: IPv6 Case', input: 'FE80::1', description: 'Uppercase link-local' },
+  { category: 'Edge Cases: IPv6 Case', input: 'Fe80::1', description: 'Mixed case link-local' },
+  { category: 'Edge Cases: IPv6 Case', input: '2001:DB8::1', description: 'Uppercase documentation' },
+  { category: 'Edge Cases: IPv6 Case', input: '2001:db8::1:FFFF', description: 'Mixed case documentation' },
+
+  // Edge Cases: IPv6 Invalid Multiple Colons
+  { category: 'Edge Cases: IPv6 Invalid', input: '2001::db8::1', description: 'Multiple :: (invalid)' },
+  { category: 'Edge Cases: IPv6 Invalid', input: '::1::2', description: 'Multiple :: with values (invalid)' },
+  { category: 'Edge Cases: IPv6 Invalid', input: '2001:db8:::1', description: 'Triple colon (invalid)' },
+  { category: 'Edge Cases: IPv6 Invalid', input: '2001:db8:0:0:0:0:0:0:1', description: 'Too many hextets' },
+
+  // Edge Cases: Hostname Invalid Labels
+  { category: 'Edge Cases: Hostnames', input: 'bad_domain.com', description: 'Underscore in hostname (invalid)' },
+  { category: 'Edge Cases: Hostnames', input: '-invalid.com', description: 'Leading hyphen (invalid)' },
+  { category: 'Edge Cases: Hostnames', input: 'invalid-.com', description: 'Trailing hyphen (invalid)' },
+  { category: 'Edge Cases: Hostnames', input: 'valid-domain.com', description: 'Hyphen in middle (valid)' },
+  { category: 'Edge Cases: Hostnames', input: '192.168.test.local', description: 'Mixed numeric/letters with local' },
+
+  // Edge Cases: Cross-Family Ranges
+  { category: 'Edge Cases: Cross-Family Ranges', input: '192.168.1.1 - fe80::1', description: 'IPv4 to IPv6 range (invalid)' },
+  { category: 'Edge Cases: Cross-Family Ranges', input: '::1 - 192.168.1.1', description: 'IPv6 to IPv4 range (invalid)' },
+
+  // Edge Cases: Weird Separators & Whitespace
+  { category: 'Edge Cases: Separators', input: '10.0.0.1\t-\t10.0.0.5', description: 'Tabs around dash separator' },
+  { category: 'Edge Cases: Separators', input: '10.0.0.1 -  10.0.0.5', description: 'Multiple spaces around dash' },
+  { category: 'Edge Cases: Separators', input: '10.0.0.1–10.0.0.5', description: 'En-dash separator (–)' },
+  { category: 'Edge Cases: Separators', input: '10.0.0.1—10.0.0.5', description: 'Em-dash separator (—)' },
+  { category: 'Edge Cases: Separators', input: '10.0.0.1 ~ 10.0.0.5', description: 'Tilde separator (~)' },
+  { category: 'Edge Cases: Separators', input: '10.0.0.1, 10.0.0.5', description: 'Comma separator (invalid)' },
+
+  // Edge Cases: Special RFC Addresses
+  { category: 'Edge Cases: RFC Addresses', input: '255.255.255.255', description: 'Limited broadcast (RFC 919/922)' },
+  { category: 'Edge Cases: RFC Addresses', input: '0.0.0.0/0', description: 'Default route (entire IPv4 space)' },
+  { category: 'Edge Cases: RFC Addresses', input: '255.255.255.254', description: 'Broadcast minus one' },
+  { category: 'Edge Cases: RFC Addresses', input: '169.254.1.1', description: 'APIPA/Link-local IPv4' },
 ]
 
 export default function IPToolkitTests() {
