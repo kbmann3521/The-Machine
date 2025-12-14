@@ -32,6 +32,23 @@ export default function ToolDescriptionSidebar({ tool, isOpen, onToggle }) {
         </button>
       </div>
 
+      {tool.toolId === 'ip-address-toolkit' && (
+        <div className={styles.tipsContainer}>
+          <div className={styles.tipItem}>
+            <span className={styles.tipLabel}>Single mode:</span>
+            <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
+          </div>
+          <div className={styles.tipItem}>
+            <span className={styles.tipLabel}>Bulk (2 items):</span>
+            <span className={styles.tipText}>Side-by-side comparison</span>
+          </div>
+          <div className={styles.tipItem}>
+            <span className={styles.tipLabel}>Bulk (3-7 items):</span>
+            <span className={styles.tipText}>Aggregate analysis & insights</span>
+          </div>
+        </div>
+      )}
+
       <div className={styles.sidebarContent}>
         <section className={styles.section}>
           <button
