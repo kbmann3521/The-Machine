@@ -5567,28 +5567,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                       backgroundColor: 'var(--color-background-secondary)',
                       border: '1px solid var(--color-border)',
                       borderRadius: '4px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'rgba(76, 175, 80, 0.5)'
-                      e.currentTarget.style.backgroundColor = 'rgba(76, 175, 80, 0.05)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-border)'
-                      e.currentTarget.style.backgroundColor = 'var(--color-background-secondary)'
-                    }}
-                    onClick={() => {
-                      // Dispatch event to update input
-                      if (typeof window !== 'undefined') {
-                        window.dispatchEvent(new CustomEvent('setToolInput', { detail: example.value }))
-                      }
                     }}
                   >
                     <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
                       {example.label}
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--color-text)', marginBottom: '4px', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text)', marginBottom: '6px', fontFamily: 'monospace', padding: '6px', backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: '3px' }}>
                       {example.value}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
