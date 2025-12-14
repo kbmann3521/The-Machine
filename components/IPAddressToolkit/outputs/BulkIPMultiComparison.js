@@ -21,90 +21,90 @@ export default function BulkIPMultiComparison({ results, types }) {
       {/* Summary Stats */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-        gap: '12px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+        gap: '8px'
       }}>
         {/* Total Items */}
         <div style={{
-          padding: '16px',
+          padding: '10px 12px',
           backgroundColor: 'var(--color-background-secondary)',
           border: '1px solid var(--color-border)',
-          borderRadius: '8px',
-          borderLeft: '4px solid var(--color-text-primary)',
+          borderRadius: '6px',
+          borderLeft: '3px solid var(--color-text-primary)',
           transition: 'all 0.2s ease'
         }}>
-          <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-secondary)', marginBottom: '8px', letterSpacing: '0.5px' }}>
-            Total Items
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-secondary)', marginBottom: '4px', letterSpacing: '0.3px' }}>
+            Total
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--color-text-primary)' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--color-text-primary)' }}>
             {analysis.total}
           </div>
         </div>
 
         {/* Valid */}
         <div style={{
-          padding: '16px',
+          padding: '10px 12px',
           backgroundColor: 'rgba(76, 175, 80, 0.08)',
           border: '1px solid rgba(76, 175, 80, 0.3)',
-          borderRadius: '8px',
-          borderLeft: '4px solid #4caf50',
+          borderRadius: '6px',
+          borderLeft: '3px solid #4caf50',
           transition: 'all 0.2s ease'
         }}>
-          <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: '#4caf50', marginBottom: '8px', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#4caf50', marginBottom: '4px', letterSpacing: '0.3px' }}>
             Valid
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#4caf50' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#4caf50' }}>
             {analysis.validCount}
           </div>
         </div>
 
         {/* Invalid */}
         <div style={{
-          padding: '16px',
+          padding: '10px 12px',
           backgroundColor: 'rgba(244, 67, 54, 0.08)',
           border: '1px solid rgba(244, 67, 54, 0.3)',
-          borderRadius: '8px',
-          borderLeft: '4px solid #f44336',
+          borderRadius: '6px',
+          borderLeft: '3px solid #f44336',
           transition: 'all 0.2s ease'
         }}>
-          <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: '#f44336', marginBottom: '8px', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#f44336', marginBottom: '4px', letterSpacing: '0.3px' }}>
             Invalid
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#f44336' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#f44336' }}>
             {analysis.invalidCount}
           </div>
         </div>
 
         {/* Private */}
         <div style={{
-          padding: '16px',
+          padding: '10px 12px',
           backgroundColor: 'rgba(33, 150, 243, 0.08)',
           border: '1px solid rgba(33, 150, 243, 0.3)',
-          borderRadius: '8px',
-          borderLeft: '4px solid #2196f3',
+          borderRadius: '6px',
+          borderLeft: '3px solid #2196f3',
           transition: 'all 0.2s ease'
         }}>
-          <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: '#2196f3', marginBottom: '8px', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#2196f3', marginBottom: '4px', letterSpacing: '0.3px' }}>
             Private
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#2196f3' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#2196f3' }}>
             {analysis.privateCount}
           </div>
         </div>
 
         {/* Public */}
         <div style={{
-          padding: '16px',
+          padding: '10px 12px',
           backgroundColor: 'rgba(255, 152, 0, 0.08)',
           border: '1px solid rgba(255, 152, 0, 0.3)',
-          borderRadius: '8px',
-          borderLeft: '4px solid #ff9800',
+          borderRadius: '6px',
+          borderLeft: '3px solid #ff9800',
           transition: 'all 0.2s ease'
         }}>
-          <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: '#ff9800', marginBottom: '8px', letterSpacing: '0.5px' }}>
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#ff9800', marginBottom: '4px', letterSpacing: '0.3px' }}>
             Public
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: '#ff9800' }}>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#ff9800' }}>
             {analysis.publicCount}
           </div>
         </div>
