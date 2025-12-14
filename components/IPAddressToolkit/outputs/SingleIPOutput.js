@@ -721,27 +721,41 @@ export default function SingleIPOutput({ result, detectedInput }) {
       }
     }
 
-    // Reverse DNS lookup section (for IP addresses to hostnames)
-    if (dnsData && dnsData.reverse) {
-      const dnsFields = {}
-      const { reverse } = dnsData
-
-      if (reverse.hostname) {
-        dnsFields['Hostname (PTR)'] = reverse.hostname
-        if (reverse.metadata?.ttl) {
-          dnsFields['TTL'] = `${reverse.metadata.ttl} seconds`
-        }
-      } else if (!dnsLoading) {
-        dnsFields['Result'] = reverse.error || 'No reverse DNS record found'
-      }
-
+    // Reverse DNS lookup section (for IP addresses to hostnames) - auto-fetch for IPs
+    if (detectedInput && !detectedInput.isHostname && (detectedInput.type === 'IPv4' || detectedInput.type === 'IPv6')) {
+      // Auto-fetch PTR for IP inputs
       if (dnsLoading) {
-        dnsFields['Status'] = 'Loading PTR record...'
-      }
-
-      if (Object.keys(dnsFields).length > 0) {
+        const dnsFields = { 'Status': 'Loading reverse DNS record...' }
         sections.push({
-          title: 'Reverse DNS (PTR)',
+          title: 'DNS Resolution (Reverse Lookup)',
+          fields: dnsFields,
+        })
+      } else if (dnsData && dnsData.reverse) {
+        const dnsFields = {}
+        const { reverse } = dnsData
+
+        if (reverse.hostname) {
+          dnsFields['Hostname (PTR)'] = reverse.hostname
+          if (reverse.metadata?.ttl) {
+            dnsFields['TTL'] = `${reverse.metadata.ttl} seconds`
+          }
+        } else if (reverse.error) {
+          dnsFields['Result'] = reverse.error
+        } else {
+          dnsFields['Result'] = 'No reverse DNS record found'
+        }
+
+        if (Object.keys(dnsFields).length > 0) {
+          sections.push({
+            title: 'DNS Resolution (Reverse Lookup)',
+            fields: dnsFields,
+          })
+        }
+      } else if (!dnsLoading && !dnsData) {
+        // Show loading state initially
+        const dnsFields = { 'Status': 'Loading reverse DNS record...' }
+        sections.push({
+          title: 'DNS Resolution (Reverse Lookup)',
           fields: dnsFields,
         })
       }
