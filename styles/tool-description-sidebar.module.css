@@ -69,6 +69,41 @@
   color: var(--color-text-primary);
 }
 
+.tipsContainer {
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.08) 0%, rgba(76, 175, 80, 0.06) 100%);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tipItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background-color: var(--color-background-primary);
+  border-left: 3px solid rgba(33, 150, 243, 0.5);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.tipLabel {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: rgba(33, 150, 243, 0.9);
+}
+
+.tipText {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
 .sidebarContent {
   flex: 1;
   overflow-y: auto;
