@@ -4338,7 +4338,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const { output, formats = {}, metadata = {} } = displayResult
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Primary Output */}
         <div>
           <div style={{
