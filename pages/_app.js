@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Script from 'next/script'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
 import { generateMetaTags, siteMetadata } from '../lib/seoUtils'
@@ -8,6 +9,20 @@ export default function App({ Component, pageProps }) {
 
   return (
     <>
+      <Script
+        id="theme-init"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              try {
+                const theme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+              } catch (e) {}
+            })();
+          `,
+        }}
+      />
       <Head>
         <title>{metaTags.title}</title>
         <meta name="description" content={metaTags.description} />
@@ -33,20 +48,6 @@ export default function App({ Component, pageProps }) {
 
         {/* Favicon */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-
-        {/* Initialize theme synchronously before React renders to prevent flash */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const theme = localStorage.getItem('theme') || 'dark';
-                  document.documentElement.setAttribute('data-theme', theme);
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
       </Head>
 
       <ThemeProvider>
