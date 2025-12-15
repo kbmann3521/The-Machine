@@ -1535,8 +1535,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
-  // Time normalizer custom output
-  if (toolId === 'time-normalizer' && displayResult && displayResult.humanSummary) {
+  // Time normalizer custom output (uses dedicated output panel for bulk + single mode)
+  if (toolId === 'time-normalizer') {
+    return <TimeNormalizerOutputPanel result={displayResult} inputText={inputText} config={configOptions} />
+  }
+
+  // Legacy time normalizer handling (keeping for backwards compatibility)
+  if (toolId === 'time-normalizer-legacy' && displayResult && displayResult.humanSummary) {
     if (displayResult.error) {
       return null
     }
