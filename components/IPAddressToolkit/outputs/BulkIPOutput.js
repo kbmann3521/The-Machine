@@ -169,8 +169,8 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
           </div>
         </div>
 
-        {/* Type Filters */}
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        {/* Type & Privacy Filters */}
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
           {uniqueTypes.map(type => (
             <button
               key={type}
@@ -190,29 +190,31 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
               {type}
             </button>
           ))}
-        </div>
 
-        {/* Privacy Filters */}
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', paddingLeft: '8px', borderLeft: '1px solid var(--color-border)' }}>
-          {uniquePrivacy.map(privacy => (
-            <button
-              key={privacy}
-              onClick={() => setPrivacyFilter(privacy)}
-              style={{
-                padding: '4px 10px',
-                backgroundColor: privacyFilter === privacy ? 'rgba(76, 175, 80, 0.2)' : 'transparent',
-                border: privacyFilter === privacy ? '1px solid #4caf50' : '1px solid var(--color-border)',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '11px',
-                fontWeight: '600',
-                color: privacyFilter === privacy ? '#4caf50' : 'var(--color-text-primary)',
-                transition: 'all 0.2s',
-              }}
-            >
-              {privacy}
-            </button>
-          ))}
+          {uniquePrivacy.length > 0 && (
+            <>
+              <div style={{ paddingLeft: '4px', borderLeft: '1px solid var(--color-border)' }} />
+              {uniquePrivacy.map(privacy => (
+                <button
+                  key={privacy}
+                  onClick={() => setPrivacyFilter(privacy)}
+                  style={{
+                    padding: '4px 10px',
+                    backgroundColor: privacyFilter === privacy ? 'rgba(76, 175, 80, 0.2)' : 'transparent',
+                    border: privacyFilter === privacy ? '1px solid #4caf50' : '1px solid var(--color-border)',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: privacyFilter === privacy ? '#4caf50' : 'var(--color-text-primary)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {privacy}
+                </button>
+              ))}
+            </>
+          )}
         </div>
 
         {/* Search & Export Controls */}
