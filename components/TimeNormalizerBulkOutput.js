@@ -234,8 +234,8 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
           )}
         </div>
 
-        {/* Optional Timezone Distribution */}
-        {hasMultipleTimezones && (
+        {/* Detected Timezone Distribution */}
+        {hasDetectedTimezones && (
           <div
             style={{
               padding: '12px 16px',
