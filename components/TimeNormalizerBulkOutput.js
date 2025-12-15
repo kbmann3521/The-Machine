@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { FaChevronDown, FaDownload } from 'react-icons/fa6'
 import OutputTabs from './OutputTabs'
 import TimeNormalizerSingleOutput from './TimeNormalizerSingleOutput'
