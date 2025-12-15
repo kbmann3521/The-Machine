@@ -459,9 +459,5 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
     },
   ]
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-      <OutputTabs tabs={tabs} showCopyButton={true} />
-    </div>
-  )
+  return <OutputTabs tabs={tabs} showCopyButton={true} />
 }
