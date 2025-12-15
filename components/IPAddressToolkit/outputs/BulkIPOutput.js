@@ -18,6 +18,7 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
   const [expandedItems, setExpandedItems] = useState(new Set())
   const [typeFilter, setTypeFilter] = useState('All')
   const [privacyFilter, setPrivacyFilter] = useState('All')
+  const [validityFilter, setValidityFilter] = useState('All')
   const [searchText, setSearchText] = useState('')
   const [selectedItems, setSelectedItems] = useState(new Set())
 
