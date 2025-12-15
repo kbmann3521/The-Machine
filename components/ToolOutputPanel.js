@@ -4720,7 +4720,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const { cronExpression, humanReadable, nextRuns = [], metadata = {}, valid, timezone } = displayResult
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Validation Status */}
         {valid !== undefined && (
           <div style={{
