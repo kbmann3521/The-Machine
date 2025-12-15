@@ -912,15 +912,45 @@ export default function SingleIPOutput({ result, detectedInput }) {
     // Diagnostics section (showing allIssues if available, otherwise individual sections)
     if (result.allIssues && Array.isArray(result.allIssues) && result.allIssues.length > 0) {
       const allIssuesFields = {}
-      allIssuesFields['Issues'] = result.allIssues.map((issue, i) => {
-        const severityColor = issue.severity === 'error' ? '#f44336' : issue.severity === 'warning' ? '#ff9800' : '#4caf50'
-        const severityIcon = issue.severity === 'error' ? '❌' : issue.severity === 'warning' ? '⚠️' : '💡'
-        return (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: severityColor }}>
-            {severityIcon} <strong>{issue.code}:</strong> {issue.message}
-          </div>
-        )
-      })
+      allIssuesFields['Issues'] = (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {result.allIssues.map((issue, i) => {
+            const severity = issue.severity || 'info'
+            const severityConfig = {
+              error: { color: '#f44336', bgColor: 'rgba(244, 67, 54, 0.08)', borderColor: 'rgba(244, 67, 54, 0.3)', icon: '❌' },
+              warning: { color: '#ff9800', bgColor: 'rgba(255, 152, 0, 0.08)', borderColor: 'rgba(255, 152, 0, 0.3)', icon: '⚠️' },
+              info: { color: '#4caf50', bgColor: 'rgba(76, 175, 80, 0.08)', borderColor: 'rgba(76, 175, 80, 0.3)', icon: '💡' },
+            }
+            const config = severityConfig[severity] || severityConfig.info
+
+            return (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: config.bgColor,
+                  border: `1px solid ${config.borderColor}`,
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>{config.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: config.color, display: 'block', marginBottom: '2px' }}>
+                      {issue.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {issue.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )
       sections.push({
         title: 'Diagnostics',
         fields: allIssuesFields,
@@ -930,27 +960,99 @@ export default function SingleIPOutput({ result, detectedInput }) {
       const diagnosticFields = {}
 
       if (result.diagnostics.errors?.length > 0) {
-        diagnosticFields['❌ Errors'] = result.diagnostics.errors.map((e, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#f44336' }}>
-            <strong>{e.code}:</strong> {e.message}
+        diagnosticFields['Errors'] = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {result.diagnostics.errors.map((e, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'rgba(244, 67, 54, 0.08)',
+                  border: '1px solid rgba(244, 67, 54, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>❌</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: '#f44336', display: 'block', marginBottom: '2px' }}>
+                      {e.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {e.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))
+        )
       }
 
       if (result.diagnostics.warnings?.length > 0) {
-        diagnosticFields['⚠️ Warnings'] = result.diagnostics.warnings.map((w, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#ff9800' }}>
-            <strong>{w.code}:</strong> {w.message}
+        diagnosticFields['Warnings'] = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {result.diagnostics.warnings.map((w, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'rgba(255, 152, 0, 0.08)',
+                  border: '1px solid rgba(255, 152, 0, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>⚠️</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: '#ff9800', display: 'block', marginBottom: '2px' }}>
+                      {w.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {w.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))
+        )
       }
 
       if (result.diagnostics.tips?.length > 0) {
-        diagnosticFields['💡 Tips'] = result.diagnostics.tips.map((t, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#4caf50' }}>
-            <strong>{t.code}:</strong> {t.message}
+        diagnosticFields['Tips'] = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {result.diagnostics.tips.map((t, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'rgba(76, 175, 80, 0.08)',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>💡</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: '#4caf50', display: 'block', marginBottom: '2px' }}>
+                      {t.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {t.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))
+        )
       }
 
       sections.push({
