@@ -131,6 +131,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
               borderRadius: '6px',
               borderLeft: '3px solid #2196f3',
             }}
+            title="Times that occur on the same date in both input and output timezone"
           >
             <div
               style={{
@@ -157,6 +158,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
               borderRadius: '6px',
               borderLeft: '3px solid #ff9800',
             }}
+            title="Times that move to the next calendar day when converting to the output timezone"
           >
             <div
               style={{
@@ -183,6 +185,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
               borderRadius: '6px',
               borderLeft: '3px solid #9c27b0',
             }}
+            title="Times that move to the previous calendar day when converting to the output timezone"
           >
             <div
               style={{
@@ -210,6 +213,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
                 borderRadius: '6px',
                 borderLeft: '3px solid var(--color-text-primary)',
               }}
+              title="Maximum timezone offset difference across all times in this batch (e.g., +5h, -3h)"
             >
               <div
                 style={{
@@ -221,7 +225,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
                   letterSpacing: '0.3px',
                 }}
               >
-                Max Shift
+                Max TZ Offset
               </div>
               <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--color-text-primary)' }}>
                 {formatShift(summary.maxShift)}
