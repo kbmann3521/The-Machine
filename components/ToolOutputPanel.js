@@ -1477,7 +1477,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     const friendlyView = ({ onCopyCard, copiedCardId }) => (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{
           fontSize: '12px',
           fontWeight: '600',
