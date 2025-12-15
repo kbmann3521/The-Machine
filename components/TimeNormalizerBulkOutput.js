@@ -450,6 +450,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
       id: 'output',
       label: 'OUTPUT',
       content: renderBulkOutput(),
+      contentType: 'component',
     },
     {
       id: 'json',
