@@ -883,39 +883,25 @@ export default function SingleIPOutput({ result, detectedInput }) {
 
     // Reverse DNS lookup section (for IP addresses to hostnames) - auto-fetch for IPs
     if (detectedInput && !detectedInput.isHostname && (detectedInput.type === 'IPv4' || detectedInput.type === 'IPv6')) {
-      // Auto-fetch PTR for IP inputs
-      if (dnsLoading) {
-        const dnsFields = { 'Status': 'Loading reverse DNS record...' }
-        sections.push({
-          title: 'DNS Resolution (Reverse Lookup)',
-          fields: dnsFields,
-        })
-      } else if (dnsData && dnsData.reverse) {
-        const dnsFields = {}
-        const { reverse } = dnsData
+      const dnsFields = {}
 
-        if (reverse.hostname) {
-          // PTR records are copyable
-          copyableFields['Hostname (PTR)'] = true
-          dnsFields['Hostname (PTR)'] = reverse.hostname
-          if (reverse.metadata?.ttl) {
-            dnsFields['TTL'] = `${reverse.metadata.ttl} seconds`
-          }
-        } else if (reverse.error) {
-          dnsFields['Result'] = reverse.error
-        } else {
-          dnsFields['Result'] = 'No reverse DNS record found'
+      if (reverseDnsStatus === 'loading') {
+        dnsFields['Status'] = '⏳ Resolving reverse DNS...'
+      } else if (reverseDnsStatus === 'resolved' && reverseDnsData?.hostname) {
+        copyableFields['Hostname (PTR)'] = true
+        dnsFields['Hostname (PTR)'] = reverseDnsData.hostname
+        if (reverseDnsData.metadata?.ttl) {
+          dnsFields['TTL'] = `${reverseDnsData.metadata.ttl} seconds`
         }
+      } else if (reverseDnsStatus === 'none') {
+        dnsFields['Result'] = 'No reverse DNS record found'
+      } else if (reverseDnsStatus === 'error') {
+        dnsFields['Result'] = `Reverse DNS lookup failed${reverseDnsData?.error ? ': ' + reverseDnsData.error : ''}`
+      } else if (reverseDnsStatus === 'skip') {
+        dnsFields['Result'] = 'Reverse DNS not applicable for private/special-use addresses'
+      }
 
-        if (Object.keys(dnsFields).length > 0) {
-          sections.push({
-            title: 'DNS Resolution (Reverse Lookup)',
-            fields: dnsFields,
-          })
-        }
-      } else if (!dnsLoading && !dnsData) {
-        // Show loading state initially
-        const dnsFields = { 'Status': 'Loading reverse DNS record...' }
+      if (Object.keys(dnsFields).length > 0) {
         sections.push({
           title: 'DNS Resolution (Reverse Lookup)',
           fields: dnsFields,
