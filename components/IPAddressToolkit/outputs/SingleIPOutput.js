@@ -11,6 +11,8 @@ export default function SingleIPOutput({ result, detectedInput }) {
   const [dnsData, setDnsData] = useState(null)
   const [dnsLoading, setDnsLoading] = useState(false)
   const [dnsError, setDnsError] = useState(null)
+  const [reverseDnsStatus, setReverseDnsStatus] = useState(null) // 'loading', 'resolved', 'none', 'error'
+  const [reverseDnsData, setReverseDnsData] = useState(null)
   const [ipAnalysisCache, setIpAnalysisCache] = useState({})
   const [ipAnalysisLoading, setIpAnalysisLoading] = useState({})
 
@@ -52,6 +54,72 @@ export default function SingleIPOutput({ result, detectedInput }) {
 
     fetchDNS()
   }, [detectedInput])
+
+  // Fetch reverse DNS for IP addresses (PTR lookup)
+  useEffect(() => {
+    if (!detectedInput || detectedInput.isHostname) {
+      setReverseDnsStatus(null)
+      setReverseDnsData(null)
+      return
+    }
+
+    if (detectedInput.type !== 'IPv4' && detectedInput.type !== 'IPv6') {
+      return
+    }
+
+    // Skip reverse DNS for private/special IPs
+    if (result?.classification) {
+      const { isPrivate, isPublic, isSpecial } = result.classification
+      // Only perform reverse DNS for public IPs
+      if (!isPublic || isPrivate || isSpecial) {
+        setReverseDnsStatus('skip')
+        return
+      }
+    }
+
+    const fetchReverseDNS = async () => {
+      setReverseDnsStatus('loading')
+      setReverseDnsData(null)
+
+      try {
+        const input = detectedInput.description?.split('(')[0]?.trim() || ''
+        if (!input) {
+          setReverseDnsStatus('error')
+          return
+        }
+
+        const response = await fetch('/api/tools/dns-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input }),
+        })
+
+        if (!response.ok) throw new Error('Reverse DNS lookup failed')
+        const data = await response.json()
+
+        if (data.data?.reverse) {
+          const { reverse } = data.data
+          if (reverse.hostname) {
+            setReverseDnsStatus('resolved')
+            setReverseDnsData(reverse)
+          } else if (reverse.error) {
+            setReverseDnsStatus('error')
+            setReverseDnsData({ error: reverse.error })
+          } else {
+            setReverseDnsStatus('none')
+            setReverseDnsData(reverse)
+          }
+        } else {
+          setReverseDnsStatus('none')
+        }
+      } catch (err) {
+        setReverseDnsStatus('error')
+        setReverseDnsData({ error: err.message })
+      }
+    }
+
+    fetchReverseDNS()
+  }, [detectedInput, result?.classification])
 
   // Fetch full IP analysis for each resolved IP from hostname
   useEffect(() => {
@@ -181,6 +249,10 @@ export default function SingleIPOutput({ result, detectedInput }) {
     'Without Zone': true,
     'Start Address': true,
     'End Address': true,
+    'First Address': true,
+    'Last Address': true,
+    'Covering Subnet': true,
+    'Subnet Context': true,
     'Normalized (startIP)': true,
     'Compressed (startIP)': true,
     'Expanded (startIP)': true,
@@ -693,6 +765,12 @@ export default function SingleIPOutput({ result, detectedInput }) {
         rangeFields['Range Size'] = result.range.size.toLocaleString() + ' addresses'
       }
 
+      if (result.range.hosts) {
+        rangeFields['First Address'] = result.range.hosts.first
+        rangeFields['Last Address'] = result.range.hosts.last
+        rangeFields['Host Count'] = result.range.hosts.count.toLocaleString()
+      }
+
       if (result.range.isValid !== undefined) {
         rangeFields['Valid'] = result.range.isValid ? '✓ Yes' : '✗ No'
       }
@@ -709,6 +787,39 @@ export default function SingleIPOutput({ result, detectedInput }) {
         rangeFields['Scope Match'] = result.range.scopeMismatch ? '✗ Mismatch' : '✓ Match'
       }
 
+      if (result.range.coveringSubnet) {
+        rangeFields['Covering Subnet'] = result.range.coveringSubnet.subnet
+      }
+
+      if (result.range.subnetContext) {
+        rangeFields['Subnet Context'] = result.range.subnetContext.subnet
+        rangeFields['Fully Contained'] = result.range.subnetContext.fullyContained ? '✓ Yes' : '✗ No'
+      }
+
+      if (result.range.boundaryChecks && Object.keys(result.range.boundaryChecks).length > 0) {
+        rangeFields['Includes Network Address'] = result.range.boundaryChecks.includesNetworkAddress ? '✓ Yes' : '✗ No'
+        rangeFields['Includes Broadcast Address'] = result.range.boundaryChecks.includesBroadcastAddress ? '✓ Yes' : '✗ No'
+        rangeFields['Touches Subnet Edge'] = result.range.boundaryChecks.touchesSubnetEdge ? '⚠ Yes' : '✗ No'
+      }
+
+      if (result.range.enumeration && result.range.enumeration.reason) {
+        rangeFields['Enumeration'] = (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{result.range.enumeration.reason}</span>
+            <span style={{
+              fontSize: '11px',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              backgroundColor: result.range.enumeration.recommended ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+              color: result.range.enumeration.recommended ? '#4caf50' : '#f44336',
+              fontWeight: '600'
+            }}>
+              {result.range.enumeration.recommended ? '✓ Safe' : '⚠ Not Recommended'}
+            </span>
+          </div>
+        )
+      }
+
       if (result.range.warnings && Array.isArray(result.range.warnings)) {
         rangeFields['Warnings'] = result.range.warnings.map((warning, i) => (
           <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#f57c00' }}>
@@ -719,10 +830,6 @@ export default function SingleIPOutput({ result, detectedInput }) {
 
       if (result.range.separator) {
         rangeFields['Separator'] = result.range.separator
-      }
-
-      if (result.range.coveringSubnet) {
-        rangeFields['Covering Subnet'] = result.range.coveringSubnet.subnet
       }
 
       if (result.range.classificationNotes && Array.isArray(result.range.classificationNotes)) {
@@ -815,39 +922,25 @@ export default function SingleIPOutput({ result, detectedInput }) {
 
     // Reverse DNS lookup section (for IP addresses to hostnames) - auto-fetch for IPs
     if (detectedInput && !detectedInput.isHostname && (detectedInput.type === 'IPv4' || detectedInput.type === 'IPv6')) {
-      // Auto-fetch PTR for IP inputs
-      if (dnsLoading) {
-        const dnsFields = { 'Status': 'Loading reverse DNS record...' }
-        sections.push({
-          title: 'DNS Resolution (Reverse Lookup)',
-          fields: dnsFields,
-        })
-      } else if (dnsData && dnsData.reverse) {
-        const dnsFields = {}
-        const { reverse } = dnsData
+      const dnsFields = {}
 
-        if (reverse.hostname) {
-          // PTR records are copyable
-          copyableFields['Hostname (PTR)'] = true
-          dnsFields['Hostname (PTR)'] = reverse.hostname
-          if (reverse.metadata?.ttl) {
-            dnsFields['TTL'] = `${reverse.metadata.ttl} seconds`
-          }
-        } else if (reverse.error) {
-          dnsFields['Result'] = reverse.error
-        } else {
-          dnsFields['Result'] = 'No reverse DNS record found'
+      if (reverseDnsStatus === 'loading') {
+        dnsFields['Status'] = '⏳ Resolving reverse DNS...'
+      } else if (reverseDnsStatus === 'resolved' && reverseDnsData?.hostname) {
+        copyableFields['Hostname (PTR)'] = true
+        dnsFields['Hostname (PTR)'] = reverseDnsData.hostname
+        if (reverseDnsData.metadata?.ttl) {
+          dnsFields['TTL'] = `${reverseDnsData.metadata.ttl} seconds`
         }
+      } else if (reverseDnsStatus === 'none') {
+        dnsFields['Result'] = 'No reverse DNS record found'
+      } else if (reverseDnsStatus === 'error') {
+        dnsFields['Result'] = `Reverse DNS lookup failed${reverseDnsData?.error ? ': ' + reverseDnsData.error : ''}`
+      } else if (reverseDnsStatus === 'skip') {
+        dnsFields['Result'] = 'Reverse DNS not applicable for private/special-use addresses'
+      }
 
-        if (Object.keys(dnsFields).length > 0) {
-          sections.push({
-            title: 'DNS Resolution (Reverse Lookup)',
-            fields: dnsFields,
-          })
-        }
-      } else if (!dnsLoading && !dnsData) {
-        // Show loading state initially
-        const dnsFields = { 'Status': 'Loading reverse DNS record...' }
+      if (Object.keys(dnsFields).length > 0) {
         sections.push({
           title: 'DNS Resolution (Reverse Lookup)',
           fields: dnsFields,
@@ -858,15 +951,45 @@ export default function SingleIPOutput({ result, detectedInput }) {
     // Diagnostics section (showing allIssues if available, otherwise individual sections)
     if (result.allIssues && Array.isArray(result.allIssues) && result.allIssues.length > 0) {
       const allIssuesFields = {}
-      allIssuesFields['Issues'] = result.allIssues.map((issue, i) => {
-        const severityColor = issue.severity === 'error' ? '#f44336' : issue.severity === 'warning' ? '#ff9800' : '#4caf50'
-        const severityIcon = issue.severity === 'error' ? '❌' : issue.severity === 'warning' ? '⚠️' : '💡'
-        return (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: severityColor }}>
-            {severityIcon} <strong>{issue.code}:</strong> {issue.message}
-          </div>
-        )
-      })
+      allIssuesFields['Issues'] = (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {result.allIssues.map((issue, i) => {
+            const severity = issue.severity || 'info'
+            const severityConfig = {
+              error: { color: '#f44336', bgColor: 'rgba(244, 67, 54, 0.08)', borderColor: 'rgba(244, 67, 54, 0.3)', icon: '❌' },
+              warning: { color: '#ff9800', bgColor: 'rgba(255, 152, 0, 0.08)', borderColor: 'rgba(255, 152, 0, 0.3)', icon: '⚠️' },
+              info: { color: '#4caf50', bgColor: 'rgba(76, 175, 80, 0.08)', borderColor: 'rgba(76, 175, 80, 0.3)', icon: '💡' },
+            }
+            const config = severityConfig[severity] || severityConfig.info
+
+            return (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: config.bgColor,
+                  border: `1px solid ${config.borderColor}`,
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>{config.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: config.color, display: 'block', marginBottom: '2px' }}>
+                      {issue.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {issue.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )
       sections.push({
         title: 'Diagnostics',
         fields: allIssuesFields,
@@ -876,27 +999,99 @@ export default function SingleIPOutput({ result, detectedInput }) {
       const diagnosticFields = {}
 
       if (result.diagnostics.errors?.length > 0) {
-        diagnosticFields['❌ Errors'] = result.diagnostics.errors.map((e, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#f44336' }}>
-            <strong>{e.code}:</strong> {e.message}
+        diagnosticFields['Errors'] = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {result.diagnostics.errors.map((e, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'rgba(244, 67, 54, 0.08)',
+                  border: '1px solid rgba(244, 67, 54, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>❌</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: '#f44336', display: 'block', marginBottom: '2px' }}>
+                      {e.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {e.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))
+        )
       }
 
       if (result.diagnostics.warnings?.length > 0) {
-        diagnosticFields['⚠️ Warnings'] = result.diagnostics.warnings.map((w, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#ff9800' }}>
-            <strong>{w.code}:</strong> {w.message}
+        diagnosticFields['Warnings'] = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {result.diagnostics.warnings.map((w, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'rgba(255, 152, 0, 0.08)',
+                  border: '1px solid rgba(255, 152, 0, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>⚠️</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: '#ff9800', display: 'block', marginBottom: '2px' }}>
+                      {w.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {w.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))
+        )
       }
 
       if (result.diagnostics.tips?.length > 0) {
-        diagnosticFields['💡 Tips'] = result.diagnostics.tips.map((t, i) => (
-          <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#4caf50' }}>
-            <strong>{t.code}:</strong> {t.message}
+        diagnosticFields['Tips'] = (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {result.diagnostics.tips.map((t, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'rgba(76, 175, 80, 0.08)',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '14px', flexShrink: 0 }}>💡</span>
+                  <div style={{ flex: 1 }}>
+                    <strong style={{ color: '#4caf50', display: 'block', marginBottom: '2px' }}>
+                      {t.code}
+                    </strong>
+                    <span style={{ color: 'var(--color-text-primary)' }}>
+                      {t.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))
+        )
       }
 
       sections.push({

@@ -14,6 +14,7 @@ import HTTPStatusLookupOutput from './HTTPStatusLookupOutput'
 import HttpHeaderParserOutput from './HttpHeaderParserOutput'
 import JWTDecoderOutput from './JWTDecoderOutput'
 import MIMETypeLookupOutput from './MIMETypeLookupOutput'
+import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [] }) {
   const toolCategory = TOOLS[toolId]?.category
@@ -274,7 +275,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {detectedBase && (
           <div style={{
             padding: '12px 16px',
@@ -443,7 +444,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Algorithm Info Section */}
         <div>
           <div style={{
@@ -872,7 +873,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Color Preview */}
         <div style={{
           display: 'flex',
@@ -1461,8 +1462,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Number formatter custom output
   if (toolId === 'number-formatter') {
-    if (!displayResult || typeof displayResult !== 'object' || displayResult.error) {
+    if (!displayResult || typeof displayResult !== 'object') {
       return null
+    }
+
+    if (displayResult.error) {
+      const tabs = [
+        {
+          id: 'output',
+          label: 'OUTPUT',
+          content: displayResult.error,
+          contentType: 'error',
+        },
+      ]
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} />
     }
 
     const { type, output, formatted, results, input, config } = displayResult
@@ -1476,7 +1489,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     const friendlyView = ({ onCopyCard, copiedCardId }) => (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{
           fontSize: '12px',
           fontWeight: '600',
@@ -1527,6 +1540,263 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         id: 'json',
         label: 'JSON',
         content: displayResult,
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
+  // Time normalizer custom output (uses dedicated output panel for bulk + single mode)
+  if (toolId === 'time-normalizer') {
+    return <TimeNormalizerOutputPanel result={displayResult} inputText={inputText} config={configOptions} />
+  }
+
+  // Legacy time normalizer handling (keeping for backwards compatibility)
+  if (toolId === 'time-normalizer-legacy' && displayResult && displayResult.humanSummary) {
+    if (displayResult.error) {
+      return null
+    }
+
+    const { humanSummary, inputReadable, convertedReadable, detectedFormat, inputTimezone, inputTime, inputOffset, convertedTime, outputTimezone, outputOffset, unixSeconds, unixMillis } = displayResult
+
+    const outputContent = (
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Human Summary - TOP PRIORITY */}
+        <div style={{
+          padding: '16px',
+          backgroundColor: 'rgba(76, 175, 80, 0.08)',
+          border: '2px solid rgba(76, 175, 80, 0.3)',
+          borderRadius: '6px',
+        }}>
+          <div style={{
+            fontSize: '14px',
+            fontWeight: '500',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Time Conversion
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{
+              padding: '10px 0',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--color-text)',
+              borderBottom: '1px solid rgba(76, 175, 80, 0.2)',
+            }}>
+              <strong>From:</strong> {humanSummary.from}
+            </div>
+            <div style={{
+              padding: '10px 0',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'var(--color-text)',
+            }}>
+              <strong>To:</strong> {humanSummary.to}
+            </div>
+            {humanSummary.difference && (
+              <div style={{
+                padding: '10px 0',
+                fontSize: '13px',
+                color: 'var(--color-text-secondary)',
+              }}>
+                <strong>Difference:</strong> {humanSummary.difference}
+              </div>
+            )}
+            {humanSummary.dayShift !== 'Same Day' && (
+              <div style={{
+                padding: '10px 0',
+                fontSize: '13px',
+                color: 'var(--color-text-secondary)',
+              }}>
+                <strong>Day Shift:</strong> {humanSummary.dayShift}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Context Layer - Secondary */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Formatted Times
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {inputReadable && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Input Time</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(inputReadable, 'input-readable')}
+                    title="Copy input time"
+                  >
+                    {copiedField === 'input-readable' ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue}>{inputReadable}</div>
+              </div>
+            )}
+            {convertedReadable && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Converted Time</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(convertedReadable, 'converted-readable')}
+                    title="Copy converted time"
+                  >
+                    {copiedField === 'converted-readable' ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue}>{convertedReadable}</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Technical Details - Tertiary */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Technical Details
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {detectedFormat && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Detected Format</span>
+                </div>
+                <div className={styles.copyCardValue}>{detectedFormat}</div>
+              </div>
+            )}
+            {inputTimezone && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Input Timezone</span>
+                </div>
+                <div className={styles.copyCardValue}>{inputTimezone}</div>
+              </div>
+            )}
+            {inputOffset && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Input Offset</span>
+                </div>
+                <div className={styles.copyCardValue}>{inputOffset}</div>
+              </div>
+            )}
+            {outputTimezone && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Output Timezone</span>
+                </div>
+                <div className={styles.copyCardValue}>{outputTimezone}</div>
+              </div>
+            )}
+            {outputOffset && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Output Offset</span>
+                </div>
+                <div className={styles.copyCardValue}>{outputOffset}</div>
+              </div>
+            )}
+            {inputTime && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Input Time (ISO)</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(inputTime, 'input-iso')}
+                    title="Copy input ISO time"
+                  >
+                    {copiedField === 'input-iso' ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', fontSize: '12px' }}>{inputTime}</div>
+              </div>
+            )}
+            {convertedTime && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Converted Time (ISO)</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(convertedTime, 'converted-iso')}
+                    title="Copy converted ISO time"
+                  >
+                    {copiedField === 'converted-iso' ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', fontSize: '12px' }}>{convertedTime}</div>
+              </div>
+            )}
+            {unixSeconds !== undefined && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Unix Timestamp (seconds)</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(String(unixSeconds), 'unix-seconds')}
+                    title="Copy Unix timestamp (seconds)"
+                  >
+                    {copiedField === 'unix-seconds' ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue}>{unixSeconds}</div>
+              </div>
+            )}
+            {unixMillis !== undefined && (
+              <div className={styles.copyCard}>
+                <div className={styles.copyCardHeader}>
+                  <span className={styles.copyCardLabel}>Unix Timestamp (milliseconds)</span>
+                  <button
+                    className="copy-action"
+                    onClick={() => handleCopyField(String(unixMillis), 'unix-millis')}
+                    title="Copy Unix timestamp (milliseconds)"
+                  >
+                    {copiedField === 'unix-millis' ? '✓' : <FaCopy />}
+                  </button>
+                </div>
+                <div className={styles.copyCardValue}>{unixMillis}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: outputContent,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: JSON.stringify(displayResult, null, 2),
         contentType: 'json',
       },
     ]
@@ -2692,7 +2962,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (conversions.length === 0) return null
 
     const friendlyView = ({ onCopyCard, copiedCardId }) => (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {displayResult.normalizedInput && (
           <div style={{
             padding: '12px 16px',
@@ -2771,7 +3041,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (conversions.length === 0) return null
 
     const friendlyView = ({ onCopyCard, copiedCardId }) => (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {displayResult.normalizedInput && (
           <div style={{
             padding: '12px 16px',
@@ -3763,16 +4033,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           result.result ? { label: 'Replacement Result', value: result.result } : null,
         ].filter(f => f)
 
-      case 'timestamp-converter':
-        if (result.error) return null
-        const fields = []
-        if (result.readable) fields.push({ label: 'ISO 8601', value: result.readable })
-        if (result.local) fields.push({ label: 'Local Date', value: result.local })
-        if (result.timestamp !== undefined) fields.push({ label: 'Unix Timestamp', value: result.timestamp })
-        if (result.iso) fields.push({ label: 'ISO 8601', value: result.iso })
-        if (result.date) fields.push({ label: 'Input Date', value: result.date })
-        return fields.length > 0 ? fields : null
-
       case 'text-analyzer':
         const analyzerFields = []
         if (result.readability) {
@@ -3832,6 +4092,58 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         }
         // All other sections render as text in OutputTabs, not structured fields
         return null
+
+      case 'time-normalizer':
+        if (result.error) return null
+        const fields = []
+
+        // Secondary context layer
+        fields.push({ label: 'From', value: result.humanSummary?.from })
+        fields.push({ label: 'To', value: result.humanSummary?.to })
+
+        if (result.humanSummary?.difference !== undefined) {
+          fields.push({ label: 'Time Difference', value: result.humanSummary.difference })
+        }
+        if (result.humanSummary?.dayShift) {
+          fields.push({ label: 'Day Shift', value: result.humanSummary.dayShift })
+        }
+
+        // Tertiary technical details
+        if (result.detectedFormat) {
+          fields.push({ label: 'Detected Format', value: result.detectedFormat })
+        }
+        if (result.inputTimezone) {
+          fields.push({ label: 'Input Timezone', value: result.inputTimezone })
+        }
+        if (result.inputReadable) {
+          fields.push({ label: 'Input Time (Readable)', value: result.inputReadable })
+        }
+        if (result.inputTime) {
+          fields.push({ label: 'Input Time (ISO)', value: result.inputTime })
+        }
+        if (result.inputOffset) {
+          fields.push({ label: 'Input Offset', value: result.inputOffset })
+        }
+        if (result.convertedReadable) {
+          fields.push({ label: 'Converted Time (Readable)', value: result.convertedReadable })
+        }
+        if (result.convertedTime) {
+          fields.push({ label: 'Converted Time (ISO)', value: result.convertedTime })
+        }
+        if (result.outputTimezone) {
+          fields.push({ label: 'Output Timezone', value: result.outputTimezone })
+        }
+        if (result.outputOffset) {
+          fields.push({ label: 'Output Offset', value: result.outputOffset })
+        }
+        if (result.unixSeconds !== undefined) {
+          fields.push({ label: 'Unix Timestamp (seconds)', value: String(result.unixSeconds) })
+        }
+        if (result.unixMillis !== undefined) {
+          fields.push({ label: 'Unix Timestamp (milliseconds)', value: String(result.unixMillis) })
+        }
+
+        return fields.filter(f => f && f.value !== undefined && f.value !== null)
 
       default:
         return null
@@ -4038,7 +4350,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const { output, formats = {}, metadata = {} } = displayResult
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Primary Output */}
         <div>
           <div style={{
@@ -4229,7 +4541,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const { output, input, bruteForce, metadata = {} } = displayResult
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Primary Output */}
         <div>
           <div style={{
@@ -4420,7 +4732,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const { cronExpression, humanReadable, nextRuns = [], metadata = {}, valid, timezone } = displayResult
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Validation Status */}
         {valid !== undefined && (
           <div style={{
@@ -5233,6 +5545,129 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Universal error handler for all tools - check after all hooks have been called
   if (displayResult?.error) {
+    // Special error handling for time-normalizer with format hints
+    if (toolId === 'time-normalizer' && displayResult.acceptedFormats) {
+      const errorContent = (
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Error Message */}
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(239, 83, 80, 0.1)',
+            border: '1px solid rgba(239, 83, 80, 0.3)',
+            borderRadius: '4px',
+            color: '#ef5350',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px' }}>Parse Error</div>
+            <div style={{ fontSize: '14px', lineHeight: '1.5' }}>{displayResult.error}</div>
+          </div>
+
+          {/* Examples Section */}
+          {displayResult.examples && displayResult.examples.length > 0 && (
+            <div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '12px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid var(--color-border)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}>
+                Quick Examples
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px' }}>
+                {displayResult.examples.map((example, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'var(--color-background-secondary)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: 'var(--color-text-secondary)' }}>
+                      {example.label}
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--color-text)', marginBottom: '6px', fontFamily: 'monospace', padding: '6px', backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: '3px' }}>
+                      {example.value}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                      {example.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Accepted Formats Section */}
+          {displayResult.acceptedFormats && (
+            <div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--color-text-secondary)',
+                marginBottom: '12px',
+                paddingBottom: '8px',
+                borderBottom: '1px solid var(--color-border)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}>
+                Accepted Formats
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                {Object.entries(displayResult.acceptedFormats).map(([category, formats]) => (
+                  <div key={category}>
+                    <div style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: 'var(--color-text)',
+                      marginBottom: '8px',
+                      textTransform: 'capitalize',
+                    }}>
+                      {category.replace(/([A-Z])/g, ' $1').trim()}
+                    </div>
+                    <ul style={{
+                      margin: 0,
+                      paddingLeft: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}>
+                      {formats.map((format, idx) => (
+                        <li key={idx} style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>
+                          {format}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+
+      const tabs = [
+        {
+          id: 'output',
+          label: 'OUTPUT',
+          content: errorContent,
+          contentType: 'component',
+        },
+        {
+          id: 'json',
+          label: 'JSON',
+          content: displayResult,
+          contentType: 'json',
+        }
+      ]
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={false} />
+    }
+
+    // Default error handling for other tools
     const tabs = [
       {
         id: 'output',

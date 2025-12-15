@@ -76,7 +76,7 @@ export default function EmailValidatorOutputPanel({ result }) {
 
   // Build the friendly output display
   const renderEmailValidationContent = () => (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Summary stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
         <div style={{

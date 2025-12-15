@@ -18,18 +18,32 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
   const [expandedItems, setExpandedItems] = useState(new Set())
   const [typeFilter, setTypeFilter] = useState('All')
   const [privacyFilter, setPrivacyFilter] = useState('All')
+  const [validityFilter, setValidityFilter] = useState('All')
   const [searchText, setSearchText] = useState('')
   const [selectedItems, setSelectedItems] = useState(new Set())
-  const [showFilters, setShowFilters] = useState(false)
 
   // Filter results
   const filteredResults = useMemo(() => {
-    return filterBulkResults(results, {
+    let filtered = filterBulkResults(results, {
       typeFilter: typeFilter !== 'All' ? typeFilter : undefined,
       privacyFilter: privacyFilter !== 'All' ? privacyFilter : undefined,
       searchText,
     })
-  }, [results, typeFilter, privacyFilter, searchText])
+
+    // Apply validity filter
+    if (validityFilter !== 'All') {
+      filtered = filtered.filter(result => {
+        if (validityFilter === 'Valid') {
+          return result.isValid !== false
+        } else if (validityFilter === 'Invalid') {
+          return result.isValid === false
+        }
+        return true
+      })
+    }
+
+    return filtered
+  }, [results, typeFilter, privacyFilter, validityFilter, searchText])
 
   // Generate summary
   const summary = useMemo(() => generateBulkSummary(results), [results])
@@ -38,6 +52,12 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
   const uniqueTypes = useMemo(() => {
     const types = new Set(results.map(r => r.inputType).filter(Boolean))
     return ['All', ...Array.from(types).sort()]
+  }, [results])
+
+  // Get unique privacy types from results
+  const uniquePrivacy = useMemo(() => {
+    const privacy = new Set(results.map(r => r.classification?.isPrivate ? 'Private' : r.classification?.isPublic ? 'Public' : 'Special').filter(Boolean))
+    return ['All', ...Array.from(privacy).sort()]
   }, [results])
 
   const handleToggleExpand = (index) => {
@@ -164,32 +184,94 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
           </div>
         </div>
 
-        {/* Filter & Export Controls */}
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
+        {/* Type & Privacy Filters */}
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {uniqueTypes.map(type => (
+            <button
+              key={type}
+              onClick={() => setTypeFilter(type)}
+              style={{
+                padding: '4px 10px',
+                backgroundColor: typeFilter === type ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
+                border: typeFilter === type ? '1px solid #2196f3' : '1px solid var(--color-border)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: typeFilter === type ? '#2196f3' : 'var(--color-text-primary)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {type}
+            </button>
+          ))}
+
+          {uniquePrivacy.length > 0 && (
+            <>
+              <div style={{ paddingLeft: '4px', borderLeft: '1px solid var(--color-border)' }} />
+              {uniquePrivacy.map(privacy => (
+                <button
+                  key={privacy}
+                  onClick={() => setPrivacyFilter(privacy)}
+                  style={{
+                    padding: '4px 10px',
+                    backgroundColor: privacyFilter === privacy ? 'rgba(76, 175, 80, 0.2)' : 'transparent',
+                    border: privacyFilter === privacy ? '1px solid #4caf50' : '1px solid var(--color-border)',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: privacyFilter === privacy ? '#4caf50' : 'var(--color-text-primary)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {privacy}
+                </button>
+              ))}
+            </>
+          )}
+
+          <div style={{ paddingLeft: '4px', borderLeft: '1px solid var(--color-border)' }} />
+
+          {['All', 'Valid', 'Invalid'].map(validity => (
+            <button
+              key={validity}
+              onClick={() => setValidityFilter(validity)}
+              style={{
+                padding: '4px 10px',
+                backgroundColor: validityFilter === validity ? 'rgba(156, 39, 176, 0.2)' : 'transparent',
+                border: validityFilter === validity ? '1px solid #9c27b0' : '1px solid var(--color-border)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: validityFilter === validity ? '#9c27b0' : 'var(--color-text-primary)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {validity}
+            </button>
+          ))}
+        </div>
+
+        {/* Search & Export Controls */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            placeholder="Search by IP, hostname..."
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              backgroundColor: showFilters ? '#e3f2fd' : 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: '6px',
-              cursor: 'pointer',
+              padding: '6px 8px',
               fontSize: '12px',
-              fontWeight: '600',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              backgroundColor: 'var(--color-background-primary)',
               color: 'var(--color-text-primary)',
+              flex: '1',
+              minWidth: '150px',
             }}
-          >
-            <FaFilter style={{ fontSize: '12px' }} />
-            Filters
-          </button>
+          />
 
           <button
             onClick={handleExportJSON}
@@ -237,90 +319,6 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
             {filteredResults.length} of {results.length} results
           </div>
         </div>
-
-        {/* Filter Panel */}
-        {showFilters && (
-          <div style={{
-            padding: '12px 16px',
-            backgroundColor: 'var(--color-background-tertiary)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '6px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '12px',
-          }}>
-            {/* Type Filter */}
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>
-                Type
-              </label>
-              <select
-                value={typeFilter}
-                onChange={e => setTypeFilter(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '4px',
-                  backgroundColor: 'var(--color-background-primary)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                {uniqueTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Privacy Filter */}
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>
-                Privacy
-              </label>
-              <select
-                value={privacyFilter}
-                onChange={e => setPrivacyFilter(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '4px',
-                  backgroundColor: 'var(--color-background-primary)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                <option value="All">All</option>
-                <option value="Public">Public</option>
-                <option value="Private">Private</option>
-                <option value="Special">Special / Reserved</option>
-              </select>
-            </div>
-
-            {/* Search Filter */}
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>
-                Search
-              </label>
-              <input
-                type="text"
-                placeholder="Search by IP, hostname..."
-                value={searchText}
-                onChange={e => setSearchText(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '4px',
-                  backgroundColor: 'var(--color-background-primary)',
-                  color: 'var(--color-text-primary)',
-                }}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Results List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -408,8 +406,6 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
                         {result.classification && (
                           <span>
                             {result.classification.type}
-                            {result.classification.isPrivate && ' • Private'}
-                            {result.classification.isPublic && ' • Public'}
                           </span>
                         )}
                         {result.isValid === false && (
