@@ -67,7 +67,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(85px, 1fr))',
             gap: '8px',
           }}
         >
