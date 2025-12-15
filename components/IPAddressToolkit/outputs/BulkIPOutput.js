@@ -42,7 +42,7 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
   // Get unique privacy types from results
   const uniquePrivacy = useMemo(() => {
     const privacy = new Set(results.map(r => r.privacy).filter(Boolean))
-    return ['All', ...Array.from(privacy).sort()]
+    return Array.from(privacy).sort()
   }, [results])
 
   const handleToggleExpand = (index) => {
