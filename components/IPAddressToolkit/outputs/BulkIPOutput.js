@@ -230,6 +230,28 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
               ))}
             </>
           )}
+
+          <div style={{ paddingLeft: '4px', borderLeft: '1px solid var(--color-border)' }} />
+
+          {['All', 'Valid', 'Invalid'].map(validity => (
+            <button
+              key={validity}
+              onClick={() => setValidityFilter(validity)}
+              style={{
+                padding: '4px 10px',
+                backgroundColor: validityFilter === validity ? 'rgba(156, 39, 176, 0.2)' : 'transparent',
+                border: validityFilter === validity ? '1px solid #9c27b0' : '1px solid var(--color-border)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: validityFilter === validity ? '#9c27b0' : 'var(--color-text-primary)',
+                transition: 'all 0.2s',
+              }}
+            >
+              {validity}
+            </button>
+          ))}
         </div>
 
         {/* Search & Export Controls */}
