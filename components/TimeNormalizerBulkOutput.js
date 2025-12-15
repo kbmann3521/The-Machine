@@ -429,11 +429,46 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
                       borderTop: '1px solid var(--color-border)',
                       backgroundColor: 'var(--color-background-primary)',
                       padding: '12px 16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '16px',
                     }}
                   >
                     <div style={{ color: '#f44336', fontSize: '12px' }}>
                       <strong>Parse Error:</strong> {result.error || 'Unable to parse this time format.'}
                     </div>
+                    {result.acceptedFormats && (
+                      <div>
+                        <div
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: 'var(--color-text-secondary)',
+                            marginBottom: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                          }}
+                        >
+                          Accepted Formats
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
+                          {Object.entries(result.acceptedFormats).map(([category, examples]) => (
+                            <div key={category}>
+                              <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
+                                {category.replace(/([A-Z])/g, ' $1').trim()}:
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '16px' }}>
+                                {examples.map((example, idx) => (
+                                  <div key={idx} style={{ color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>
+                                    {example}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
