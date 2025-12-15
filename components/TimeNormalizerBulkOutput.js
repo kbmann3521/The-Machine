@@ -326,7 +326,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
         </div>
 
         {/* Results List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflow: 'auto', minHeight: 0, paddingRight: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflow: 'auto', minHeight: 0 }}>
           {results.map((result, idx) => {
             const isExpanded = expandedItems.has(idx)
             const isInvalid = !!result.error
