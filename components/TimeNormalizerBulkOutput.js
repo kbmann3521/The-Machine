@@ -301,6 +301,61 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
           </div>
         )}
 
+        {/* Filter Controls */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+            {statuses.map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                style={{
+                  padding: '4px 10px',
+                  backgroundColor: statusFilter === status ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
+                  border: statusFilter === status ? '1px solid #2196f3' : '1px solid var(--color-border)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  color: statusFilter === status ? '#2196f3' : 'var(--color-text-primary)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+          {uniqueTimezones.length > 1 && (
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', paddingLeft: '8px', borderLeft: '1px solid var(--color-border)' }}>
+              {uniqueTimezones.map(tz => (
+                <button
+                  key={tz}
+                  onClick={() => setTimezoneFilter(tz)}
+                  style={{
+                    padding: '4px 10px',
+                    backgroundColor: timezoneFilter === tz ? 'rgba(76, 175, 80, 0.2)' : 'transparent',
+                    border: timezoneFilter === tz ? '1px solid #4caf50' : '1px solid var(--color-border)',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: timezoneFilter === tz ? '#4caf50' : 'var(--color-text-primary)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {tz}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Export Controls */}
         <div
           style={{
@@ -353,7 +408,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
           </button>
 
           <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-            {results.length} results
+            {filteredResults.length} of {results.length} results
           </div>
         </div>
 
