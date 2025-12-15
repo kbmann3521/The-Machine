@@ -11,6 +11,8 @@ export default function SingleIPOutput({ result, detectedInput }) {
   const [dnsData, setDnsData] = useState(null)
   const [dnsLoading, setDnsLoading] = useState(false)
   const [dnsError, setDnsError] = useState(null)
+  const [reverseDnsStatus, setReverseDnsStatus] = useState(null) // 'loading', 'resolved', 'none', 'error'
+  const [reverseDnsData, setReverseDnsData] = useState(null)
   const [ipAnalysisCache, setIpAnalysisCache] = useState({})
   const [ipAnalysisLoading, setIpAnalysisLoading] = useState({})
 
