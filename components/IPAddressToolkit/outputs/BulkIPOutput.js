@@ -24,12 +24,26 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
 
   // Filter results
   const filteredResults = useMemo(() => {
-    return filterBulkResults(results, {
+    let filtered = filterBulkResults(results, {
       typeFilter: typeFilter !== 'All' ? typeFilter : undefined,
       privacyFilter: privacyFilter !== 'All' ? privacyFilter : undefined,
       searchText,
     })
-  }, [results, typeFilter, privacyFilter, searchText])
+
+    // Apply validity filter
+    if (validityFilter !== 'All') {
+      filtered = filtered.filter(result => {
+        if (validityFilter === 'Valid') {
+          return result.isValid !== false
+        } else if (validityFilter === 'Invalid') {
+          return result.isValid === false
+        }
+        return true
+      })
+    }
+
+    return filtered
+  }, [results, typeFilter, privacyFilter, validityFilter, searchText])
 
   // Generate summary
   const summary = useMemo(() => generateBulkSummary(results), [results])
