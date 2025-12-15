@@ -379,13 +379,23 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
                       <div>
                         <div
                           style={{
-                            fontSize: '13px',
-                            fontWeight: '500',
+                            fontSize: '15px',
+                            fontWeight: '600',
                             fontFamily: 'monospace',
-                            color: 'var(--color-text-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
                           }}
                         >
-                          {result.input} → {result.outputReadable || result.output}
+                          <span style={{ color: 'var(--color-text-secondary)' }}>
+                            {result.input}
+                          </span>
+                          <span style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+                            →
+                          </span>
+                          <span style={{ color: '#4caf50', fontWeight: '700' }}>
+                            {result.outputReadable || result.output}
+                          </span>
                         </div>
                         <div
                           style={{
