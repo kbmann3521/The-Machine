@@ -33,6 +33,20 @@ export default function App({ Component, pageProps }) {
 
         {/* Favicon */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+        {/* Initialize theme synchronously before React renders to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'dark';
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </Head>
 
       <ThemeProvider>
