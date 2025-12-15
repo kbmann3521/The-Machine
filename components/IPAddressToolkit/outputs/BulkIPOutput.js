@@ -406,8 +406,6 @@ export default function BulkIPOutput({ results = [], isBulkMode = false }) {
                         {result.classification && (
                           <span>
                             {result.classification.type}
-                            {result.classification.isPrivate && ' • Private'}
-                            {result.classification.isPublic && ' • Public'}
                           </span>
                         )}
                         {result.isValid === false && (
