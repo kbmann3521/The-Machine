@@ -55,6 +55,72 @@ export default function SingleIPOutput({ result, detectedInput }) {
     fetchDNS()
   }, [detectedInput])
 
+  // Fetch reverse DNS for IP addresses (PTR lookup)
+  useEffect(() => {
+    if (!detectedInput || detectedInput.isHostname) {
+      setReverseDnsStatus(null)
+      setReverseDnsData(null)
+      return
+    }
+
+    if (detectedInput.type !== 'IPv4' && detectedInput.type !== 'IPv6') {
+      return
+    }
+
+    // Skip reverse DNS for private/special IPs
+    if (result?.classification) {
+      const { isPrivate, isPublic, isSpecial } = result.classification
+      // Only perform reverse DNS for public IPs
+      if (!isPublic || isPrivate || isSpecial) {
+        setReverseDnsStatus('skip')
+        return
+      }
+    }
+
+    const fetchReverseDNS = async () => {
+      setReverseDnsStatus('loading')
+      setReverseDnsData(null)
+
+      try {
+        const input = detectedInput.description?.split('(')[0]?.trim() || ''
+        if (!input) {
+          setReverseDnsStatus('error')
+          return
+        }
+
+        const response = await fetch('/api/tools/dns-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input }),
+        })
+
+        if (!response.ok) throw new Error('Reverse DNS lookup failed')
+        const data = await response.json()
+
+        if (data.data?.reverse) {
+          const { reverse } = data.data
+          if (reverse.hostname) {
+            setReverseDnsStatus('resolved')
+            setReverseDnsData(reverse)
+          } else if (reverse.error) {
+            setReverseDnsStatus('error')
+            setReverseDnsData({ error: reverse.error })
+          } else {
+            setReverseDnsStatus('none')
+            setReverseDnsData(reverse)
+          }
+        } else {
+          setReverseDnsStatus('none')
+        }
+      } catch (err) {
+        setReverseDnsStatus('error')
+        setReverseDnsData({ error: err.message })
+      }
+    }
+
+    fetchReverseDNS()
+  }, [detectedInput, result?.classification])
+
   // Fetch full IP analysis for each resolved IP from hostname
   useEffect(() => {
     if (!dnsData?.forward?.aRecords && !dnsData?.forward?.aaaaRecords) {
