@@ -761,6 +761,12 @@ export default function SingleIPOutput({ result, detectedInput }) {
         rangeFields['Range Size'] = result.range.size.toLocaleString() + ' addresses'
       }
 
+      if (result.range.hosts) {
+        rangeFields['First Address'] = result.range.hosts.first
+        rangeFields['Last Address'] = result.range.hosts.last
+        rangeFields['Host Count'] = result.range.hosts.count.toLocaleString()
+      }
+
       if (result.range.isValid !== undefined) {
         rangeFields['Valid'] = result.range.isValid ? '✓ Yes' : '✗ No'
       }
@@ -777,6 +783,39 @@ export default function SingleIPOutput({ result, detectedInput }) {
         rangeFields['Scope Match'] = result.range.scopeMismatch ? '✗ Mismatch' : '✓ Match'
       }
 
+      if (result.range.coveringSubnet) {
+        rangeFields['Covering Subnet'] = result.range.coveringSubnet.subnet
+      }
+
+      if (result.range.subnetContext) {
+        rangeFields['Subnet Context'] = result.range.subnetContext.subnet
+        rangeFields['Fully Contained'] = result.range.subnetContext.fullyContained ? '✓ Yes' : '✗ No'
+      }
+
+      if (result.range.boundaryChecks && Object.keys(result.range.boundaryChecks).length > 0) {
+        rangeFields['Includes Network Address'] = result.range.boundaryChecks.includesNetworkAddress ? '✓ Yes' : '✗ No'
+        rangeFields['Includes Broadcast Address'] = result.range.boundaryChecks.includesBroadcastAddress ? '✓ Yes' : '✗ No'
+        rangeFields['Touches Subnet Edge'] = result.range.boundaryChecks.touchesSubnetEdge ? '⚠ Yes' : '✗ No'
+      }
+
+      if (result.range.enumeration && result.range.enumeration.reason) {
+        rangeFields['Enumeration'] = (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>{result.range.enumeration.reason}</span>
+            <span style={{
+              fontSize: '11px',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              backgroundColor: result.range.enumeration.recommended ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+              color: result.range.enumeration.recommended ? '#4caf50' : '#f44336',
+              fontWeight: '600'
+            }}>
+              {result.range.enumeration.recommended ? '✓ Safe' : '⚠ Not Recommended'}
+            </span>
+          </div>
+        )
+      }
+
       if (result.range.warnings && Array.isArray(result.range.warnings)) {
         rangeFields['Warnings'] = result.range.warnings.map((warning, i) => (
           <div key={i} style={{ fontSize: '12px', marginBottom: '4px', color: '#f57c00' }}>
@@ -787,10 +826,6 @@ export default function SingleIPOutput({ result, detectedInput }) {
 
       if (result.range.separator) {
         rangeFields['Separator'] = result.range.separator
-      }
-
-      if (result.range.coveringSubnet) {
-        rangeFields['Covering Subnet'] = result.range.coveringSubnet.subnet
       }
 
       if (result.range.classificationNotes && Array.isArray(result.range.classificationNotes)) {
