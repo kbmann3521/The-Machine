@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 
