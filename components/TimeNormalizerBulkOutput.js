@@ -15,6 +15,34 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
   const [statusFilter, setStatusFilter] = useState('All')
   const [timezoneFilter, setTimezoneFilter] = useState('All')
 
+  // Get unique timezones from results
+  const uniqueTimezones = useMemo(() => {
+    const tzs = new Set(results.filter(r => r.detectedTimezoneAbbr).map(r => r.detectedTimezoneAbbr.toUpperCase()))
+    return ['All', ...Array.from(tzs).sort()]
+  }, [results])
+
+  // Filter results based on status and timezone
+  const filteredResults = useMemo(() => {
+    return results.filter(result => {
+      // Status filter
+      if (statusFilter !== 'All') {
+        if (statusFilter === 'Valid' && result.error) return false
+        if (statusFilter === 'Invalid' && !result.error) return false
+        if (statusFilter === 'Same Day' && result.dayShift !== 'same') return false
+        if (statusFilter === 'Next Day' && result.dayShift !== 'next') return false
+        if (statusFilter === 'Previous Day' && result.dayShift !== 'previous') return false
+      }
+
+      // Timezone filter
+      if (timezoneFilter !== 'All') {
+        const resultTz = result.detectedTimezoneAbbr?.toUpperCase()
+        if (resultTz !== timezoneFilter) return false
+      }
+
+      return true
+    })
+  }, [results, statusFilter, timezoneFilter])
+
   // Generate summary
   const summary = useMemo(() => generateBulkSummary(results), [results])
 
