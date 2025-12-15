@@ -275,7 +275,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     const outputContent = (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {detectedBase && (
           <div style={{
             padding: '12px 16px',
