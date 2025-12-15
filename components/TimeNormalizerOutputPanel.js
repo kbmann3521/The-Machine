@@ -61,7 +61,7 @@ export default function TimeNormalizerOutputPanel({ result, inputText, config = 
       return <TimeNormalizerBulkOutput results={bulkResults.entries} isBulkMode={true} />
     }
 
-    // Single mode - use the result from API
+    // Single mode - wrap in tabs
     if (!result) {
       return (
         <div className={styles.emptyState}>
@@ -71,57 +71,80 @@ export default function TimeNormalizerOutputPanel({ result, inputText, config = 
     }
 
     if (result.error) {
-      return (
-        <div style={{ padding: '16px' }}>
-          <div
-            style={{
-              padding: '16px',
-              backgroundColor: 'rgba(244, 67, 54, 0.08)',
-              border: '1px solid rgba(244, 67, 54, 0.3)',
-              borderRadius: '6px',
-              color: '#f44336',
-              fontSize: '13px',
-            }}
-          >
-            <strong>Parse Error:</strong> {result.error}
-          </div>
-          {result.acceptedFormats && (
-            <div style={{ marginTop: '20px' }}>
+      const tabs = [
+        {
+          id: 'output',
+          label: 'OUTPUT',
+          content: (
+            <div style={{ padding: '16px' }}>
               <div
                 style={{
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: 'var(--color-text-secondary)',
-                  marginBottom: '12px',
-                  textTransform: 'uppercase',
+                  padding: '16px',
+                  backgroundColor: 'rgba(244, 67, 54, 0.08)',
+                  border: '1px solid rgba(244, 67, 54, 0.3)',
+                  borderRadius: '6px',
+                  color: '#f44336',
+                  fontSize: '13px',
                 }}
               >
-                Accepted Formats
+                <strong>Parse Error:</strong> {result.error}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
-                {Object.entries(result.acceptedFormats).map(([category, examples]) => (
-                  <div key={category}>
-                    <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
-                      {category.replace(/([A-Z])/g, ' $1').trim()}:
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '16px' }}>
-                      {examples.map((example, idx) => (
-                        <div key={idx} style={{ color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>
-                          {example}
-                        </div>
-                      ))}
-                    </div>
+              {result.acceptedFormats && (
+                <div style={{ marginTop: '20px' }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '12px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Accepted Formats
                   </div>
-                ))}
-              </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
+                    {Object.entries(result.acceptedFormats).map(([category, examples]) => (
+                      <div key={category}>
+                        <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
+                          {category.replace(/([A-Z])/g, ' $1').trim()}:
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '16px' }}>
+                          {examples.map((example, idx) => (
+                            <div key={idx} style={{ color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>
+                              {example}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      )
+          ),
+          contentType: 'component',
+        },
+      ]
+      return <OutputTabs tabs={tabs} showCopyButton={true} />
     }
 
-    return <TimeNormalizerSingleOutput result={result} isBulkExpanded={false} />
+    const tabs = [
+      {
+        id: 'output',
+        label: 'OUTPUT',
+        content: <TimeNormalizerSingleOutput result={result} isBulkExpanded={false} />,
+        contentType: 'component',
+      },
+      {
+        id: 'json',
+        label: 'JSON',
+        content: JSON.stringify(result, null, 2),
+        contentType: 'json',
+      },
+    ]
+
+    return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
 
-  return <div style={{ width: '100%' }}>{renderOutput()}</div>
+  return <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>{renderOutput()}</div>
 }
