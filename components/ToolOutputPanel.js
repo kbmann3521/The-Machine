@@ -2950,7 +2950,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (conversions.length === 0) return null
 
     const friendlyView = ({ onCopyCard, copiedCardId }) => (
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {displayResult.normalizedInput && (
           <div style={{
             padding: '12px 16px',
