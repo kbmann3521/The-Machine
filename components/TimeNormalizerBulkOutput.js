@@ -59,7 +59,7 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
       )
     }
 
-    const hasMultipleTimezones = Object.keys(summary.timezones).length > 1
+    const hasDetectedTimezones = Object.keys(summary.timezones).length > 0
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
