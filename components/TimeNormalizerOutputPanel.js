@@ -147,5 +147,9 @@ export default function TimeNormalizerOutputPanel({ result, inputText, config = 
     return <OutputTabs tabs={tabs} showCopyButton={true} />
   }
 
-  return <div style={{ width: '100%' }}>{renderOutput()}</div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, minHeight: 0, width: '100%' }}>
+      {renderOutput()}
+    </div>
+  )
 }
