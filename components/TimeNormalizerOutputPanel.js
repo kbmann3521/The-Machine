@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import TimeNormalizerSingleOutput from './TimeNormalizerSingleOutput'
 import TimeNormalizerBulkOutput from './TimeNormalizerBulkOutput'
 import { isBulkInput, parseBulkInput } from '../lib/bulkTimeParser'
