@@ -235,8 +235,8 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
           <div
             style={{
               padding: '12px 16px',
-              backgroundColor: 'var(--color-background-secondary)',
-              border: '1px solid var(--color-border)',
+              backgroundColor: 'rgba(76, 175, 80, 0.08)',
+              border: '1px solid rgba(76, 175, 80, 0.3)',
               borderRadius: '6px',
               fontSize: '12px',
             }}
@@ -246,11 +246,12 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
                 fontWeight: '600',
                 marginBottom: '8px',
                 fontSize: '11px',
-                color: 'var(--color-text-secondary)',
+                color: '#4caf50',
                 textTransform: 'uppercase',
+                letterSpacing: '0.5px',
               }}
             >
-              Detected Timezones
+              ✓ Detected Timezones
             </div>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
               {Object.entries(summary.timezones)
