@@ -292,8 +292,7 @@
   border: 1px solid rgba(244, 67, 54, 0.2);
   border-radius: 8px;
   border-left: 4px solid #f44336;
-  text-align: center;
-  max-width: 500px;
+  justify-content: flex-start;
 }
 
 .noMatchesIcon {
