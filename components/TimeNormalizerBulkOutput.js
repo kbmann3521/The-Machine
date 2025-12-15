@@ -414,7 +414,12 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
 
         {/* Results List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflow: 'auto', minHeight: 0 }}>
-          {results.map((result, idx) => {
+          {filteredResults.length === 0 ? (
+            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+              No results match the selected filters.
+            </div>
+          ) : (
+            filteredResults.map((result, idx) => {
             const isExpanded = expandedItems.has(idx)
             const isInvalid = !!result.error
 
@@ -575,7 +580,8 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
                 )}
               </div>
             )
-          })}
+          })
+          )}
         </div>
       </div>
     )
