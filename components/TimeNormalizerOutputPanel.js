@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import TimeNormalizerSingleOutput from './TimeNormalizerSingleOutput'
 import TimeNormalizerBulkOutput from './TimeNormalizerBulkOutput'
+import OutputTabs from './OutputTabs'
 import { isBulkInput, parseBulkInput } from '../lib/bulkTimeParser'
 import { timeNormalizer } from '../lib/tools'
 import styles from '../styles/tool-output.module.css'
