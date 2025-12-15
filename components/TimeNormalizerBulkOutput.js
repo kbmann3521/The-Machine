@@ -12,6 +12,8 @@ import {
 
 export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = false }) {
   const [expandedItems, setExpandedItems] = useState(new Set())
+  const [statusFilter, setStatusFilter] = useState('All')
+  const [timezoneFilter, setTimezoneFilter] = useState('All')
 
   // Generate summary
   const summary = useMemo(() => generateBulkSummary(results), [results])
