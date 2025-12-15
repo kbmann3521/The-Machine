@@ -3,11 +3,7 @@ import { useTheme } from '../lib/ThemeContext'
 import styles from '../styles/theme-toggle.module.css'
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme, mounted } = useTheme()
-
-  if (!mounted) {
-    return null
-  }
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <button
