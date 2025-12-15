@@ -1462,7 +1462,24 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // Number formatter custom output
   if (toolId === 'number-formatter') {
-    if (!displayResult || typeof displayResult !== 'object' || displayResult.error) {
+    if (displayResult && typeof displayResult === 'object' && displayResult.error) {
+      return (
+        <div className={styles.outputTabs}>
+          <div className={styles.tabsContainer}>
+            <div className={styles.tab} style={{ borderBottomColor: '#646cff' }}>
+              <button className={`${styles.tabButton} ${styles.tabButtonActive}`}>OUTPUT</button>
+            </div>
+          </div>
+          <div className={styles.tabContent}>
+            <div className={styles.errorContent}>
+              <div className={styles.errorMessage}>{displayResult.error}</div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    if (!displayResult || typeof displayResult !== 'object') {
       return null
     }
 
