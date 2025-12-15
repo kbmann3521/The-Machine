@@ -89,6 +89,8 @@ export default function TimeNormalizerBulkOutput({ results = [], isBulkMode = fa
       )
     }
 
+    const statuses = ['All', 'Valid', 'Invalid', 'Same Day', 'Next Day', 'Previous Day']
+
     const hasDetectedTimezones = Object.keys(summary.timezones).length > 0
 
     return (
