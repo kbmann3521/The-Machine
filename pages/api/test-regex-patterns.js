@@ -62,22 +62,27 @@ async function analyzeMatches(patternName, patternDescription, pattern, matchedS
 
   const response = await client.chat.completions.create({
     model: 'gpt-4o',
-    max_tokens: 1024,
+    max_tokens: 600,
     messages: [
       {
         role: 'user',
-        content: `A regex is intended to: ${patternDescription}
+        content: `Review this regex match result:
 
-Pattern Name: ${patternName}
+Pattern: ${patternName} (${patternDescription})
 Regex: /${pattern}/
 
-Matched substrings:
+Matched:
 ${matchList}
 
-Please review whether these matches seem reasonable and note any commonly expected edge cases or potential issues. Do not rewrite the regex.`,
+Brief analysis:
+1. Are these matches correct? (yes/issues noted)
+2. Common edge cases to consider
+3. Any improvements?
+
+Keep response concise and practical.`,
       },
     ],
   })
 
-  return response.choices[0].message.content
+  return response.choices[0].message.content.trim()
 }
