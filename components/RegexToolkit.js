@@ -42,7 +42,7 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
         if (response.ok) {
           const { text } = await response.json()
           if (onGenerateText) {
-            onGenerateText(text)
+            onGenerateText(text, null, null)
           }
         }
       } catch (error) {
