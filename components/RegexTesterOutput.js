@@ -343,6 +343,16 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
           )}
         </div>
       </div>
+
+      {/* AI Analysis Section */}
+      {result.matches && result.matches.length > 0 && (
+        <AIAnalysisSection
+          patternName={patternName}
+          patternDescription={patternDescription}
+          pattern={result.pattern}
+          matches={result.matches}
+        />
+      )}
     </div>
   );
 }
