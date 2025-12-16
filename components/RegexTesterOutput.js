@@ -213,7 +213,7 @@ function RegexExplanation({ pattern, explanation }) {
   );
 }
 
-function AIAnalysisSection({ patternName, patternDescription, pattern, matches }) {
+function AIAnalysisSection({ patternName, patternDescription, pattern, matches, inputText }) {
   const [analysis, setAnalysis] = useState(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
@@ -231,6 +231,7 @@ function AIAnalysisSection({ patternName, patternDescription, pattern, matches }
           patternDescription,
           pattern,
           matchedSubstrings,
+          inputText,
         }),
       })
 
@@ -351,6 +352,7 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
           patternDescription={patternDescription}
           pattern={result.pattern}
           matches={result.matches}
+          inputText={inputText}
         />
       )}
     </div>
