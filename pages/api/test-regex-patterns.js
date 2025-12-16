@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'generate') {
-      const generatedText = await generateExampleText(patternDescription)
+      const generatedText = await generateExampleText(patternName, patternDescription)
       return res.status(200).json({ text: generatedText })
     }
 
