@@ -34,19 +34,25 @@ export default async function handler(req, res) {
   }
 }
 
-async function generateExampleText(patternDescription) {
+async function generateExampleText(patternName, patternDescription) {
   const response = await client.chat.completions.create({
     model: 'gpt-4o',
-    max_tokens: 1024,
+    max_tokens: 500,
     messages: [
       {
         role: 'user',
-        content: `Generate realistic text where a developer might encounter: ${patternDescription}\nDo not explain anything.`,
+        content: `Generate ONE SHORT example of text containing: ${patternDescription}
+
+Requirements:
+- Keep it brief (1-3 lines)
+- Make it realistic and practical
+- Only output the example text, nothing else
+- No explanations or extra text`,
       },
     ],
   })
 
-  return response.choices[0].message.content
+  return response.choices[0].message.content.trim()
 }
 
 async function analyzeMatches(patternName, patternDescription, pattern, matchedSubstrings) {
