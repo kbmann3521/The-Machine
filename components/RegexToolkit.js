@@ -58,6 +58,26 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
 
   return (
     <div className={styles.regexToolkitContainer}>
+      <div className={styles.testModeToggle}>
+        <label className={styles.toggleLabel}>
+          <input
+            type="checkbox"
+            checked={testMode}
+            onChange={(e) => setTestMode(e.target.checked)}
+            className={styles.toggleCheckbox}
+            disabled={disabled}
+          />
+          <span className={styles.toggleText}>
+            {testMode ? '🧪 Test Mode: ON' : '🧪 Test Mode: OFF'}
+          </span>
+        </label>
+        <p className={styles.toggleHint}>
+          {testMode
+            ? 'Click a template to auto-generate realistic example text'
+            : 'Toggle on to auto-generate example text when selecting templates'}
+        </p>
+      </div>
+
       <div className={styles.fieldsContainer}>
         <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="pattern">
