@@ -35,8 +35,8 @@ export default async function handler(req, res) {
 }
 
 async function generateExampleText(patternDescription) {
-  const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o',
     max_tokens: 1024,
     messages: [
       {
@@ -46,7 +46,7 @@ async function generateExampleText(patternDescription) {
     ],
   })
 
-  return message.content[0].type === 'text' ? message.content[0].text : ''
+  return response.choices[0].message.content
 }
 
 async function analyzeMatches(patternName, patternDescription, pattern, matchedSubstrings) {
@@ -54,14 +54,14 @@ async function analyzeMatches(patternName, patternDescription, pattern, matchedS
     .map((m, i) => `${i + 1}. "${m}"`)
     .join('\n')
 
-  const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o',
     max_tokens: 1024,
     messages: [
       {
         role: 'user',
         content: `A regex is intended to: ${patternDescription}
-        
+
 Pattern Name: ${patternName}
 Regex: /${pattern}/
 
@@ -73,5 +73,5 @@ Please review whether these matches seem reasonable and note any commonly expect
     ],
   })
 
-  return message.content[0].type === 'text' ? message.content[0].text : ''
+  return response.choices[0].message.content
 }
