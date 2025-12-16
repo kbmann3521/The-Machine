@@ -450,11 +450,6 @@ export default function Home() {
     setImagePreview(preview)
   }, [])
 
-  const handleSetGeneratedText = useCallback((text) => {
-    setInputText(text)
-    currentInputRef.current = text
-    setInputChangeKey(prev => prev + 1)
-  }, [])
 
   const handleConfigChange = useCallback(
     (newConfig) => {
