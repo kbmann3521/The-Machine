@@ -217,6 +217,7 @@ function AIAnalysisSection({ patternName, patternDescription, pattern, matches, 
   const [analysis, setAnalysis] = useState(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true)
@@ -249,6 +250,16 @@ function AIAnalysisSection({ patternName, patternDescription, pattern, matches, 
     }
   }
 
+  const handleCopyAnalysis = async () => {
+    try {
+      await navigator.clipboard.writeText(analysis)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
   return (
     <div className={styles.analysisSection}>
       <button
@@ -261,6 +272,15 @@ function AIAnalysisSection({ patternName, patternDescription, pattern, matches, 
 
       {showAnalysis && analysis && (
         <div className={styles.analysisContent}>
+          <div className={styles.analysisHeader}>
+            <button
+              className={styles.copyButton}
+              onClick={handleCopyAnalysis}
+              title="Copy analysis to clipboard"
+            >
+              {copied ? '✓ Copied' : '📋 Copy'}
+            </button>
+          </div>
           <div className={styles.analysisText}>{analysis}</div>
         </div>
       )}
