@@ -19,6 +19,8 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
       ...config,
       pattern: template.pattern,
       flags: template.flags,
+      _patternName: template.name,
+      _patternDescription: template.description,
     }
     onConfigChange(newConfig)
 
