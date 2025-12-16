@@ -696,6 +696,7 @@ export default function Home() {
                       onSortLinesConfigChange={setSortLinesConfig}
                       removeExtrasConfig={removeExtrasConfig}
                       onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                      onSetInputText={setInputText}
                     />
                   </div>
                 </>
