@@ -452,6 +452,7 @@ export default function Home() {
 
   const handleSetGeneratedText = useCallback((text) => {
     setInputText(text)
+    currentInputRef.current = text
     setInputChangeKey(prev => prev + 1)
   }, [])
 
