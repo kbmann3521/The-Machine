@@ -568,7 +568,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               onConfigChange={onConfigChange}
               result={result}
               disabled={false}
-              onGenerateText={onSetInputText}
+              onGenerateText={onSetGeneratedText}
             />
           )}
 
