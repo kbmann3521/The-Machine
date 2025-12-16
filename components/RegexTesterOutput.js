@@ -373,7 +373,7 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
       </div>
 
       {/* AI Analysis Section */}
-      {result.matches && result.matches.length > 0 && (
+      {result.matches && (
         <AIAnalysisSection
           patternName={patternName}
           patternDescription={patternDescription}
