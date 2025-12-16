@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { action, pattern, patternDescription, patternName, matchedSubstrings } = req.body
+  const { action, pattern, patternDescription, patternName, matchedSubstrings, inputText } = req.body
 
   try {
     if (action === 'generate') {
@@ -22,6 +22,7 @@ export default async function handler(req, res) {
         patternName,
         patternDescription,
         pattern,
+        inputText,
         matchedSubstrings
       )
       return res.status(200).json({ analysis })
@@ -55,31 +56,42 @@ Requirements:
   return response.choices[0].message.content.trim()
 }
 
-async function analyzeMatches(patternName, patternDescription, pattern, matchedSubstrings) {
-  const matchList = matchedSubstrings
+async function analyzeMatches(templateName, templateDescription, regex, inputTextSnippet, matchedSubstrings) {
+  const matchesList = matchedSubstrings
     .map((m, i) => `${i + 1}. "${m}"`)
     .join('\n')
 
   const response = await client.chat.completions.create({
     model: 'gpt-4o',
-    max_tokens: 600,
+    max_tokens: 700,
     messages: [
       {
         role: 'user',
-        content: `Review this regex match result:
+        content: `You are reviewing a regular expression as a starting template, not as a strict validator.
 
-Pattern: ${patternName} (${patternDescription})
-Regex: /${pattern}/
+Template name: ${templateName}
+Intended purpose: ${templateDescription}
+Regex pattern:
+/${regex}/
 
-Matched:
-${matchList}
+Input text (excerpt):
+${inputTextSnippet}
 
-Brief analysis:
-1. Are these matches correct? (yes/issues noted)
-2. Common edge cases to consider
-3. Any improvements?
+Matched substrings:
+${matchesList}
 
-Keep response concise and practical.`,
+Please provide brief, practical feedback covering the following points:
+
+What parts of the matches look correct or reasonable for the stated purpose
+
+Any suspicious matches or likely false positives
+
+Any obvious misses or common cases that might not be captured
+
+Optional suggestions for small, targeted tweaks (do not rewrite the entire regex)
+
+Keep the response concise, technical, and advisory.
+Do not declare the regex "correct" or "incorrect"; focus only on observable behavior and common developer expectations.`,
       },
     ],
   })
