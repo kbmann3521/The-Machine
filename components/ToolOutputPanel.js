@@ -5261,12 +5261,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       case 'regex-tester': {
         const tabs = []
+        const patternName = configOptions?._patternName || 'Pattern'
+        const patternDescription = configOptions?._patternDescription || ''
 
         tabs.push({
           id: 'output',
           label: 'OUTPUT',
           content: displayResult ? (
-            <RegexTesterOutput result={displayResult} inputText={inputText} />
+            <RegexTesterOutput result={displayResult} inputText={inputText} patternName={patternName} patternDescription={patternDescription} />
           ) : 'No output',
           contentType: 'component'
         })
