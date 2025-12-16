@@ -7,6 +7,7 @@ import { getPatternTemplate } from '../lib/regexPatterns'
 export default function RegexToolkit({ config, onConfigChange, result, disabled, onGenerateText }) {
   const [selectedTemplateId, setSelectedTemplateId] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [testMode, setTestMode] = useState(false)
 
   const handleFieldChange = (fieldId, value) => {
     const newConfig = { ...config, [fieldId]: value }
@@ -24,28 +25,31 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
     }
     onConfigChange(newConfig)
 
-    // Auto-generate example text
-    setIsGenerating(true)
-    try {
-      const response = await fetch('/api/test-regex-patterns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'generate',
-          patternDescription: template.description,
-        }),
-      })
+    // Auto-generate example text only if test mode is on
+    if (testMode) {
+      setIsGenerating(true)
+      try {
+        const response = await fetch('/api/test-regex-patterns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'generate',
+            patternName: template.name,
+            patternDescription: template.description,
+          }),
+        })
 
-      if (response.ok) {
-        const { text } = await response.json()
-        if (onGenerateText) {
-          onGenerateText(text)
+        if (response.ok) {
+          const { text } = await response.json()
+          if (onGenerateText) {
+            onGenerateText(text)
+          }
         }
+      } catch (error) {
+        console.error('Error generating example text:', error)
+      } finally {
+        setIsGenerating(false)
       }
-    } catch (error) {
-      console.error('Error generating example text:', error)
-    } finally {
-      setIsGenerating(false)
     }
   }
 
