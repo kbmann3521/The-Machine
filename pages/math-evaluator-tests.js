@@ -95,10 +95,12 @@ const TEST_CASES = [
   { category: 'Phase 3: Precision', input: 'pi', description: 'Pi constant precision' },
   { category: 'Phase 3: Precision', input: 'e', description: 'Euler number precision' },
 
-  // Phase 3: Rounding Modes
-  { category: 'Phase 3: Rounding', input: '2.5', description: 'Round 2.5 (tests rounding modes)' },
-  { category: 'Phase 3: Rounding', input: '3.5', description: 'Round 3.5 (tests banker\'s rounding)' },
-  { category: 'Phase 3: Rounding', input: '1.25 * 4', description: 'Rounding with calculation' },
+  // Phase 3: Rounding Modes (requires precision to be set to exercise rounding logic)
+  // These are defined as test cases but require numeric config: { precision: 0, rounding: 'mode' }
+  // See UI controls to set precision and observe rounding behavior
+  { category: 'Phase 3: Rounding', input: '2.5', description: 'Half-up: 2.5 → 3, Half-even: 2.5 → 2' },
+  { category: 'Phase 3: Rounding', input: '3.5', description: 'Half-up: 3.5 → 4, Half-even: 3.5 → 4' },
+  { category: 'Phase 3: Rounding', input: '1.234567', description: 'Precision display control' },
 
   // Phase 3: Scientific Notation
   { category: 'Phase 3: Notation', input: '1000000', description: 'Large number for notation' },
