@@ -226,6 +226,36 @@ export default function MathEvaluatorTests() {
 
                   {expandedIndices.has(testResult.index) && (
                     <div className={styles.testBody}>
+                      {testResult.result.result !== undefined && (
+                        <div className={styles.resultSection}>
+                          <strong>Result:</strong>
+                          <code>{testResult.result.result}</code>
+                          {testResult.result.formattedResult && testResult.result.formattedResult !== testResult.result.result && (
+                            <>
+                              <strong style={{ marginLeft: '12px' }}>Formatted:</strong>
+                              <code>{testResult.result.formattedResult}</code>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      {testResult.result.diagnostics?.numeric && (
+                        <div className={styles.numericMetadata}>
+                          <strong>Numeric Control:</strong>
+                          <ul>
+                            <li>Mode: <code>{testResult.result.diagnostics.numeric.mode}</code></li>
+                            {testResult.result.diagnostics.numeric.precision !== null && (
+                              <li>Precision: <code>{testResult.result.diagnostics.numeric.precision}</code> decimal places</li>
+                            )}
+                            {testResult.result.diagnostics.numeric.precision !== null && (
+                              <li>Rounding: <code>{testResult.result.diagnostics.numeric.rounding}</code></li>
+                            )}
+                            <li>Notation: <code>{testResult.result.diagnostics.numeric.notation}</code></li>
+                            {testResult.result.diagnostics.numeric.precisionRounded && (
+                              <li><span style={{ color: '#ff9800' }}>⚠️ Value was precision-rounded</span></li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
                       <pre className={styles.json}>
                         {JSON.stringify(testResult.result, null, 2)}
                       </pre>
