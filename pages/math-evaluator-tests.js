@@ -1,0 +1,240 @@
+import React, { useState, useMemo } from 'react'
+import { mathEvaluator } from '../lib/tools.js'
+import styles from '../styles/math-evaluator-tests.module.css'
+
+const TEST_CASES = [
+  // Phase 1: Basic Arithmetic
+  { category: 'Phase 1: Basic Arithmetic', input: '2 + 3', description: 'Simple addition' },
+  { category: 'Phase 1: Basic Arithmetic', input: '10 - 5', description: 'Simple subtraction' },
+  { category: 'Phase 1: Basic Arithmetic', input: '4 * 5', description: 'Simple multiplication' },
+  { category: 'Phase 1: Basic Arithmetic', input: '20 / 4', description: 'Simple division' },
+  { category: 'Phase 1: Basic Arithmetic', input: '2 ** 3', description: 'Exponentiation' },
+  { category: 'Phase 1: Basic Arithmetic', input: '(25 + 15) * 2', description: 'Parentheses and order of operations' },
+
+  // Phase 1: Functions - Trigonometric
+  { category: 'Phase 1: Trigonometric', input: 'sin(pi/2)', description: 'Sine of pi/2' },
+  { category: 'Phase 1: Trigonometric', input: 'cos(0)', description: 'Cosine of 0' },
+  { category: 'Phase 1: Trigonometric', input: 'tan(pi/4)', description: 'Tangent of pi/4' },
+  { category: 'Phase 1: Trigonometric', input: 'asin(1)', description: 'Arcsine of 1' },
+  { category: 'Phase 1: Trigonometric', input: 'sinh(0)', description: 'Hyperbolic sine' },
+
+  // Phase 1: Functions - Logarithmic & Exponential
+  { category: 'Phase 1: Logarithmic', input: 'sqrt(16)', description: 'Square root' },
+  { category: 'Phase 1: Logarithmic', input: 'cbrt(27)', description: 'Cube root' },
+  { category: 'Phase 1: Logarithmic', input: 'log10(100)', description: 'Base-10 logarithm' },
+  { category: 'Phase 1: Logarithmic', input: 'log(e)', description: 'Natural logarithm of e' },
+  { category: 'Phase 1: Logarithmic', input: 'exp(1)', description: 'e^1' },
+
+  // Phase 1: Functions - Rounding & Misc
+  { category: 'Phase 1: Rounding', input: 'floor(3.7)', description: 'Floor function' },
+  { category: 'Phase 1: Rounding', input: 'ceil(3.2)', description: 'Ceiling function' },
+  { category: 'Phase 1: Rounding', input: 'round(3.14159, 2)', description: 'Round to 2 decimals' },
+  { category: 'Phase 1: Rounding', input: 'abs(-5)', description: 'Absolute value' },
+
+  // Phase 1: Aggregate Functions
+  { category: 'Phase 1: Aggregate', input: 'min(5, 10, 3)', description: 'Minimum' },
+  { category: 'Phase 1: Aggregate', input: 'max(5, 10, 3)', description: 'Maximum' },
+  { category: 'Phase 1: Aggregate', input: 'pow(2, 8)', description: 'Power function' },
+
+  // Phase 1: Constants
+  { category: 'Phase 1: Constants', input: 'pi', description: 'Pi constant' },
+  { category: 'Phase 1: Constants', input: 'e', description: 'Euler number' },
+  { category: 'Phase 1: Constants', input: '2 * pi', description: 'Circumference coefficient' },
+
+  // Phase 1: Complex Expressions
+  { category: 'Phase 1: Complex', input: '(25 + 15) * 2 - 10 / 2 + sqrt(16)', description: 'Mixed operations' },
+  { category: 'Phase 1: Complex', input: 'sin(pi/2) + cos(0) * sqrt(16) + log10(100)', description: 'Functions + operations' },
+  { category: 'Phase 1: Complex', input: '((sin(pi/4) + cos(pi/4)) * sqrt(2)) / (log10(100) - log(e))', description: 'Deeply nested' },
+
+  // Phase 2: Implicit Multiplication - Digit + Letter
+  { category: 'Phase 2: Implicit Mult (Digit+Letter)', input: '2x + 3y', description: 'Variables with implicit mult' },
+  { category: 'Phase 2: Implicit Mult (Digit+Letter)', input: '5a', description: 'Single implicit mult' },
+
+  // Phase 2: Implicit Multiplication - Digit + Paren
+  { category: 'Phase 2: Implicit Mult (Digit+Paren)', input: '5(4 + 2)', description: 'Digit before parentheses' },
+  { category: 'Phase 2: Implicit Mult (Digit+Paren)', input: '2(3 + 4)', description: 'Another digit-paren pattern' },
+
+  // Phase 2: Implicit Multiplication - Paren + Paren
+  { category: 'Phase 2: Implicit Mult (Paren+Paren)', input: '(2 + 3)(4 - 1)', description: 'Adjacent parentheses' },
+  { category: 'Phase 2: Implicit Mult (Paren+Paren)', input: '(5)(10)', description: 'Two parenthesized numbers' },
+
+  // Phase 2: Implicit Multiplication - Function + Number
+  { category: 'Phase 2: Implicit Mult (Function+Number)', input: 'sqrt(4)2', description: 'Function result + number' },
+  { category: 'Phase 2: Implicit Mult (Function+Number)', input: '5sqrt(4)', description: 'Number + function' },
+
+  // Phase 2: Variables (Undefined)
+  { category: 'Phase 2: Variables', input: 'a * b + c / 2', description: 'Multiple undefined variables' },
+  { category: 'Phase 2: Variables', input: 'x + y * z', description: 'Variables with operations' },
+  { category: 'Phase 2: Variables', input: '2 * x + 3', description: 'Mixed constants and variables' },
+
+  // Phase 2: Syntax Errors
+  { category: 'Phase 2: Syntax Errors', input: '((25 + 15) * 2))', description: 'Mismatched parentheses' },
+  { category: 'Phase 2: Syntax Errors', input: '5 +* 3', description: 'Invalid operator sequence' },
+  { category: 'Phase 2: Syntax Errors', input: '(5 + 3', description: 'Unclosed parenthesis' },
+
+  // Phase 2: Unknown Functions
+  { category: 'Phase 2: Unknown Functions', input: 'sqrt(16) + custom_func(5)', description: 'Unknown function' },
+  { category: 'Phase 2: Unknown Functions', input: 'ln(e)', description: 'ln not available (use log)' },
+  { category: 'Phase 2: Unknown Functions', input: 'random(10)', description: 'Function not in whitelist' },
+
+  // Phase 2: Division by Zero
+  { category: 'Phase 2: Division by Zero', input: '10 / (5 - 5)', description: 'Computed zero denominator' },
+  { category: 'Phase 2: Division by Zero', input: '1 / 0', description: 'Direct division by zero' },
+
+  // Phase 2: Edge Cases
+  { category: 'Phase 2: Edge Cases', input: '42', description: 'Single number' },
+  { category: 'Phase 2: Edge Cases', input: '0', description: 'Zero' },
+  { category: 'Phase 2: Edge Cases', input: '-5', description: 'Negative number' },
+  { category: 'Phase 2: Edge Cases', input: '3.14159', description: 'Decimal number' },
+  { category: 'Phase 2: Edge Cases', input: '   (5 + 3)   ', description: 'Expression with whitespace' },
+]
+
+export default function MathEvaluatorTests() {
+  const [expandedIndices, setExpandedIndices] = useState(new Set())
+  const [copied, setCopied] = useState(false)
+
+  // Run all tests
+  const results = useMemo(() => {
+    return TEST_CASES.map((testCase, idx) => ({
+      ...testCase,
+      index: idx,
+      result: mathEvaluator(testCase.input),
+    }))
+  }, [])
+
+  // Group by category
+  const grouped = useMemo(() => {
+    const groups = {}
+    results.forEach(r => {
+      if (!groups[r.category]) {
+        groups[r.category] = []
+      }
+      groups[r.category].push(r)
+    })
+    return groups
+  }, [results])
+
+  const categories = Object.keys(grouped).sort()
+
+  const toggleExpanded = (idx) => {
+    const newExpanded = new Set(expandedIndices)
+    if (newExpanded.has(idx)) {
+      newExpanded.delete(idx)
+    } else {
+      newExpanded.add(idx)
+    }
+    setExpandedIndices(newExpanded)
+  }
+
+  const handleCopyAll = async () => {
+    const allResults = results.map(r => ({
+      input: r.input,
+      description: r.description,
+      category: r.category,
+      result: r.result,
+    }))
+
+    const json = JSON.stringify(allResults, null, 2)
+
+    try {
+      // Try modern Clipboard API first
+      await navigator.clipboard.writeText(json)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      // Fallback to older document.execCommand method
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = json
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        document.body.removeChild(textarea)
+      } catch (fallbackErr) {
+        console.error('Copy failed:', fallbackErr)
+      }
+    }
+  }
+
+  const getStatusIcon = (result) => {
+    if (result.error) return '❌'
+    if (result.diagnostics && result.diagnostics.warnings && result.diagnostics.warnings.length > 0) return '⚠️'
+    if (result.result !== undefined && result.result !== null) return '✅'
+    return '❓'
+  }
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Math Expression Evaluator — Test Harness</h1>
+        <p className={styles.subtitle}>
+          Comprehensive test suite for Phase 1 and Phase 2. {results.length} test cases total.
+        </p>
+      </div>
+
+      <div className={styles.controls}>
+        <button className={styles.copyButton} onClick={handleCopyAll}>
+          {copied ? '✓ Copied All Results!' : '📋 Copy All Results (JSON)'}
+        </button>
+        <span className={styles.stats}>
+          ✅ Valid: {results.filter(r => r.result.result !== undefined && !r.result.error).length} |
+          ⚠️ Warnings: {results.filter(r => r.result.diagnostics && r.result.diagnostics.warnings && r.result.diagnostics.warnings.length > 0).length} |
+          ❌ Errors: {results.filter(r => r.result.error).length}
+        </span>
+      </div>
+
+      <div className={styles.testResults}>
+        {categories.map(category => (
+          <div key={category} className={styles.categorySection}>
+            <h2 className={styles.categoryTitle}>
+              {category} ({grouped[category].length})
+            </h2>
+
+            <div className={styles.testList}>
+              {grouped[category].map(testResult => (
+                <div key={testResult.index} className={styles.testItem}>
+                  <div
+                    className={styles.testHeader}
+                    onClick={() => toggleExpanded(testResult.index)}
+                  >
+                    <span className={styles.statusIcon}>
+                      {getStatusIcon(testResult.result)}
+                    </span>
+                    <div className={styles.testInfo}>
+                      <code className={styles.input}>{testResult.input}</code>
+                      <span className={styles.description}>
+                        {testResult.description}
+                      </span>
+                    </div>
+                    <span className={styles.toggleChevron}>
+                      {expandedIndices.has(testResult.index) ? '▼' : '▶'}
+                    </span>
+                  </div>
+
+                  {expandedIndices.has(testResult.index) && (
+                    <div className={styles.testBody}>
+                      <pre className={styles.json}>
+                        {JSON.stringify(testResult.result, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className={styles.footer}>
+        <p>
+          Test harness for Math Expression Evaluator (Phase 1 and Phase 2).
+          Click any test to expand and view detailed JSON output with diagnostics.
+        </p>
+      </div>
+    </div>
+  )
+}
