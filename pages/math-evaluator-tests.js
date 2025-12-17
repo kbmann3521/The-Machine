@@ -179,9 +179,11 @@ export default function MathEvaluatorTests() {
       <div className={styles.header}>
         <h1 className={styles.title}>Math Expression Evaluator — Test Harness</h1>
         <p className={styles.subtitle}>
-          Comprehensive test suite for Phase 1 and Phase 2. {results.length} test cases total.
+          Comprehensive test suite for Phase 1, Phase 2, and Phase 3. {results.length} test cases total.
         </p>
       </div>
+
+      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} />
 
       <div className={styles.controls}>
         <button className={styles.copyButton} onClick={handleCopyAll}>
