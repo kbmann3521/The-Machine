@@ -181,6 +181,68 @@
   word-break: break-all;
 }
 
+.resultSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(240, 147, 251, 0.1);
+  border-left: 3px solid #f093fb;
+  border-radius: 4px;
+}
+
+.resultSection strong {
+  color: #f093fb;
+  min-width: 70px;
+}
+
+.resultSection code {
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 3px;
+  color: #aec7ff;
+}
+
+.numericMetadata {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(174, 199, 255, 0.1);
+  border-left: 3px solid #aec7ff;
+  border-radius: 4px;
+}
+
+.numericMetadata strong {
+  color: #aec7ff;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.numericMetadata ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.numericMetadata li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.numericMetadata code {
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #aec7ff;
+  font-size: 0.85rem;
+}
+
 .footer {
   max-width: 1200px;
   margin: 60px auto 0;
