@@ -88,6 +88,27 @@ const TEST_CASES = [
   { category: 'Phase 2: Edge Cases', input: '-5', description: 'Negative number' },
   { category: 'Phase 2: Edge Cases', input: '3.14159', description: 'Decimal number' },
   { category: 'Phase 2: Edge Cases', input: '   (5 + 3)   ', description: 'Expression with whitespace' },
+
+  // Phase 3: Precision Control
+  { category: 'Phase 3: Precision', input: '0.1 + 0.2', description: 'Float precision test' },
+  { category: 'Phase 3: Precision', input: 'tan(pi/4)', description: 'Trigonometric precision' },
+  { category: 'Phase 3: Precision', input: 'pi', description: 'Pi constant precision' },
+  { category: 'Phase 3: Precision', input: 'e', description: 'Euler number precision' },
+
+  // Phase 3: Rounding Modes
+  { category: 'Phase 3: Rounding', input: '2.5', description: 'Round 2.5 (tests rounding modes)' },
+  { category: 'Phase 3: Rounding', input: '3.5', description: 'Round 3.5 (tests banker\'s rounding)' },
+  { category: 'Phase 3: Rounding', input: '1.25 * 4', description: 'Rounding with calculation' },
+
+  // Phase 3: Scientific Notation
+  { category: 'Phase 3: Notation', input: '1000000', description: 'Large number for notation' },
+  { category: 'Phase 3: Notation', input: '0.0001', description: 'Small number for notation' },
+  { category: 'Phase 3: Notation', input: '2 ** 20', description: 'Million range exponent' },
+
+  // Phase 3: Float Artifacts
+  { category: 'Phase 3: Float Artifacts', input: '0.1 * 3', description: 'Multiplication precision' },
+  { category: 'Phase 3: Float Artifacts', input: '0.3 / 0.1', description: 'Division precision' },
+  { category: 'Phase 3: Float Artifacts', input: 'sqrt(2) ** 2', description: 'Square root square precision' },
 ]
 
 export default function MathEvaluatorTests() {
