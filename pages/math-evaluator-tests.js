@@ -93,15 +93,21 @@ const TEST_CASES = [
 export default function MathEvaluatorTests() {
   const [expandedIndices, setExpandedIndices] = useState(new Set())
   const [copied, setCopied] = useState(false)
+  const [numericConfig, setNumericConfig] = useState({
+    precision: null,
+    rounding: 'half-up',
+    notation: 'auto',
+    mode: 'float'
+  })
 
-  // Run all tests
+  // Run all tests with numeric config
   const results = useMemo(() => {
     return TEST_CASES.map((testCase, idx) => ({
       ...testCase,
       index: idx,
-      result: mathEvaluator(testCase.input),
+      result: mathEvaluator(testCase.input, numericConfig),
     }))
-  }, [])
+  }, [numericConfig])
 
   // Group by category
   const grouped = useMemo(() => {
