@@ -166,65 +166,7 @@
   margin-top: 2px;
 }
 
-/* 4. Settings Block */
-.settingsBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(100, 108, 255, 0.05) 0%, var(--color-background-secondary) 100%);
-  border: 1px solid rgba(100, 108, 255, 0.2);
-  border-left: 4px solid #646cff;
-  border-radius: 8px;
-}
-
-.settingsBlock .blockLabel {
-  color: #646cff;
-  border-bottom-color: rgba(100, 108, 255, 0.2);
-}
-
-.settingsList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.settingsList li {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  background-color: var(--color-background-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.settingsList li:hover {
-  border-color: #646cff;
-  background-color: var(--color-background-secondary);
-}
-
-.settingKey {
-  color: var(--color-text-secondary);
-  font-weight: 700;
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.settingValue {
-  color: var(--color-text-primary);
-  font-weight: 600;
-  font-size: 12px;
-  font-family: 'Courier New', monospace;
-  word-break: break-word;
-}
-
-/* 5. Details Block */
+/* 4. Details Block */
 .detailsBlock {
   display: flex;
   flex-direction: column;
