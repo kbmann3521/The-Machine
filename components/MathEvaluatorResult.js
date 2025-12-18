@@ -3,7 +3,6 @@ import styles from '../styles/math-evaluator-result.module.css'
 
 export default function MathEvaluatorResult({ result, expression }) {
   const [showDetails, setShowDetails] = useState(false)
-  const [showJson, setShowJson] = useState(false)
 
   if (!result) {
     return null
