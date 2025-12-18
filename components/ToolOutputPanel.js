@@ -5105,6 +5105,23 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderSqlFormatterOutput()
       case 'color-converter':
         return renderColorConverterOutput()
+      case 'math-evaluator':
+        if (!displayResult || displayResult.error) {
+          return (
+            <OutputTabs
+              key={toolId}
+              toolCategory={toolCategory}
+              toolId={toolId}
+              tabs={[{
+                id: 'output',
+                label: 'OUTPUT',
+                content: displayResult?.error || 'No output',
+                contentType: 'text'
+              }]}
+            />
+          )
+        }
+        return <MathEvaluatorResult result={displayResult} expression={inputText} />
       case 'jwt-decoder':
         return renderJwtDecoderOutput()
       case 'mime-type-lookup':
