@@ -307,96 +307,64 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
         </div>
       )}
 
-      {/* Phase 5: Expression Structure & Reduction (Explainability) */}
+      {/* Phase 5: Explanation Model (Progressive Disclosure) */}
       {result.diagnostics?.phase5 && (
         <div className={styles.phase5Block}>
-          <button
-            className={styles.phase5Toggle}
-            onClick={() => setShowPhase5(!showPhase5)}
-          >
-            <span className={styles.phase5Label}>Expression Structure</span>
-            <span className={styles.toggleIcon}>{showPhase5 ? '▼' : '▶'}</span>
-          </button>
+          {/* LEVEL 1 (DEFAULT): Human-friendly explanation - ALWAYS VISIBLE */}
+          <div className={styles.phase5SummaryBlock}>
+            <div className={styles.blockLabel}>How this was calculated</div>
+            <div className={styles.phase5HumanExplanation}>
+              {generateHumanExplanation(result.diagnostics.phase5)?.map((line, idx) => (
+                <div key={idx} className={styles.explanationLine}>{line}</div>
+              ))}
+            </div>
+          </div>
 
-          {showPhase5 && (
-            <div className={styles.phase5Content}>
-              {/* Expression Structure */}
-              {result.diagnostics.phase5.structure && result.diagnostics.phase5.structure.type !== 'literal' ? (
-                <div className={styles.phase5Section}>
-                  <h4 className={styles.phase5SectionTitle}>Structure</h4>
-                  <div className={styles.phase5Structure}>
-                    {renderStructureTree(result.diagnostics.phase5.structure)}
-                  </div>
-                </div>
-              ) : null}
+          {/* LEVEL 2 (EXPANDABLE): Key reductions - only show if present */}
+          {result.diagnostics.phase5.reductions && result.diagnostics.phase5.reductions.length > 0 && (
+            <div className={styles.phase5ExpandableSection}>
+              <button
+                className={styles.phase5ExpandToggle}
+                onClick={() => setShowKeyReductions(!showKeyReductions)}
+              >
+                <span className={styles.expandLabel}>Key evaluation steps</span>
+                <span className={styles.toggleIcon}>{showKeyReductions ? '▼' : '▶'}</span>
+              </button>
 
-              {/* Key Reductions (only if artifacts detected) */}
-              {result.diagnostics.phase5.reductions && result.diagnostics.phase5.reductions.length > 0 && (
-                <div className={styles.phase5Section}>
-                  <h4 className={styles.phase5SectionTitle}>Key Reductions</h4>
-                  <div className={styles.phase5Reductions}>
-                    {result.diagnostics.phase5.reductions.map((reduction, idx) => (
-                      <div key={idx} className={styles.phase5Reduction}>
-                        <code className={styles.reductionExpression}>{reduction.expression}</code>
-                        <span className={styles.reductionArrow}>→</span>
-                        <code className={styles.reductionResult}>{reduction.result}</code>
-                        {reduction.note && (
-                          <div className={styles.reductionNote}>
-                            <span className={styles.reductionNoteIcon}>⚠</span>
-                            {reduction.note}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+              {showKeyReductions && (
+                <div className={styles.phase5Reductions}>
+                  {result.diagnostics.phase5.reductions.map((reduction, idx) => (
+                    <div key={idx} className={styles.phase5Reduction}>
+                      <code className={styles.reductionExpression}>{reduction.expression}</code>
+                      <span className={styles.reductionArrow}>→</span>
+                      <code className={styles.reductionResult}>{reduction.result}</code>
+                      {reduction.note && (
+                        <div className={styles.reductionNote}>
+                          <span className={styles.reductionNoteIcon}>⚠</span>
+                          {reduction.note}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
+            </div>
+          )}
 
-              {/* Summary */}
-              {result.diagnostics.phase5.summary ? (
-                <div className={styles.phase5Section}>
-                  <h4 className={styles.phase5SectionTitle}>Summary</h4>
-                  <ul className={styles.phase5SummaryList}>
-                    {result.diagnostics.phase5.summary.shape && (
-                      <li>
-                        <span className={styles.summaryKey}>Shape:</span>
-                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.shape}</span>
-                      </li>
-                    )}
-                    {result.diagnostics.phase5.summary.nestingDepth !== undefined && (
-                      <li>
-                        <span className={styles.summaryKey}>Nesting Depth:</span>
-                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.nestingDepth}</span>
-                      </li>
-                    )}
-                    {result.diagnostics.phase5.summary.structureNodeCount !== undefined && (
-                      <li>
-                        <span className={styles.summaryKey}>Structure Nodes:</span>
-                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.structureNodeCount}</span>
-                      </li>
-                    )}
-                    {result.diagnostics.phase5.summary.functions && result.diagnostics.phase5.summary.functions.length > 0 && (
-                      <li>
-                        <span className={styles.summaryKey}>Functions:</span>
-                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.functions.join(', ')}</span>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              ) : null}
+          {/* LEVEL 3 (ADVANCED): Full structure - hidden by default */}
+          {result.diagnostics.phase5.structure && result.diagnostics.phase5.structure.type !== 'literal' && (
+            <div className={styles.phase5AdvancedSection}>
+              <button
+                className={styles.phase5AdvancedToggle}
+                onClick={() => setShowAdvancedStructure(!showAdvancedStructure)}
+              >
+                <span className={styles.advancedLabel}>Show expression structure (advanced)</span>
+                <span className={styles.toggleIcon}>{showAdvancedStructure ? '▼' : '▶'}</span>
+              </button>
 
-              {/* Important Notes (Warnings) */}
-              {result.diagnostics?.warnings && result.diagnostics.warnings.length > 0 && (
-                <div className={styles.phase5Section}>
-                  <h4 className={styles.phase5SectionTitle}>Important Notes</h4>
-                  <div className={styles.phase5Notes}>
-                    {result.diagnostics.warnings.map((warning, idx) => (
-                      <div key={idx} className={styles.phase5Note}>
-                        <span className={styles.phase5NoteIcon}>ℹ</span>
-                        <span className={styles.phase5NoteText}>{warning}</span>
-                      </div>
-                    ))}
-                  </div>
+              {showAdvancedStructure && (
+                <div className={styles.phase5Structure}>
+                  {renderStructureTree(result.diagnostics.phase5.structure)}
                 </div>
               )}
             </div>
