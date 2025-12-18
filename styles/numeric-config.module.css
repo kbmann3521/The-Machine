@@ -47,43 +47,15 @@
 }
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 12px 16px;
   background: var(--color-background-secondary);
   border-bottom: 1px solid var(--color-border);
 }
 
-.toggleButton {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+.title {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
-  transition: color 0.2s;
-}
-
-.toggleButton:hover {
-  color: #0066cc;
-}
-
-.label {
-  flex: 1;
-  text-align: left;
-}
-
-.icon {
-  display: inline-block;
-  margin-left: 8px;
-  font-size: 12px;
-  transition: transform 0.2s;
 }
 
 .panel {
