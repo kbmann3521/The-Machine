@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { mathEvaluator } from '../lib/tools.js'
 import NumericConfig from '../components/NumericConfig.js'
 import MathEvaluatorResult from '../components/MathEvaluatorResult.js'
