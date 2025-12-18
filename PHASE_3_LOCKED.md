@@ -1,6 +1,6 @@
 # Phase 3: Precision & Numeric Control — LOCKED SPECIFICATION
 
-**Status**: ✅ FROZEN (December 18, 2025 — FINAL: Semantic Refinement: result = raw | formattedResult = presentation)
+**Status**: 🔒 LOCKED (December 18, 2025 — FINAL: Phase 3 Complete with Semantic Invariant and Schema Hardening)
 
 This document locks the Phase 3 numeric control specification. These decisions are stable and will not be revisited without major version change.
 
