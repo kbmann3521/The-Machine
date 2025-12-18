@@ -133,11 +133,7 @@
 .settingsBlock {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  gap: 8px;
 }
 
 .settingsList {
@@ -146,27 +142,27 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .settingsList li {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 8px 0;
-  font-size: 14px;
+  padding: 4px 0;
+  font-size: 12px;
 }
 
 .settingKey {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .settingValue {
-  color: #1f2937;
+  color: var(--color-text-primary);
   font-weight: 600;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  margin-left: 12px;
+  margin-left: 8px;
   text-align: right;
   flex: 0 0 auto;
 }
