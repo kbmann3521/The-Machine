@@ -170,7 +170,7 @@
 .detailsBlock {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
   padding: 16px;
   background: linear-gradient(135deg, rgba(156, 39, 176, 0.05) 0%, var(--color-background-secondary) 100%);
   border: 1px solid rgba(156, 39, 176, 0.2);
@@ -179,49 +179,14 @@
   overflow: visible;
 }
 
-.detailsToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 0 8px 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 700;
-  color: #9c27b0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid rgba(156, 39, 176, 0.2);
-  transition: color 0.2s;
-}
-
-.detailsToggle:hover {
-  color: #7b1fa2;
-}
-
 .detailsLabel {
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #9c27b0;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.toggleIcon {
-  font-size: 10px;
-  color: #9c27b0;
-  transition: color 0.2s;
-}
-
-.detailsToggle:hover .toggleIcon {
-  color: #7b1fa2;
-}
-
-.detailsContent {
-  padding: 12px 0 0 0;
-  background: transparent;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(156, 39, 176, 0.2);
 }
 
 .detailsList {
