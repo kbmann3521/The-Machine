@@ -276,11 +276,20 @@ export default function MathEvaluatorTests() {
                     <div className={styles.testBody}>
                       {testResult.result.result !== undefined && (
                         <div className={styles.resultSection}>
-                          <strong>Result:</strong>
-                          <code>{testResult.result.result}</code>
+                          <div className={styles.resultHeader}>
+                            <div>
+                              <strong>Result:</strong>
+                              <code>{testResult.result.result}</code>
+                            </div>
+                            {getFormattingBadge(testResult.result) && (
+                              <span className={styles.formattingBadge} title={`Raw: ${testResult.result.result} → Displayed: ${testResult.result.formattedResult}`}>
+                                {getFormattingBadge(testResult.result)}
+                              </span>
+                            )}
+                          </div>
                           {testResult.result.formattedResult && testResult.result.formattedResult !== testResult.result.result && (
                             <>
-                              <strong style={{ marginLeft: '12px' }}>Formatted:</strong>
+                              <strong style={{ marginTop: '8px', display: 'block' }}>Formatted:</strong>
                               <code>{testResult.result.formattedResult}</code>
                             </>
                           )}
