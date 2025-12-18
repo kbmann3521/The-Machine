@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 import styles from '../styles/math-evaluator-result.module.css'
 
 export default function MathEvaluatorResult({ result, expression }) {
-  const [showDetails, setShowDetails] = useState(false)
-
   if (!result) {
     return null
   }
