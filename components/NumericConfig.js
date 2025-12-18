@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import styles from '../styles/numeric-config.module.css'
 
-export default function NumericConfig({ config, onConfigChange }) {
+export default function NumericConfig({ config, onConfigChange, floatArtifactDetected = false }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const handlePrecisionChange = (e) => {
@@ -21,15 +21,31 @@ export default function NumericConfig({ config, onConfigChange }) {
     onConfigChange({ ...config, mode: e.target.value })
   }
 
+  const handleSwitchToHighPrecision = () => {
+    onConfigChange({ ...config, mode: 'bignumber' })
+    setIsExpanded(true)
+  }
+
   return (
     <div className={styles.container}>
+      {floatArtifactDetected && config.mode === 'float' && (
+        <div className={styles.suggestion}>
+          <span className={styles.suggestionIcon}>⚠️</span>
+          <span className={styles.suggestionText}>
+            Floating-point precision artifact detected.
+            <button className={styles.suggestionLink} onClick={handleSwitchToHighPrecision}>
+              Try High Precision Mode
+            </button>
+          </span>
+        </div>
+      )}
       <div className={styles.header}>
         <button
           className={styles.toggleButton}
           onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
         >
-          <span className={styles.label}>Numeric Control</span>
+          <span className={styles.label}>Numeric Settings</span>
           <span className={styles.icon}>{isExpanded ? '▼' : '▶'}</span>
         </button>
       </div>
