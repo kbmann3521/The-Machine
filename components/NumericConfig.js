@@ -1,9 +1,7 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styles from '../styles/numeric-config.module.css'
 
 export default function NumericConfig({ config, onConfigChange, floatArtifactDetected = false }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
   const handlePrecisionChange = (e) => {
     const value = e.target.value === '' ? null : parseInt(e.target.value, 10)
     onConfigChange({ ...config, precision: value })
@@ -23,7 +21,6 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
 
   const handleSwitchToHighPrecision = () => {
     onConfigChange({ ...config, mode: 'bignumber' })
-    setIsExpanded(true)
   }
 
   return (
@@ -39,19 +36,12 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
           </span>
         </div>
       )}
+
       <div className={styles.header}>
-        <button
-          className={styles.toggleButton}
-          onClick={() => setIsExpanded(!isExpanded)}
-          aria-expanded={isExpanded}
-        >
-          <span className={styles.label}>Numeric Settings</span>
-          <span className={styles.icon}>{isExpanded ? '▼' : '▶'}</span>
-        </button>
+        <span className={styles.title}>Numeric Settings</span>
       </div>
 
-      {isExpanded && (
-        <div className={styles.panel}>
+      <div className={styles.panel}>
           <div className={styles.controlGroup}>
             <label htmlFor="numeric-mode">Numeric Mode</label>
             <select
