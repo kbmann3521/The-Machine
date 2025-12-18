@@ -1,0 +1,342 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Block Label */
+.blockLabel {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+/* 1. Primary Result Block */
+.resultBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-radius: 8px;
+  border-left: 4px solid #10b981;
+}
+
+.resultValue {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.roundingNote {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* 2. Expression Block */
+.expressionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.expressionValue {
+  font-size: 14px;
+  color: #1f2937;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  word-break: break-all;
+  line-height: 1.5;
+  padding: 8px 0;
+}
+
+/* 3. Status Block */
+.statusBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.statusBlock.status-success {
+  background: #f0fdf4;
+  border-color: #dcfce7;
+}
+
+.statusBlock.status-warning {
+  background: #fffbeb;
+  border-color: #fef3c7;
+}
+
+.statusBlock.status-error {
+  background: #fef2f2;
+  border-color: #fee2e2;
+}
+
+.statusContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.statusIcon {
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.statusMessage {
+  font-size: 14px;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.statusBlock.status-success .statusMessage {
+  color: #15803d;
+}
+
+.statusBlock.status-warning .statusMessage {
+  color: #b45309;
+}
+
+.statusBlock.status-error .statusMessage {
+  color: #991b1b;
+}
+
+.additionalWarnings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #fed7aa;
+  margin-top: 4px;
+}
+
+.warningItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  color: #b45309;
+}
+
+.warningIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* 4. Settings Block */
+.settingsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.settingsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settingsList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.settingKey {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.settingValue {
+  color: #1f2937;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  margin-left: 12px;
+  text-align: right;
+  flex: 0 0 auto;
+}
+
+/* 5. Details Block */
+.detailsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.detailsToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  transition: background-color 0.2s;
+}
+
+.detailsToggle:hover {
+  background: #f3f4f6;
+}
+
+.detailsLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.toggleIcon {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.detailsContent {
+  padding: 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.detailsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detailsList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.detailKey {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.detailValue {
+  color: #1f2937;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  margin-left: 12px;
+  text-align: right;
+  flex: 0 0 auto;
+}
+
+/* JSON Block */
+.jsonBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.jsonToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  transition: background-color 0.2s;
+}
+
+.jsonToggle:hover {
+  background: #f3f4f6;
+}
+
+.jsonLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.json {
+  padding: 16px;
+  background: #1f2937;
+  color: #e5e7eb;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 0;
+  border-top: 1px solid #e5e7eb;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .resultValue {
+    font-size: 24px;
+  }
+
+  .settingsList li,
+  .detailsList li {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .settingValue,
+  .detailValue {
+    text-align: left;
+    margin-left: 0;
+  }
+}
