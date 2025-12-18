@@ -192,6 +192,7 @@ const TEST_CASES = [
 export default function MathEvaluatorTests() {
   const [expandedIndices, setExpandedIndices] = useState(new Set())
   const [copied, setCopied] = useState(false)
+  const [copiedPhase4, setCopiedPhase4] = useState(false)
   const [numericConfig, setNumericConfig] = useState({
     precision: null,
     rounding: 'half-up',
