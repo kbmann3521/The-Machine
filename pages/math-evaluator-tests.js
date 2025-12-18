@@ -9,7 +9,10 @@ const TEST_CASES = [
   { category: 'Phase 1: Basic Arithmetic', input: '10 - 5', description: 'Simple subtraction' },
   { category: 'Phase 1: Basic Arithmetic', input: '4 * 5', description: 'Simple multiplication' },
   { category: 'Phase 1: Basic Arithmetic', input: '20 / 4', description: 'Simple division' },
-  { category: 'Phase 1: Basic Arithmetic', input: '2 ** 3', description: 'Exponentiation' },
+  // Note: The ** (exponentiation) operator is intentionally unsupported in Phase 3.
+  // Use the pow() function instead (e.g., pow(2, 3) for 2^3).
+  // This is a deliberate choice to maintain syntax clarity and avoid ambiguity.
+  { category: 'Phase 1: Basic Arithmetic', input: '2 ** 3', description: 'Exponentiation (** unsupported — use pow)' },
   { category: 'Phase 1: Basic Arithmetic', input: '(25 + 15) * 2', description: 'Parentheses and order of operations' },
 
   // Phase 1: Functions - Trigonometric
@@ -95,22 +98,23 @@ const TEST_CASES = [
   { category: 'Phase 3: Precision', input: 'pi', description: 'Pi constant precision' },
   { category: 'Phase 3: Precision', input: 'e', description: 'Euler number precision' },
 
-  // Phase 3: Rounding Modes (requires precision to be set to exercise rounding logic)
-  // These are defined as test cases but require numeric config: { precision: 0, rounding: 'mode' }
-  // See UI controls to set precision and observe rounding behavior
-  { category: 'Phase 3: Rounding', input: '2.5', description: 'Half-up: 2.5 → 3, Half-even: 2.5 → 2' },
-  { category: 'Phase 3: Rounding', input: '3.5', description: 'Half-up: 3.5 → 4, Half-even: 3.5 → 4' },
-  { category: 'Phase 3: Rounding', input: '1.234567', description: 'Precision display control' },
+  // Phase 3: Rounding Modes (Option A: config-driven)
+  // These test cases explicitly use numericConfig to exercise rounding modes
+  { category: 'Phase 3: Rounding', input: '2.5', description: 'Half-up: 2.5 → 3', numericConfig: { precision: 0, rounding: 'half-up' } },
+  { category: 'Phase 3: Rounding', input: '2.5', description: 'Half-even: 2.5 → 2', numericConfig: { precision: 0, rounding: 'half-even' } },
+  { category: 'Phase 3: Rounding', input: '3.5', description: 'Half-up: 3.5 → 4', numericConfig: { precision: 0, rounding: 'half-up' } },
+  { category: 'Phase 3: Rounding', input: '3.5', description: 'Half-even: 3.5 → 4', numericConfig: { precision: 0, rounding: 'half-even' } },
+  { category: 'Phase 3: Rounding', input: '1.234567', description: 'Precision: 3 decimals', numericConfig: { precision: 3 } },
 
   // Phase 3: Scientific Notation
   { category: 'Phase 3: Notation', input: '1000000', description: 'Large number for notation' },
   { category: 'Phase 3: Notation', input: '0.0001', description: 'Small number for notation' },
-  { category: 'Phase 3: Notation', input: '2 ** 20', description: 'Million range exponent' },
+  { category: 'Phase 3: Notation', input: '2 ** 20', description: 'Million range exponent (** unsupported)' },
 
   // Phase 3: Float Artifacts
   { category: 'Phase 3: Float Artifacts', input: '0.1 * 3', description: 'Multiplication precision' },
   { category: 'Phase 3: Float Artifacts', input: '0.3 / 0.1', description: 'Division precision' },
-  { category: 'Phase 3: Float Artifacts', input: 'sqrt(2) ** 2', description: 'Square root square precision' },
+  { category: 'Phase 3: Float Artifacts', input: 'sqrt(2) ** 2', description: 'Square root square precision (** unsupported)' },
 ]
 
 export default function MathEvaluatorTests() {
@@ -124,12 +128,18 @@ export default function MathEvaluatorTests() {
   })
 
   // Run all tests with numeric config
+  // If a test case specifies its own numericConfig, merge it with UI config
   const results = useMemo(() => {
-    return TEST_CASES.map((testCase, idx) => ({
-      ...testCase,
-      index: idx,
-      result: mathEvaluator(testCase.input, numericConfig),
-    }))
+    return TEST_CASES.map((testCase, idx) => {
+      const effectiveConfig = testCase.numericConfig
+        ? { ...numericConfig, ...testCase.numericConfig }
+        : numericConfig
+      return {
+        ...testCase,
+        index: idx,
+        result: mathEvaluator(testCase.input, effectiveConfig),
+      }
+    })
   }, [numericConfig])
 
   // Group by category
