@@ -301,23 +301,29 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
               )}
 
               {/* Summary */}
-              {result.diagnostics.phase5.summary && (
+              {result.diagnostics.phase5.summary ? (
                 <div className={styles.phase5Section}>
                   <h4 className={styles.phase5SectionTitle}>Summary</h4>
                   <ul className={styles.phase5SummaryList}>
-                    <li>
-                      <span className={styles.summaryKey}>Shape:</span>
-                      <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.shape}</span>
-                    </li>
-                    <li>
-                      <span className={styles.summaryKey}>Nesting Depth:</span>
-                      <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.nestingDepth}</span>
-                    </li>
-                    <li>
-                      <span className={styles.summaryKey}>Operations:</span>
-                      <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.operationCount}</span>
-                    </li>
-                    {result.diagnostics.phase5.summary.functions.length > 0 && (
+                    {result.diagnostics.phase5.summary.shape && (
+                      <li>
+                        <span className={styles.summaryKey}>Shape:</span>
+                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.shape}</span>
+                      </li>
+                    )}
+                    {result.diagnostics.phase5.summary.nestingDepth !== undefined && (
+                      <li>
+                        <span className={styles.summaryKey}>Nesting Depth:</span>
+                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.nestingDepth}</span>
+                      </li>
+                    )}
+                    {result.diagnostics.phase5.summary.operationCount !== undefined && (
+                      <li>
+                        <span className={styles.summaryKey}>Operations:</span>
+                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.operationCount}</span>
+                      </li>
+                    )}
+                    {result.diagnostics.phase5.summary.functions && result.diagnostics.phase5.summary.functions.length > 0 && (
                       <li>
                         <span className={styles.summaryKey}>Functions:</span>
                         <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.functions.join(', ')}</span>
@@ -325,7 +331,7 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
                     )}
                   </ul>
                 </div>
-              )}
+              ) : null}
 
               {/* Important Notes (Warnings) */}
               {result.diagnostics?.warnings && result.diagnostics.warnings.length > 0 && (
