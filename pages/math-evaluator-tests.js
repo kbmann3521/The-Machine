@@ -221,7 +221,7 @@ export default function MathEvaluatorTests() {
         </p>
       </div>
 
-      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} />
+      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={hasFloatArtifacts} />
 
       <div className={styles.controls}>
         <button className={styles.copyButton} onClick={handleCopyAll}>
