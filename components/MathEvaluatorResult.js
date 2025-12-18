@@ -280,7 +280,7 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
           {showPhase5 && (
             <div className={styles.phase5Content}>
               {/* Expression Structure */}
-              {result.diagnostics.phase5.structure ? (
+              {result.diagnostics.phase5.structure && result.diagnostics.phase5.structure.type !== 'literal' ? (
                 <div className={styles.phase5Section}>
                   <h4 className={styles.phase5SectionTitle}>Structure</h4>
                   <div className={styles.phase5Structure}>
