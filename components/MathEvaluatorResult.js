@@ -102,9 +102,47 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
   const numericConfig = result.diagnostics?.numeric
   const complexity = result.diagnostics?.complexity
 
-  // Helper to render the expression structure tree
-  const renderStructureTree = (structure, level = 0) => {
+  // Level 1: Generate human-friendly explanation from Phase 5 data
+  const generateHumanExplanation = (phase5) => {
+    if (!phase5) return null
+
+    const { summary, reductions } = phase5
+    const explanation = []
+
+    // Standard arithmetic evaluation
+    explanation.push('• Evaluated using standard operator precedence')
+
+    // Parentheses handling
+    if (summary?.nestingDepth > 1) {
+      explanation.push('• Parentheses and nested operations were resolved first')
+    }
+
+    // Functions used
+    if (summary?.functions && summary.functions.length > 0) {
+      const funcList = summary.functions.join(', ')
+      explanation.push(`• Function${summary.functions.length > 1 ? 's' : ''} applied: ${funcList}`)
+    }
+
+    // Float precision note
+    if (reductions && reductions.length > 0) {
+      const hasArtifact = reductions.some(r => r.note)
+      if (hasArtifact) {
+        explanation.push('• Floating-point precision effects detected (see details below)')
+      }
+    }
+
+    // Final resolution
+    explanation.push('• All sub-expressions evaluated independently, combined into final result')
+
+    return explanation
+  }
+
+  // Level 3: Render expression structure tree (advanced, behind toggle)
+  const renderStructureTree = (structure, level = 0, maxLevels = 4) => {
     if (!structure) return null
+    if (level >= maxLevels) {
+      return <div className={styles.structureNode} style={{ marginLeft: `${level * 16}px` }}>… (structure truncated)</div>
+    }
 
     if (structure.type === 'literal') {
       return <div className={styles.structureNode} style={{ marginLeft: `${level * 16}px` }}>Literal: <code>{structure.value}</code></div>
@@ -119,7 +157,7 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
         <div style={{ marginLeft: `${level * 16}px` }}>
           <div className={styles.structureNode}>Unary {structure.operator}</div>
           <div style={{ marginLeft: '16px' }}>
-            {renderStructureTree(structure.argument, level + 1)}
+            {renderStructureTree(structure.argument, level + 1, maxLevels)}
           </div>
         </div>
       )
@@ -130,8 +168,8 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
         <div style={{ marginLeft: `${level * 16}px` }}>
           <div className={styles.structureNode}>Binary {structure.operator}</div>
           <div style={{ marginLeft: '16px' }}>
-            {renderStructureTree(structure.left, level + 1)}
-            {renderStructureTree(structure.right, level + 1)}
+            {renderStructureTree(structure.left, level + 1, maxLevels)}
+            {renderStructureTree(structure.right, level + 1, maxLevels)}
           </div>
         </div>
       )
@@ -145,7 +183,7 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
             <div style={{ marginLeft: '16px' }}>
               {structure.arguments.map((arg, idx) => (
                 <div key={idx}>
-                  {renderStructureTree(arg, level + 1)}
+                  {renderStructureTree(arg, level + 1, maxLevels)}
                 </div>
               ))}
             </div>
@@ -156,6 +194,9 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
 
     return <div className={styles.structureNode} style={{ marginLeft: `${level * 16}px` }}>Unknown: {JSON.stringify(structure)}</div>
   }
+
+  const [showAdvancedStructure, setShowAdvancedStructure] = React.useState(false)
+  const [showKeyReductions, setShowKeyReductions] = React.useState(false)
 
   return (
     <div className={styles.container}>
