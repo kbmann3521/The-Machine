@@ -211,43 +211,79 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
         </div>
       )}
 
-      {/* Phase 5: How This Was Calculated (Explainability) */}
+      {/* Phase 5: Expression Structure & Reduction (Explainability) */}
       {result.diagnostics?.phase5 && (
         <div className={styles.phase5Block}>
           <button
             className={styles.phase5Toggle}
             onClick={() => setShowPhase5(!showPhase5)}
           >
-            <span className={styles.phase5Label}>How This Was Calculated</span>
+            <span className={styles.phase5Label}>Expression Structure</span>
             <span className={styles.toggleIcon}>{showPhase5 ? '▼' : '▶'}</span>
           </button>
 
           {showPhase5 && (
             <div className={styles.phase5Content}>
-              {/* Evaluation Summary */}
-              <div className={styles.phase5Section}>
-                <h4 className={styles.phase5SectionTitle}>Evaluation Summary</h4>
-                <p className={styles.phase5SectionText}>
-                  {result.diagnostics.phase5.evaluationSummary}
-                </p>
-              </div>
-
-              {/* Step-by-Step Breakdown */}
-              {result.diagnostics.phase5.evaluationTrace && result.diagnostics.phase5.evaluationTrace.length > 0 && (
+              {/* Expression Structure */}
+              {result.diagnostics.phase5.structure && (
                 <div className={styles.phase5Section}>
-                  <h4 className={styles.phase5SectionTitle}>Step-by-Step Breakdown</h4>
-                  <div className={styles.phase5Steps}>
-                    {result.diagnostics.phase5.evaluationTrace.map((step, idx) => (
-                      <div key={idx} className={styles.phase5Step}>
-                        <span className={styles.phase5StepNumber}>Step {step.step}:</span>
-                        <span className={styles.phase5StepText}>{step.description}</span>
+                  <h4 className={styles.phase5SectionTitle}>Structure</h4>
+                  <div className={styles.phase5Structure}>
+                    {renderStructureTree(result.diagnostics.phase5.structure)}
+                  </div>
+                </div>
+              )}
+
+              {/* Key Reductions (only if artifacts detected) */}
+              {result.diagnostics.phase5.reductions && result.diagnostics.phase5.reductions.length > 0 && (
+                <div className={styles.phase5Section}>
+                  <h4 className={styles.phase5SectionTitle}>Key Reductions</h4>
+                  <div className={styles.phase5Reductions}>
+                    {result.diagnostics.phase5.reductions.map((reduction, idx) => (
+                      <div key={idx} className={styles.phase5Reduction}>
+                        <code className={styles.reductionExpression}>{reduction.expression}</code>
+                        <span className={styles.reductionArrow}>→</span>
+                        <code className={styles.reductionResult}>{reduction.result}</code>
+                        {reduction.note && (
+                          <div className={styles.reductionNote}>
+                            <span className={styles.reductionNoteIcon}>⚠</span>
+                            {reduction.note}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Precision & Artifact Explanation (Conditional) */}
+              {/* Summary */}
+              {result.diagnostics.phase5.summary && (
+                <div className={styles.phase5Section}>
+                  <h4 className={styles.phase5SectionTitle}>Summary</h4>
+                  <ul className={styles.phase5SummaryList}>
+                    <li>
+                      <span className={styles.summaryKey}>Shape:</span>
+                      <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.shape}</span>
+                    </li>
+                    <li>
+                      <span className={styles.summaryKey}>Nesting Depth:</span>
+                      <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.nestingDepth}</span>
+                    </li>
+                    <li>
+                      <span className={styles.summaryKey}>Operations:</span>
+                      <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.operationCount}</span>
+                    </li>
+                    {result.diagnostics.phase5.summary.functions.length > 0 && (
+                      <li>
+                        <span className={styles.summaryKey}>Functions:</span>
+                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.functions.join(', ')}</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {/* Important Notes (Warnings) */}
               {result.diagnostics?.warnings && result.diagnostics.warnings.length > 0 && (
                 <div className={styles.phase5Section}>
                   <h4 className={styles.phase5SectionTitle}>Important Notes</h4>
