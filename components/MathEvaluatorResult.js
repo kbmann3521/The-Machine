@@ -48,7 +48,7 @@ export default function MathEvaluatorResult({ result, expression }) {
   // Get human-friendly mode name
   const getModeName = (mode) => {
     if (mode === 'float') return 'Standard (Floating-Point)'
-    if (mode === 'bignumber') return 'High Precision (Exact Decimals)'
+    if (mode === 'bignumber') return 'High Precision (Exact Decimal / BigNumber)'
     return mode
   }
 
