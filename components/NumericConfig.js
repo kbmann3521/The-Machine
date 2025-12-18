@@ -53,20 +53,20 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
       {isExpanded && (
         <div className={styles.panel}>
           <div className={styles.controlGroup}>
-            <label htmlFor="numeric-mode">Mode</label>
+            <label htmlFor="numeric-mode">Numeric Mode</label>
             <select
               id="numeric-mode"
               value={config.mode}
               onChange={handleModeChange}
               className={styles.select}
             >
-              <option value="float">Float (Fast)</option>
-              <option value="big">Big Number (Exact)</option>
+              <option value="float">● Standard (Fast, JS float)</option>
+              <option value="bignumber">○ High Precision (Exact decimals)</option>
             </select>
             <span className={styles.hint}>
               {config.mode === 'float'
-                ? 'Uses native JavaScript numbers (IEEE-754)'
-                : 'Uses arbitrary precision arithmetic'}
+                ? 'Uses native JavaScript numbers (IEEE-754, ±15 significant digits)'
+                : 'Uses arbitrary precision arithmetic for exact decimal calculations'}
             </span>
           </div>
 
