@@ -1,6 +1,6 @@
 # Phase 3: Precision & Numeric Control — LOCKED SPECIFICATION
 
-**Status**: ✅ FROZEN (December 18, 2025 — Option A: Config-Driven Rounding Tests + ** Unsupported Documentation)
+**Status**: ✅ FROZEN (December 18, 2025 — FINAL: Semantic Refinement: result = raw | formattedResult = presentation)
 
 This document locks the Phase 3 numeric control specification. These decisions are stable and will not be revisited without major version change.
 
