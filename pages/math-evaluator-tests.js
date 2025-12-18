@@ -299,7 +299,7 @@ export default function MathEvaluatorTests() {
       <div className={styles.header}>
         <h1 className={styles.title}>Math Expression Evaluator — Test Harness</h1>
         <p className={styles.subtitle}>
-          Comprehensive test suite for Phase 1, Phase 2, and Phase 3. {results.length} test cases total.
+          Comprehensive test suite for Phase 1–4. {results.length} test cases total (Phase 4: Numeric Control & Precision).
         </p>
       </div>
 
