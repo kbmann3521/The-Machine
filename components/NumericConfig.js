@@ -123,13 +123,16 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
               onChange={handleNotationChange}
               className={styles.select}
             >
-              <option value="auto">Automatic</option>
-              <option value="scientific">Scientific</option>
+              <option value="auto">● Auto (Standard for typical, Scientific for extreme)</option>
+              <option value="standard">○ Standard (Full decimal expansion)</option>
+              <option value="scientific">○ Scientific (1.23e+6, 4.56e-7)</option>
             </select>
             <span className={styles.hint}>
               {config.notation === 'auto'
-                ? 'Standard notation for normal ranges'
-                : 'Scientific notation for large/small numbers'}
+                ? 'Smart: Use standard for normal ranges, scientific for very large/small'
+                : config.notation === 'standard'
+                ? 'Always show decimal notation (e.g., 1000000)'
+                : 'Always show exponential notation (e.g., 1e+6)'}
             </span>
           </div>
         </div>
