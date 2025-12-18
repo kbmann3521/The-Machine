@@ -163,6 +163,26 @@ export default function MathEvaluatorResult({ result, expression }) {
           {showDetails && (
             <div className={styles.detailsContent}>
               <ul className={styles.detailsList}>
+                {result.result !== undefined && (
+                  <li>
+                    <span className={styles.detailKey}>Raw Result:</span>
+                    <span className={styles.detailValue}>
+                      {typeof result.result === 'string' ? result.result : String(result.result)}
+                    </span>
+                  </li>
+                )}
+                <li>
+                  <span className={styles.detailKey}>Numeric Mode:</span>
+                  <span className={styles.detailValue}>{getModeName(numericConfig?.mode)}</span>
+                </li>
+                <li>
+                  <span className={styles.detailKey}>Precision Applied:</span>
+                  <span className={styles.detailValue}>{getPrecisionDisplay(numericConfig)}</span>
+                </li>
+                <li>
+                  <span className={styles.detailKey}>Rounding Rule:</span>
+                  <span className={styles.detailValue}>{getRoundingDisplay(numericConfig?.rounding)}</span>
+                </li>
                 <li>
                   <span className={styles.detailKey}>Functions Used:</span>
                   <span className={styles.detailValue}>
