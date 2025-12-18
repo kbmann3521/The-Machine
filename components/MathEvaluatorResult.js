@@ -108,9 +108,9 @@ export default function MathEvaluatorResult({ result, expression }) {
         <div className={styles.resultBlock}>
           <div className={styles.blockLabel}>Result</div>
           <div className={styles.resultValue}>{result.formattedResult}</div>
-          {result.result && result.result !== result.formattedResult && (
+          {getRoundingNote() && (
             <div className={styles.roundingNote}>
-              Formatted for display (see Raw Result below)
+              {getRoundingNote()}
             </div>
           )}
         </div>
