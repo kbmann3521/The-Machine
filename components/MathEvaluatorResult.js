@@ -103,7 +103,7 @@ export default function MathEvaluatorResult({ result, expression }) {
 
   return (
     <div className={styles.container}>
-      {/* 1. Primary Result - formattedResult is the user's answer */}
+      {/* 1. Primary Result - formattedResult is the user's answer (only show if no error) */}
       {result.formattedResult !== undefined && !status.error && (
         <div className={styles.resultBlock}>
           <div className={styles.blockLabel}>Result</div>
@@ -116,13 +116,15 @@ export default function MathEvaluatorResult({ result, expression }) {
         </div>
       )}
 
-      {/* 2. Expression Summary */}
-      <div className={styles.expressionBlock}>
-        <div className={styles.blockLabel}>Evaluated Expression</div>
-        <code className={styles.expressionValue}>{expression}</code>
-      </div>
+      {/* 2. Expression Summary - always show */}
+      {expression && (
+        <div className={styles.expressionBlock}>
+          <div className={styles.blockLabel}>Evaluated Expression</div>
+          <code className={styles.expressionValue}>{expression}</code>
+        </div>
+      )}
 
-      {/* 3. Status & Warnings */}
+      {/* 3. Status & Warnings - always show */}
       <div className={`${styles.statusBlock} ${styles[`status-${status.type}`]}`}>
         <div className={styles.blockLabel}>Status</div>
         <div className={styles.statusContent}>
@@ -141,70 +143,72 @@ export default function MathEvaluatorResult({ result, expression }) {
         )}
       </div>
 
-      {/* 4. Calculation Details (Always Visible) */}
-      <div className={styles.detailsBlock}>
-        <div className={styles.detailsLabel}>Calculation Details</div>
-        <ul className={styles.detailsList}>
-          {result.result !== undefined && (
-            <li>
-              <span className={styles.detailKey}>Raw Result:</span>
-              <span className={styles.detailValue}>
-                {typeof result.result === 'string' ? result.result : String(result.result)}
-              </span>
-            </li>
-          )}
-          {numericConfig?.mode && (
-            <li>
-              <span className={styles.detailKey}>Numeric Mode:</span>
-              <span className={styles.detailValue}>{getModeName(numericConfig.mode)}</span>
-            </li>
-          )}
-          {numericConfig && (
-            <li>
-              <span className={styles.detailKey}>Precision Applied:</span>
-              <span className={styles.detailValue}>{getPrecisionDisplay(numericConfig)}</span>
-            </li>
-          )}
-          {numericConfig?.rounding && (
-            <li>
-              <span className={styles.detailKey}>Rounding Rule:</span>
-              <span className={styles.detailValue}>{getRoundingDisplay(numericConfig.rounding)}</span>
-            </li>
-          )}
-          {result.diagnostics?.functionsUsed?.length > 0 && (
-            <li>
-              <span className={styles.detailKey}>Functions Used:</span>
-              <span className={styles.detailValue}>
-                {result.diagnostics.functionsUsed.join(', ')}
-              </span>
-            </li>
-          )}
-          {result.diagnostics?.variables?.length > 0 && (
-            <li>
-              <span className={styles.detailKey}>Variables Detected:</span>
-              <span className={styles.detailValue}>
-                {result.diagnostics.variables.join(', ')}
-              </span>
-            </li>
-          )}
-          {complexity?.nodes !== undefined && (
-            <li>
-              <span className={styles.detailKey}>Expression Size:</span>
-              <span className={styles.detailValue}>
-                {complexity.nodes} operation{complexity.nodes === 1 ? '' : 's'}
-              </span>
-            </li>
-          )}
-          {complexity?.depth !== undefined && (
-            <li>
-              <span className={styles.detailKey}>Nesting Depth:</span>
-              <span className={styles.detailValue}>
-                {complexity.depth} level{complexity.depth === 1 ? '' : 's'}
-              </span>
-            </li>
-          )}
-        </ul>
-      </div>
+      {/* 4. Calculation Details (show if we have any diagnostic data) */}
+      {(result.result !== undefined || numericConfig || result.diagnostics?.functionsUsed?.length > 0 || result.diagnostics?.variables?.length > 0 || complexity) && (
+        <div className={styles.detailsBlock}>
+          <div className={styles.detailsLabel}>Calculation Details</div>
+          <ul className={styles.detailsList}>
+            {result.result !== undefined && (
+              <li>
+                <span className={styles.detailKey}>Raw Result:</span>
+                <span className={styles.detailValue}>
+                  {typeof result.result === 'string' ? result.result : String(result.result)}
+                </span>
+              </li>
+            )}
+            {numericConfig?.mode && (
+              <li>
+                <span className={styles.detailKey}>Numeric Mode:</span>
+                <span className={styles.detailValue}>{getModeName(numericConfig.mode)}</span>
+              </li>
+            )}
+            {numericConfig && (
+              <li>
+                <span className={styles.detailKey}>Precision Applied:</span>
+                <span className={styles.detailValue}>{getPrecisionDisplay(numericConfig)}</span>
+              </li>
+            )}
+            {numericConfig?.rounding && (
+              <li>
+                <span className={styles.detailKey}>Rounding Rule:</span>
+                <span className={styles.detailValue}>{getRoundingDisplay(numericConfig.rounding)}</span>
+              </li>
+            )}
+            {result.diagnostics?.functionsUsed?.length > 0 && (
+              <li>
+                <span className={styles.detailKey}>Functions Used:</span>
+                <span className={styles.detailValue}>
+                  {result.diagnostics.functionsUsed.join(', ')}
+                </span>
+              </li>
+            )}
+            {result.diagnostics?.variables?.length > 0 && (
+              <li>
+                <span className={styles.detailKey}>Variables Detected:</span>
+                <span className={styles.detailValue}>
+                  {result.diagnostics.variables.join(', ')}
+                </span>
+              </li>
+            )}
+            {complexity?.nodes !== undefined && (
+              <li>
+                <span className={styles.detailKey}>Expression Size:</span>
+                <span className={styles.detailValue}>
+                  {complexity.nodes} operation{complexity.nodes === 1 ? '' : 's'}
+                </span>
+              </li>
+            )}
+            {complexity?.depth !== undefined && (
+              <li>
+                <span className={styles.detailKey}>Nesting Depth:</span>
+                <span className={styles.detailValue}>
+                  {complexity.depth} level{complexity.depth === 1 ? '' : 's'}
+                </span>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
 
     </div>
   )
