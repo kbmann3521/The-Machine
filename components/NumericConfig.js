@@ -79,13 +79,13 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
               max="20"
               value={config.precision === null ? '' : config.precision}
               onChange={handlePrecisionChange}
-              placeholder="No limit"
+              placeholder="Auto (no rounding)"
               className={styles.input}
             />
             <span className={styles.hint}>
               {config.precision === null
-                ? 'Full precision output'
-                : `Round to ${config.precision} decimal place${config.precision === 1 ? '' : 's'}`}
+                ? 'Auto: Display full precision without rounding'
+                : `Display: Round to ${config.precision} decimal place${config.precision === 1 ? '' : 's'} (formattedResult only)`}
             </span>
           </div>
 
