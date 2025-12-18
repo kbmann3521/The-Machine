@@ -100,7 +100,7 @@ export default function MathEvaluatorResult({ result, expression }) {
 
       {/* 2. Expression Summary */}
       <div className={styles.expressionBlock}>
-        <div className={styles.blockLabel}>Expression</div>
+        <div className={styles.blockLabel}>Evaluated Expression</div>
         <code className={styles.expressionValue}>{expression}</code>
       </div>
 
