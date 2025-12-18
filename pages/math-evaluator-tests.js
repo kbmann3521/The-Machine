@@ -418,7 +418,7 @@ export default function MathEvaluatorTests() {
                         <div className={styles.numericMetadata}>
                           <strong>Numeric Control:</strong>
                           <ul>
-                            <li>Mode: <code>{testResult.result.diagnostics.numeric.mode}</code></li>
+                            <li>Mode: <code>{getModeName(testResult.result.diagnostics.numeric.mode)}</code></li>
                             {testResult.result.diagnostics.numeric.precision !== null && (
                               <li>Precision: <code>{testResult.result.diagnostics.numeric.precision}</code> decimal places</li>
                             )}
