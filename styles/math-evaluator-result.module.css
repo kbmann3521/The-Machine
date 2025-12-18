@@ -492,6 +492,104 @@
   color: #2196f3;
 }
 
+/* Phase 5: Level 1 - Human-Friendly Summary (Always Visible) */
+.phase5SummaryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 12px 0;
+  border-bottom: 1px solid rgba(33, 150, 243, 0.2);
+}
+
+.phase5HumanExplanation {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.explanationLine {
+  color: var(--color-text-primary);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 4px 0;
+}
+
+/* Phase 5: Level 2 - Key Reductions (Expandable) */
+.phase5ExpandableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(33, 150, 243, 0.15);
+}
+
+.phase5ExpandToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff9800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+  text-align: left;
+}
+
+.phase5ExpandToggle:hover {
+  color: #f57c00;
+}
+
+.expandLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Phase 5: Level 3 - Advanced Structure (Hidden by Default) */
+.phase5AdvancedSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 0 0;
+}
+
+.phase5AdvancedToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+  text-align: left;
+}
+
+.phase5AdvancedToggle:hover {
+  color: var(--color-text-primary);
+}
+
+.advancedLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .resultValue {
