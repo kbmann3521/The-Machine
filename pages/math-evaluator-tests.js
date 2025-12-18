@@ -142,6 +142,11 @@ export default function MathEvaluatorTests() {
     })
   }, [numericConfig])
 
+  // Check if any result has float artifacts detected
+  const hasFloatArtifacts = results.some(r =>
+    r.result.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))
+  )
+
   // Group by category
   const grouped = useMemo(() => {
     const groups = {}
