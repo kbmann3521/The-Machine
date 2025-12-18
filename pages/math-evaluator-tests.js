@@ -332,6 +332,12 @@ export default function MathEvaluatorTests() {
     return parts.join(' · ')
   }
 
+  const getModeName = (mode) => {
+    if (mode === 'float') return 'Standard (Fast, JS Float)'
+    if (mode === 'bignumber') return 'High Precision (Exact Decimal Math)'
+    return mode
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
