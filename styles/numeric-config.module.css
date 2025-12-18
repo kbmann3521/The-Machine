@@ -141,6 +141,20 @@
     border-color: var(--border-color, #333);
   }
 
+  .suggestion {
+    background: #3d3200;
+    border-color: var(--border-color, #444);
+    color: var(--text-color, #e0e0e0);
+  }
+
+  .suggestionLink {
+    color: var(--primary-color, #6fa3ff);
+  }
+
+  .suggestionLink:hover {
+    color: var(--primary-bright, #8bb9ff);
+  }
+
   .header {
     background: var(--surface-secondary, #2a2a2a);
     border-color: var(--border-color, #333);
