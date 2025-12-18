@@ -327,8 +327,8 @@ export default function MathEvaluatorTests() {
 
       <div className={styles.footer}>
         <p>
-          Test harness for Math Expression Evaluator (Phase 1 and Phase 2).
-          Click any test to expand and view detailed JSON output with diagnostics.
+          Test harness for Math Expression Evaluator (Phase 1–4: Arithmetic, Functions, Numeric Control).
+          Adjust numeric settings above to control precision, rounding, and notation. Click any test to expand and view detailed results with diagnostics.
         </p>
       </div>
     </div>
