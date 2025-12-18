@@ -1,7 +1,8 @@
 import React from 'react'
 import styles from '../styles/math-evaluator-result.module.css'
 
-export default function MathEvaluatorResult({ result, expression }) {
+export default function MathEvaluatorResult({ result, expression, showPhase5ByDefault = false }) {
+  const [showPhase5, setShowPhase5] = React.useState(showPhase5ByDefault)
   if (!result) {
     return null
   }
