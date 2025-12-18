@@ -114,6 +114,17 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
       return <div className={styles.structureNode} style={{ marginLeft: `${level * 16}px` }}>Variable: <code>{structure.name}</code></div>
     }
 
+    if (structure.type === 'unary') {
+      return (
+        <div style={{ marginLeft: `${level * 16}px` }}>
+          <div className={styles.structureNode}>Unary {structure.operator}</div>
+          <div style={{ marginLeft: '16px' }}>
+            {renderStructureTree(structure.argument, level + 1)}
+          </div>
+        </div>
+      )
+    }
+
     if (structure.type === 'binary') {
       return (
         <div style={{ marginLeft: `${level * 16}px` }}>
