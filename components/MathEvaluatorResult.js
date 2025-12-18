@@ -87,14 +87,14 @@ export default function MathEvaluatorResult({ result, expression }) {
 
   return (
     <div className={styles.container}>
-      {/* 1. Primary Result */}
-      {result.result !== undefined && !status.error && (
+      {/* 1. Primary Result - formattedResult is the user's answer */}
+      {result.formattedResult !== undefined && !status.error && (
         <div className={styles.resultBlock}>
           <div className={styles.blockLabel}>Result</div>
-          <div className={styles.resultValue}>{result.result}</div>
-          {result.formattedResult && result.formattedResult !== result.result && (
+          <div className={styles.resultValue}>{result.formattedResult}</div>
+          {result.result && result.result !== result.formattedResult && (
             <div className={styles.roundingNote}>
-              Rounded to {numericConfig?.precision} decimal place{numericConfig?.precision === 1 ? '' : 's'}
+              Formatted for display (see Raw Result below)
             </div>
           )}
         </div>
