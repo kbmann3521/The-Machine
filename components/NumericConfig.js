@@ -56,7 +56,7 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
           <span className={styles.hint}>
             {config.mode === 'float'
               ? 'Uses native JavaScript numbers (IEEE-754, ±15 significant digits)'
-              : 'Uses arbitrary-precision decimal math. Eliminates floating-point rounding errors. Slower, but numerically exact.'}
+              : 'Uses arbitrary-precision decimal math (BigNumber). Avoids floating-point rounding errors (e.g., 0.1 + 0.2 = 0.3). Slower, but numerically exact.'}
           </span>
         </div>
 
