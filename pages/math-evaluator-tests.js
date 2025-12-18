@@ -255,6 +255,7 @@ export default function MathEvaluatorTests() {
   }
 
   const handleCopyAll = async () => {
+    if (!results) return
     const allResults = results.map(r => ({
       input: r.input,
       description: r.description,
