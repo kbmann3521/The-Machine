@@ -328,10 +328,10 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
                         <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.nestingDepth}</span>
                       </li>
                     )}
-                    {result.diagnostics.phase5.summary.nodeCount !== undefined && (
+                    {result.diagnostics.phase5.summary.structureNodeCount !== undefined && (
                       <li>
-                        <span className={styles.summaryKey}>Node Count:</span>
-                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.nodeCount}</span>
+                        <span className={styles.summaryKey}>Structure Nodes:</span>
+                        <span className={styles.summaryValue}>{result.diagnostics.phase5.summary.structureNodeCount}</span>
                       </li>
                     )}
                     {result.diagnostics.phase5.summary.functions && result.diagnostics.phase5.summary.functions.length > 0 && (
