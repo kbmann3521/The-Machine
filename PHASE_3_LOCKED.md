@@ -26,6 +26,51 @@ This document locks the Phase 3 numeric control specification. These decisions a
 
 ---
 
+### 1️⃣.5 The Semantic Invariant: result vs formattedResult (CRITICAL)
+
+This is the most important architectural decision of Phase 3.
+
+**The Contract (Immutable)**:
+
+```javascript
+// Raw evaluation result (never modified)
+"result": 2.5,
+
+// Presentation layer (precision/rounding/notation applied)
+"formattedResult": 3,
+
+// Metadata indicating transformation occurred
+"numeric": {
+  "precisionRounded": true
+}
+```
+
+**Why This Is Non-Negotiable**:
+
+1. **Lossless Evaluation**: If BigNumber mode, Decimal mode, or Rational mode is added, `result` remains the exact value
+2. **Reversible Precision**: Changing precision doesn't require re-evaluation — just reformat `result`
+3. **Export Integrity**: APIs can export `result` knowing it's numerically exact
+4. **User Inspection**: Users can always see the true computed value, not the formatted presentation
+5. **Comparison Operators**: Future phase can compare `result` values directly without formatting interference
+
+**The Transformation Pipeline**:
+
+```
+finalResult (raw) → result (immutable)
+                 → apply precision/rounding → formattedResult
+                 → apply notation → formattedResult
+```
+
+**What This Means**:
+- `result` is set once from evaluation, never modified
+- `formattedResult` receives all presentation transforms
+- `numeric.precisionRounded` indicates whether formatting altered the display
+- Changing UI config changes `formattedResult`, not `result`
+
+**Lock Decision**: This separation is PERMANENT. Every future numeric mode and export feature depends on this invariant.
+
+---
+
 ### 2️⃣ Numeric Metadata Schema (IMMUTABLE)
 
 All diagnostic blocks MUST include:
