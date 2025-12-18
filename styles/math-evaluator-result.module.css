@@ -173,9 +173,9 @@
   flex-direction: column;
   gap: 0;
   padding: 0;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  overflow: hidden;
+  border-radius: 0;
+  border: none;
+  overflow: visible;
 }
 
 .detailsToggle {
@@ -183,37 +183,38 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 14px 16px;
-  background: #f9fafb;
+  padding: 8px 0;
+  background: transparent;
   border: none;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: #1f2937;
-  transition: background-color 0.2s;
+  color: var(--color-text-secondary);
+  transition: color 0.2s;
 }
 
 .detailsToggle:hover {
-  background: #f3f4f6;
+  background: transparent;
+  color: var(--color-text-primary);
 }
 
 .detailsLabel {
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #6b7280;
-  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
 }
 
 .toggleIcon {
-  font-size: 12px;
-  color: #9ca3af;
+  font-size: 11px;
+  color: var(--color-text-secondary);
 }
 
 .detailsContent {
-  padding: 16px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 0;
+  background: transparent;
+  border-bottom: none;
 }
 
 .detailsList {
@@ -222,81 +223,29 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .detailsList li {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 6px 0;
-  font-size: 14px;
+  padding: 3px 0;
+  font-size: 12px;
 }
 
 .detailKey {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .detailValue {
-  color: #1f2937;
+  color: var(--color-text-primary);
   font-weight: 600;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  margin-left: 12px;
+  margin-left: 8px;
   text-align: right;
   flex: 0 0 auto;
-}
-
-/* JSON Block */
-.jsonBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  overflow: hidden;
-}
-
-.jsonToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 14px 16px;
-  background: #f9fafb;
-  border: none;
-  border-bottom: 1px solid #e5e7eb;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-  transition: background-color 0.2s;
-}
-
-.jsonToggle:hover {
-  background: #f3f4f6;
-}
-
-.jsonLabel {
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #6b7280;
-  font-size: 13px;
-}
-
-.json {
-  padding: 16px;
-  background: #1f2937;
-  color: #e5e7eb;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  overflow-x: auto;
-  margin: 0;
-  border-top: 1px solid #e5e7eb;
-  max-height: 400px;
-  overflow-y: auto;
 }
 
 /* Responsive */
