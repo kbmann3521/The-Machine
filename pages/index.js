@@ -482,7 +482,12 @@ export default function Home() {
         // Special handling for various tools with their own configs
         let finalConfig = config
 
-        if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
+        if (tool.toolId === 'math-evaluator') {
+          finalConfig = {
+            ...config,
+            ...numericConfig,
+          }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
           finalConfig = {
             ...config,
             findText: findReplaceConfig.findText || '',
