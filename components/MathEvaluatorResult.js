@@ -197,21 +197,6 @@ export default function MathEvaluatorResult({ result, expression }) {
         </div>
       )}
 
-      {/* JSON Tab (Developer Mode) */}
-      <div className={styles.jsonBlock}>
-        <button
-          className={styles.jsonToggle}
-          onClick={() => setShowJson(!showJson)}
-        >
-          <span className={styles.jsonLabel}>JSON (Developer)</span>
-          <span className={styles.toggleIcon}>{showJson ? '▼' : '▶'}</span>
-        </button>
-        {showJson && (
-          <pre className={styles.json}>
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        )}
-      </div>
     </div>
   )
 }
