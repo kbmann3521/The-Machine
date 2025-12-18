@@ -236,11 +236,28 @@ Test cases are **semantically accurate**:
 
 ---
 
+## Deferred to Phase 4+ (Explicitly OUT of Phase 3 Scope)
+
+These refinements are documented but NOT implemented:
+
+- ❌ Scientific notation formatting logic (schema exists, implementation deferred)
+- ❌ UX hint warnings for unsupported operators (e.g., "use pow() instead of **")
+- ❌ Source attribution field ("source": "engine-default")
+- ❌ BigNumber mode UI controls and toggles
+- ❌ Precision change UX workflows
+
+**Why deferred**: These are cosmetic, UX-level concerns. Phase 3 is engine-first, not UI-first. Adding them now risks scope creep without improving numeric correctness.
+
+---
+
 ## Sign-Off
 
 **Decision Owner**: Kyle Mann (@admin)
-**Implementation**: Phase 3 Core Numeric Contract
-**Locked**: 2025-12-17
-**Next Phase**: Phase 4 (Syntax Extensions)
+**Implementation**: Phase 3 Core Numeric Contract + Semantic Invariant
+**Locked**: 2025-12-18
+**Rationale**: Engine correctness verified. Raw vs formatted separation implemented. Schema hardened (NumericMode enum documented).
+**Next Phase**: Phase 4 (Syntax Extensions + UI Polish)
 
-This specification is FROZEN for 3+ phases. Do not modify without explicit approval.
+This specification is FROZEN. Phase 3 is COMPLETE.
+
+Do not modify without explicit approval.
