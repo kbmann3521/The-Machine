@@ -115,6 +115,78 @@ const TEST_CASES = [
   { category: 'Phase 3: Float Artifacts', input: '0.1 * 3', description: 'Multiplication precision' },
   { category: 'Phase 3: Float Artifacts', input: '0.3 / 0.1', description: 'Division precision' },
   { category: 'Phase 3: Float Artifacts', input: 'sqrt(2) ** 2', description: 'Square root square precision (** unsupported)' },
+
+  // Phase 4: Numeric Mode Selection
+  { category: 'Phase 4: Numeric Mode', input: '0.1 + 0.2', description: 'Float mode (IEEE-754)', numericConfig: { mode: 'float' } },
+  { category: 'Phase 4: Numeric Mode', input: '0.1 + 0.2', description: 'BigNumber mode (exact decimal)', numericConfig: { mode: 'bignumber' } },
+  { category: 'Phase 4: Numeric Mode', input: 'pow(2, 100)', description: 'Float mode large number', numericConfig: { mode: 'float' } },
+  { category: 'Phase 4: Numeric Mode', input: 'pow(2, 100)', description: 'BigNumber mode large number', numericConfig: { mode: 'bignumber' } },
+
+  // Phase 4: Decimal Precision Control
+  { category: 'Phase 4: Precision', input: '1.23456789', description: 'Auto (no precision)', numericConfig: { precision: null } },
+  { category: 'Phase 4: Precision', input: '1.23456789', description: '0 decimal places', numericConfig: { precision: 0 } },
+  { category: 'Phase 4: Precision', input: '1.23456789', description: '2 decimal places', numericConfig: { precision: 2 } },
+  { category: 'Phase 4: Precision', input: '1.23456789', description: '5 decimal places', numericConfig: { precision: 5 } },
+  { category: 'Phase 4: Precision', input: '3.141592653589793', description: 'Pi with 10 decimals', numericConfig: { precision: 10 } },
+  { category: 'Phase 4: Precision', input: '2.718281828459045', description: 'E with 8 decimals', numericConfig: { precision: 8 } },
+
+  // Phase 4: Rounding Modes - Half-Up (Traditional)
+  { category: 'Phase 4: Rounding (Half-Up)', input: '2.5', description: 'Round 2.5 (half-up)', numericConfig: { precision: 0, rounding: 'half-up' } },
+  { category: 'Phase 4: Rounding (Half-Up)', input: '3.5', description: 'Round 3.5 (half-up)', numericConfig: { precision: 0, rounding: 'half-up' } },
+  { category: 'Phase 4: Rounding (Half-Up)', input: '-2.5', description: 'Round -2.5 (half-up)', numericConfig: { precision: 0, rounding: 'half-up' } },
+  { category: 'Phase 4: Rounding (Half-Up)', input: '1.555', description: 'Round 1.555 to 2dp (half-up)', numericConfig: { precision: 2, rounding: 'half-up' } },
+
+  // Phase 4: Rounding Modes - Half-Even (Banker's)
+  { category: 'Phase 4: Rounding (Half-Even)', input: '2.5', description: 'Round 2.5 (half-even)', numericConfig: { precision: 0, rounding: 'half-even' } },
+  { category: 'Phase 4: Rounding (Half-Even)', input: '3.5', description: 'Round 3.5 (half-even)', numericConfig: { precision: 0, rounding: 'half-even' } },
+  { category: 'Phase 4: Rounding (Half-Even)', input: '4.5', description: 'Round 4.5 (half-even)', numericConfig: { precision: 0, rounding: 'half-even' } },
+  { category: 'Phase 4: Rounding (Half-Even)', input: '-2.5', description: 'Round -2.5 (half-even)', numericConfig: { precision: 0, rounding: 'half-even' } },
+
+  // Phase 4: Rounding Modes - Floor (Toward −∞)
+  { category: 'Phase 4: Rounding (Floor)', input: '2.5', description: 'Floor 2.5', numericConfig: { precision: 0, rounding: 'floor' } },
+  { category: 'Phase 4: Rounding (Floor)', input: '2.1', description: 'Floor 2.1', numericConfig: { precision: 0, rounding: 'floor' } },
+  { category: 'Phase 4: Rounding (Floor)', input: '-2.5', description: 'Floor -2.5', numericConfig: { precision: 0, rounding: 'floor' } },
+  { category: 'Phase 4: Rounding (Floor)', input: '3.99', description: 'Floor 3.99', numericConfig: { precision: 0, rounding: 'floor' } },
+
+  // Phase 4: Rounding Modes - Ceil (Toward +∞)
+  { category: 'Phase 4: Rounding (Ceil)', input: '2.1', description: 'Ceil 2.1', numericConfig: { precision: 0, rounding: 'ceil' } },
+  { category: 'Phase 4: Rounding (Ceil)', input: '2.5', description: 'Ceil 2.5', numericConfig: { precision: 0, rounding: 'ceil' } },
+  { category: 'Phase 4: Rounding (Ceil)', input: '-2.5', description: 'Ceil -2.5', numericConfig: { precision: 0, rounding: 'ceil' } },
+  { category: 'Phase 4: Rounding (Ceil)', input: '2.01', description: 'Ceil 2.01', numericConfig: { precision: 0, rounding: 'ceil' } },
+
+  // Phase 4: Notation - Auto (Smart)
+  { category: 'Phase 4: Notation (Auto)', input: '42', description: 'Small number (auto)', numericConfig: { notation: 'auto' } },
+  { category: 'Phase 4: Notation (Auto)', input: '1000000', description: 'Million (auto)', numericConfig: { notation: 'auto' } },
+  { category: 'Phase 4: Notation (Auto)', input: '0.00001', description: 'Very small (auto)', numericConfig: { notation: 'auto' } },
+  { category: 'Phase 4: Notation (Auto)', input: '123.456', description: 'Normal decimal (auto)', numericConfig: { notation: 'auto' } },
+
+  // Phase 4: Notation - Standard (Full decimal)
+  { category: 'Phase 4: Notation (Standard)', input: '1000000', description: 'Million (standard)', numericConfig: { notation: 'standard' } },
+  { category: 'Phase 4: Notation (Standard)', input: '0.0001', description: 'Small number (standard)', numericConfig: { notation: 'standard' } },
+  { category: 'Phase 4: Notation (Standard)', input: 'pow(10, 6)', description: '10^6 (standard)', numericConfig: { notation: 'standard' } },
+
+  // Phase 4: Notation - Scientific
+  { category: 'Phase 4: Notation (Scientific)', input: '1000', description: 'Thousand (scientific)', numericConfig: { notation: 'scientific' } },
+  { category: 'Phase 4: Notation (Scientific)', input: '0.00001', description: 'Small number (scientific)', numericConfig: { notation: 'scientific' } },
+  { category: 'Phase 4: Notation (Scientific)', input: 'pow(2, 20)', description: '2^20 (scientific)', numericConfig: { notation: 'scientific' } },
+
+  // Phase 4: Combined - Precision + Rounding + Notation
+  { category: 'Phase 4: Combined Config', input: '1.23456789', description: 'Precision 3dp + Half-Up', numericConfig: { precision: 3, rounding: 'half-up', notation: 'standard' } },
+  { category: 'Phase 4: Combined Config', input: '1.23456789', description: 'Precision 3dp + Half-Even', numericConfig: { precision: 3, rounding: 'half-even', notation: 'standard' } },
+  { category: 'Phase 4: Combined Config', input: '1000000', description: 'Large + Scientific notation', numericConfig: { precision: 2, notation: 'scientific' } },
+  { category: 'Phase 4: Combined Config', input: '0.00123456', description: 'Small + 4dp precision', numericConfig: { precision: 4, notation: 'standard' } },
+
+  // Phase 4: Float Artifacts Detection
+  { category: 'Phase 4: Artifacts & Detection', input: '0.1 + 0.2', description: 'Classic IEEE-754 artifact', numericConfig: { mode: 'float' } },
+  { category: 'Phase 4: Artifacts & Detection', input: '0.1 * 3', description: 'Multiplication artifact', numericConfig: { mode: 'float' } },
+  { category: 'Phase 4: Artifacts & Detection', input: '0.3 / 0.1', description: 'Division artifact', numericConfig: { mode: 'float' } },
+  { category: 'Phase 4: Artifacts & Detection', input: '0.1 + 0.2', description: 'BigNumber avoids artifact', numericConfig: { mode: 'bignumber' } },
+
+  // Phase 4: Edge Cases
+  { category: 'Phase 4: Edge Cases', input: '0', description: 'Zero with precision 5', numericConfig: { precision: 5 } },
+  { category: 'Phase 4: Edge Cases', input: '-0.5', description: 'Negative half with ceil', numericConfig: { precision: 0, rounding: 'ceil' } },
+  { category: 'Phase 4: Edge Cases', input: '999.9999', description: '999.9999 with floor', numericConfig: { precision: 2, rounding: 'floor' } },
+  { category: 'Phase 4: Edge Cases', input: 'pi', description: 'Pi with 15 decimals', numericConfig: { precision: 15 } },
 ]
 
 export default function MathEvaluatorTests() {
