@@ -250,13 +250,8 @@
 
 /* Responsive */
 @media (max-width: 640px) {
-  .container {
-    padding: 16px;
-    gap: 16px;
-  }
-
   .resultValue {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .settingsList li,
