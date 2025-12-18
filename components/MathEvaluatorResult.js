@@ -106,21 +106,31 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
   const generateHumanExplanation = (phase5) => {
     if (!phase5) return null
 
-    const { summary, reductions } = phase5
+    const { metadata, summary, reductions } = phase5
     const explanation = []
 
-    // Standard arithmetic evaluation
+    // Explicit evaluation model (always standard-precedence in this implementation)
     explanation.push('• Evaluated using standard operator precedence')
 
-    // Parentheses handling
-    if (summary?.nestingDepth > 1) {
-      explanation.push('• Parentheses and nested operations were resolved first')
+    // Parentheses handling - use explicit metadata instead of inferring from tree
+    if (metadata?.hasParentheses) {
+      explanation.push('• Parentheses were resolved first')
     }
 
-    // Functions used
-    if (summary?.functions && summary.functions.length > 0) {
+    // Associativity note - use explicit metadata
+    if (metadata?.associativity === 'left') {
+      explanation.push('• Operators of equal precedence evaluated left-to-right')
+    }
+
+    // Functions used - use explicit metadata instead of inferring
+    if (metadata?.hasFunctions && summary?.functions && summary.functions.length > 0) {
       const funcList = summary.functions.join(', ')
       explanation.push(`• Function${summary.functions.length > 1 ? 's' : ''} applied: ${funcList}`)
+    }
+
+    // Repeated subexpressions note - use explicit metadata
+    if (metadata?.repeatedSubexpressions) {
+      explanation.push('• Repeated sub-expressions were evaluated independently (no memoization)')
     }
 
     // Float precision note
@@ -130,9 +140,6 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
         explanation.push('• Floating-point precision effects detected (see details below)')
       }
     }
-
-    // Final resolution
-    explanation.push('• All sub-expressions evaluated independently, combined into final result')
 
     return explanation
   }
