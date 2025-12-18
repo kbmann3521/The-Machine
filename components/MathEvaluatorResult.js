@@ -102,6 +102,50 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
   const numericConfig = result.diagnostics?.numeric
   const complexity = result.diagnostics?.complexity
 
+  // Helper to render the expression structure tree
+  const renderStructureTree = (structure, level = 0) => {
+    if (!structure) return null
+
+    if (structure.type === 'literal') {
+      return <div className={styles.structureNode} style={{ marginLeft: `${level * 16}px` }}>Literal: <code>{structure.value}</code></div>
+    }
+
+    if (structure.type === 'variable') {
+      return <div className={styles.structureNode} style={{ marginLeft: `${level * 16}px` }}>Variable: <code>{structure.name}</code></div>
+    }
+
+    if (structure.type === 'binary') {
+      return (
+        <div style={{ marginLeft: `${level * 16}px` }}>
+          <div className={styles.structureNode}>Binary {structure.operator}</div>
+          <div style={{ marginLeft: '16px' }}>
+            {renderStructureTree(structure.left, level + 1)}
+            {renderStructureTree(structure.right, level + 1)}
+          </div>
+        </div>
+      )
+    }
+
+    if (structure.type === 'function') {
+      return (
+        <div style={{ marginLeft: `${level * 16}px` }}>
+          <div className={styles.structureNode}>Function: <code>{structure.name}()</code></div>
+          {structure.arguments && structure.arguments.length > 0 && (
+            <div style={{ marginLeft: '16px' }}>
+              {structure.arguments.map((arg, idx) => (
+                <div key={idx}>
+                  {renderStructureTree(arg, level + 1)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    return <div className={styles.structureNode} style={{ marginLeft: `${level * 16}px` }}>Unknown: {JSON.stringify(structure)}</div>
+  }
+
   return (
     <div className={styles.container}>
       {/* 1. Primary Result - formattedResult is the user's answer (only show if no error) */}
