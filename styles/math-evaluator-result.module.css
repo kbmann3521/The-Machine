@@ -1,7 +1,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   padding: 0;
   background: transparent;
   border-radius: 0;
@@ -10,12 +10,13 @@
 
 /* Block Label */
 .blockLabel {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   color: var(--color-text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  padding: 0 4px;
 }
 
 /* 1. Primary Result Block */
@@ -23,19 +24,23 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
 }
 
 .resultValue {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--color-text-primary);
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: 'Courier New', monospace;
   word-break: break-all;
   line-height: 1.4;
 }
 
 .roundingNote {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--color-text-secondary);
   font-style: italic;
   margin-top: 4px;
@@ -46,15 +51,22 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 0;
 }
 
 .expressionValue {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--color-text-primary);
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: 'Courier New', monospace;
   word-break: break-all;
   line-height: 1.5;
-  padding: 0;
+  padding: 6px 8px;
+  background-color: var(--color-background-primary);
+  border-radius: 3px;
+  border: 1px solid var(--color-border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 100px;
 }
 
 /* 3. Status Block */
@@ -62,24 +74,31 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
 }
 
 .statusBlock.status-success {
-  background: transparent;
+  background-color: var(--color-background-tertiary);
+  border-color: var(--color-border);
 }
 
 .statusBlock.status-warning {
-  background: transparent;
+  background-color: var(--color-background-tertiary);
+  border-color: var(--color-border);
 }
 
 .statusBlock.status-error {
-  background: transparent;
+  background-color: var(--color-background-tertiary);
+  border-color: var(--color-border);
 }
 
 .statusContent {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 8px;
 }
 
 .statusIcon {
@@ -90,21 +109,9 @@
 }
 
 .statusMessage {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--color-text-primary);
   line-height: 1.5;
-}
-
-.statusBlock.status-success .statusMessage {
-  color: var(--color-text-primary);
-}
-
-.statusBlock.status-warning .statusMessage {
-  color: var(--color-text-primary);
-}
-
-.statusBlock.status-error .statusMessage {
-  color: var(--color-text-primary);
 }
 
 .additionalWarnings {
@@ -112,7 +119,7 @@
   flex-direction: column;
   gap: 6px;
   padding-top: 8px;
-  border-top: none;
+  border-top: 1px solid var(--color-border);
   margin-top: 4px;
 }
 
@@ -120,13 +127,13 @@
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--color-text-secondary);
 }
 
 .warningIcon {
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 /* 4. Settings Block */
@@ -134,37 +141,47 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 0;
 }
 
 .settingsList {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
 }
 
 .settingsList li {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 4px 0;
-  font-size: 12px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  transition: border-color 0.2s ease;
+}
+
+.settingsList li:hover {
+  border-color: var(--color-text-primary);
 }
 
 .settingKey {
   color: var(--color-text-secondary);
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .settingValue {
   color: var(--color-text-primary);
   font-weight: 600;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  margin-left: 8px;
-  text-align: right;
-  flex: 0 0 auto;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  word-break: break-word;
 }
 
 /* 5. Details Block */
@@ -183,14 +200,16 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 8px 0;
+  padding: 8px 4px;
   background: transparent;
   border: none;
   border-bottom: none;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
   transition: color 0.2s;
 }
 
@@ -201,14 +220,19 @@
 
 .detailsLabel {
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .toggleIcon {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-secondary);
+  transition: color 0.2s;
+}
+
+.detailsToggle:hover .toggleIcon {
+  color: var(--color-text-primary);
 }
 
 .detailsContent {
@@ -221,48 +245,50 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
 }
 
 .detailsList li {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 3px 0;
-  font-size: 12px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  transition: border-color 0.2s ease;
+}
+
+.detailsList li:hover {
+  border-color: var(--color-text-primary);
 }
 
 .detailKey {
   color: var(--color-text-secondary);
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .detailValue {
   color: var(--color-text-primary);
   font-weight: 600;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  margin-left: 8px;
-  text-align: right;
-  flex: 0 0 auto;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  word-break: break-word;
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .settingsList,
+  .detailsList {
+    grid-template-columns: 1fr;
+  }
+
   .resultValue {
     font-size: 20px;
-  }
-
-  .settingsList li,
-  .detailsList li {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .settingValue,
-  .detailValue {
-    text-align: left;
-    margin-left: 0;
   }
 }
