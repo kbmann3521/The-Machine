@@ -290,6 +290,7 @@ export default function MathEvaluatorTests() {
   }
 
   const handleCopyPhase4 = async () => {
+    if (!results) return
     const phase4Results = results
       .filter(r => r.category.startsWith('Phase 4:'))
       .map(r => ({
