@@ -194,6 +194,8 @@ export default function MathEvaluatorTests() {
   const [expandedIndices, setExpandedIndices] = useState(new Set())
   const [copied, setCopied] = useState(false)
   const [copiedPhase4, setCopiedPhase4] = useState(false)
+  const [isRunning, setIsRunning] = useState(false)
+  const [results, setResults] = useState(null)
   const [numericConfig, setNumericConfig] = useState({
     precision: null,
     rounding: 'half-up',
@@ -201,28 +203,35 @@ export default function MathEvaluatorTests() {
     mode: 'float'
   })
 
-  // Run all tests with numeric config
-  // If a test case specifies its own numericConfig, merge it with UI config
-  const results = useMemo(() => {
-    return TEST_CASES.map((testCase, idx) => {
-      const effectiveConfig = testCase.numericConfig
-        ? { ...numericConfig, ...testCase.numericConfig }
-        : numericConfig
-      return {
-        ...testCase,
-        index: idx,
-        result: mathEvaluator(testCase.input, effectiveConfig),
-      }
-    })
-  }, [numericConfig])
+  // Handle running tests manually
+  const handleRunTests = () => {
+    setIsRunning(true)
+    setExpandedIndices(new Set())
 
-  // Check if any result has float artifacts detected
-  const hasFloatArtifacts = results.some(r =>
+    // Use setTimeout to let React update the UI before starting heavy computation
+    setTimeout(() => {
+      const testResults = TEST_CASES.map((testCase, idx) => {
+        const effectiveConfig = testCase.numericConfig
+          ? { ...numericConfig, ...testCase.numericConfig }
+          : numericConfig
+        return {
+          ...testCase,
+          index: idx,
+          result: mathEvaluator(testCase.input, effectiveConfig),
+        }
+      })
+      setResults(testResults)
+      setIsRunning(false)
+    }, 100)
+  }
+
+  // Compute results only if they exist
+  const hasFloatArtifacts = results?.some(r =>
     r.result.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))
-  )
+  ) || false
 
-  // Group by category
-  const grouped = useMemo(() => {
+  // Group by category (only if results exist)
+  const grouped = results ? (() => {
     const groups = {}
     results.forEach(r => {
       if (!groups[r.category]) {
@@ -231,7 +240,7 @@ export default function MathEvaluatorTests() {
       groups[r.category].push(r)
     })
     return groups
-  }, [results])
+  })() : {}
 
   const categories = Object.keys(grouped).sort()
 
