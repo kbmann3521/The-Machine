@@ -346,6 +346,9 @@ export default function MathEvaluatorTests() {
         <button className={styles.copyButton} onClick={handleCopyAll}>
           {copied ? '✓ Copied All Results!' : '📋 Copy All Results (JSON)'}
         </button>
+        <button className={styles.copyButton} onClick={handleCopyPhase4}>
+          {copiedPhase4 ? '✓ Copied Phase 4 Results!' : '📋 Copy Phase 4 Results (JSON)'}
+        </button>
         <span className={styles.stats}>
           ✅ Valid: {results.filter(r => r.result.result !== undefined && !r.result.error).length} |
           ⚠️ Warnings: {results.filter(r => r.result.diagnostics && r.result.diagnostics.warnings && r.result.diagnostics.warnings.length > 0).length} |
