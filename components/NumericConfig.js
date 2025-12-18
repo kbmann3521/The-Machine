@@ -51,7 +51,7 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
             className={styles.select}
           >
             <option value="float">● Standard (Fast, JS Float)</option>
-            <option value="bignumber">○ High Precision (Exact Decimal Math)</option>
+            <option value="bignumber">○ High Precision (Exact Decimal / BigNumber)</option>
           </select>
           <span className={styles.hint}>
             {config.mode === 'float'
