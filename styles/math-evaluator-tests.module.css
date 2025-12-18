@@ -183,13 +183,27 @@
 
 .resultSection {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
   padding: 12px;
   background: rgba(240, 147, 251, 0.1);
   border-left: 3px solid #f093fb;
   border-radius: 4px;
+}
+
+.resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.resultHeader > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .resultSection strong {
@@ -203,6 +217,19 @@
   padding: 4px 8px;
   border-radius: 3px;
   color: #aec7ff;
+}
+
+.formattingBadge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #f5576c;
+  background: rgba(245, 87, 108, 0.2);
+  padding: 4px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  cursor: help;
+  border: 1px solid rgba(245, 87, 108, 0.4);
 }
 
 .numericMetadata {
