@@ -60,7 +60,12 @@ export default function Home() {
   })
   const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
-
+  const [numericConfig, setNumericConfig] = useState({
+    precision: null,
+    rounding: 'half-up',
+    notation: 'auto',
+    mode: 'float'
+  })
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
