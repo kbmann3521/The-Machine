@@ -322,21 +322,6 @@ export default function MathEvaluatorTests() {
     return '❓'
   }
 
-  const getFormattingBadge = (result) => {
-    if (!result.diagnostics?.numeric?.precisionRounded) return null
-    const { precision, rounding, notation } = result.diagnostics.numeric
-    const parts = ['Formatted']
-    if (precision !== null) parts.push(`Precision ${precision}`)
-    if (rounding && precision !== null) parts.push(rounding)
-    if (notation && notation !== 'auto') parts.push(notation)
-    return parts.join(' · ')
-  }
-
-  const getModeName = (mode) => {
-    if (mode === 'float') return 'Standard (Fast, JS Float)'
-    if (mode === 'bignumber') return 'High Precision (Exact Decimal Math)'
-    return mode
-  }
 
   return (
     <div className={styles.container}>
