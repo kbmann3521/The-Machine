@@ -77,11 +77,11 @@ All diagnostic blocks MUST include:
 
 ```javascript
 "numeric": {
-  "mode": "float" | "big",              // Computation mode
-  "precision": null | number,           // Display/rounding precision
+  "mode": "float" | "bigint" | "bignumber",  // Computation mode (Phase 3: float only; bigint/bignumber future)
+  "precision": null | number,                // Display/rounding precision
   "rounding": "half-up" | "half-even" | "floor" | "ceil",  // Rounding mode
-  "notation": "auto" | "scientific",    // Presentation format
-  "precisionRounded": boolean           // Did output differ from internal result?
+  "notation": "auto" | "scientific",         // Presentation format
+  "precisionRounded": boolean                // Did output differ from internal result?
 }
 ```
 
