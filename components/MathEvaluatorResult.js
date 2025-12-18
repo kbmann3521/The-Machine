@@ -211,6 +211,61 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
         </div>
       )}
 
+      {/* Phase 5: How This Was Calculated (Explainability) */}
+      {result.diagnostics?.phase5 && (
+        <div className={styles.phase5Block}>
+          <button
+            className={styles.phase5Toggle}
+            onClick={() => setShowPhase5(!showPhase5)}
+          >
+            <span className={styles.phase5Label}>How This Was Calculated</span>
+            <span className={styles.toggleIcon}>{showPhase5 ? '▼' : '▶'}</span>
+          </button>
+
+          {showPhase5 && (
+            <div className={styles.phase5Content}>
+              {/* Evaluation Summary */}
+              <div className={styles.phase5Section}>
+                <h4 className={styles.phase5SectionTitle}>Evaluation Summary</h4>
+                <p className={styles.phase5SectionText}>
+                  {result.diagnostics.phase5.evaluationSummary}
+                </p>
+              </div>
+
+              {/* Step-by-Step Breakdown */}
+              {result.diagnostics.phase5.evaluationTrace && result.diagnostics.phase5.evaluationTrace.length > 0 && (
+                <div className={styles.phase5Section}>
+                  <h4 className={styles.phase5SectionTitle}>Step-by-Step Breakdown</h4>
+                  <div className={styles.phase5Steps}>
+                    {result.diagnostics.phase5.evaluationTrace.map((step, idx) => (
+                      <div key={idx} className={styles.phase5Step}>
+                        <span className={styles.phase5StepNumber}>Step {step.step}:</span>
+                        <span className={styles.phase5StepText}>{step.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Precision & Artifact Explanation (Conditional) */}
+              {result.diagnostics?.warnings && result.diagnostics.warnings.length > 0 && (
+                <div className={styles.phase5Section}>
+                  <h4 className={styles.phase5SectionTitle}>Important Notes</h4>
+                  <div className={styles.phase5Notes}>
+                    {result.diagnostics.warnings.map((warning, idx) => (
+                      <div key={idx} className={styles.phase5Note}>
+                        <span className={styles.phase5NoteIcon}>ℹ</span>
+                        <span className={styles.phase5NoteText}>{warning}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   )
 }
