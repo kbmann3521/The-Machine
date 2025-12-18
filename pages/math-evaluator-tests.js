@@ -382,6 +382,9 @@ export default function MathEvaluatorTests() {
                         result={testResult.result}
                         expression={testResult.input}
                       />
+                      <pre className={styles.json}>
+                        {JSON.stringify(testResult.result, null, 2)}
+                      </pre>
                     </div>
                   )}
                 </div>
