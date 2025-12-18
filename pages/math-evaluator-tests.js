@@ -278,6 +278,42 @@ export default function MathEvaluatorTests() {
     }
   }
 
+  const handleCopyPhase4 = async () => {
+    const phase4Results = results
+      .filter(r => r.category.startsWith('Phase 4:'))
+      .map(r => ({
+        input: r.input,
+        description: r.description,
+        category: r.category,
+        result: r.result,
+      }))
+
+    const json = JSON.stringify(phase4Results, null, 2)
+
+    try {
+      // Try modern Clipboard API first
+      await navigator.clipboard.writeText(json)
+      setCopiedPhase4(true)
+      setTimeout(() => setCopiedPhase4(false), 2000)
+    } catch (err) {
+      // Fallback to older document.execCommand method
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = json
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        setCopiedPhase4(true)
+        setTimeout(() => setCopiedPhase4(false), 2000)
+        document.body.removeChild(textarea)
+      } catch (fallbackErr) {
+        console.error('Copy failed:', fallbackErr)
+      }
+    }
+  }
+
   const getStatusIcon = (result) => {
     if (result.error) return '❌'
     if (result.diagnostics && result.diagnostics.warnings && result.diagnostics.warnings.length > 0) return '⚠️'
