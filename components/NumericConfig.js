@@ -98,19 +98,19 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
                 onChange={handleRoundingChange}
                 className={styles.select}
               >
-                <option value="half-up">Half Up (Traditional)</option>
-                <option value="half-even">Half Even (Banker's)</option>
-                <option value="floor">Floor (Toward −∞)</option>
-                <option value="ceil">Ceil (Toward +∞)</option>
+                <option value="half-up">● Half-Up (Traditional: 2.5 → 3)</option>
+                <option value="half-even">○ Half-Even (Banker's: 2.5 → 2)</option>
+                <option value="floor">○ Floor (Toward −∞)</option>
+                <option value="ceil">○ Ceil (Toward +∞)</option>
               </select>
               <span className={styles.hint}>
                 {config.rounding === 'half-up'
-                  ? 'Round 0.5 up'
+                  ? 'Traditional: Round 0.5 away from zero'
                   : config.rounding === 'half-even'
-                  ? 'Round 0.5 to nearest even'
+                  ? 'Bank-grade: Round 0.5 to nearest even (minimizes bias)'
                   : config.rounding === 'floor'
-                  ? 'Round toward negative infinity'
-                  : 'Round toward positive infinity'}
+                  ? 'Always round toward negative infinity'
+                  : 'Always round toward positive infinity'}
               </span>
             </div>
           )}
