@@ -31,7 +31,7 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
           <span className={styles.suggestionText}>
             Floating-point precision artifact detected.
             <button className={styles.suggestionLink} onClick={handleSwitchToHighPrecision}>
-              Try High Precision Mode
+              Switch to High Precision (Exact Math)
             </button>
           </span>
         </div>
@@ -50,13 +50,13 @@ export default function NumericConfig({ config, onConfigChange, floatArtifactDet
             onChange={handleModeChange}
             className={styles.select}
           >
-            <option value="float">● Standard (Fast, JS float)</option>
-            <option value="bignumber">○ High Precision (Exact decimals)</option>
+            <option value="float">● Standard (Fast, JS Float)</option>
+            <option value="bignumber">○ High Precision (Exact Decimal Math)</option>
           </select>
           <span className={styles.hint}>
             {config.mode === 'float'
               ? 'Uses native JavaScript numbers (IEEE-754, ±15 significant digits)'
-              : 'Uses arbitrary precision arithmetic for exact decimal calculations'}
+              : 'Uses arbitrary-precision decimal math. Eliminates floating-point rounding errors. Slower, but numerically exact.'}
           </span>
         </div>
 
