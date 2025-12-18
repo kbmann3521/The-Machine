@@ -125,32 +125,7 @@ export default function MathEvaluatorResult({ result, expression }) {
         )}
       </div>
 
-      {/* 4. Numeric Settings Used */}
-      {numericConfig && (
-        <div className={styles.settingsBlock}>
-          <div className={styles.blockLabel}>Numeric Settings</div>
-          <ul className={styles.settingsList}>
-            <li>
-              <span className={styles.settingKey}>Calculation Mode:</span>
-              <span className={styles.settingValue}>{getModeName(numericConfig.mode)}</span>
-            </li>
-            <li>
-              <span className={styles.settingKey}>Decimal Precision:</span>
-              <span className={styles.settingValue}>{getPrecisionDisplay(numericConfig)}</span>
-            </li>
-            <li>
-              <span className={styles.settingKey}>Rounding Rule:</span>
-              <span className={styles.settingValue}>{getRoundingDisplay(numericConfig.rounding)}</span>
-            </li>
-            <li>
-              <span className={styles.settingKey}>Number Format:</span>
-              <span className={styles.settingValue}>{getNotationDisplay(numericConfig.notation)}</span>
-            </li>
-          </ul>
-        </div>
-      )}
-
-      {/* 5. Calculation Details (Collapsible) */}
+      {/* 4. Calculation Details (Collapsible) */}
       {complexity && (
         <div className={styles.detailsBlock}>
           <button
