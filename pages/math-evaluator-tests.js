@@ -423,6 +423,7 @@ export default function MathEvaluatorTests() {
                         <MathEvaluatorResult
                           result={testResult.result}
                           expression={testResult.input}
+                          showPhase5ByDefault={true}
                         />
                         <pre className={styles.json}>
                           {JSON.stringify(testResult.result, null, 2)}
