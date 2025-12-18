@@ -705,6 +705,9 @@ export default function Home() {
                       onRemoveExtrasConfigChange={setRemoveExtrasConfig}
                       onSetGeneratedText={handleInputChange}
                     />
+                    {selectedTool?.toolId === 'math-evaluator' && (
+                      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
+                    )}
                   </div>
                 </>
               )}
