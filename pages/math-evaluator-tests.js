@@ -339,71 +339,103 @@ export default function MathEvaluatorTests() {
       <div className={styles.header}>
         <h1 className={styles.title}>Math Expression Evaluator — Test Harness</h1>
         <p className={styles.subtitle}>
-          Comprehensive test suite for Phase 1–4. {results.length} test cases total (Phase 4: Numeric Control & Precision).
+          Comprehensive test suite for Phase 1–4. {TEST_CASES.length} test cases total (Phase 4: Numeric Control & Precision).
         </p>
       </div>
 
       <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={hasFloatArtifacts} />
 
       <div className={styles.controls}>
-        <button className={styles.copyButton} onClick={handleCopyAll}>
-          {copied ? '✓ Copied All Results!' : '📋 Copy All Results (JSON)'}
+        <button
+          className={styles.copyButton}
+          onClick={handleRunTests}
+          disabled={isRunning}
+          style={{
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isRunning ? 'not-allowed' : 'pointer',
+            opacity: isRunning ? 0.7 : 1,
+            fontWeight: 'bold'
+          }}
+        >
+          {isRunning ? '⏳ Running Tests...' : '▶️ Run Tests'}
         </button>
-        <button className={styles.copyButton} onClick={handleCopyPhase4}>
-          {copiedPhase4 ? '✓ Copied Phase 4 Results!' : '📋 Copy Phase 4 Results (JSON)'}
-        </button>
-        <span className={styles.stats}>
-          ✅ Valid: {results.filter(r => r.result.result !== undefined && !r.result.error).length} |
-          ⚠️ Warnings: {results.filter(r => r.result.diagnostics && r.result.diagnostics.warnings && r.result.diagnostics.warnings.length > 0).length} |
-          ❌ Errors: {results.filter(r => r.result.error).length}
-        </span>
+        {results && (
+          <>
+            <button className={styles.copyButton} onClick={handleCopyAll}>
+              {copied ? '✓ Copied All Results!' : '📋 Copy All Results (JSON)'}
+            </button>
+            <button className={styles.copyButton} onClick={handleCopyPhase4}>
+              {copiedPhase4 ? '✓ Copied Phase 4 Results!' : '📋 Copy Phase 4 Results (JSON)'}
+            </button>
+            <span className={styles.stats}>
+              ✅ Valid: {results.filter(r => r.result.result !== undefined && !r.result.error).length} |
+              ⚠️ Warnings: {results.filter(r => r.result.diagnostics && r.result.diagnostics.warnings && r.result.diagnostics.warnings.length > 0).length} |
+              ❌ Errors: {results.filter(r => r.result.error).length}
+            </span>
+          </>
+        )}
       </div>
 
-      <div className={styles.testResults}>
-        {categories.map(category => (
-          <div key={category} className={styles.categorySection}>
-            <h2 className={styles.categoryTitle}>
-              {category} ({grouped[category].length})
-            </h2>
+      {!results ? (
+        <div style={{
+          padding: '40px',
+          textAlign: 'center',
+          color: 'var(--color-text-secondary)',
+          fontSize: '14px'
+        }}>
+          <p>Click "Run Tests" above to execute {TEST_CASES.length} test cases.</p>
+        </div>
+      ) : (
+        <div className={styles.testResults}>
+          {categories.map(category => (
+            <div key={category} className={styles.categorySection}>
+              <h2 className={styles.categoryTitle}>
+                {category} ({grouped[category].length})
+              </h2>
 
-            <div className={styles.testList}>
-              {grouped[category].map(testResult => (
-                <div key={testResult.index} className={styles.testItem}>
-                  <div
-                    className={styles.testHeader}
-                    onClick={() => toggleExpanded(testResult.index)}
-                  >
-                    <span className={styles.statusIcon}>
-                      {getStatusIcon(testResult.result)}
-                    </span>
-                    <div className={styles.testInfo}>
-                      <code className={styles.input}>{testResult.input}</code>
-                      <span className={styles.description}>
-                        {testResult.description}
+              <div className={styles.testList}>
+                {grouped[category].map(testResult => (
+                  <div key={testResult.index} className={styles.testItem}>
+                    <div
+                      className={styles.testHeader}
+                      onClick={() => toggleExpanded(testResult.index)}
+                    >
+                      <span className={styles.statusIcon}>
+                        {getStatusIcon(testResult.result)}
+                      </span>
+                      <div className={styles.testInfo}>
+                        <code className={styles.input}>{testResult.input}</code>
+                        <span className={styles.description}>
+                          {testResult.description}
+                        </span>
+                      </div>
+                      <span className={styles.toggleChevron}>
+                        {expandedIndices.has(testResult.index) ? '▼' : '▶'}
                       </span>
                     </div>
-                    <span className={styles.toggleChevron}>
-                      {expandedIndices.has(testResult.index) ? '▼' : '▶'}
-                    </span>
-                  </div>
 
-                  {expandedIndices.has(testResult.index) && (
-                    <div className={styles.testBody}>
-                      <MathEvaluatorResult
-                        result={testResult.result}
-                        expression={testResult.input}
-                      />
-                      <pre className={styles.json}>
-                        {JSON.stringify(testResult.result, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    {expandedIndices.has(testResult.index) && (
+                      <div className={styles.testBody}>
+                        <MathEvaluatorResult
+                          result={testResult.result}
+                          expression={testResult.input}
+                        />
+                        <pre className={styles.json}>
+                          {JSON.stringify(testResult.result, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className={styles.footer}>
         <p>
