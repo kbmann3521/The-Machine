@@ -393,48 +393,10 @@ export default function MathEvaluatorTests() {
 
                   {expandedIndices.has(testResult.index) && (
                     <div className={styles.testBody}>
-                      {testResult.result.result !== undefined && (
-                        <div className={styles.resultSection}>
-                          <div className={styles.resultHeader}>
-                            <div>
-                              <strong>Result:</strong>
-                              <code>{testResult.result.result}</code>
-                            </div>
-                            {getFormattingBadge(testResult.result) && (
-                              <span className={styles.formattingBadge} title={`Raw: ${testResult.result.result} → Displayed: ${testResult.result.formattedResult}`}>
-                                {getFormattingBadge(testResult.result)}
-                              </span>
-                            )}
-                          </div>
-                          {testResult.result.formattedResult && testResult.result.formattedResult !== testResult.result.result && (
-                            <>
-                              <strong style={{ marginTop: '8px', display: 'block' }}>Formatted:</strong>
-                              <code>{testResult.result.formattedResult}</code>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      {testResult.result.diagnostics?.numeric && (
-                        <div className={styles.numericMetadata}>
-                          <strong>Numeric Control:</strong>
-                          <ul>
-                            <li>Mode: <code>{getModeName(testResult.result.diagnostics.numeric.mode)}</code></li>
-                            {testResult.result.diagnostics.numeric.precision !== null && (
-                              <li>Precision: <code>{testResult.result.diagnostics.numeric.precision}</code> decimal places</li>
-                            )}
-                            {testResult.result.diagnostics.numeric.precision !== null && (
-                              <li>Rounding: <code>{testResult.result.diagnostics.numeric.rounding}</code></li>
-                            )}
-                            <li>Notation: <code>{testResult.result.diagnostics.numeric.notation}</code></li>
-                            {testResult.result.diagnostics.numeric.precisionRounded && (
-                              <li><span style={{ color: '#ff9800' }}>⚠️ Value was precision-rounded</span></li>
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                      <pre className={styles.json}>
-                        {JSON.stringify(testResult.result, null, 2)}
-                      </pre>
+                      <MathEvaluatorResult
+                        result={testResult.result}
+                        expression={testResult.input}
+                      />
                     </div>
                   )}
                 </div>
