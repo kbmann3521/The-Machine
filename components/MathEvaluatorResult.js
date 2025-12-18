@@ -79,6 +79,24 @@ export default function MathEvaluatorResult({ result, expression }) {
     return notation
   }
 
+  // Generate rounding note based on precision and rounding mode
+  const getRoundingNote = () => {
+    const numericConfig = result.diagnostics?.numeric
+    if (!numericConfig || numericConfig.precision === null) {
+      return null
+    }
+
+    const didRound = result.diagnostics?.precisionRounded
+    if (didRound) {
+      // Vary message based on rounding mode
+      const roundingText = getRoundingDisplay(numericConfig.rounding)
+      return `Rounded to ${numericConfig.precision} decimal place${numericConfig.precision === 1 ? '' : 's'} using ${roundingText}`
+    } else {
+      // Precision applied but no visible change
+      return 'Precision applied (no visible change)'
+    }
+  }
+
   const status = getStatus()
   const numericConfig = result.diagnostics?.numeric
   const complexity = result.diagnostics?.complexity
