@@ -1,9 +1,5 @@
 .container {
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: transparent;
   margin-bottom: 16px;
-  overflow: hidden;
 }
 
 .suggestion {
