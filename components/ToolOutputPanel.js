@@ -5105,8 +5105,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderSqlFormatterOutput()
       case 'color-converter':
         return renderColorConverterOutput()
-      case 'math-evaluator':
-        if (!displayResult || displayResult.error) {
+      case 'math-evaluator': {
+        if (!displayResult || typeof displayResult !== 'object') {
           return (
             <OutputTabs
               key={toolId}
@@ -5121,7 +5121,31 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             />
           )
         }
-        return <MathEvaluatorResult result={displayResult} expression={inputText} />
+
+        const tabs = [
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: <MathEvaluatorResult result={displayResult} expression={inputText} />,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs}
+          />
+        )
+      }
       case 'jwt-decoder':
         return renderJwtDecoderOutput()
       case 'mime-type-lookup':
