@@ -5126,7 +5126,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           {
             id: 'output',
             label: 'OUTPUT',
-            content: <MathEvaluatorResult result={displayResult} expression={inputText} />,
+            content: <MathEvaluatorResult result={displayResult} expression={inputText || ''} />,
             contentType: 'component'
           },
           {
