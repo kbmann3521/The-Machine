@@ -95,6 +95,10 @@ export default function AdminSEO() {
         }
         if (data.page_rules && typeof data.page_rules === 'object') {
           setPageRules(data.page_rules)
+          // Store in localStorage for client-side robots meta injection
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('seoPageRules', JSON.stringify(data.page_rules))
+          }
         }
       }
     } catch (err) {
