@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
 import { getAllPosts, deletePost, publishPost, unpublishPost } from '../../lib/blog-client'
+import AdminHeader from '../../components/AdminHeader'
 import styles from '../../styles/blog-admin-posts.module.css'
 
 export default function AdminPosts() {
