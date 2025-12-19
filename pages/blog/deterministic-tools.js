@@ -296,18 +296,27 @@ export default function DeterministicToolsBlog() {
                 <h3>7. Faster, Lighter, and More Reliable</h3>
 
                 <p>
-                  Because our tools don't rely on large models:
+                  AI models are heavy. Gigabytes of weights. Significant latency. And they're fragile—update the model, and behavior changes.
+                </p>
+
+                <p>
+                  Our tools are the opposite:
                 </p>
 
                 <ul>
-                  <li>They load instantly</li>
-                  <li>They work offline (where applicable)</li>
-                  <li>They don't degrade under load</li>
-                  <li>They don't change behavior over time</li>
+                  <li><strong>They load instantly</strong>—no multi-gigabyte downloads, no model initialization delays</li>
+                  <li><strong>They work offline</strong>—most run entirely client-side, no internet required after load</li>
+                  <li><strong>They don't degrade under load</strong>—process 10,000 emails or 1 million IP ranges, no performance cliff</li>
+                  <li><strong>They don't change behavior over time</strong>—the algorithm for email validation is the same today as it was five years ago and will be five years from now</li>
                 </ul>
 
-                <p className={styles.highlight}>
-                  No model updates breaking workflows. No "the AI changed its mind." No surprises.
+                <p>
+                  In production, this is gold. No surprise vendor updates breaking your pipeline. No "the model changed its accuracy requirements."
+                  No mysterious performance degradation because the model vendor changed their infrastructure.
+                </p>
+
+                <p>
+                  Tools are boring. Stability is boring. That's exactly what production systems need.
                 </p>
               </div>
 
