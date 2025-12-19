@@ -1,4 +1,4 @@
-import { supabase } from '../../../lib/supabase-client'
+import { supabase, supabaseAdmin } from '../../../lib/supabase-client'
 import { getUniqueSlug, generateSlug } from '../../../lib/slug-utils'
 
 async function verifyAdminAccess(req) {
@@ -14,7 +14,8 @@ async function verifyAdminAccess(req) {
     throw new Error('Invalid token')
   }
 
-  const { data: adminUsers, error: adminError } = await supabase
+  const client = supabaseAdmin || supabase
+  const { data: adminUsers, error: adminError } = await client
     .from('admin_users')
     .select('user_id')
     .eq('user_id', data.user.id)
@@ -58,7 +59,8 @@ export default async function handler(req, res) {
       publishedAt = null
     }
 
-    const { data, error } = await supabase
+    const client = supabaseAdmin || supabase
+    const { data, error } = await client
       .from('blog_posts')
       .update({
         title: title.trim(),
