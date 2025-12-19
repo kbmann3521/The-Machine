@@ -93,13 +93,13 @@ export default function AdminLogin() {
         }
 
         if (data.user) {
+          // Try to read admin_users to check if user is admin
           const { data: adminUser, error: adminCheckError } = await supabase
             .from('admin_users')
             .select('user_id')
             .eq('user_id', data.user.id)
-            .single()
 
-          if (adminCheckError || !adminUser) {
+          if (adminCheckError || !adminUser || adminUser.length === 0) {
             await supabase.auth.signOut()
             setError('You do not have admin access. Contact the site administrator.')
             setLoading(false)
