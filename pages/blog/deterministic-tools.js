@@ -32,23 +32,6 @@ const calculateReadTime = (wordCount) => {
   return `${minutes} min read`
 }
 
-// Client-only theme toggle component wrapper
-function ThemeToggleWrapper() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return <div style={{ width: '36px', height: '36px' }} />
-  }
-
-  // Dynamically import only after mount to avoid hydration issues
-  const ThemeToggle = require('../../components/ThemeToggle').default
-  return <ThemeToggle />
-}
-
 export default function DeterministicToolsBlog() {
   const readTime = calculateReadTime(2800)
   const publishDateString = formatPublishDate(ARTICLE_META.publishDate)
