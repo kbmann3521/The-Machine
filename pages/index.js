@@ -356,7 +356,10 @@ export default function Home() {
             if (isAborted) {
               response = null
             } else {
-              response = await fetch('/api/tools/predict', {
+              const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+              const predictUrl = `${baseUrl}/api/tools/predict`
+
+              response = await fetch(predictUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -364,6 +367,7 @@ export default function Home() {
                   inputImage: preview ? 'image' : null,
                 }),
                 signal: controller.signal,
+                credentials: 'same-origin',
               })
             }
           } catch (fetchError) {
