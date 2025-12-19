@@ -198,42 +198,34 @@ export default function DeterministicToolsBlog() {
                 <h3>4. No Training on Your Content — Ever</h3>
 
                 <p>
-                  AI tools often:
+                  This is straightforward: we don't have models to train.
+                </p>
+
+                <p>
+                  Our base64 encoder doesn't improve by seeing your data. Our UUID validator doesn't get smarter by processing your identifiers.
+                  Our IP toolkit doesn't benefit from analyzing your network architecture. Because we're not using machine learning. We're using
+                  algorithms and standards.
+                </p>
+
+                <p>
+                  When you use our tools:
                 </p>
 
                 <ul>
-                  <li>Retain prompts</li>
-                  <li>Use inputs for model improvement</li>
-                  <li>Store data for "quality and safety"</li>
+                  <li>Input arrives</li>
+                  <li>Algorithm processes it according to a standard or specification</li>
+                  <li>Result is returned</li>
+                  <li>Input is discarded immediately (stateless execution)</li>
                 </ul>
 
                 <p>
-                  We don't.
+                  That's it. No persistent storage. No "quality improvement" databases. No future risk of your input appearing in a training
+                  dataset or being exposed in a vulnerability disclosure.
                 </p>
 
                 <p>
-                  Our tools:
-                </p>
-
-                <ul>
-                  <li>Perform a single operation</li>
-                  <li>Return the result</li>
-                  <li>Discard the input immediately</li>
-                </ul>
-
-                <p>
-                  There is zero risk of:
-                </p>
-
-                <ul>
-                  <li>Data leakage</li>
-                  <li>Prompt retention</li>
-                  <li>Model memorization</li>
-                  <li>Future exposure</li>
-                </ul>
-
-                <p>
-                  This matters for developers, companies, and security-conscious users.
+                  If we wanted to maliciously retain your data, we couldn't—because most tools don't send data to servers at all.
+                  The entire computation happens in your browser.
                 </p>
               </div>
 
