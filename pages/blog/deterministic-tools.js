@@ -321,27 +321,28 @@ export default function DeterministicToolsBlog() {
               </div>
 
               <div className={styles.featureBlock}>
-                <h3>8. Ideal Use Cases Where AI Falls Short</h3>
+                <h3>8. Perfect for Tasks That Demand Precision</h3>
 
                 <p>
-                  Our deterministic tools are better for:
+                  There are categories of tasks where AI is genuinely inappropriate—not because it's untested, but because the problem
+                  domain demands determinism by nature.
                 </p>
 
                 <ul>
-                  <li>JSON / XML / YAML formatting &amp; validation</li>
-                  <li>Regex testing</li>
-                  <li>Timestamp &amp; timezone conversion</li>
-                  <li>IP, CIDR, ASN, and networking analysis</li>
-                  <li>JWT decoding</li>
-                  <li>Hashing &amp; checksums</li>
-                  <li>Base64, Unicode, binary conversions</li>
-                  <li>Math &amp; numeric evaluation</li>
-                  <li>Code linting &amp; syntax validation</li>
-                  <li>Protocol &amp; header analysis</li>
+                  <li><strong>JSON / XML / YAML validation:</strong> A JSON object is either valid or invalid. There's no "mostly valid" or "probably valid."</li>
+                  <li><strong>Regex testing:</strong> Does the pattern match? Yes or no. Either the syntax is correct or it's not.</li>
+                  <li><strong>Timestamp &amp; timezone conversion:</strong> 3pm in New York is exactly 8pm in London. Not approximately. Not probably. Exactly.</li>
+                  <li><strong>IP, CIDR, ASN, and networking analysis:</strong> IP classification, subnet overlap detection, PTR generation—all deterministic calculations.</li>
+                  <li><strong>JWT decoding:</strong> A token is valid according to the JWT spec, or it isn't. Signature verification is binary.</li>
+                  <li><strong>Hashing &amp; checksums:</strong> SHA256 of the same input must always produce the same output. Always.</li>
+                  <li><strong>Base64, Unicode, binary conversions:</strong> 'A' is always encoded as 65 in ASCII, 01000001 in binary. Not subject to interpretation.</li>
+                  <li><strong>Math &amp; numeric evaluation:</strong> 2+2=4. Not "probably 4" or "4 with 99.7% confidence."</li>
+                  <li><strong>Code linting &amp; syntax validation:</strong> Syntax errors are objective. A semicolon is either required or optional by the language spec, not by mood.</li>
+                  <li><strong>Protocol &amp; header analysis:</strong> HTTP headers have defined meanings per RFC 7231. Not flexible. Not subject to interpretation.</li>
                 </ul>
 
-                <p className={styles.highlight}>
-                  These tasks require precision, not creativity.
+                <p>
+                  These aren't edge cases. They're the daily work of developers, systems engineers, and security teams.
                 </p>
               </div>
 
