@@ -78,11 +78,22 @@ export default function AdminSEO() {
 
       if (response.ok) {
         const data = await response.json()
-        setSettings((prev) => ({ ...prev, ...data }))
+
+        // Normalize null values to empty strings for form inputs
+        const normalizedData = {}
+        Object.entries(data).forEach(([key, value]) => {
+          if (value === null) {
+            normalizedData[key] = ''
+          } else {
+            normalizedData[key] = value
+          }
+        })
+
+        setSettings((prev) => ({ ...prev, ...normalizedData }))
         if (data.updated_at) {
           setLastUpdated(new Date(data.updated_at))
         }
-        if (data.page_rules) {
+        if (data.page_rules && typeof data.page_rules === 'object') {
           setPageRules(data.page_rules)
         }
       }
