@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import styles from '../../styles/blog-article.module.css'
+
+const ThemeToggle = dynamic(() => import('../../components/ThemeToggle'), {
+  ssr: false,
+  loading: () => <div style={{ width: '36px', height: '36px' }} />,
+})
 
 // Article metadata - update publishDate when you publish
 const ARTICLE_META = {
