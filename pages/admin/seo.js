@@ -13,6 +13,9 @@ export default function AdminSEO() {
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [lastUpdated, setLastUpdated] = useState(null)
+  const [pageRules, setPageRules] = useState({})
+  const [pageSearch, setPageSearch] = useState('')
+  const [filteredPages, setFilteredPages] = useState(AVAILABLE_PAGES)
   const router = useRouter()
 
   const [settings, setSettings] = useState({
