@@ -161,41 +161,36 @@ export default function DeterministicToolsBlog() {
                 <h3>3. Complete Privacy — Your Data Never Leaves Your Browser</h3>
 
                 <p>
-                  Unlike AI tools:
+                  Last year, a major AI company quietly admitted to retaining user prompts for "training and improvement purposes."
+                  Translation: your secrets went into a training dataset. By design. And that's the explicit promise from some vendors—they'll use
+                  your input to improve their models.
                 </p>
-
-                <ul>
-                  <li>We do not store your input</li>
-                  <li>We do not log your data</li>
-                  <li>We do not train models on your content</li>
-                  <li>We do not send your input to third-party APIs</li>
-                </ul>
 
                 <p>
-                  Most tools run:
+                  We don't. Most of our tools run entirely in your browser. No requests to our servers. No data collection. No "improvement" databases.
                 </p>
-
-                <ul>
-                  <li>Fully client-side</li>
-                  <li>Or in stateless, non-persistent execution environments</li>
-                </ul>
 
                 <p>
-                  This makes our platform safe for:
+                  That means you can safely use our tools for things you absolutely cannot paste into a public AI:
                 </p>
 
                 <ul>
-                  <li>API keys</li>
-                  <li>JWTs</li>
-                  <li>IP addresses</li>
-                  <li>Source code</li>
-                  <li>Configuration files</li>
-                  <li>Internal data</li>
+                  <li>API keys and authentication tokens</li>
+                  <li>JWTs with sensitive claims</li>
+                  <li>Internal IP address ranges and CIDR blocks</li>
+                  <li>Source code and architecture details</li>
+                  <li>Configuration files with credentials</li>
                   <li>Personally identifiable information (PII)</li>
+                  <li>Medical, financial, or legal data</li>
                 </ul>
+
+                <p>
+                  When you decode a JWT in our tool, we extract and parse the token. That's it. We don't send it anywhere. We don't log it.
+                  We don't train anything on it. When you close the tab, the token is gone. Forever.
+                </p>
 
                 <p className={styles.highlight}>
-                  Your data stays yours. Always.
+                  Your data is yours. Always.
                 </p>
               </div>
 
