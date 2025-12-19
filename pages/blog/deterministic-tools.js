@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import ThemeToggle from '../../components/ThemeToggle'
@@ -11,13 +11,13 @@ const ARTICLE_META = {
   description: 'Accurate. Private. Predictable. Learn why deterministic internet tools consistently outperform AI-based solutions for professionals.',
 }
 
-// Helper to format publish date
+// Helper to format publish date (consistent between server and client)
 const formatPublishDate = (date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(date)
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const month = months[date.getMonth()]
+  const day = date.getDate()
+  const year = date.getFullYear()
+  return `${month} ${day}, ${year}`
 }
 
 // Estimated reading time
@@ -28,6 +28,12 @@ const calculateReadTime = (wordCount) => {
 }
 
 export default function DeterministicToolsBlog() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const readTime = calculateReadTime(2800)
   const publishDateString = formatPublishDate(ARTICLE_META.publishDate)
 
