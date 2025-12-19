@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../../lib/supabase-client'
 import AdminHeader from '../../components/AdminHeader'
+import { AVAILABLE_PAGES, searchPages, generateRobotsText } from '../../lib/pageDiscovery'
 import styles from '../../styles/blog-admin-posts.module.css'
 import seoStyles from '../../styles/seo-admin.module.css'
 
