@@ -28,23 +28,6 @@ export default function BlogPost({ post }) {
     )
   }
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
-  const formatTime = (dateStr) => {
-    const date = new Date(dateStr)
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
   return (
     <div className={styles.postPage}>
       <Head>
@@ -63,14 +46,14 @@ export default function BlogPost({ post }) {
             <div className={styles.postMetaItem}>
               <span>Published</span>
               <time dateTime={post.published_at}>
-                {formatDate(post.published_at)} at {formatTime(post.published_at)}
+                {post.publishedFormatted}
               </time>
             </div>
             {post.updated_at && post.updated_at !== post.published_at && (
               <div className={styles.postMetaItem}>
                 <span>Updated</span>
                 <time dateTime={post.updated_at}>
-                  {formatDate(post.updated_at)}
+                  {post.updatedFormatted}
                 </time>
               </div>
             )}
@@ -156,6 +139,20 @@ function parseMarkdown(markdown) {
   return html
 }
 
+function formatDateForDisplay(dateStr) {
+  const date = new Date(dateStr)
+  const formatted = date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+  const time = date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  return { date: formatted, time }
+}
+
 export async function getStaticProps({ params }) {
   try {
     const { data: post, error } = await supabase
@@ -172,8 +169,18 @@ export async function getStaticProps({ params }) {
       }
     }
 
+    // Format dates server-side to avoid hydration mismatch
+    const { date: pubDate, time: pubTime } = formatDateForDisplay(post.published_at)
+    const { date: updatedDate } = formatDateForDisplay(post.updated_at)
+
     return {
-      props: { post },
+      props: {
+        post: {
+          ...post,
+          publishedFormatted: `${pubDate} at ${pubTime}`,
+          updatedFormatted: updatedDate,
+        },
+      },
       revalidate: 3600,
     }
   } catch (err) {
