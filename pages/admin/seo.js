@@ -113,6 +113,12 @@ export default function AdminSEO() {
           if (typeof window !== 'undefined') {
             localStorage.setItem('seoPageRules', JSON.stringify(data.page_rules))
           }
+        } else {
+          // Use default page rules on first load
+          setPageRules(DEFAULT_PAGE_RULES)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('seoPageRules', JSON.stringify(DEFAULT_PAGE_RULES))
+          }
         }
       }
     } catch (err) {
