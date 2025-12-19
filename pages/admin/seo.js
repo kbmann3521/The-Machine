@@ -107,6 +107,33 @@ export default function AdminSEO() {
     }))
   }
 
+  const handlePageRuleChange = (path, directive, checked) => {
+    const updated = { ...pageRules }
+    if (!updated[path]) {
+      updated[path] = { noindex: false, nofollow: false, noarchive: false, nocache: false }
+    }
+    updated[path][directive] = checked
+    setPageRules(updated)
+
+    // Auto-generate robots.txt
+    const newRobots = generateRobotsText(updated, settings.index_site, '')
+    setSettings((prev) => ({
+      ...prev,
+      robots_txt: newRobots,
+    }))
+  }
+
+  const togglePageRule = (path) => {
+    if (pageRules[path]) {
+      const { [path]: _, ...rest } = pageRules
+      setPageRules(rest)
+    } else {
+      const updated = { ...pageRules }
+      updated[path] = { noindex: false, nofollow: false, noarchive: false, nocache: false }
+      setPageRules(updated)
+    }
+  }
+
   const validateSettings = () => {
     if (settings.canonical_base_url) {
       if (!settings.canonical_base_url.startsWith('https://')) {
