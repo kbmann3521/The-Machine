@@ -82,6 +82,9 @@ export default function AdminSEO() {
         if (data.updated_at) {
           setLastUpdated(new Date(data.updated_at))
         }
+        if (data.page_rules) {
+          setPageRules(data.page_rules)
+        }
       }
     } catch (err) {
       console.error('Failed to load SEO settings:', err)
@@ -90,6 +93,11 @@ export default function AdminSEO() {
       setLoading(false)
     }
   }
+
+  // Filter pages as user types
+  useEffect(() => {
+    setFilteredPages(searchPages(pageSearch))
+  }, [pageSearch])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
