@@ -4,25 +4,46 @@ import Link from 'next/link'
 import ThemeToggle from '../../components/ThemeToggle'
 import styles from '../../styles/blog-article.module.css'
 
+// Article metadata - update publishDate when you publish
+const ARTICLE_META = {
+  publishDate: new Date('2024-12-19'),
+  title: 'Why Deterministic Internet Tools Are Better Than AI',
+  description: 'Accurate. Private. Predictable. Learn why deterministic internet tools consistently outperform AI-based solutions for professionals.',
+}
+
+// Helper to format publish date
+const formatPublishDate = (date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date)
+}
+
+// Estimated reading time
+const calculateReadTime = (wordCount) => {
+  const wordsPerMinute = 200
+  const minutes = Math.ceil(wordCount / wordsPerMinute)
+  return `${minutes} min read`
+}
+
 export default function DeterministicToolsBlog() {
+  const readTime = calculateReadTime(2800)
+  const publishDateString = formatPublishDate(ARTICLE_META.publishDate)
+
   return (
     <>
       <Head>
-        <title>Why Deterministic Internet Tools Are Better Than AI | Pioneer Web Tools</title>
-        <meta
-          name="description"
-          content="Accurate. Private. Predictable. Learn why deterministic internet tools consistently outperform AI-based solutions for professionals."
-        />
+        <title>{ARTICLE_META.title} | Pioneer Web Tools</title>
+        <meta name="description" content={ARTICLE_META.description} />
         <meta
           name="keywords"
           content="deterministic tools, internet tools, privacy-first tools, AI hallucinations, AI vs deterministic tools, developer tools online, secure online tools, no data stored tools"
         />
-        <meta property="og:title" content="Why Deterministic Internet Tools Are Better Than AI" />
-        <meta
-          property="og:description"
-          content="Accurate. Private. Predictable. Learn why deterministic internet tools outperform AI-based solutions."
-        />
+        <meta property="og:title" content={ARTICLE_META.title} />
+        <meta property="og:description" content={ARTICLE_META.description} />
         <meta property="og:type" content="article" />
+        <meta property="article:published_time" content={ARTICLE_META.publishDate.toISOString()} />
       </Head>
 
       <div className={styles.layout}>
@@ -36,8 +57,8 @@ export default function DeterministicToolsBlog() {
         <main className={styles.article}>
           <article className={styles.articleContent}>
             <div className={styles.meta}>
-              <time dateTime="2024-12-19">December 19, 2024</time>
-              <span className={styles.readTime}>8 min read</span>
+              <time dateTime={ARTICLE_META.publishDate.toISOString()}>{publishDateString}</time>
+              <span className={styles.readTime}>{readTime}</span>
             </div>
 
             <h1 className={styles.title}>Why Deterministic Internet Tools Are Better Than AI</h1>
