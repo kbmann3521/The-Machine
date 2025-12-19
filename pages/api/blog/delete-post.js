@@ -1,4 +1,4 @@
-import { supabase } from '../../../lib/supabase-client'
+import { supabase, supabaseAdmin } from '../../../lib/supabase-client'
 
 async function verifyAdminAccess(req) {
   const authHeader = req.headers.authorization
@@ -13,7 +13,8 @@ async function verifyAdminAccess(req) {
     throw new Error('Invalid token')
   }
 
-  const { data: adminUsers, error: adminError } = await supabase
+  const client = supabaseAdmin || supabase
+  const { data: adminUsers, error: adminError } = await client
     .from('admin_users')
     .select('user_id')
     .eq('user_id', data.user.id)
@@ -39,7 +40,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Post ID is required' })
     }
 
-    const { error } = await supabase.from('blog_posts').delete().eq('id', id)
+    const client = supabaseAdmin || supabase
+    const { error } = await client.from('blog_posts').delete().eq('id', id)
 
     if (error) {
       return res.status(400).json({ error: error.message })
