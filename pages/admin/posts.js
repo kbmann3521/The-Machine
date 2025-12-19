@@ -194,6 +194,11 @@ export default function AdminPosts() {
                         <Link href={`/admin/posts/${post.id}/edit`} className={styles.actionBtn}>
                           Edit
                         </Link>
+                        {post.status === 'published' && (
+                          <Link href={`/blog/${post.slug}`} className={styles.actionBtn}>
+                            View
+                          </Link>
+                        )}
                         {post.status === 'draft' ? (
                           <button
                             onClick={() => handlePublish(post.id)}
