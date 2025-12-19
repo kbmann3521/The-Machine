@@ -179,7 +179,10 @@ export default function AdminSEO() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({
+          ...settings,
+          page_rules: pageRules,
+        }),
         credentials: 'same-origin',
       })
 
