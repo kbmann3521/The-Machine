@@ -11,18 +11,15 @@ const ThemeToggle = dynamic(() => import('../../components/ThemeToggle'), {
 
 // Article metadata - update publishDate when you publish
 const ARTICLE_META = {
-  publishDate: new Date('2025-12-19'),
+  publishDate: '2025-12-19', // YYYY-MM-DD format for consistency
+  publishDateFormatted: 'December 19, 2025', // Pre-formatted to avoid timezone issues
   title: 'Why Deterministic Internet Tools Are Better Than AI',
   description: 'Accurate. Private. Predictable. Learn why deterministic internet tools consistently outperform AI-based solutions for professionals.',
 }
 
-// Helper to format publish date (consistent between server and client)
-const formatPublishDate = (date) => {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-  const month = months[date.getMonth()]
-  const day = date.getDate()
-  const year = date.getFullYear()
-  return `${month} ${day}, ${year}`
+// Helper to create ISO string for metadata
+const getISODateString = (dateStr) => {
+  return new Date(dateStr + 'T00:00:00Z').toISOString()
 }
 
 // Estimated reading time
