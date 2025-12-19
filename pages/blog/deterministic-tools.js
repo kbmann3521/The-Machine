@@ -264,29 +264,31 @@ export default function DeterministicToolsBlog() {
                 <h3>6. Explainable Outputs You Can Trust</h3>
 
                 <p>
-                  Every result is:
+                  When AI gives you a result, asking "why?" is often met with vague hand-waving: "the model determined..." or "based on patterns
+                  in the training data." Not helpful in production. Not defensible in a security audit.
+                </p>
+
+                <p>
+                  Our tools always explain. When our HTTP header parser analyzes a response header, it doesn't just say "this is valid."
+                  It shows you what each part means, what standard it comes from, and what it does. When our regex tester finds an issue,
+                  it doesn't just say "wrong." It shows you the character position, the problem, and the fix.
+                </p>
+
+                <p>
+                  This matters for:
                 </p>
 
                 <ul>
-                  <li>Traceable to a rule or standard</li>
-                  <li>Explainable step-by-step</li>
-                  <li>Auditable if needed</li>
+                  <li><strong>Debugging:</strong> See exactly what went wrong and why, not a guess</li>
+                  <li><strong>Security audits:</strong> Explain tool behavior to compliance teams with references to RFCs and standards</li>
+                  <li><strong>Education:</strong> Learn how standards actually work by using the tools</li>
+                  <li><strong>Production:</strong> Document behavior with confidence because it's rule-based, not probabilistic</li>
+                  <li><strong>Team collaboration:</strong> Share results with the team knowing they'll understand why the output is correct</li>
                 </ul>
 
                 <p>
-                  Perfect for:
-                </p>
-
-                <ul>
-                  <li>Debugging</li>
-                  <li>Compliance</li>
-                  <li>Education</li>
-                  <li>Production work</li>
-                  <li>Team collaboration</li>
-                </ul>
-
-                <p className={styles.highlight}>
-                  AI outputs often can't explain why something is true. Our tools always can.
+                  Our math evaluator doesn't just say "the answer is 3.14159." It shows you whether precision was applied, which rounding mode was
+                  used, whether floating-point artifacts were detected, and step-by-step reductions if there were transformation steps.
                 </p>
               </div>
 
