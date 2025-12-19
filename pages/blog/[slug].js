@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
-import styles from '../../styles/blog-public.module.css'
+import styles from '../../styles/blog-post.module.css'
 
 export default function BlogPost({ post }) {
   if (!post) {

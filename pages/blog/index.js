@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
-import styles from '../../styles/blog-public.module.css'
+import styles from '../../styles/blog-index.module.css'
 
 export default function BlogIndex({ posts }) {
   const formatDate = (dateStr) => {
