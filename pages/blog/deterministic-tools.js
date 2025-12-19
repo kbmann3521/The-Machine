@@ -347,38 +347,36 @@ export default function DeterministicToolsBlog() {
               </div>
 
               <div className={styles.featureBlock}>
-                <h3>9. AI Is a Great Assistant — This Is the Source of Truth</h3>
+                <h3>9. The Right Tool for the Right Job</h3>
 
                 <p>
-                  AI is excellent for:
+                  We're not anti-AI. AI tools are genuinely excellent at certain things:
                 </p>
 
                 <ul>
-                  <li>Brainstorming</li>
-                  <li>Summaries</li>
-                  <li>Writing drafts</li>
-                  <li>High-level explanations</li>
+                  <li><strong>Brainstorming:</strong> "What are 10 feature ideas for a time tracker app?" AI excels here.</li>
+                  <li><strong>Writing and summaries:</strong> Draft blog posts, summarize documents, improve prose—AI is useful.</li>
+                  <li><strong>Code generation:</strong> Get a first draft of boilerplate, helper functions, templates—legitimately helpful.</li>
+                  <li><strong>Explanations:</strong> "Explain OAuth 2.0 like I'm five" — AI handles conceptual questions well.</li>
                 </ul>
 
                 <p>
-                  But when it comes to:
-                </p>
-
-                <ul>
-                  <li>Verification</li>
-                  <li>Validation</li>
-                  <li>Transformation</li>
-                  <li>Calculation</li>
-                  <li>Encoding</li>
-                  <li>Parsing</li>
-                </ul>
-
-                <p className={styles.highlight}>
-                  Deterministic tools are the source of truth.
+                  But when you need to <em>verify</em> something, <em>validate</em> data, <em>transform</em> formats, <em>calculate</em> results,
+                  or <em>parse</em> structures—you need a deterministic tool.
                 </p>
 
                 <p>
-                  That's why professionals use tools like ours alongside AI—not instead of them.
+                  This is where professionals work. Not in imagination. In precision.
+                </p>
+
+                <p>
+                  That's why teams use tools like ours alongside AI. ChatGPT helps you draft code. Our JWT decoder tells you what's actually in the token.
+                  Claude writes documentation. Our regex tester validates that the pattern works. Copilot suggests implementations. Our IP toolkit
+                  calculates subnet boundaries with certainty.
+                </p>
+
+                <p>
+                  Inspiration from AI. Verification from deterministic tools. Together, they cover the full development workflow.
                 </p>
               </div>
             </section>
