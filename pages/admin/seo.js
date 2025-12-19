@@ -140,7 +140,7 @@ export default function AdminSEO() {
       setPageRules(rest)
     } else {
       const updated = { ...pageRules }
-      updated[path] = { noindex: false, nofollow: false, noarchive: false, nocache: false }
+      updated[path] = { noindex: false, nofollow: false }
       setPageRules(updated)
     }
   }
