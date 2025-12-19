@@ -420,22 +420,6 @@ export default function AdminSEO() {
                             />
                             nofollow (don't follow links on this page)
                           </label>
-                          <label className={seoStyles.checkboxLabel}>
-                            <input
-                              type="checkbox"
-                              checked={pageRules[page.path].noarchive || false}
-                              onChange={(e) => handlePageRuleChange(page.path, 'noarchive', e.target.checked)}
-                            />
-                            noarchive (don't store cached version)
-                          </label>
-                          <label className={seoStyles.checkboxLabel}>
-                            <input
-                              type="checkbox"
-                              checked={pageRules[page.path].nocache || false}
-                              onChange={(e) => handlePageRuleChange(page.path, 'nocache', e.target.checked)}
-                            />
-                            nocache (don't cache this page)
-                          </label>
                         </div>
                       )}
                     </div>
