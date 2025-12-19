@@ -131,28 +131,30 @@ export default function DeterministicToolsBlog() {
                 <h3>2. Built for Accuracy, Not Confidence</h3>
 
                 <p>
-                  AI tools are designed to sound confident—even when they're wrong.
+                  AI tools are trained to sound confident—especially when they're wrong. It's called "hallucination," and it's a known limitation
+                  of how large language models work. They predict the next most likely token, not whether something is actually true.
                 </p>
 
                 <p>
-                  Our tools are designed to be:
+                  Our tools work differently. If something is invalid, you don't get a confident-sounding explanation. You get the truth.
+                </p>
+
+                <p>
+                  Take our regex tester. If your regex pattern has a syntax error, you see exactly where it fails. Not "your pattern looks fine"
+                  (when it's not). You see the character position, the issue type, and how to fix it. If you test an IP address that's malformed,
+                  you get a clear explanation: "Octet 4 exceeds 255" or "IPv6 hex digit invalid at position 14."
+                </p>
+
+                <p>
+                  This radical transparency is what production systems need. You can't deploy code based on AI confidence. You need facts.
                 </p>
 
                 <ul>
-                  <li>Correct first</li>
-                  <li>Transparent about errors</li>
-                  <li>Explicit about warnings</li>
-                  <li>Clear about edge cases</li>
+                  <li><strong>Correct first:</strong> Accuracy is non-negotiable. We sacrifice convenience for correctness.</li>
+                  <li><strong>Transparent about errors:</strong> Invalid input gets clear, actionable error messages.</li>
+                  <li><strong>Explicit about edge cases:</strong> You'll know about timezone ambiguity, floating-point precision, rounding modes.</li>
+                  <li><strong>Auditable:</strong> Every decision is traceable back to a rule or standard.</li>
                 </ul>
-
-                <p>
-                  If something is invalid, you'll know why. If something can't be parsed, you'll see exactly where it
-                  fails.
-                </p>
-
-                <p className={styles.highlight}>
-                  No guessing. No vague explanations. Just facts.
-                </p>
               </div>
 
               <div className={styles.featureBlock}>
