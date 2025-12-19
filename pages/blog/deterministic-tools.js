@@ -31,7 +31,7 @@ const calculateReadTime = (wordCount) => {
 
 export default function DeterministicToolsBlog() {
   const readTime = calculateReadTime(2800)
-  const publishDateString = formatPublishDate(ARTICLE_META.publishDate)
+  const publishDateString = ARTICLE_META.publishDateFormatted
   const pageTitle = `${ARTICLE_META.title} | Pioneer Web Tools`
 
   return (
