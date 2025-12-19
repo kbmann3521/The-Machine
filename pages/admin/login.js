@@ -7,9 +7,11 @@ import styles from '../../styles/blog-admin.module.css'
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [isSignUp, setIsSignUp] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -43,32 +45,69 @@ export default function AdminLogin() {
     setLoading(true)
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (signInError) {
-        setError(signInError.message)
-        setLoading(false)
-        return
-      }
-
-      if (data.user) {
-        const { data: adminUser, error: adminCheckError } = await supabase
-          .from('admin_users')
-          .select('user_id')
-          .eq('user_id', data.user.id)
-          .single()
-
-        if (adminCheckError || !adminUser) {
-          await supabase.auth.signOut()
-          setError('You do not have admin access.')
+      if (isSignUp) {
+        if (password !== passwordConfirm) {
+          setError('Passwords do not match')
           setLoading(false)
           return
         }
 
-        router.push('/admin/posts')
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters')
+          setLoading(false)
+          return
+        }
+
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        })
+
+        if (signUpError) {
+          setError(signUpError.message)
+          setLoading(false)
+          return
+        }
+
+        if (data.user) {
+          setError('')
+          setEmail('')
+          setPassword('')
+          setPasswordConfirm('')
+          setIsSignUp(false)
+          setError(
+            'Account created! You need admin access to log in. Please contact the site administrator to add your account as admin, or check if they have already added you.'
+          )
+          setLoading(false)
+        }
+      } else {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (signInError) {
+          setError(signInError.message)
+          setLoading(false)
+          return
+        }
+
+        if (data.user) {
+          const { data: adminUser, error: adminCheckError } = await supabase
+            .from('admin_users')
+            .select('user_id')
+            .eq('user_id', data.user.id)
+            .single()
+
+          if (adminCheckError || !adminUser) {
+            await supabase.auth.signOut()
+            setError('You do not have admin access. Contact the site administrator.')
+            setLoading(false)
+            return
+          }
+
+          router.push('/admin/posts')
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -101,10 +140,14 @@ export default function AdminLogin() {
         <div style={{ maxWidth: '400px', margin: '0 auto' }}>
           <div className={styles.adminSection}>
             <h1 className={styles.adminTitle} style={{ fontSize: '2rem', marginTop: 0 }}>
-              Admin Login
+              {isSignUp ? 'Create Admin Account' : 'Admin Login'}
             </h1>
 
-            {error && <div className={styles.errorMessage}>{error}</div>}
+            {error && (
+              <div className={error.includes('created') ? styles.successMessage : styles.errorMessage}>
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.formGroup}>
@@ -137,9 +180,50 @@ export default function AdminLogin() {
                 />
               </div>
 
+              {isSignUp && (
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel} htmlFor="password-confirm">
+                    Confirm Password
+                  </label>
+                  <input
+                    id="password-confirm"
+                    type="password"
+                    className={styles.formInput}
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              )}
+
               <button type="submit" className={styles.primaryBtn} disabled={loading}>
-                {loading ? 'Logging in...' : 'Log In'}
+                {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Log In'}
               </button>
+
+              <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp)
+                    setError('')
+                    setEmail('')
+                    setPassword('')
+                    setPasswordConfirm('')
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#1976d2',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    fontSize: '0.9rem',
+                  }}
+                  disabled={loading}
+                >
+                  {isSignUp ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
