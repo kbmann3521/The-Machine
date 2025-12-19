@@ -137,8 +137,7 @@ export default function AdminLogin() {
       </div>
 
       <div className={styles.adminContent}>
-        <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-          <div className={styles.adminSection}>
+        <div className={styles.adminSection}>
             <h1 className={styles.adminTitle} style={{ fontSize: '2rem', marginTop: 0 }}>
               {isSignUp ? 'Create Admin Account' : 'Admin Login'}
             </h1>
@@ -225,7 +224,6 @@ export default function AdminLogin() {
                 </button>
               </div>
             </form>
-          </div>
         </div>
       </div>
     </div>
