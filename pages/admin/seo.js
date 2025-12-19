@@ -420,7 +420,7 @@ export default function AdminSEO() {
                 <label className={seoStyles.label}>
                   Page-Specific Rules
                   <p className={seoStyles.hint} style={{ marginTop: '0.25rem', marginBottom: '0.75rem' }}>
-                    Select specific pages and apply indexing directives. These rules will automatically generate your robots.txt.
+                    Control indexing behavior for individual pages via &lt;meta name="robots"&gt; tags. These do NOT affect robots.txt (which is structural only). Admin pages automatically get noindex,nofollow.
                   </p>
                   <input
                     type="text"
