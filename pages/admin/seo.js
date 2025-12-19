@@ -89,6 +89,11 @@ export default function AdminSEO() {
           }
         })
 
+        // If robots_txt is empty, show the default (but don't save it)
+        if (!normalizedData.robots_txt || !normalizedData.robots_txt.trim()) {
+          normalizedData.robots_txt = generateRobotsText('', normalizedData.index_site || true)
+        }
+
         setSettings((prev) => ({ ...prev, ...normalizedData }))
         if (data.updated_at) {
           setLastUpdated(new Date(data.updated_at))
