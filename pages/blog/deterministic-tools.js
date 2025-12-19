@@ -67,16 +67,26 @@ export default function DeterministicToolsBlog() {
               Accurate. Private. Predictable. Built for professionals.
             </p>
 
-            <section className={styles.section}>
-              <p>
+            <section className={styles.intro}>
+              <p className={styles.lead}>
                 Modern AI tools are impressive—but they're not always the right tool for the job. When accuracy,
                 privacy, and reliability matter, deterministic internet tools consistently outperform AI-based
                 solutions.
               </p>
 
               <p>
-                Our internet tools platform is built on a simple principle: your results should be correct,
-                explainable, private, and repeatable—every time.
+                Imagine you're validating user email addresses in a production system. You run 10,000 addresses through an AI tool,
+                get results back, deploy to production—and three weeks later, the AI model updates its behavior and suddenly valid emails
+                are being rejected. Or worse: you're decoding JWTs from your API, and the AI hallucinates a token as "valid" when it's actually expired.
+              </p>
+
+              <p>
+                These aren't hypothetical scenarios. They're the unavoidable reality of systems built on probabilistic models.
+              </p>
+
+              <p>
+                Our internet tools platform is built on a different principle: your results should be correct, explainable, private, and
+                repeatable—every single time. Not "probably correct." Not "usually private." Always.
               </p>
             </section>
 
