@@ -6,7 +6,7 @@ import styles from '../../styles/blog-article.module.css'
 
 // Article metadata - update publishDate when you publish
 const ARTICLE_META = {
-  publishDate: new Date('2024-12-19'),
+  publishDate: new Date('2025-12-19'),
   title: 'Why Deterministic Internet Tools Are Better Than AI',
   description: 'Accurate. Private. Predictable. Learn why deterministic internet tools consistently outperform AI-based solutions for professionals.',
 }
