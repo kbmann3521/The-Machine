@@ -460,16 +460,16 @@ export default function AdminSEO() {
 
               <div className={seoStyles.fieldGroup} style={{ marginTop: '1.5rem' }}>
                 <label className={seoStyles.label}>
-                  Custom Robots.txt
+                  robots.txt
                   <p className={seoStyles.hint} style={{ marginTop: '0.25rem', marginBottom: '0.75rem' }}>
-                    Auto-generated from page rules above, or enter custom rules here to override.
+                    Controls crawl-level access (structural rules). Page-specific rules above control meta tags, not robots.txt. Leave empty to use default rules.
                   </p>
                   <textarea
                     name="robots_txt"
                     value={settings.robots_txt}
                     onChange={handleChange}
                     className={seoStyles.textarea}
-                    placeholder="Leave empty to use auto-generated rules from page selections above..."
+                    placeholder="Leave empty for default: Allow /, Disallow: /admin/, /api/, /.next/"
                     rows="8"
                   />
                 </label>
