@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../../lib/supabase-client'
-import styles from '../../styles/blog-admin.module.css'
+import styles from '../../styles/blog-admin-login.module.css'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { supabase } from '../../../../lib/supabase-client'
 import { getPostById, updatePost, deletePost } from '../../../../lib/blog-client'
 import { generateSlug } from '../../../../lib/slug-utils'
-import styles from '../../../../styles/blog-admin.module.css'
+import styles from '../../../../styles/blog-admin-forms.module.css'
 
 export default function EditPost() {
   const router = useRouter()

@@ -4,7 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
 import { getAllPosts, deletePost, publishPost, unpublishPost } from '../../lib/blog-client'
-import styles from '../../styles/blog-admin.module.css'
+import styles from '../../styles/blog-admin-posts.module.css'
 
 export default function AdminPosts() {
   const [posts, setPosts] = useState([])
