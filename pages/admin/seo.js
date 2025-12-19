@@ -116,10 +116,36 @@ export default function AdminSEO() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setSettings((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }))
+
+    // When robots_txt textarea is edited, treat it as manual override
+    // When index_site is toggled, regenerate default robots.txt if not manually overridden
+    if (name === 'index_site') {
+      const isOverridden = settings.robots_txt && settings.robots_txt.trim() !== ''
+      const newChecked = checked
+
+      setSettings((prev) => {
+        const updated = { ...prev, [name]: newChecked }
+
+        // If user hasn't provided custom robots.txt, auto-generate based on global toggle
+        if (!isOverridden) {
+          const newRobots = generateRobotsText('', newChecked)
+          updated.robots_txt = newRobots
+        }
+
+        return updated
+      })
+    } else if (name === 'robots_txt') {
+      // User manually editing robots.txt - just store it as-is
+      setSettings((prev) => ({
+        ...prev,
+        [name]: value,
+      }))
+    } else {
+      setSettings((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      }))
+    }
   }
 
   const handlePageRuleChange = (path, directive, checked) => {
