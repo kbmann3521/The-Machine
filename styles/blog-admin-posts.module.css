@@ -275,6 +275,17 @@
   background-color: rgba(46, 125, 50, 0.1);
 }
 
+.publishBtnFull {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+}
+
+.publishBtnFull:hover {
+  background-color: #1b5e20;
+}
+
 .postMeta {
   color: var(--color-text-secondary);
   font-size: 0.85rem;
