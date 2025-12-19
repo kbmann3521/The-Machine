@@ -30,15 +30,15 @@ export async function getServerSideProps({ res }) {
 
     if (error || !seoSettings) {
       robotsContent = DEFAULT_ROBOTS
+    } else if (seoSettings.robots_txt?.trim()) {
+      // Use custom robots.txt if user provided one
+      robotsContent = seoSettings.robots_txt
     } else if (seoSettings.index_site === false) {
-      // If site is not indexed, return noindex/nofollow
+      // If global site indexing is disabled, disallow everything
       robotsContent = `User-agent: *
 Disallow: /`
-    } else if (seoSettings.robots_txt?.trim()) {
-      // Use custom robots.txt if provided
-      robotsContent = seoSettings.robots_txt
     } else {
-      // Use default
+      // Use default (Allow /, Disallow structural paths)
       robotsContent = DEFAULT_ROBOTS
     }
 
