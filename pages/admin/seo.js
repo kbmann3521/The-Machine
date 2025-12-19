@@ -130,12 +130,9 @@ export default function AdminSEO() {
     updated[path][directive] = checked
     setPageRules(updated)
 
-    // Auto-generate robots.txt
-    const newRobots = generateRobotsText(updated, settings.index_site, '')
-    setSettings((prev) => ({
-      ...prev,
-      robots_txt: newRobots,
-    }))
+    // Note: Page rules do NOT affect robots.txt
+    // They only control <meta name="robots"> injection on pages
+    // robots.txt is structural only (path-based)
   }
 
   const togglePageRule = (path) => {
