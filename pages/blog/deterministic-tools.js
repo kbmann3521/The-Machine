@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import styles from '../../styles/blog-article.module.css'
-
-// Dynamically import ThemeToggle to avoid hydration mismatch
-const ThemeToggle = dynamic(() => import('../../components/ThemeToggle'), {
-  ssr: false,
-})
 
 // Article metadata - update publishDate when you publish
 const ARTICLE_META = {
