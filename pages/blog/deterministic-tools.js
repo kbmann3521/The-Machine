@@ -46,7 +46,7 @@ export default function DeterministicToolsBlog() {
         <meta property="og:title" content={ARTICLE_META.title} />
         <meta property="og:description" content={ARTICLE_META.description} />
         <meta property="og:type" content="article" />
-        <meta property="article:published_time" content={ARTICLE_META.publishDate.toISOString()} />
+        <meta property="article:published_time" content={getISODateString(ARTICLE_META.publishDate)} />
       </Head>
 
       <div className={styles.layout}>
