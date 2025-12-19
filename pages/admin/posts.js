@@ -120,9 +120,7 @@ export default function AdminPosts() {
         <Head>
           <title>Posts - Admin</title>
         </Head>
-        <div className={styles.adminHeader}>
-          <div className={styles.adminHeaderTitle}>Blog Admin</div>
-        </div>
+        <AdminHeader currentSection="posts" />
         <div className={styles.loadingState}>Loading posts...</div>
       </div>
     )
@@ -134,17 +132,7 @@ export default function AdminPosts() {
         <title>Posts - Admin</title>
       </Head>
 
-      <div className={styles.adminHeader}>
-        <div className={styles.adminHeaderTitle}>Blog Admin</div>
-        <div className={styles.adminNavigation}>
-          <Link href="/admin/posts" className={styles.adminNavLink}>
-            Posts
-          </Link>
-          <button onClick={handleLogout} className={styles.logoutBtn}>
-            Logout
-          </button>
-        </div>
-      </div>
+      <AdminHeader currentSection="posts" />
 
       <div className={styles.adminContent}>
         <div className={styles.adminSection}>
