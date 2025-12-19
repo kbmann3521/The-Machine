@@ -92,10 +92,14 @@ export default function SingleIPOutput({ result, detectedInput }) {
           return
         }
 
-        const response = await fetch('/api/tools/dns-lookup', {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+        const reverseDnsUrl = `${baseUrl}/api/tools/dns-lookup`
+
+        const response = await fetch(reverseDnsUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ input }),
+          credentials: 'same-origin',
         })
 
         if (!response.ok) throw new Error('Reverse DNS lookup failed')
