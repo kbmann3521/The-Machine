@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../../../lib/supabase-client'
-import { getPostById, updatePost, deletePost } from '../../../../lib/blog-actions'
+import { getPostById, updatePost, deletePost } from '../../../../lib/blog-client'
 import { generateSlug } from '../../../../lib/slug-utils'
 import styles from '../../../../styles/blog-admin.module.css'
 

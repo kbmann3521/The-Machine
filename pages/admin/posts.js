@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
-import { getAllPosts, deletePost, publishPost, unpublishPost } from '../../lib/blog-actions'
+import { getAllPosts, deletePost, publishPost, unpublishPost } from '../../lib/blog-client'
 import styles from '../../styles/blog-admin.module.css'
 
 export default function AdminPosts() {
