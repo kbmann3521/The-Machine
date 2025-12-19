@@ -57,7 +57,7 @@ export default function DeterministicToolsBlog() {
           <Link href="/" className={styles.homeLink}>
             ← Back to Pioneer Web Tools
           </Link>
-          <ThemeToggleWrapper />
+          <ThemeToggle />
         </header>
 
         <main className={styles.article}>
