@@ -198,6 +198,10 @@ export default function AdminSEO() {
       })
 
       if (response.ok) {
+        // Store page rules in localStorage for client-side robots meta injection
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('seoPageRules', JSON.stringify(pageRules))
+        }
         setSuccessMessage('SEO settings saved successfully')
         setLastUpdated(new Date())
         setTimeout(() => setSuccessMessage(''), 3000)
