@@ -18,7 +18,8 @@ export default function AdminSEO() {
   const [filteredPages, setFilteredPages] = useState(AVAILABLE_PAGES)
   const router = useRouter()
 
-  // Default page rules based on recommended SEO settings
+  // Default page rules for internal test/diagnostic pages
+  // These prevent accidental indexing of internal/experimental pages
   const DEFAULT_PAGE_RULES = {
     '/ip-toolkit-tests': { noindex: true, nofollow: false },
     '/jwt-tests': { noindex: true, nofollow: true },
