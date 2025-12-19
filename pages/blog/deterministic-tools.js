@@ -60,7 +60,7 @@ export default function DeterministicToolsBlog() {
         <main className={styles.article}>
           <article className={styles.articleContent}>
             <div className={styles.meta}>
-              <time dateTime={ARTICLE_META.publishDate.toISOString()}>{publishDateString}</time>
+              <time dateTime={getISODateString(ARTICLE_META.publishDate)}>{publishDateString}</time>
               <span className={styles.readTime}>{readTime}</span>
             </div>
 
