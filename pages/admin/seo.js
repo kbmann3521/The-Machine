@@ -358,21 +358,95 @@ export default function AdminSEO() {
                 </p>
               </div>
 
+              {/* Per-Page Rules */}
               <div className={seoStyles.fieldGroup}>
                 <label className={seoStyles.label}>
+                  Page-Specific Rules
+                  <p className={seoStyles.hint} style={{ marginTop: '0.25rem', marginBottom: '0.75rem' }}>
+                    Select specific pages and apply indexing directives. These rules will automatically generate your robots.txt.
+                  </p>
+                  <input
+                    type="text"
+                    placeholder="Search pages..."
+                    value={pageSearch}
+                    onChange={(e) => setPageSearch(e.target.value)}
+                    className={seoStyles.input}
+                  />
+                </label>
+              </div>
+
+              <div className={seoStyles.pageRulesList}>
+                {filteredPages.map((page) => {
+                  const hasRule = pageRules[page.path]
+                  return (
+                    <div key={page.path} className={seoStyles.pageRuleItem}>
+                      <div className={seoStyles.pageRuleHeader}>
+                        <label className={seoStyles.checkboxLabel} style={{ flex: 1 }}>
+                          <input
+                            type="checkbox"
+                            checked={hasRule ? true : false}
+                            onChange={() => togglePageRule(page.path)}
+                          />
+                          <span>{page.label}</span>
+                          <span className={seoStyles.pagePathLabel}>{page.path}</span>
+                        </label>
+                      </div>
+                      {hasRule && (
+                        <div className={seoStyles.pageRuleDirectives}>
+                          <label className={seoStyles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              checked={pageRules[page.path].noindex || false}
+                              onChange={(e) => handlePageRuleChange(page.path, 'noindex', e.target.checked)}
+                            />
+                            noindex (hide from search results)
+                          </label>
+                          <label className={seoStyles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              checked={pageRules[page.path].nofollow || false}
+                              onChange={(e) => handlePageRuleChange(page.path, 'nofollow', e.target.checked)}
+                            />
+                            nofollow (don't follow links on this page)
+                          </label>
+                          <label className={seoStyles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              checked={pageRules[page.path].noarchive || false}
+                              onChange={(e) => handlePageRuleChange(page.path, 'noarchive', e.target.checked)}
+                            />
+                            noarchive (don't store cached version)
+                          </label>
+                          <label className={seoStyles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              checked={pageRules[page.path].nocache || false}
+                              onChange={(e) => handlePageRuleChange(page.path, 'nocache', e.target.checked)}
+                            />
+                            nocache (don't cache this page)
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className={seoStyles.fieldGroup} style={{ marginTop: '1.5rem' }}>
+                <label className={seoStyles.label}>
                   Custom Robots.txt
+                  <p className={seoStyles.hint} style={{ marginTop: '0.25rem', marginBottom: '0.75rem' }}>
+                    Auto-generated from page rules above, or enter custom rules here to override.
+                  </p>
                   <textarea
                     name="robots_txt"
                     value={settings.robots_txt}
                     onChange={handleChange}
                     className={seoStyles.textarea}
-                    placeholder="Leave empty to use default..."
-                    rows="6"
+                    placeholder="Leave empty to use auto-generated rules from page selections above..."
+                    rows="8"
                   />
                 </label>
-                <p className={seoStyles.hint}>
-                  Leave empty to use default. Enter custom robots.txt rules here.
-                </p>
               </div>
             </section>
 
