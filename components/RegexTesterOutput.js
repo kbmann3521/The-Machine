@@ -223,7 +223,10 @@ function AIAnalysisSection({ patternName, patternDescription, pattern, matches, 
     setIsAnalyzing(true)
     try {
       const matchedSubstrings = matches.map(m => m.match)
-      const response = await fetch('/api/test-regex-patterns', {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+      const analyzeUrl = `${baseUrl}/api/test-regex-patterns`
+
+      const response = await fetch(analyzeUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
