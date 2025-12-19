@@ -1,4 +1,7 @@
-import { supabase } from '../../../lib/supabase-client'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -6,29 +9,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Check authentication
+    // Get token from headers
     const token = req.headers.authorization?.split('Bearer ')[1]
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
-    // Verify user is admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Invalid token' })
-    }
+    // Create Supabase client with auth context from token
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    })
 
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!adminUser) {
-      return res.status(403).json({ error: 'Not an admin' })
-    }
-
-    // Fetch SEO settings
+    // RLS policies will check auth.uid() automatically
+    // Fetch SEO settings - RLS will enforce admin access
     const { data: seoSettings, error } = await supabase
       .from('seo_settings')
       .select('*')
@@ -36,7 +33,8 @@ export default async function handler(req, res) {
       .single()
 
     if (error) {
-      return res.status(500).json({ error: 'Failed to fetch SEO settings' })
+      console.error('SEO settings error:', error)
+      return res.status(403).json({ error: 'Not authorized to access SEO settings' })
     }
 
     res.status(200).json(seoSettings || {})
