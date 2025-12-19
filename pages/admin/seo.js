@@ -419,9 +419,9 @@ export default function AdminSEO() {
               {/* Per-Page Rules */}
               <div className={seoStyles.fieldGroup}>
                 <label className={seoStyles.label}>
-                  Page-Specific Rules
+                  Internal Test Pages
                   <p className={seoStyles.hint} style={{ marginTop: '0.25rem', marginBottom: '0.75rem' }}>
-                    Control indexing behavior for individual pages via &lt;meta name="robots"&gt; tags. These do NOT affect robots.txt (which is structural only). Admin pages automatically get noindex,nofollow.
+                    Control indexing via &lt;meta name="robots"&gt; tags for internal/diagnostic pages. Public pages, admin routes, and APIs are handled separately (robots.txt or hardcoded).
                   </p>
                   <input
                     type="text"
