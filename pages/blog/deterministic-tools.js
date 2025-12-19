@@ -39,7 +39,7 @@ export default function DeterministicToolsBlog() {
   return (
     <>
       <Head>
-        <title>{ARTICLE_META.title} | Pioneer Web Tools</title>
+        <title>{`${ARTICLE_META.title} | Pioneer Web Tools`}</title>
         <meta name="description" content={ARTICLE_META.description} />
         <meta
           name="keywords"
