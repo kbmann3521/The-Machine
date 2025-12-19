@@ -1,0 +1,69 @@
+import { supabase } from '../../../lib/supabase-client'
+
+async function verifyAdminAccess(req) {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Missing authorization header')
+  }
+
+  const token = authHeader.substring(7)
+  const { data, error } = await supabase.auth.getUser(token)
+
+  if (error || !data.user) {
+    throw new Error('Invalid token')
+  }
+
+  const { data: adminUsers, error: adminError } = await supabase
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', data.user.id)
+
+  if (adminError || !adminUsers || adminUsers.length === 0) {
+    throw new Error('Not an admin user')
+  }
+
+  return data.user.id
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  try {
+    await verifyAdminAccess(req)
+
+    const { id, published } = req.body
+
+    if (!id) {
+      return res.status(400).json({ error: 'Post ID is required' })
+    }
+
+    const updateData =
+      published === false
+        ? {
+            status: 'draft',
+            published_at: null,
+            updated_at: new Date().toISOString(),
+          }
+        : {
+            status: 'published',
+            published_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+
+    if (error) {
+      return res.status(400).json({ error: error.message })
+    }
+
+    return res.status(200).json(data[0])
+  } catch (err) {
+    return res.status(401).json({ error: err.message })
+  }
+}
