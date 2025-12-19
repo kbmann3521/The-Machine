@@ -28,12 +28,6 @@ const calculateReadTime = (wordCount) => {
 }
 
 export default function DeterministicToolsBlog() {
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
   const readTime = calculateReadTime(2800)
   const publishDateString = formatPublishDate(ARTICLE_META.publishDate)
 
