@@ -121,7 +121,7 @@ export default function AdminSEO() {
   const handlePageRuleChange = (path, directive, checked) => {
     const updated = { ...pageRules }
     if (!updated[path]) {
-      updated[path] = { noindex: false, nofollow: false, noarchive: false, nocache: false }
+      updated[path] = { noindex: false, nofollow: false }
     }
     updated[path][directive] = checked
     setPageRules(updated)
