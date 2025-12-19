@@ -46,6 +46,12 @@ export default function AdminHeader({ currentSection }) {
               >
                 Test Harnesses
               </button>
+              <button
+                onClick={() => handleNavigation('/admin/seo')}
+                className={`${styles.dropdownItem} ${currentSection === 'seo' ? styles.dropdownItemActive : ''}`}
+              >
+                SEO Config
+              </button>
             </div>
           )}
         </div>
