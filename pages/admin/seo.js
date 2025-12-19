@@ -122,29 +122,24 @@ export default function AdminSEO() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
 
-    // When robots_txt textarea is edited, treat it as manual override
-    // When index_site is toggled, regenerate default robots.txt if not manually overridden
     if (name === 'index_site') {
-      const isOverridden = settings.robots_txt && settings.robots_txt.trim() !== ''
       const newChecked = checked
 
       setSettings((prev) => {
         const updated = { ...prev, [name]: newChecked }
 
-        // If user hasn't provided custom robots.txt, auto-generate based on global toggle
-        if (!isOverridden) {
-          const newRobots = generateRobotsText('', newChecked)
-          updated.robots_txt = newRobots
+        // If robots.txt is currently the auto-generated default, regenerate it
+        // This way manual overrides are preserved
+        const currentDefault = generateRobotsText('', prev.index_site)
+        const isUsingDefault = prev.robots_txt.trim() === currentDefault.trim()
+
+        if (isUsingDefault) {
+          const newDefault = generateRobotsText('', newChecked)
+          updated.robots_txt = newDefault
         }
 
         return updated
       })
-    } else if (name === 'robots_txt') {
-      // User manually editing robots.txt - just store it as-is
-      setSettings((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
     } else {
       setSettings((prev) => ({
         ...prev,
