@@ -11,7 +11,12 @@ export default function JWTTestSuite() {
     setLoading(true)
     try {
       // Call server-side API endpoint to run tests with Node.js crypto available
-      const response = await fetch('/api/jwt-tests')
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+      const testUrl = `${baseUrl}/api/jwt-tests`
+
+      const response = await fetch(testUrl, {
+        credentials: 'same-origin',
+      })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }

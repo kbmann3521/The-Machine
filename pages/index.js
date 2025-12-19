@@ -151,9 +151,14 @@ export default function Home() {
       try {
         let response
         try {
-          response = await fetch('/api/tools/get-metadata', {
+          // Use absolute URL to ensure fetch works correctly in all contexts
+          const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+          const metadataUrl = `${baseUrl}/api/tools/get-metadata`
+
+          response = await fetch(metadataUrl, {
+            method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-            cache: 'no-cache',
+            credentials: 'same-origin',
           })
         } catch (fetchError) {
           console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
@@ -351,7 +356,10 @@ export default function Home() {
             if (isAborted) {
               response = null
             } else {
-              response = await fetch('/api/tools/predict', {
+              const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+              const predictUrl = `${baseUrl}/api/tools/predict`
+
+              response = await fetch(predictUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -359,6 +367,7 @@ export default function Home() {
                   inputImage: preview ? 'image' : null,
                 }),
                 signal: controller.signal,
+                credentials: 'same-origin',
               })
             }
           } catch (fetchError) {
@@ -537,7 +546,10 @@ export default function Home() {
           setOutputResult(result)
           setOutputWarnings([])
         } else {
-          const response = await fetch('/api/tools/run', {
+          const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+          const runUrl = `${baseUrl}/api/tools/run`
+
+          const response = await fetch(runUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -546,6 +558,7 @@ export default function Home() {
               inputImage: imageInput,
               config: finalConfig,
             }),
+            credentials: 'same-origin',
           })
 
           if (!response) {

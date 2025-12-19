@@ -29,7 +29,10 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
     if (testMode) {
       setIsGenerating(true)
       try {
-        const response = await fetch('/api/test-regex-patterns', {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+        const generateUrl = `${baseUrl}/api/test-regex-patterns`
+
+        const response = await fetch(generateUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -37,6 +40,7 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
             patternName: template.name,
             patternDescription: template.description,
           }),
+          credentials: 'same-origin',
         })
 
         if (response.ok) {

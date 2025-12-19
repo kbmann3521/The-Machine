@@ -21,11 +21,15 @@ export default function EmailValidatorOutputPanel({ result }) {
               const timeout = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
               try {
-                const response = await fetch('/api/tools/email-validator-dns', {
+                const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+                const dnsUrl = `${baseUrl}/api/tools/email-validator-dns`
+
+                const response = await fetch(dnsUrl, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ domain }),
-                  signal: controller.signal
+                  signal: controller.signal,
+                  credentials: 'same-origin',
                 })
                 clearTimeout(timeout)
 
