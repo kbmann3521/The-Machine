@@ -1,0 +1,313 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(135deg, var(--color-header-gradient-start) 0%, var(--color-header-gradient-end) 100%);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.homeLink {
+  font-size: 14px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-weight: 500;
+}
+
+.homeLink:hover {
+  color: var(--color-text-secondary);
+}
+
+.article {
+  flex: 1;
+  overflow-y: auto;
+  padding: 48px 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.articleContent {
+  width: 100%;
+  max-width: 800px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* Meta information */
+.meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.readTime::before {
+  content: '•';
+  margin-right: 16px;
+}
+
+/* Title and Subtitle */
+.title {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  font-size: 20px;
+  color: var(--color-text-secondary);
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 48px;
+}
+
+.section h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  margin-top: 0;
+  color: var(--color-text-primary);
+}
+
+.section p {
+  margin-bottom: 16px;
+  color: var(--color-text-primary);
+}
+
+.section ul {
+  list-style-position: inside;
+  margin-bottom: 16px;
+  margin-left: 0;
+}
+
+.section li {
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+
+/* Feature blocks */
+.featureBlock {
+  margin-bottom: 40px;
+  padding: 24px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.featureBlock h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  margin-top: 0;
+  color: var(--color-text-primary);
+}
+
+.featureBlock p {
+  margin-bottom: 12px;
+  color: var(--color-text-primary);
+}
+
+.featureBlock ul {
+  margin-bottom: 12px;
+}
+
+.featureBlock li {
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+/* Highlight text */
+.highlight {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-style: italic;
+}
+
+/* Checklist block */
+.checklistBlock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+  padding: 24px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.checklistItem {
+  font-size: 15px;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* CTA Section */
+.ctaSection {
+  margin-top: 56px;
+  padding: 40px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  text-align: center;
+}
+
+.ctaSection h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--color-text-primary);
+}
+
+.ctaSection p {
+  color: var(--color-text-primary);
+  margin-bottom: 16px;
+}
+
+.ctaSection ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 32px;
+}
+
+.tagline {
+  font-size: 18px;
+  font-weight: 600;
+  white-space: pre-line;
+  margin-bottom: 32px !important;
+  line-height: 1.8;
+  color: var(--color-text-primary);
+}
+
+.ctaButton {
+  display: inline-block;
+  padding: 12px 32px;
+  background-color: var(--color-text-primary);
+  color: var(--color-background-primary);
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: opacity 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.ctaButton:hover {
+  opacity: 0.85;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+
+  .article {
+    padding: 24px 16px;
+  }
+
+  .articleContent {
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+
+  .section {
+    margin-bottom: 32px;
+  }
+
+  .section h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .featureBlock {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .featureBlock h3 {
+    font-size: 18px;
+  }
+
+  .checklistBlock {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .ctaSection {
+    padding: 24px 16px;
+  }
+
+  .ctaSection h2 {
+    font-size: 24px;
+  }
+
+  .tagline {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .homeLink {
+    font-size: 12px;
+  }
+
+  .article {
+    padding: 16px 12px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .section h2 {
+    font-size: 20px;
+  }
+
+  .featureBlock h3 {
+    font-size: 16px;
+  }
+
+  .articleContent {
+    font-size: 14px;
+  }
+}
