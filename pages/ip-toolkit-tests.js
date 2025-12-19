@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { validateIPAddress } from '../lib/tools.js'
 import styles from '../styles/ip-toolkit-tests.module.css'
 
@@ -120,18 +120,27 @@ const TEST_CASES = [
 export default function IPToolkitTests() {
   const [expandedIndices, setExpandedIndices] = useState(new Set())
   const [copied, setCopied] = useState(false)
+  const [isRunning, setIsRunning] = useState(false)
+  const [results, setResults] = useState(null)
 
-  // Run all tests
-  const results = useMemo(() => {
-    return TEST_CASES.map((testCase, idx) => ({
-      ...testCase,
-      index: idx,
-      result: validateIPAddress(testCase.input),
-    }))
-  }, [])
+  // Handle running tests manually
+  const handleRunTests = () => {
+    setIsRunning(true)
+    setExpandedIndices(new Set())
 
-  // Group by category
-  const grouped = useMemo(() => {
+    setTimeout(() => {
+      const testResults = TEST_CASES.map((testCase, idx) => ({
+        ...testCase,
+        index: idx,
+        result: validateIPAddress(testCase.input),
+      }))
+      setResults(testResults)
+      setIsRunning(false)
+    }, 100)
+  }
+
+  // Group by category (only if results exist)
+  const grouped = results ? (() => {
     const groups = {}
     results.forEach(r => {
       if (!groups[r.category]) {
@@ -140,7 +149,7 @@ export default function IPToolkitTests() {
       groups[r.category].push(r)
     })
     return groups
-  }, [results])
+  })() : {}
 
   const categories = Object.keys(grouped).sort()
 
@@ -155,6 +164,7 @@ export default function IPToolkitTests() {
   }
 
   const handleCopyAll = async () => {
+    if (!results) return
     const allResults = results.map(r => ({
       input: r.input,
       description: r.description,
@@ -200,23 +210,54 @@ export default function IPToolkitTests() {
       <div className={styles.header}>
         <h1 className={styles.title}>IP Address Toolkit — Test Harness</h1>
         <p className={styles.subtitle}>
-          Comprehensive test suite for Phase 1, 2, and edge cases. {results.length} test cases total.
+          Comprehensive test suite for Phase 1, 2, and edge cases. {TEST_CASES.length} test cases total.
         </p>
       </div>
 
       <div className={styles.controls}>
-        <button className={styles.copyButton} onClick={handleCopyAll}>
-          {copied ? '✓ Copied All Results!' : '📋 Copy All Results (JSON)'}
+        <button
+          className={styles.copyButton}
+          onClick={handleRunTests}
+          disabled={isRunning}
+          style={{
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isRunning ? 'not-allowed' : 'pointer',
+            opacity: isRunning ? 0.7 : 1,
+            fontWeight: 'bold'
+          }}
+        >
+          {isRunning ? '⏳ Running Tests...' : '▶️ Run Tests'}
         </button>
-        <span className={styles.stats}>
-          ✅ Valid: {results.filter(r => r.result.isValid === true || r.result.inputType).length} |
-          ⚠️ Invalid: {results.filter(r => r.result.isValid === false).length} |
-          ❌ Errors: {results.filter(r => r.result.error).length}
-        </span>
+        {results && (
+          <>
+            <button className={styles.copyButton} onClick={handleCopyAll}>
+              {copied ? '✓ Copied All Results!' : '📋 Copy All Results (JSON)'}
+            </button>
+            <span className={styles.stats}>
+              ✅ Valid: {results.filter(r => r.result.isValid === true || r.result.inputType).length} |
+              ⚠️ Invalid: {results.filter(r => r.result.isValid === false).length} |
+              ❌ Errors: {results.filter(r => r.result.error).length}
+            </span>
+          </>
+        )}
       </div>
 
-      <div className={styles.testResults}>
-        {categories.map(category => (
+      {!results ? (
+        <div style={{
+          padding: '40px',
+          textAlign: 'center',
+          color: 'var(--color-text-secondary)',
+          fontSize: '14px'
+        }}>
+          <p>Click "Run Tests" above to execute {TEST_CASES.length} test cases.</p>
+        </div>
+      ) : (
+        <div className={styles.testResults}>
+          {categories.map(category => (
           <div key={category} className={styles.categorySection}>
             <h2 className={styles.categoryTitle}>
               {category} ({grouped[category].length})
@@ -255,7 +296,8 @@ export default function IPToolkitTests() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       <div className={styles.footer}>
         <p>

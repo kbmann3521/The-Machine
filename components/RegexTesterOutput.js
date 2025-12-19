@@ -213,7 +213,89 @@ function RegexExplanation({ pattern, explanation }) {
   );
 }
 
-export default function RegexTesterOutput({ result, inputText }) {
+function AIAnalysisSection({ patternName, patternDescription, pattern, matches, inputText }) {
+  const [analysis, setAnalysis] = useState(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [showAnalysis, setShowAnalysis] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true)
+    try {
+      const matchedSubstrings = matches.map(m => m.match)
+      const response = await fetch('/api/test-regex-patterns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze',
+          patternName,
+          patternDescription,
+          pattern,
+          matchedSubstrings,
+          inputText,
+        }),
+      })
+
+      if (response.ok) {
+        const { analysis: analysisText } = await response.json()
+        setAnalysis(analysisText)
+        setShowAnalysis(true)
+      }
+    } catch (error) {
+      console.error('Error analyzing matches:', error)
+      setAnalysis('Error analyzing matches. Please try again.')
+      setShowAnalysis(true)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const handleCopyAnalysis = () => {
+    try {
+      const textArea = document.createElement('textarea')
+      textArea.value = analysis
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
+  return (
+    <div className={styles.analysisSection}>
+      <button
+        className={styles.analyzeButton}
+        onClick={handleAnalyze}
+        disabled={isAnalyzing}
+      >
+        {isAnalyzing ? '🔄 Analyzing...' : '💭 Analyze Matches'}
+      </button>
+
+      {showAnalysis && analysis && (
+        <div className={styles.analysisContent}>
+          <div className={styles.analysisHeader}>
+            <button
+              className={styles.copyButton}
+              onClick={handleCopyAnalysis}
+              title="Copy analysis to clipboard"
+            >
+              {copied ? '✓ Copied' : '📋 Copy'}
+            </button>
+          </div>
+          <div className={styles.analysisText}>{analysis}</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function RegexTesterOutput({ result, inputText, patternName, patternDescription }) {
   const [activeTab, setActiveTab] = useState('matches');
 
   if (!result) {
@@ -289,6 +371,17 @@ export default function RegexTesterOutput({ result, inputText }) {
           )}
         </div>
       </div>
+
+      {/* AI Analysis Section */}
+      {result.matches && (
+        <AIAnalysisSection
+          patternName={patternName}
+          patternDescription={patternDescription}
+          pattern={result.pattern}
+          matches={result.matches}
+          inputText={inputText}
+        />
+      )}
     </div>
   );
 }

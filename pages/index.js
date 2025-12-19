@@ -3,6 +3,7 @@ import Head from 'next/head'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
+import NumericConfig from '../components/NumericConfig'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
@@ -59,7 +60,12 @@ export default function Home() {
   })
   const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
-
+  const [numericConfig, setNumericConfig] = useState({
+    precision: null,
+    rounding: 'half-up',
+    notation: 'auto',
+    mode: 'float'
+  })
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -450,6 +456,7 @@ export default function Home() {
     setImagePreview(preview)
   }, [])
 
+
   const handleConfigChange = useCallback(
     (newConfig) => {
       setConfigOptions(newConfig)
@@ -475,7 +482,12 @@ export default function Home() {
         // Special handling for various tools with their own configs
         let finalConfig = config
 
-        if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
+        if (tool.toolId === 'math-evaluator') {
+          finalConfig = {
+            ...config,
+            ...numericConfig,
+          }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'findReplace') {
           finalConfig = {
             ...config,
             findText: findReplaceConfig.findText || '',
@@ -562,7 +574,7 @@ export default function Home() {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -696,7 +708,11 @@ export default function Home() {
                       onSortLinesConfigChange={setSortLinesConfig}
                       removeExtrasConfig={removeExtrasConfig}
                       onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                      onSetGeneratedText={handleInputChange}
                     />
+                    {selectedTool?.toolId === 'math-evaluator' && (
+                      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
+                    )}
                   </div>
                 </>
               )}

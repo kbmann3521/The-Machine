@@ -4,51 +4,31 @@ import styles from '../styles/jwt-tests.module.css'
 
 export default function JWTTestSuite() {
   const [testResults, setTestResults] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [expandedTests, setExpandedTests] = useState({})
 
-  useEffect(() => {
-    const runTests = async () => {
-      setLoading(true)
-      try {
-        // Call server-side API endpoint to run tests with Node.js crypto available
-        const response = await fetch('/api/jwt-tests')
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-        const results = await response.json()
-        setTestResults(results)
-      } catch (error) {
-        console.error('Test execution error:', error)
-      } finally {
-        setLoading(false)
+  const handleRunTests = async () => {
+    setLoading(true)
+    try {
+      // Call server-side API endpoint to run tests with Node.js crypto available
+      const response = await fetch('/api/jwt-tests')
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
+      const results = await response.json()
+      setTestResults(results)
+    } catch (error) {
+      console.error('Test execution error:', error)
+    } finally {
+      setLoading(false)
     }
-
-    runTests()
-  }, [])
+  }
 
   const toggleTestExpanded = (testId) => {
     setExpandedTests(prev => ({
       ...prev,
       [testId]: !prev[testId]
     }))
-  }
-
-  if (loading) {
-    return (
-      <>
-        <Head>
-          <title>JWT Test Suite</title>
-        </Head>
-        <div className={styles.container}>
-          <div className={styles.loadingState}>
-            <div className={styles.spinner}></div>
-            <p>Running tests...</p>
-          </div>
-        </div>
-      </>
-    )
   }
 
   if (!testResults) {
@@ -58,9 +38,40 @@ export default function JWTTestSuite() {
           <title>JWT Test Suite</title>
         </Head>
         <div className={styles.container}>
-          <div className={styles.errorState}>
-            <p>❌ Failed to run tests</p>
+          <div className={styles.header}>
+            <h1>🔐 JWT Crypto Test Suite</h1>
+            <p className={styles.subtitle}>Phase 3-4B: HS256/384/512, RS256/384/512 + alg:none Verification</p>
           </div>
+          {loading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.spinner}></div>
+              <p>Running tests...</p>
+            </div>
+          ) : (
+            <div style={{
+              padding: '40px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+              fontSize: '14px'
+            }}>
+              <p style={{ marginBottom: '20px' }}>Click the button below to run the JWT test suite.</p>
+              <button
+                onClick={handleRunTests}
+                style={{
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '14px'
+                }}
+              >
+                ▶️ Run Tests
+              </button>
+            </div>
+          )}
         </div>
       </>
     )
@@ -79,6 +90,23 @@ export default function JWTTestSuite() {
         <div className={styles.header}>
           <h1>🔐 JWT Crypto Test Suite</h1>
           <p className={styles.subtitle}>Phase 3-4B: HS256/384/512, RS256/384/512 + alg:none Verification</p>
+          <button
+            onClick={handleRunTests}
+            disabled={loading}
+            style={{
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              fontWeight: 'bold',
+              marginTop: '15px'
+            }}
+          >
+            {loading ? '⏳ Running Tests...' : '▶️ Run Tests'}
+          </button>
         </div>
 
         {/* Summary Card */}

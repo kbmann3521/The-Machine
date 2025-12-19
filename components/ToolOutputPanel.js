@@ -15,6 +15,7 @@ import HttpHeaderParserOutput from './HttpHeaderParserOutput'
 import JWTDecoderOutput from './JWTDecoderOutput'
 import MIMETypeLookupOutput from './MIMETypeLookupOutput'
 import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
+import MathEvaluatorResult from './MathEvaluatorResult'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [] }) {
   const toolCategory = TOOLS[toolId]?.category
@@ -5104,6 +5105,48 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderSqlFormatterOutput()
       case 'color-converter':
         return renderColorConverterOutput()
+      case 'math-evaluator': {
+        if (!displayResult || typeof displayResult !== 'object') {
+          return (
+            <OutputTabs
+              key={toolId}
+              toolCategory={toolCategory}
+              toolId={toolId}
+              tabs={[{
+                id: 'output',
+                label: 'OUTPUT',
+                content: displayResult?.error || 'No output',
+                contentType: 'text'
+              }]}
+            />
+          )
+        }
+
+        const tabs = [
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: <MathEvaluatorResult result={displayResult} expression={inputText || ''} />,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs}
+            showCopyButton={true}
+          />
+        )
+      }
       case 'jwt-decoder':
         return renderJwtDecoderOutput()
       case 'mime-type-lookup':
@@ -5261,12 +5304,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       case 'regex-tester': {
         const tabs = []
+        const patternName = configOptions?._patternName || 'Pattern'
+        const patternDescription = configOptions?._patternDescription || ''
 
         tabs.push({
           id: 'output',
           label: 'OUTPUT',
           content: displayResult ? (
-            <RegexTesterOutput result={displayResult} inputText={inputText} />
+            <RegexTesterOutput result={displayResult} inputText={inputText} patternName={patternName} patternDescription={patternDescription} />
           ) : 'No output',
           contentType: 'component'
         })

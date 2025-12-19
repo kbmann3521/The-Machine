@@ -3,7 +3,7 @@ import styles from '../styles/tool-config.module.css'
 import { getSuggestionsForColor } from '../lib/tools/colorConverter'
 import RegexToolkit from './RegexToolkit'
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, onSetGeneratedText }) {
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
@@ -568,6 +568,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               onConfigChange={onConfigChange}
               result={result}
               disabled={false}
+              onGenerateText={onSetGeneratedText}
             />
           )}
 

@@ -298,6 +298,54 @@
   text-align: right;
 }
 
+/* Test Mode Toggle */
+.testModeToggle {
+  padding: 10px;
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  margin-bottom: 12px;
+}
+
+.testModeToggle .toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.testModeToggle .toggleCheckbox {
+  cursor: pointer;
+  accent-color: #0066cc;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.testModeToggle .toggleCheckbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.testModeToggle .toggleText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+.testModeToggle .toggleHint {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin: 6px 0 0 24px;
+  line-height: 1.3;
+}
+
 .runButton {
   width: 100%;
   padding: 10px 16px;

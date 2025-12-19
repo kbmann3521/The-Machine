@@ -4,22 +4,53 @@ import RegexPatternInput from './RegexPatternInput'
 import PatternTemplateSelector from './PatternTemplateSelector'
 import { getPatternTemplate } from '../lib/regexPatterns'
 
-export default function RegexToolkit({ config, onConfigChange, result, disabled }) {
+export default function RegexToolkit({ config, onConfigChange, result, disabled, onGenerateText }) {
   const [selectedTemplateId, setSelectedTemplateId] = useState(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [testMode, setTestMode] = useState(false)
 
   const handleFieldChange = (fieldId, value) => {
     const newConfig = { ...config, [fieldId]: value }
     onConfigChange(newConfig)
   }
 
-  const handleTemplateSelect = (template) => {
+  const handleTemplateSelect = async (template) => {
     setSelectedTemplateId(template.id)
     const newConfig = {
       ...config,
       pattern: template.pattern,
       flags: template.flags,
+      _patternName: template.name,
+      _patternDescription: template.description,
     }
     onConfigChange(newConfig)
+
+    // Auto-generate example text only if test mode is on
+    if (testMode) {
+      setIsGenerating(true)
+      try {
+        const response = await fetch('/api/test-regex-patterns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'generate',
+            patternName: template.name,
+            patternDescription: template.description,
+          }),
+        })
+
+        if (response.ok) {
+          const { text } = await response.json()
+          if (onGenerateText) {
+            onGenerateText(text, null, null)
+          }
+        }
+      } catch (error) {
+        console.error('Error generating example text:', error)
+      } finally {
+        setIsGenerating(false)
+      }
+    }
   }
 
   const warnings = result?.warnings || []
@@ -27,6 +58,26 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled 
 
   return (
     <div className={styles.regexToolkitContainer}>
+      <div className={styles.testModeToggle}>
+        <label className={styles.toggleLabel}>
+          <input
+            type="checkbox"
+            checked={testMode}
+            onChange={(e) => setTestMode(e.target.checked)}
+            className={styles.toggleCheckbox}
+            disabled={disabled}
+          />
+          <span className={styles.toggleText}>
+            {testMode ? '🧪 Test Mode: ON' : '🧪 Test Mode: OFF'}
+          </span>
+        </label>
+        <p className={styles.toggleHint}>
+          {testMode
+            ? 'Click a template to auto-generate realistic example text'
+            : 'Toggle on to auto-generate example text when selecting templates'}
+        </p>
+      </div>
+
       <div className={styles.fieldsContainer}>
         <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="pattern">
