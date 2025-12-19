@@ -546,7 +546,10 @@ export default function Home() {
           setOutputResult(result)
           setOutputWarnings([])
         } else {
-          const response = await fetch('/api/tools/run', {
+          const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+          const runUrl = `${baseUrl}/api/tools/run`
+
+          const response = await fetch(runUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -555,6 +558,7 @@ export default function Home() {
               inputImage: imageInput,
               config: finalConfig,
             }),
+            credentials: 'same-origin',
           })
 
           if (!response) {
