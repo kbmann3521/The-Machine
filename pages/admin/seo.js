@@ -18,6 +18,15 @@ export default function AdminSEO() {
   const [filteredPages, setFilteredPages] = useState(AVAILABLE_PAGES)
   const router = useRouter()
 
+  // Default page rules based on recommended SEO settings
+  const DEFAULT_PAGE_RULES = {
+    '/ip-toolkit-tests': { noindex: true, nofollow: false },
+    '/jwt-tests': { noindex: true, nofollow: true },
+    '/math-evaluator-tests': { noindex: true, nofollow: true },
+    '/phase5-tests': { noindex: true, nofollow: false },
+    '/test-detection': { noindex: true, nofollow: false },
+  }
+
   const [settings, setSettings] = useState({
     site_name: '',
     canonical_base_url: '',
