@@ -180,6 +180,10 @@ export default function EditPost() {
         content,
         status,
         thumbnail_url: thumbnailUrl,
+        seo_title: seoTitle,
+        seo_description: seoDescription,
+        topic,
+        search_intent: searchIntent,
       })
 
       router.push(`/admin/posts/${newPost.id}/edit`)
