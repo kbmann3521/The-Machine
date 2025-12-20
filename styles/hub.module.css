@@ -518,6 +518,11 @@
   .footerContent p {
     font-size: 12px;
   }
+
+  .footerAboutLink {
+    margin-left: 12px;
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 640px) {
