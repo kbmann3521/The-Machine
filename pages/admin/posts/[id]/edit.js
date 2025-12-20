@@ -100,6 +100,7 @@ export default function EditPost() {
         og_description: ogDescription,
         og_image_url: ogImageUrl,
         seo_noindex: seoNoindex,
+        thumbnail_url: thumbnailUrl,
       })
 
       setPost(updatedPost)
