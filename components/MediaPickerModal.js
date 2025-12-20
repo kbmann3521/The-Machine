@@ -36,12 +36,25 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to load media')
+        let errorMsg = 'Failed to load media'
+        try {
+          const errorData = await response.json()
+          errorMsg = errorData.error || errorMsg
+        } catch {
+          errorMsg = `HTTP ${response.status}: ${response.statusText}`
+        }
+        throw new Error(errorMsg)
       }
 
       const data = await response.json()
       const mediaArray = Array.isArray(data) ? data : (data.media || [])
+
+      if (mediaArray.length === 0) {
+        console.log('No media items returned from API')
+      } else {
+        console.log(`Loaded ${mediaArray.length} media items`)
+      }
+
       setMedia(mediaArray)
     } catch (err) {
       console.error('Media loading error:', err)
