@@ -1,10 +1,10 @@
 import Head from 'next/head'
 import Script from 'next/script'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
-import { generateMetaTags, siteMetadata } from '../lib/seoUtils'
+import { generateMetaTags, siteMetadata, setSiteMetadata, defaultSiteMetadata } from '../lib/seoUtils'
 import { getRobotsMetaContent, getAdminRobotsMeta } from '../lib/getRobotsMeta'
 
 function RobotsMetaInjector() {
