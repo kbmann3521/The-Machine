@@ -117,44 +117,55 @@
 
 .postContent ul,
 .postContent ol {
-  margin-bottom: 1rem;
-  margin-left: 1.5rem;
+  margin-bottom: 1.5rem;
+  margin-left: 2rem;
 }
 
 .postContent li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.8;
 }
 
 .postContent code {
   background-color: var(--color-background-secondary);
-  padding: 0.2rem 0.5rem;
-  border-radius: 3px;
-  font-family: monospace;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
   font-size: 0.9rem;
+  color: #d946ef;
+  border: 1px solid var(--color-border);
 }
 
 .postContent pre {
   background-color: var(--color-background-secondary);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 1rem;
+  border-radius: 6px;
+  padding: 1.5rem;
   overflow-x: auto;
-  margin-bottom: 1rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .postContent pre code {
   background-color: transparent;
   padding: 0;
   color: var(--color-text-primary);
+  border: none;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .postContent blockquote {
-  border-left: 4px solid var(--color-border-hover);
-  padding-left: 1rem;
+  border-left: 4px solid #1976d2;
+  padding-left: 1.5rem;
   margin-left: 0;
-  margin-bottom: 1rem;
+  margin-right: 0;
+  margin-bottom: 1.5rem;
   color: var(--color-text-secondary);
   font-style: italic;
+  background-color: var(--color-background-secondary);
+  padding: 1rem 1.5rem;
+  border-radius: 4px;
 }
 
 .postContent a {
