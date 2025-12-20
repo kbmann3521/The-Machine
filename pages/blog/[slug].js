@@ -70,7 +70,7 @@ export default function BlogPost({ post }) {
   const ogImage = post.og_image_url || post.thumbnail_url || ''
 
   return (
-    <div className={styles.postPage}>
+    <div className={`${styles.postPage} ${isAdmin ? styles.postPageWithAdminBar : ''}`}>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
