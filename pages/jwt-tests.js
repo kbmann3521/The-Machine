@@ -278,3 +278,7 @@ export default function JWTTestSuite() {
     </>
   )
 }
+
+export async function getServerSideProps() {
+  return withSeoSettings()
+}
