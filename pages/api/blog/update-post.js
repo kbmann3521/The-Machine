@@ -76,6 +76,8 @@ export default async function handler(req, res) {
         og_image_url: og_image_url?.trim() || null,
         seo_noindex: seo_noindex || false,
         thumbnail_url: thumbnail_url || null,
+        topic: topic?.trim() || null,
+        search_intent: search_intent || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
