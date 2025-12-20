@@ -36,7 +36,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
 
       if (!response.ok) throw new Error('Failed to load media')
       const data = await response.json()
-      setMedia(data.media || [])
+      setMedia(Array.isArray(data) ? data : (data.media || []))
     } catch (err) {
       setError(err.message)
     } finally {
