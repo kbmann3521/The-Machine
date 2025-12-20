@@ -114,11 +114,9 @@ export default function BlogPost({ post }) {
       </header>
 
       <main className={styles.postBody}>
-        <div style={{ overflow: 'hidden' }}>
-          <article className={styles.postContent}>
-            <MarkdownContent content={post.content} />
-          </article>
-        </div>
+        <article className={`${styles.postContent} blog-post-content`}>
+          <MarkdownContent content={post.content} />
+        </article>
 
         <footer className={styles.postFooter}>
           <Link href="/blog" className={styles.backLink}>
