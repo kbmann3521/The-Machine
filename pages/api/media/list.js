@@ -49,13 +49,11 @@ export default async function handler(req, res) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Media list query error:', error)
-      return res.status(400).json({ error: error.message })
-    }
+    return res.status(400).json({ error: error.message })
+  }
 
-    return res.status(200).json(data || [])
-  } catch (err) {
-    console.error('Media list endpoint error:', err)
-    return res.status(401).json({ error: err.message })
+  return res.status(200).json(data || [])
+} catch (err) {
+  return res.status(401).json({ error: err.message })
   }
 }
