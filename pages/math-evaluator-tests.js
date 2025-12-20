@@ -448,3 +448,7 @@ export default function MathEvaluatorTests() {
     </div>
   )
 }
+
+export async function getServerSideProps() {
+  return withSeoSettings()
+}
