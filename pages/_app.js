@@ -1,8 +1,80 @@
 import Head from 'next/head'
 import Script from 'next/script'
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
 import { generateMetaTags, siteMetadata } from '../lib/seoUtils'
+import { getRobotsMetaContent, getAdminRobotsMeta } from '../lib/getRobotsMeta'
+
+function RobotsMetaInjector() {
+  const router = useRouter()
+
+  // Inject meta tag based on current path
+  const injectMetaTag = () => {
+    // Get admin-level robots directive
+    const adminMeta = getAdminRobotsMeta(router.pathname)
+    if (adminMeta) {
+      setRobotsMetaTag(adminMeta)
+      return
+    }
+
+    // Get page-specific rules from localStorage
+    const pageRulesStr = typeof window !== 'undefined' ? localStorage.getItem('seoPageRules') : null
+    let pageRules = null
+    if (pageRulesStr) {
+      try {
+        pageRules = JSON.parse(pageRulesStr)
+      } catch (e) {
+        console.error('Failed to parse seoPageRules from localStorage:', e)
+      }
+    }
+
+    const metaContent = getRobotsMetaContent(router.pathname, pageRules)
+    if (metaContent) {
+      setRobotsMetaTag(metaContent)
+      console.log(`Meta robots tag set for ${router.pathname}:`, metaContent)
+    } else {
+      removeRobotsMetaTag()
+    }
+  }
+
+  // Run on mount and when pathname changes
+  useEffect(() => {
+    if (router.isReady) {
+      injectMetaTag()
+    }
+  }, [router.isReady, router.pathname])
+
+  // Also listen for localStorage changes (in case another tab/window saves)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      injectMetaTag()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [router.pathname])
+
+  return null
+}
+
+function setRobotsMetaTag(content) {
+  let metaTag = document.querySelector('meta[name="robots"]')
+  if (!metaTag) {
+    metaTag = document.createElement('meta')
+    metaTag.setAttribute('name', 'robots')
+    document.head.appendChild(metaTag)
+  }
+  metaTag.setAttribute('content', content)
+}
+
+function removeRobotsMetaTag() {
+  const metaTag = document.querySelector('meta[name="robots"]')
+  if (metaTag) {
+    metaTag.remove()
+  }
+}
 
 export default function App({ Component, pageProps }) {
   const metaTags = generateMetaTags()
@@ -51,6 +123,7 @@ export default function App({ Component, pageProps }) {
       </Head>
 
       <ThemeProvider>
+        <RobotsMetaInjector />
         <Component {...pageProps} />
       </ThemeProvider>
     </>

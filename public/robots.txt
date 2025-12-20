@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-
-Disallow: /api/
-Disallow: /.next/
-
-Sitemap: https://www.pioneerwebtools.com/api/sitemap

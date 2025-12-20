@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
 import { getAllPosts, deletePost, publishPost, unpublishPost } from '../../lib/blog-client'
+import AdminHeader from '../../components/AdminHeader'
 import styles from '../../styles/blog-admin-posts.module.css'
 
 export default function AdminPosts() {
@@ -98,11 +99,6 @@ export default function AdminPosts() {
     }
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/admin/login')
-  }
-
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
     const date = new Date(dateStr)
@@ -119,9 +115,7 @@ export default function AdminPosts() {
         <Head>
           <title>Posts - Admin</title>
         </Head>
-        <div className={styles.adminHeader}>
-          <div className={styles.adminHeaderTitle}>Blog Admin</div>
-        </div>
+        <AdminHeader currentSection="posts" />
         <div className={styles.loadingState}>Loading posts...</div>
       </div>
     )
@@ -133,17 +127,7 @@ export default function AdminPosts() {
         <title>Posts - Admin</title>
       </Head>
 
-      <div className={styles.adminHeader}>
-        <div className={styles.adminHeaderTitle}>Blog Admin</div>
-        <div className={styles.adminNavigation}>
-          <Link href="/admin/posts" className={styles.adminNavLink}>
-            Posts
-          </Link>
-          <button onClick={handleLogout} className={styles.logoutBtn}>
-            Logout
-          </button>
-        </div>
-      </div>
+      <AdminHeader currentSection="posts" />
 
       <div className={styles.adminContent}>
         <div className={styles.adminSection}>
