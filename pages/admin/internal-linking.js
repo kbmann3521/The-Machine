@@ -266,9 +266,7 @@ export default function InternalLinkingAdmin() {
         <Head>
           <title>Internal Linking Rules - Admin</title>
         </Head>
-        <div className={styles.adminHeader}>
-          <div className={styles.adminHeaderTitle}>Internal Linking Rules</div>
-        </div>
+        <AdminHeader currentSection="internal-linking" />
         <div className={styles.loadingState}>Loading...</div>
       </div>
     )
