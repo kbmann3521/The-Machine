@@ -35,10 +35,19 @@ export default function BlogIndex({ posts }) {
           <div className={styles.postsList}>
             {posts.map((post) => (
               <Link key={post.id} href={`/blog/${post.slug}`} className={styles.postCard}>
-                <h2 className={styles.postCardTitle}>{post.title}</h2>
-                <time className={styles.postCardDate}>{formatDate(post.published_at)}</time>
-                {post.excerpt && <p className={styles.postCardExcerpt}>{post.excerpt}</p>}
-                <span className={styles.readMoreLink}>Read more →</span>
+                <div className={styles.postCardContent}>
+                  {post.thumbnail_url && (
+                    <div className={styles.postCardThumbnail}>
+                      <img src={post.thumbnail_url} alt={post.title} />
+                    </div>
+                  )}
+                  <div className={styles.postCardText}>
+                    <h2 className={styles.postCardTitle}>{post.title}</h2>
+                    <time className={styles.postCardDate}>{formatDate(post.published_at)}</time>
+                    {post.excerpt && <p className={styles.postCardExcerpt}>{post.excerpt}</p>}
+                    <span className={styles.readMoreLink}>Read more →</span>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
