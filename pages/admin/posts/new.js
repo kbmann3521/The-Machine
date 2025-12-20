@@ -135,7 +135,7 @@ export default function NewPost() {
 
           {error && <div className={styles.errorMessage}>{error}</div>}
 
-          <form onSubmit={handleSubmit} className={styles.editForm}>
+          <form id="new-post-form" onSubmit={handleSubmit} className={styles.editForm}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="title">
                 Title <span className={styles.required}>*</span>
