@@ -13,6 +13,7 @@ import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
+import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
 export default function Home() {
