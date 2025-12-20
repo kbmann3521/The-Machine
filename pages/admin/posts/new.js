@@ -173,6 +173,48 @@ export default function NewPost() {
               />
             </div>
 
+            {/* Thumbnail Section */}
+            <div className={styles.thumbnailSection}>
+              <label className={styles.formLabel}>Post Thumbnail</label>
+              {thumbnailUrl ? (
+                <div className={styles.thumbnailPreview}>
+                  <div className={styles.thumbnailImage}>
+                    <img src={thumbnailUrl} alt="Post thumbnail" />
+                  </div>
+                  <div className={styles.thumbnailInfo}>
+                    <div className={styles.thumbnailUrl}>{thumbnailUrl}</div>
+                    <div className={styles.thumbnailActions}>
+                      <button
+                        type="button"
+                        onClick={() => setMediaPickerOpen(true)}
+                        className={styles.thumbnailButton}
+                        disabled={loading}
+                      >
+                        Change Thumbnail
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setThumbnailUrl('')}
+                        className={styles.removeThumbnailBtn}
+                        disabled={loading}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setMediaPickerOpen(true)}
+                  className={styles.thumbnailButton}
+                  disabled={loading}
+                >
+                  + Select Thumbnail from Media Library
+                </button>
+              )}
+            </div>
+
             <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="content">
                 Content (Markdown) <span style={{ color: '#d32f2f' }}>*</span>
