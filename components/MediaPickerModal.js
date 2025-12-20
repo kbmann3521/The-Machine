@@ -102,7 +102,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
                     if (e.key === 'Enter') setSelectedId(item.id)
                   }}
                 >
-                  <img src={item.url} alt={item.filename} />
+                  <img src={item.url} alt={item.path || 'media'} />
                   <div className={styles.mediaGridItemOverlay}>
                     <input
                       type="radio"
