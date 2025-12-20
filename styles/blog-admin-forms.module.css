@@ -887,7 +887,8 @@
     padding: 1.5rem;
   }
 
-  .contentTextarea {
+  .contentTextarea,
+  .contentPreview {
     min-height: 400px;
   }
 
