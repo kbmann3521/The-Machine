@@ -227,6 +227,15 @@ export default function AdminSEO() {
         data: { session },
       } = await supabase.auth.getSession()
 
+      // Clean up page rules to only include noindex/nofollow properties
+      const cleanedPageRules = {}
+      Object.entries(pageRules).forEach(([path, rule]) => {
+        cleanedPageRules[path] = {
+          noindex: rule.noindex || false,
+          nofollow: rule.nofollow || false,
+        }
+      })
+
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
       const response = await fetch(`${baseUrl}/api/seo/update-settings`, {
         method: 'POST',
@@ -236,7 +245,7 @@ export default function AdminSEO() {
         },
         body: JSON.stringify({
           ...settings,
-          page_rules: pageRules,
+          page_rules: cleanedPageRules,
         }),
         credentials: 'same-origin',
       })
@@ -244,7 +253,8 @@ export default function AdminSEO() {
       if (response.ok) {
         // Store page rules in localStorage for client-side robots meta injection
         if (typeof window !== 'undefined') {
-          localStorage.setItem('seoPageRules', JSON.stringify(pageRules))
+          localStorage.setItem('seoPageRules', JSON.stringify(cleanedPageRules))
+          console.log('SEO page rules saved to localStorage:', cleanedPageRules)
         }
         setSuccessMessage('SEO settings saved successfully')
         setLastUpdated(new Date())
