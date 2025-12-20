@@ -42,7 +42,7 @@
   background-color: var(--color-background-secondary);
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 1.5rem;
+  overflow: hidden;
   transition: all 0.3s ease;
   text-decoration: none;
   color: inherit;
@@ -52,8 +52,40 @@
 
 .postCard:hover {
   border-color: var(--color-border-hover);
-  background-color: var(--color-background-tertiary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+}
+
+.postCardContent {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.postCardThumbnail {
+  flex-shrink: 0;
+  width: 220px;
+  height: 160px;
+  overflow: hidden;
+  background-color: var(--color-background-primary);
+}
+
+.postCardThumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.postCard:hover .postCardThumbnail img {
+  transform: scale(1.05);
+}
+
+.postCardText {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .postCardTitle {
