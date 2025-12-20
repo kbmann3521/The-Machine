@@ -138,7 +138,29 @@
     font-size: 2rem;
   }
 
+  .blogHeader {
+    padding: 1.5rem;
+  }
+
   .postsList {
     gap: 1rem;
+  }
+
+  .postCardContent {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .postCardThumbnail {
+    width: 100%;
+    height: 200px;
+  }
+
+  .postCardText {
+    padding: 1rem;
+  }
+
+  .postCardTitle {
+    font-size: 1.25rem;
   }
 }
