@@ -115,6 +115,13 @@
   word-spacing: 0.05em;
 }
 
+.postContent p:first-of-type {
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
 .postContent ul,
 .postContent ol {
   margin-bottom: 1.5rem;
