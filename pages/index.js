@@ -673,6 +673,7 @@ export default function Home(props) {
             selectedTool={selectedTool}
             onSelectTool={handleSelectTool}
             loading={loading}
+            initialLoading={initialToolsLoading}
           />
 
           <main className={styles.mainContent}>
