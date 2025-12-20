@@ -55,16 +55,17 @@ export default function CSSEditorSidebar({ css, setCss, onSave, onClose, isSavin
 
           <div className={styles.editorHint}>
             <p>
-              <strong>Tip:</strong> Use class selectors from the blog post CSS. Common ones:
+              <strong>Tip:</strong> Target blog content with these selectors:
             </p>
             <ul>
-              <li><code>.postContent</code> - Main content wrapper</li>
-              <li><code>.postContent h1, h2, h3</code> - Headings</li>
-              <li><code>.postContent p</code> - Paragraphs</li>
-              <li><code>.postContent ul, ol</code> - Lists</li>
-              <li><code>.postContent code</code> - Inline code</li>
-              <li><code>.postContent pre</code> - Code blocks</li>
-              <li><code>.postContent a</code> - Links</li>
+              <li><code>.blog-post-content</code> - Main content wrapper</li>
+              <li><code>.blog-post-content h1, h2, h3</code> - Headings</li>
+              <li><code>.blog-post-content p</code> - Paragraphs</li>
+              <li><code>.blog-post-content ul, ol</code> - Lists</li>
+              <li><code>.blog-post-content li</code> - List items</li>
+              <li><code>.blog-post-content code</code> - Inline code</li>
+              <li><code>.blog-post-content pre</code> - Code blocks</li>
+              <li><code>.blog-post-content a</code> - Links</li>
             </ul>
           </div>
         </div>
