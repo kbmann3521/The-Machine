@@ -300,6 +300,16 @@ export default function EditPost() {
               {expandedAccordions.actions && (
                 <div className={styles.accordionBody}>
                   <div className={styles.sidebarActions}>
+                    {status === 'published' && (
+                      <button
+                        type="button"
+                        onClick={() => window.open(`/blog/${slug}`, '_blank')}
+                        className={styles.sidebarSecondaryBtn}
+                      >
+                        Open in New Tab
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={handleUpdate}
