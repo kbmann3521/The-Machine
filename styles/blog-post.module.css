@@ -210,9 +210,9 @@
   width: 100%;
   box-sizing: border-box;
   max-width: 900px;
-  margin: 3rem auto 0;
+  margin: 4rem auto 0;
   padding: 2rem 1rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -224,12 +224,13 @@
   color: #1976d2;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s ease;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .backLink:hover {
   color: #1565c0;
-  text-decoration: underline;
+  border-bottom-color: #1976d2;
 }
 
 .notFound {
