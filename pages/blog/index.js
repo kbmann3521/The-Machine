@@ -61,7 +61,7 @@ export async function getStaticProps() {
   try {
     const { data: posts, error } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, excerpt, published_at')
+      .select('id, title, slug, excerpt, published_at, thumbnail_url')
       .eq('status', 'published')
       .order('published_at', { ascending: false })
 
