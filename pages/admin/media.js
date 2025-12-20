@@ -144,30 +144,31 @@ export default function AdminMedia() {
     }
   }
 
-  const copyToClipboard = async (url, id) => {
+  const copyToClipboard = (url, id) => {
     try {
-      // Try modern clipboard API first
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(url)
-      } else {
-        // Fallback: use textarea method for non-secure contexts
-        const textarea = document.createElement('textarea')
-        textarea.value = url
-        textarea.style.position = 'fixed'
-        textarea.style.opacity = '0'
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
-      }
+      // Use textarea method (works everywhere, including iframes with Permissions-Policy)
+      const textarea = document.createElement('textarea')
+      textarea.value = url
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      textarea.style.pointerEvents = 'none'
+      document.body.appendChild(textarea)
+      textarea.select()
 
-      setCopiedId(id)
-      setTimeout(() => setCopiedId(null), 2000)
-      setError('')
+      const successful = document.execCommand('copy')
+      document.body.removeChild(textarea)
+
+      if (successful) {
+        setCopiedId(id)
+        setTimeout(() => setCopiedId(null), 2000)
+        setError('')
+      } else {
+        throw new Error('execCommand failed')
+      }
     } catch (err) {
       console.error('Copy error:', err)
-      setError('Failed to copy URL')
-      setTimeout(() => setError(''), 3000)
+      setError('Failed to copy. Try using the right-click context menu on the image instead.')
+      setTimeout(() => setError(''), 4000)
     }
   }
 
