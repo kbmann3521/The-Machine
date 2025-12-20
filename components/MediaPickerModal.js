@@ -12,7 +12,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
     if (isOpen) {
       loadMedia()
     }
-  }, [isOpen])
+  }, [isOpen]) // loadMedia intentionally not included to avoid recreating on each render
 
   const loadMedia = async () => {
     setLoading(true)
