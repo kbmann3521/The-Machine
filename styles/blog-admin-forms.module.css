@@ -237,6 +237,200 @@
   color: var(--color-text-secondary);
 }
 
+.mediaPickerModal {
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modalCloseBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.modalCloseBtn:hover {
+  color: var(--color-text-primary);
+}
+
+.modalContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.mediaGridItem {
+  position: relative;
+  aspect-ratio: 1;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--color-background-primary);
+}
+
+.mediaGridItem:hover {
+  border-color: #1976d2;
+}
+
+.mediaGridItemSelected {
+  border-color: #2e7d32;
+  background-color: rgba(46, 125, 50, 0.1);
+}
+
+.mediaGridItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mediaGridItemOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mediaGridItem:hover .mediaGridItemOverlay {
+  opacity: 1;
+}
+
+.mediaGridItemOverlay input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.thumbnailSection {
+  padding: 1.5rem;
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.thumbnailPreview {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.thumbnailImage {
+  width: 120px;
+  height: 120px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--color-background-secondary);
+  flex-shrink: 0;
+}
+
+.thumbnailImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnailActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+}
+
+.thumbnailButton {
+  padding: 0.5rem 1rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.thumbnailButton:hover {
+  background-color: #1565c0;
+}
+
+.thumbnailButton:disabled {
+  background-color: var(--color-border);
+  cursor: not-allowed;
+  color: var(--color-text-secondary);
+}
+
+.removeThumbnailBtn {
+  padding: 0.5rem 1rem;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.removeThumbnailBtn:hover {
+  background-color: #b71c1c;
+}
+
+.thumbnailInfo {
+  flex: 1;
+}
+
+.thumbnailUrl {
+  word-break: break-all;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-family: monospace;
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .adminHeader {
     flex-direction: column;
