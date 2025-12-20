@@ -363,7 +363,7 @@ export default function EditPost() {
                   <div className={styles.contentPreview}>
                     {customCss && <style>{customCss}</style>}
                     <div
-                      className={blogPostStyles.postContent}
+                      className={`${blogPostStyles.postContent} blog-post-content`}
                       dangerouslySetInnerHTML={{
                         __html: marked(content || ''),
                       }}
