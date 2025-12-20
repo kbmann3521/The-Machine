@@ -67,6 +67,7 @@ export default function NewPost() {
         excerpt,
         content,
         status,
+        thumbnail_url: thumbnailUrl,
       })
 
       router.push(`/admin/posts/${post.id}/edit`)
