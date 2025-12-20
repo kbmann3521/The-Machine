@@ -213,6 +213,8 @@ export default function EditPost() {
         og_image_url: ogImageUrl,
         seo_noindex: seoNoindex,
         thumbnail_url: thumbnailUrl,
+        topic,
+        search_intent: searchIntent,
       })
 
       setPost(updatedPost)
