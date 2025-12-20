@@ -171,19 +171,32 @@
 .postContent a {
   color: #1976d2;
   text-decoration: none;
-  transition: color 0.2s ease;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .postContent a:hover {
   color: #1565c0;
-  text-decoration: underline;
+  border-bottom-color: #1976d2;
 }
 
 .postContent img {
   max-width: 100%;
   height: auto;
-  border-radius: 4px;
-  margin: 1.5rem 0;
+  border-radius: 6px;
+  margin: 2rem 0;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--color-border);
+}
+
+.postContent strong {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.postContent em {
+  font-style: italic;
 }
 
 .postFooter {
