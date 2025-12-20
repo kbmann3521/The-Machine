@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   try {
     await verifyAdminAccess(req)
 
-    const { id, title, slug: customSlug, excerpt, content, status, published_at, seo_title, seo_description, og_title, og_description, og_image_url, seo_noindex, thumbnail_url } = req.body
+    const { id, title, slug: customSlug, excerpt, content, status, published_at, seo_title, seo_description, og_title, og_description, og_image_url, seo_noindex, thumbnail_url, topic, search_intent } = req.body
 
     if (!id) {
       return res.status(400).json({ error: 'Post ID is required' })
