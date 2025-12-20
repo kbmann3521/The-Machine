@@ -828,5 +828,12 @@ export default function Home() {
 }
 
 export async function getServerSideProps() {
-  return withSeoSettings()
+  console.log('✅ GSSP RUNNING ON INDEX')
+  return {
+    props: {
+      testTitle: 'TEST TITLE FROM GSSP',
+      testDescription: 'TEST DESCRIPTION FROM GSSP',
+      seoSettings: null, // Ignore real data for now
+    },
+  }
 }
