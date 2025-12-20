@@ -161,6 +161,13 @@ export default function EditPost() {
     })
   }
 
+  const toggleAccordion = (section) => {
+    setExpandedAccordions((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
+
   if (loading) {
     return (
       <div className={styles.adminContainer}>
