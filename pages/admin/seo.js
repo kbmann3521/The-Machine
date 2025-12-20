@@ -75,6 +75,8 @@ export default function AdminSEO() {
   }, [router])
 
   const loadSettings = async (token) => {
+    const controller = new AbortController()
+
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
       const response = await fetch(`${baseUrl}/api/seo/get-settings`, {
@@ -84,6 +86,7 @@ export default function AdminSEO() {
           Authorization: `Bearer ${token}`,
         },
         credentials: 'same-origin',
+        signal: controller.signal,
       })
 
       if (response.ok) {
