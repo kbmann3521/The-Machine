@@ -66,6 +66,8 @@ export default function EditPost() {
 
       if (!isNewPost && id) {
         setLoading(true)
+        setSaving(false)
+        setSuccessMessage('')
         try {
           const postData = await getPostById(id)
           setPost(postData)
