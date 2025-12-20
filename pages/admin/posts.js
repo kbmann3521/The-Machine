@@ -138,7 +138,7 @@ export default function AdminPosts() {
             <h1 className={styles.adminTitle} style={{ margin: 0 }}>
               Blog Posts
             </h1>
-            <Link href="/admin/posts/new" className={styles.newPostBtn}>
+            <Link href="/admin/posts/new/edit" className={styles.newPostBtn}>
               + New Post
             </Link>
           </div>
