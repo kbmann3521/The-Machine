@@ -662,7 +662,7 @@ export default function Home(props) {
       <div className={styles.layout}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1>All-in-One Internet Tools</h1>
+            <h1>{siteName}</h1>
             <p>Paste anything — we'll auto-detect the perfect tool</p>
           </div>
           <ThemeToggle />
