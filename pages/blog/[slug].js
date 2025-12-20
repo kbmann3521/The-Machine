@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { marked } from 'marked'
 import { supabase } from '../../lib/supabase-client'
 import styles from '../../styles/blog-post.module.css'
+import AdminCSSBar from '../../components/AdminCSSBar'
 
 export default function BlogPost({ post }) {
   if (!post) {
