@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../../lib/supabase-client'
 import AdminHeader from '../../components/AdminHeader'
-import { AVAILABLE_PAGES, searchPages, generateRobotsText } from '../../lib/pageDiscovery'
+import { AVAILABLE_PAGES, searchPages } from '../../lib/pageDiscovery'
 import styles from '../../styles/blog-admin-posts.module.css'
 import seoStyles from '../../styles/seo-admin.module.css'
 
@@ -30,13 +30,11 @@ export default function AdminSEO() {
 
   const [settings, setSettings] = useState({
     site_name: '',
-    canonical_base_url: '',
     favicon_url: '',
     theme_color: '',
     default_title: '',
     default_description: '',
     index_site: true,
-    robots_txt: '',
     og_title: '',
     og_description: '',
     og_image_url: '',
@@ -109,10 +107,6 @@ export default function AdminSEO() {
           }
         })
 
-        // If robots_txt is empty, show the default (but don't save it)
-        if (!normalizedData.robots_txt || !normalizedData.robots_txt.trim()) {
-          normalizedData.robots_txt = generateRobotsText('', normalizedData.index_site || true)
-        }
 
         setSettings((prev) => ({ ...prev, ...normalizedData }))
         if (data.updated_at) {
@@ -155,16 +149,6 @@ export default function AdminSEO() {
       setSettings((prev) => {
         const updated = { ...prev, [name]: newChecked }
 
-        // If robots.txt is currently the auto-generated default, regenerate it
-        // This way manual overrides are preserved
-        const currentDefault = generateRobotsText('', prev.index_site)
-        const isUsingDefault = prev.robots_txt.trim() === currentDefault.trim()
-
-        if (isUsingDefault) {
-          const newDefault = generateRobotsText('', newChecked)
-          updated.robots_txt = newDefault
-        }
-
         return updated
       })
     } else {
@@ -200,17 +184,6 @@ export default function AdminSEO() {
   }
 
   const validateSettings = () => {
-    if (settings.canonical_base_url) {
-      if (!settings.canonical_base_url.startsWith('https://')) {
-        setErrorMessage('Canonical base URL must start with https://')
-        return false
-      }
-      if (settings.canonical_base_url.endsWith('/')) {
-        setErrorMessage('Canonical base URL should not end with /')
-        return false
-      }
-    }
-
     if (settings.default_description && settings.default_description.length > 160) {
       console.warn(`Meta description is ${settings.default_description.length} chars (recommended: ~160)`)
     }
@@ -240,9 +213,11 @@ export default function AdminSEO() {
       // Clean up page rules to only include noindex/nofollow properties
       const cleanedPageRules = {}
       Object.entries(pageRules).forEach(([path, rule]) => {
-        cleanedPageRules[path] = {
-          noindex: rule.noindex || false,
-          nofollow: rule.nofollow || false,
+        if (rule.noindex || rule.nofollow) {
+          cleanedPageRules[path] = {
+            noindex: rule.noindex || false,
+            nofollow: rule.nofollow || false,
+          }
         }
       })
 
@@ -334,21 +309,6 @@ export default function AdminSEO() {
                   />
                 </label>
                 <p className={seoStyles.hint}>Used in metadata and browser titles</p>
-              </div>
-
-              <div className={seoStyles.fieldGroup}>
-                <label className={seoStyles.label}>
-                  Canonical Base URL
-                  <input
-                    type="text"
-                    name="canonical_base_url"
-                    value={settings.canonical_base_url}
-                    onChange={handleChange}
-                    className={seoStyles.input}
-                    placeholder="https://example.com"
-                  />
-                </label>
-                <p className={seoStyles.hint}>Must start with https:// and not end with /</p>
               </div>
 
               <div className={seoStyles.fieldGroup}>
@@ -495,22 +455,6 @@ export default function AdminSEO() {
                 })}
               </div>
 
-              <div className={seoStyles.fieldGroup} style={{ marginTop: '1.5rem' }}>
-                <label className={seoStyles.label}>
-                  robots.txt
-                  <p className={seoStyles.hint} style={{ marginTop: '0.25rem', marginBottom: '0.75rem' }}>
-                    Controls crawl-level access (structural rules). Page-specific rules above control meta tags, not robots.txt. Leave empty to use default rules.
-                  </p>
-                  <textarea
-                    name="robots_txt"
-                    value={settings.robots_txt}
-                    onChange={handleChange}
-                    className={seoStyles.textarea}
-                    placeholder="Leave empty for default: Allow /, Disallow: /admin/, /api/, /.next/"
-                    rows="8"
-                  />
-                </label>
-              </div>
             </section>
 
             {/* Social Sharing */}
