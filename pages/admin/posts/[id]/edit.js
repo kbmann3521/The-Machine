@@ -126,6 +126,20 @@ export default function EditPost() {
     }
   }, [post])
 
+  useEffect(() => {
+    const fetchCustomCss = async () => {
+      try {
+        const response = await fetch('/api/blog/custom-css')
+        const data = await response.json()
+        setCustomCss(data.css || '')
+      } catch (err) {
+        console.error('Failed to load custom CSS:', err)
+      }
+    }
+
+    fetchCustomCss()
+  }, [])
+
   const handleCreate = async (e) => {
     e.preventDefault()
     setError('')
