@@ -182,6 +182,37 @@ export default function NewPost() {
           </div>
 
           <div className={styles.sidebarContent}>
+            {/* Actions Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('actions')}
+              >
+                <span className={styles.accordionTitle}>Actions</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.actions ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.actions && (
+                <div className={styles.accordionBody}>
+                  <div className={styles.sidebarActions}>
+                    <button
+                      type="submit"
+                      form="new-post-form"
+                      className={styles.sidebarPrimaryBtn}
+                      disabled={loading}
+                    >
+                      {loading ? 'Creating...' : 'Create Post'}
+                    </button>
+
+                    <Link href="/admin/posts" className={styles.sidebarSecondaryBtn}>
+                      Cancel
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Basic Info Accordion */}
             <div className={styles.accordion}>
               <button
