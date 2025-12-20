@@ -92,6 +92,9 @@ export default function EditPost() {
     }
 
     if (router.isReady) {
+      if (isNewPost) {
+        setLoading(false)
+      }
       checkAuth()
     }
   }, [router.isReady, id, isNewPost])
