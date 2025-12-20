@@ -17,11 +17,11 @@ export default function AdminCSSBar({ onCSSChange }) {
       const cssContent = data.css || ''
       setCss(cssContent)
 
-      // Inject CSS for live preview
-      let styleElement = document.getElementById('blog-custom-css-live-editor')
+      // Ensure the main style element is updated
+      let styleElement = document.getElementById('blog-custom-css-style')
       if (!styleElement) {
         styleElement = document.createElement('style')
-        styleElement.id = 'blog-custom-css-live-editor'
+        styleElement.id = 'blog-custom-css-style'
         document.head.appendChild(styleElement)
       }
       styleElement.textContent = cssContent
