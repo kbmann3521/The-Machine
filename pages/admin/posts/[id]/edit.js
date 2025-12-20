@@ -103,6 +103,7 @@ export default function EditPost() {
     if (router.isReady) {
       if (isNewPost) {
         setLoading(false)
+        setPostNotFoundError(false)
       }
       checkAuth()
     }
