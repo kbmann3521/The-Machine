@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '../../../lib/supabase-client'
 import { createPost } from '../../../lib/blog-client'
 import { generateSlug } from '../../../lib/slug-utils'
+import MediaPickerModal from '../../../components/MediaPickerModal'
 import styles from '../../../styles/blog-admin-forms.module.css'
 
 export default function NewPost() {
