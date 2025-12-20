@@ -504,22 +504,6 @@ export default function EditPost() {
                       disabled={saving}
                     />
                   </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="status">
-                      Status <span className={styles.required}>*</span>
-                    </label>
-                    <select
-                      id="status"
-                      className={styles.formSelect}
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      disabled={saving}
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
-                    </select>
-                  </div>
                 </div>
               )}
             </div>
