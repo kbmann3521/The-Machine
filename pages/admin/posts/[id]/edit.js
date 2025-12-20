@@ -347,6 +347,7 @@ export default function EditPost() {
                 ) : (
                   <div className={styles.contentPreview}>
                     <div
+                      className={blogPostStyles.postContent}
                       dangerouslySetInnerHTML={{
                         __html: marked(content || ''),
                       }}
