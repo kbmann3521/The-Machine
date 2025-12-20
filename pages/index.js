@@ -625,6 +625,9 @@ export default function Home({ testTitle, testDescription }) {
   return (
     <>
       <Head>
+        {/* TEST: Hardcoded title and description */}
+        <title>{testTitle}</title>
+        <meta name="description" content={testDescription} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
