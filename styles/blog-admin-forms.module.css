@@ -927,6 +927,28 @@
     min-height: 400px;
   }
 
+  .contentPreview {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .contentPreview :global(h1) {
+    font-size: 1.8rem;
+  }
+
+  .contentPreview :global(h2) {
+    font-size: 1.5rem;
+  }
+
+  .contentPreview :global(h3) {
+    font-size: 1.25rem;
+  }
+
+  .contentPreview :global(ul),
+  .contentPreview :global(ol) {
+    margin-left: 1.5rem;
+  }
+
   .sidebarContainer {
     top: 1.5rem;
   }
