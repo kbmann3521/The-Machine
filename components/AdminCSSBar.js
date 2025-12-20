@@ -14,7 +14,18 @@ export default function AdminCSSBar({ onCSSChange }) {
     try {
       const response = await fetch('/api/blog/custom-css')
       const data = await response.json()
-      setCss(data.css || '')
+      const cssContent = data.css || ''
+      setCss(cssContent)
+
+      // Inject CSS for live preview
+      let styleElement = document.getElementById('blog-custom-css-live-editor')
+      if (!styleElement) {
+        styleElement = document.createElement('style')
+        styleElement.id = 'blog-custom-css-live-editor'
+        document.head.appendChild(styleElement)
+      }
+      styleElement.textContent = cssContent
+
       setIsOpen(true)
     } catch (err) {
       console.error('Failed to load CSS:', err)
