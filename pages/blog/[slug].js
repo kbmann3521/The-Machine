@@ -10,8 +10,25 @@ export default function BlogPost({ post }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [customCss, setCustomCss] = useState('')
 
+  // Apply custom CSS whenever it changes
+  useEffect(() => {
+    let styleElement = document.getElementById('blog-custom-css-style')
+    if (!styleElement) {
+      styleElement = document.createElement('style')
+      styleElement.id = 'blog-custom-css-style'
+      document.head.appendChild(styleElement)
+    }
+    styleElement.textContent = customCss
+  }, [customCss])
+
   useEffect(() => {
     const checkAdminAndLoadCss = async () => {
+      // Try to load from cache first to prevent flickering
+      const cached = localStorage.getItem('blog_custom_css_cache')
+      if (cached) {
+        setCustomCss(cached)
+      }
+
       // Check if user is admin
       const {
         data: { session },
@@ -31,7 +48,10 @@ export default function BlogPost({ post }) {
       try {
         const response = await fetch('/api/blog/custom-css')
         const data = await response.json()
-        setCustomCss(data.css || '')
+        const css = data.css || ''
+        setCustomCss(css)
+        // Cache for next visit to prevent flickering
+        localStorage.setItem('blog_custom_css_cache', css)
       } catch (err) {
         console.error('Failed to load custom CSS:', err)
       }
