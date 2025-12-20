@@ -35,6 +35,7 @@ export default function EditPost() {
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [contentTab, setContentTab] = useState('edit')
   const [expandedAccordions, setExpandedAccordions] = useState({
     actions: true,
     basicInfo: true,
