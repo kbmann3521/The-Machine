@@ -65,6 +65,17 @@
   padding: 2rem;
 }
 
+.editPageContainer {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  max-width: 100%;
+}
+
 .adminTitle {
   font-size: 2rem;
   font-weight: 600;
