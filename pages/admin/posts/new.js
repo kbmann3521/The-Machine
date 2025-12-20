@@ -21,6 +21,7 @@ export default function NewPost() {
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [expandedAccordions, setExpandedAccordions] = useState({
+    actions: true,
     basicInfo: true,
     thumbnail: false,
   })
