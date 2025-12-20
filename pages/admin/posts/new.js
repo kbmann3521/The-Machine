@@ -165,12 +165,6 @@ export default function NewPost() {
                 placeholder="Write your post content in Markdown format..."
               />
             </div>
-
-            <div className={styles.saveButtonContainer}>
-              <button type="submit" className={styles.primaryBtn} disabled={loading}>
-                {loading ? 'Creating...' : 'Create Post'}
-              </button>
-            </div>
           </form>
         </div>
 
