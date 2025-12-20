@@ -641,6 +641,12 @@ export default function EditPost() {
                         <p className={styles.fieldHint}>
                           {seoTitle.length}/60 characters{seoTitle.length < 30 ? ' — short' : seoTitle.length > 60 ? ' — may truncate' : ' — ideal'}
                         </p>
+                        {(seoTitle.length > 60 || (seoTitle && seoTitle !== title)) && (
+                          <p style={{ fontSize: '0.8rem', color: '#f57c00', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>ℹ</span>
+                            <span>Google may rewrite your title on search results based on content and search query.</span>
+                          </p>
+                        )}
                       </div>
 
                       <div className={styles.seoFieldGroup} style={{ marginTop: '1rem' }}>
