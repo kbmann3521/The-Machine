@@ -97,6 +97,8 @@ export default function EditPost() {
             setOgImageUrl(postData.og_image_url || '')
             setSeoNoindex(postData.seo_noindex || false)
             setThumbnailUrl(postData.thumbnail_url || '')
+            setTopic(postData.topic || '')
+            setSearchIntent(postData.search_intent || '')
             setPostNotFoundError(false)
           }
         } catch (err) {
