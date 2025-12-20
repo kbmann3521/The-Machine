@@ -17,9 +17,8 @@ import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
 export default function Home(props) {
-  console.log('📍 HOME PAGE PROPS:', props)
-  const testTitle = props?.testTitle || 'PROP NOT RECEIVED'
-  const testDescription = props?.testDescription || 'PROP NOT RECEIVED'
+  const testTitle = props?.testTitle || 'All-in-One Internet Tools'
+  const testDescription = props?.testDescription || 'Paste anything — we\'ll auto-detect the perfect tool'
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
