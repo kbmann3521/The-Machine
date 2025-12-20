@@ -7,12 +7,46 @@ import styles from '../../styles/blog-post.module.css'
 import AdminCSSBar from '../../components/AdminCSSBar'
 
 export default function BlogPost({ post }) {
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [customCss, setCustomCss] = useState('')
+
+  useEffect(() => {
+    const checkAdminAndLoadCss = async () => {
+      // Check if user is admin
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (session) {
+        const { data: adminUser } = await supabase
+          .from('admin_users')
+          .select('user_id')
+          .eq('user_id', session.user.id)
+          .single()
+
+        setIsAdmin(!!adminUser)
+      }
+
+      // Always load custom CSS for all visitors
+      try {
+        const response = await fetch('/api/blog/custom-css')
+        const data = await response.json()
+        setCustomCss(data.css || '')
+      } catch (err) {
+        console.error('Failed to load custom CSS:', err)
+      }
+    }
+
+    checkAdminAndLoadCss()
+  }, [])
+
   if (!post) {
     return (
       <div className={styles.postPage}>
         <Head>
           <title>Post Not Found</title>
         </Head>
+        {isAdmin && <AdminCSSBar />}
         <div className={styles.postHeader}>
           <div className={styles.postHeaderContent}>
             <h1 className={styles.postTitle}>Post Not Found</h1>
