@@ -46,7 +46,7 @@ export default function BlogPost({ post }) {
         <Head>
           <title>Post Not Found</title>
         </Head>
-        {isAdmin && <AdminCSSBar />}
+        {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} />}
         <div className={styles.postHeader}>
           <div className={styles.postHeaderContent}>
             <h1 className={styles.postTitle}>Post Not Found</h1>
@@ -82,7 +82,7 @@ export default function BlogPost({ post }) {
         {customCss && <style>{customCss}</style>}
       </Head>
 
-      {isAdmin && <AdminCSSBar />}
+      {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} />}
 
       <header className={styles.postHeader}>
         <div className={styles.postHeaderContent}>
