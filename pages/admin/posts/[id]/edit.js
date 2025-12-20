@@ -146,6 +146,27 @@ export default function EditPost() {
     fetchCustomCss()
   }, [])
 
+  // Compute SEO report whenever relevant fields change
+  useEffect(() => {
+    if (content) {
+      const report = evaluateSeo({
+        title,
+        content,
+        seo_title: seoTitle,
+        seo_description: seoDescription,
+        excerpt,
+        slug,
+        thumbnail_url: thumbnailUrl,
+        seo_noindex: seoNoindex,
+        topic,
+        search_intent: searchIntent,
+        published_at: post?.published_at,
+        updated_at: post?.updated_at,
+      })
+      setSeoReport(report)
+    }
+  }, [content, title, seoTitle, seoDescription, excerpt, slug, thumbnailUrl, seoNoindex, topic, searchIntent, post])
+
   const handleCreate = async (e) => {
     e.preventDefault()
     setError('')
