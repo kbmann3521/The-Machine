@@ -111,8 +111,8 @@ export default function BlogPost({ post }) {
             </div>
           )}
           <div className={styles.postHeaderInfo}>
-            <h1 className={styles.postTitle}>{post.title}</h1>
-            <div className={styles.postMeta}>
+            <h1 className={styles.postTitle} style={{ padding: '0 16px' }}>{post.title}</h1>
+            <div className={styles.postMeta} style={{ padding: '0 16px' }}>
               <div className={styles.postMetaItem}>
                 <span>Published</span>
                 <time dateTime={post.published_at}>
