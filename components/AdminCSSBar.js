@@ -58,12 +58,12 @@ export default function AdminCSSBar({ onCSSChange }) {
         throw new Error(errorData.error || 'Failed to save CSS')
       }
 
-      const data = await response.json()
+      const responseData = await response.json()
       setIsOpen(false)
 
       // Update the custom CSS in the parent component
       if (onCSSChange) {
-        onCSSChange(data.css || css)
+        onCSSChange(responseData.css || css)
       }
 
       alert('CSS saved successfully!')
