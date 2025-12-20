@@ -454,4 +454,23 @@
   .dangerBtn {
     width: 100%;
   }
+
+  .mediaPickerModal {
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+
+  .mediaGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .thumbnailPreview {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .thumbnailImage {
+    width: 100px;
+    height: 100px;
+  }
 }
