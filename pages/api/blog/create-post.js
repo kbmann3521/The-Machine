@@ -62,6 +62,14 @@ export default async function handler(req, res) {
         status: status || 'draft',
         published_at: publishedAt,
         thumbnail_url: thumbnail_url || null,
+        seo_title: seo_title?.trim() || null,
+        seo_description: seo_description?.trim() || null,
+        og_title: og_title?.trim() || null,
+        og_description: og_description?.trim() || null,
+        og_image_url: og_image_url?.trim() || null,
+        seo_noindex: seo_noindex || false,
+        topic: topic?.trim() || null,
+        search_intent: search_intent || null,
       },
     ]).select()
 
