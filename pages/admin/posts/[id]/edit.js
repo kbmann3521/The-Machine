@@ -102,6 +102,13 @@ export default function EditPost() {
     }
   }, [title, slug])
 
+  useEffect(() => {
+    if (!isNewPost && post) {
+      setSaving(false)
+      setError('')
+    }
+  }, [post])
+
   const handleCreate = async (e) => {
     e.preventDefault()
     setError('')
