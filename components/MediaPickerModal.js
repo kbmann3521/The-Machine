@@ -47,12 +47,16 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
       }
 
       const data = await response.json()
+      console.log('Raw API response:', data)
+
       const mediaArray = Array.isArray(data) ? data : (data.media || [])
+      console.log('Processed media array:', mediaArray)
+      console.log('Media count:', mediaArray.length)
 
       if (mediaArray.length === 0) {
-        console.log('No media items returned from API')
+        console.warn('Warning: No media items returned from API. Response was:', data)
       } else {
-        console.log(`Loaded ${mediaArray.length} media items`)
+        console.log(`Successfully loaded ${mediaArray.length} media items`)
       }
 
       setMedia(mediaArray)
