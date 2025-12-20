@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
@@ -818,6 +819,9 @@ export default function Home(props) {
         <footer className={styles.footer}>
           <div className={styles.footerContent}>
             <p>© 2024 Pioneer Web Tools. All rights reserved.</p>
+            <Link href="/blog/why-deterministic-internet-tools-are-better-than-ai" className={styles.footerAboutLink}>
+              About
+            </Link>
           </div>
         </footer>
       </div>
