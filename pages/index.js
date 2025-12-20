@@ -841,8 +841,8 @@ export async function getServerSideProps() {
 
   return {
     props: {
-      testTitle: seoSettings?.site_title || 'All-in-One Internet Tools',
-      testDescription: seoSettings?.site_description || 'Paste anything — we\'ll auto-detect the perfect tool',
+      testTitle: seoSettings?.default_title || 'All-in-One Internet Tools',
+      testDescription: seoSettings?.default_description || 'Paste anything — we\'ll auto-detect the perfect tool',
       seoSettings: seoSettings || {},
     },
   }
