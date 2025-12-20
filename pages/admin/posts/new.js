@@ -14,9 +14,11 @@ export default function NewPost() {
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
   const [status, setStatus] = useState('draft')
+  const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
