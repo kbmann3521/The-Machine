@@ -19,6 +19,11 @@ export default function NewPost() {
   const [error, setError] = useState('')
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [expandedAccordions, setExpandedAccordions] = useState({
+    basicInfo: true,
+    thumbnail: false,
+  })
   const router = useRouter()
 
   useEffect(() => {
@@ -54,6 +59,13 @@ export default function NewPost() {
       setSlug(generateSlug(title))
     }
   }, [title, slug])
+
+  const toggleAccordion = (section) => {
+    setExpandedAccordions((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -114,18 +126,18 @@ export default function NewPost() {
         </div>
       </div>
 
-      <div className={styles.adminContent}>
-        <div className={styles.adminSection}>
-          <h1 className={styles.adminTitle} style={{ marginTop: 0 }}>
-            Create New Post
-          </h1>
+      <div className={styles.editPageContainer}>
+        <div className={styles.mainContentArea}>
+          <div className={styles.postHeader}>
+            <h1 className={styles.postTitle}>Create New Post</h1>
+          </div>
 
           {error && <div className={styles.errorMessage}>{error}</div>}
 
-          <form onSubmit={handleSubmit} className={styles.form}>
+          <form onSubmit={handleSubmit} className={styles.editForm}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="title">
-                Title <span style={{ color: '#d32f2f' }}>*</span>
+                Title <span className={styles.required}>*</span>
               </label>
               <input
                 id="title"
@@ -140,121 +152,159 @@ export default function NewPost() {
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="slug">
-                Slug <span style={{ color: '#d32f2f' }}>*</span>
-              </label>
-              <input
-                id="slug"
-                type="text"
-                className={styles.formInput}
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                required
-                disabled={loading}
-                placeholder="Auto-generated from title"
-              />
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
-                URL-friendly identifier (lowercase, hyphens)
-              </p>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="excerpt">
-                Excerpt
-              </label>
-              <input
-                id="excerpt"
-                type="text"
-                className={styles.formInput}
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                disabled={loading}
-                placeholder="Short summary of the post (optional)"
-              />
-            </div>
-
-            {/* Thumbnail Section */}
-            <div className={styles.thumbnailSection}>
-              <label className={styles.formLabel}>Post Thumbnail</label>
-              {thumbnailUrl ? (
-                <div className={styles.thumbnailPreview}>
-                  <div className={styles.thumbnailImage}>
-                    <img src={thumbnailUrl} alt="Post thumbnail" />
-                  </div>
-                  <div className={styles.thumbnailInfo}>
-                    <div className={styles.thumbnailUrl}>{thumbnailUrl}</div>
-                    <div className={styles.thumbnailActions}>
-                      <button
-                        type="button"
-                        onClick={() => setMediaPickerOpen(true)}
-                        className={styles.thumbnailButton}
-                        disabled={loading}
-                      >
-                        Change Thumbnail
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setThumbnailUrl('')}
-                        className={styles.removeThumbnailBtn}
-                        disabled={loading}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setMediaPickerOpen(true)}
-                  className={styles.thumbnailButton}
-                  disabled={loading}
-                >
-                  + Select Thumbnail from Media Library
-                </button>
-              )}
-            </div>
-
-            <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="content">
-                Content (Markdown) <span style={{ color: '#d32f2f' }}>*</span>
+                Content (Markdown) <span className={styles.required}>*</span>
               </label>
               <textarea
                 id="content"
-                className={styles.formTextarea}
+                className={styles.contentTextarea}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
                 disabled={loading}
-                placeholder="Write your post content in Markdown..."
+                placeholder="Write your post content in Markdown format..."
               />
             </div>
 
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="status">
-                Status <span style={{ color: '#d32f2f' }}>*</span>
-              </label>
-              <select
-                id="status"
-                className={styles.formSelect}
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                disabled={loading}
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-
-            <div className={styles.formActions}>
+            <div className={styles.saveButtonContainer}>
               <button type="submit" className={styles.primaryBtn} disabled={loading}>
                 {loading ? 'Creating...' : 'Create Post'}
               </button>
-              <Link href="/admin/posts" className={styles.secondaryBtn}>
-                Cancel
-              </Link>
             </div>
           </form>
+        </div>
+
+        <div className={`${styles.sidebarContainer} ${sidebarOpen ? '' : styles.sidebarCollapsed}`}>
+          <div className={styles.sidebarHeader}>
+            <h2 className={styles.sidebarTitle}>Post Settings</h2>
+            <button
+              className={styles.sidebarToggleBtn}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle sidebar"
+            >
+              {sidebarOpen ? '✕' : '☰'}
+            </button>
+          </div>
+
+          <div className={styles.sidebarContent}>
+            {/* Basic Info Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('basicInfo')}
+              >
+                <span className={styles.accordionTitle}>Basic Info</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.basicInfo ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.basicInfo && (
+                <div className={styles.accordionBody}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="slug">
+                      Slug <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      id="slug"
+                      type="text"
+                      className={styles.formInput}
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      required
+                      disabled={loading}
+                      placeholder="Auto-generated from title"
+                    />
+                    <p className={styles.fieldHint}>
+                      URL-friendly identifier (lowercase, hyphens)
+                    </p>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="excerpt">
+                      Excerpt
+                    </label>
+                    <input
+                      id="excerpt"
+                      type="text"
+                      className={styles.formInput}
+                      value={excerpt}
+                      onChange={(e) => setExcerpt(e.target.value)}
+                      disabled={loading}
+                      placeholder="Short summary of the post (optional)"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="status">
+                      Status <span className={styles.required}>*</span>
+                    </label>
+                    <select
+                      id="status"
+                      className={styles.formSelect}
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      disabled={loading}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnail Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('thumbnail')}
+              >
+                <span className={styles.accordionTitle}>Thumbnail</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.thumbnail ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.thumbnail && (
+                <div className={styles.accordionBody}>
+                  {thumbnailUrl ? (
+                    <div className={styles.thumbnailPreviewSmall}>
+                      <div className={styles.thumbnailImageSmall}>
+                        <img src={thumbnailUrl} alt="Post thumbnail" />
+                      </div>
+                      <p className={styles.thumbnailUrlSmall}>{thumbnailUrl}</p>
+                      <div className={styles.thumbnailActionsSmall}>
+                        <button
+                          type="button"
+                          onClick={() => setMediaPickerOpen(true)}
+                          className={styles.sidebarPrimaryBtn}
+                          disabled={loading}
+                        >
+                          Change
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setThumbnailUrl('')}
+                          className={styles.sidebarDangerBtn}
+                          disabled={loading}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setMediaPickerOpen(true)}
+                      className={styles.sidebarPrimaryBtn}
+                      disabled={loading}
+                    >
+                      + Add Thumbnail
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
