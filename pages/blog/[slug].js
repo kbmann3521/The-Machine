@@ -36,9 +36,7 @@ export default function BlogPost({ post }) {
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.excerpt || post.title} />
         <meta property="og:type" content="article" />
-        {(post.og_image_url || post.thumbnail_url) && (
-          <meta property="og:image" content={post.og_image_url || post.thumbnail_url} />
-        )}
+        <meta property="og:image" content={post.og_image_url || post.thumbnail_url || ''} />
         <link rel="canonical" href={`https://www.pioneerwebtools.com/blog/${post.slug}`} />
       </Head>
 
