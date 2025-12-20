@@ -5,6 +5,10 @@
   color: var(--color-text-primary);
 }
 
+.postPageWithAdminBar {
+  padding-top: 50px;
+}
+
 .postHeader {
   width: 100%;
   box-sizing: border-box;

@@ -1,0 +1,193 @@
+.editorBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.editorSidebar {
+  position: fixed;
+  top: 50px;
+  left: 0;
+  bottom: 0;
+  width: 400px;
+  background-color: var(--color-background-secondary);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.editorHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.editorTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: var(--color-text-primary);
+}
+
+.editorContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.editorDescription {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.cssEditor {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-primary);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: none;
+  transition: border-color 0.2s ease;
+}
+
+.cssEditor:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.editorHint {
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1rem;
+  font-size: 0.8rem;
+}
+
+.editorHint p {
+  margin: 0 0 0.75rem;
+}
+
+.editorHint ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-text-secondary);
+}
+
+.editorHint li {
+  margin-bottom: 0.4rem;
+}
+
+.editorHint code {
+  background-color: var(--color-background-secondary);
+  padding: 0.2em 0.4em;
+  border-radius: 2px;
+  font-family: monospace;
+  color: #d946ef;
+}
+
+.editorFooter {
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.cancelBtn,
+.saveBtn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn {
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background-color: var(--color-border);
+}
+
+.saveBtn {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background-color: #1b5e20;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.cancelBtn:disabled,
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .editorSidebar {
+    width: 100%;
+  }
+
+  .cssEditor {
+    min-height: 200px;
+  }
+
+  .editorHint {
+    display: none;
+  }
+}

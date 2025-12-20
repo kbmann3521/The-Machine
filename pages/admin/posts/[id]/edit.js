@@ -2,15 +2,18 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
+import { marked } from 'marked'
 import { supabase } from '../../../../lib/supabase-client'
-import { getPostById, updatePost, deletePost } from '../../../../lib/blog-client'
+import { getPostById, updatePost, deletePost, createPost } from '../../../../lib/blog-client'
 import { generateSlug } from '../../../../lib/slug-utils'
 import MediaPickerModal from '../../../../components/MediaPickerModal'
 import styles from '../../../../styles/blog-admin-forms.module.css'
+import blogPostStyles from '../../../../styles/blog-post.module.css'
 
 export default function EditPost() {
   const router = useRouter()
   const { id } = router.query
+  const isNewPost = id === 'new'
 
   const [post, setPost] = useState(null)
   const [title, setTitle] = useState('')
@@ -28,10 +31,13 @@ export default function EditPost() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [postNotFoundError, setPostNotFoundError] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [contentTab, setContentTab] = useState('edit')
+  const [customCss, setCustomCss] = useState('')
   const [expandedAccordions, setExpandedAccordions] = useState({
     actions: true,
     basicInfo: true,
@@ -42,9 +48,7 @@ export default function EditPost() {
   })
 
   useEffect(() => {
-    if (!id) return
-
-    const loadPost = async () => {
+    const checkAuth = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -65,30 +69,98 @@ export default function EditPost() {
         return
       }
 
-      try {
-        const postData = await getPostById(id)
-        setPost(postData)
-        setTitle(postData.title)
-        setSlug(postData.slug)
-        setExcerpt(postData.excerpt || '')
-        setContent(postData.content)
-        setStatus(postData.status)
-        setSeoTitle(postData.seo_title || '')
-        setSeoDescription(postData.seo_description || '')
-        setOgTitle(postData.og_title || '')
-        setOgDescription(postData.og_description || '')
-        setOgImageUrl(postData.og_image_url || '')
-        setSeoNoindex(postData.seo_noindex || false)
-        setThumbnailUrl(postData.thumbnail_url || '')
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
+      if (!isNewPost && id) {
+        setLoading(true)
+        setSaving(false)
+        setSuccessMessage('')
+        setPostNotFoundError(false)
+        try {
+          const postData = await getPostById(id)
+          if (!postData) {
+            setPostNotFoundError(true)
+            setPost(null)
+          } else {
+            setPost(postData)
+            setTitle(postData.title)
+            setSlug(postData.slug)
+            setExcerpt(postData.excerpt || '')
+            setContent(postData.content)
+            setStatus(postData.status)
+            setSeoTitle(postData.seo_title || '')
+            setSeoDescription(postData.seo_description || '')
+            setOgTitle(postData.og_title || '')
+            setOgDescription(postData.og_description || '')
+            setOgImageUrl(postData.og_image_url || '')
+            setSeoNoindex(postData.seo_noindex || false)
+            setThumbnailUrl(postData.thumbnail_url || '')
+            setPostNotFoundError(false)
+          }
+        } catch (err) {
+          setError(err.message)
+          setPostNotFoundError(true)
+        } finally {
+          setLoading(false)
+        }
       }
     }
 
-    loadPost()
-  }, [id, router])
+    if (router.isReady) {
+      if (isNewPost) {
+        setLoading(false)
+        setPostNotFoundError(false)
+      }
+      checkAuth()
+    }
+  }, [router.isReady, id, isNewPost])
+
+  useEffect(() => {
+    if (title && !slug) {
+      setSlug(generateSlug(title))
+    }
+  }, [title, slug])
+
+  useEffect(() => {
+    if (!isNewPost && post) {
+      setSaving(false)
+      setError('')
+    }
+  }, [post])
+
+  useEffect(() => {
+    const fetchCustomCss = async () => {
+      try {
+        const response = await fetch('/api/blog/custom-css')
+        const data = await response.json()
+        setCustomCss(data.css || '')
+      } catch (err) {
+        console.error('Failed to load custom CSS:', err)
+      }
+    }
+
+    fetchCustomCss()
+  }, [])
+
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    setError('')
+    setSaving(true)
+
+    try {
+      const newPost = await createPost({
+        title,
+        slug,
+        excerpt,
+        content,
+        status,
+        thumbnail_url: thumbnailUrl,
+      })
+
+      router.push(`/admin/posts/${newPost.id}/edit`)
+    } catch (err) {
+      setError(err.message)
+      setSaving(false)
+    }
+  }
 
   const handleUpdate = async (e, newStatus = null) => {
     e.preventDefault()
@@ -182,7 +254,7 @@ export default function EditPost() {
     )
   }
 
-  if (!post) {
+  if (!isNewPost && !loading && postNotFoundError) {
     return (
       <div className={styles.adminContainer}>
         <Head>
@@ -206,10 +278,14 @@ export default function EditPost() {
     )
   }
 
+  const pageTitle = isNewPost ? 'Create New Post' : title || 'Untitled Post'
+  const headTitle = isNewPost ? 'New Post - Admin' : 'Edit Post - Admin'
+  const submitHandler = isNewPost ? handleCreate : handleUpdate
+
   return (
     <div className={styles.adminContainer}>
       <Head>
-        <title>Edit Post - Admin</title>
+        <title>{headTitle}</title>
       </Head>
 
       <div className={styles.adminHeader}>
@@ -227,14 +303,16 @@ export default function EditPost() {
       <div className={styles.editPageContainer}>
         <div className={styles.mainContentArea}>
           <div className={styles.postHeader}>
-            <h1 className={styles.postTitle}>{title || 'Untitled Post'}</h1>
-            <p className={styles.postTimestamp}>Last updated: {formatDate(post.updated_at)}</p>
+            <h1 className={styles.postTitle}>{pageTitle}</h1>
+            {!isNewPost && post && (
+              <p className={styles.postTimestamp}>Last updated: {formatDate(post.updated_at)}</p>
+            )}
           </div>
 
           {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
           {error && <div className={styles.errorMessage}>{error}</div>}
 
-          <form onSubmit={handleUpdate} className={styles.editForm}>
+          <form onSubmit={submitHandler} className={styles.editForm}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="title">
                 Title <span className={styles.required}>*</span>
@@ -254,21 +332,45 @@ export default function EditPost() {
               <label className={styles.formLabel} htmlFor="content">
                 Content (Markdown) <span className={styles.required}>*</span>
               </label>
-              <textarea
-                id="content"
-                className={styles.contentTextarea}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-                disabled={saving}
-                placeholder="Write your post content in Markdown format..."
-              />
-            </div>
-
-            <div className={styles.saveButtonContainer}>
-              <button type="submit" className={styles.primaryBtn} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+              <div className={styles.contentTabContainer}>
+                <div className={styles.contentTabs}>
+                  <button
+                    type="button"
+                    className={`${styles.contentTab} ${contentTab === 'edit' ? styles.contentTabActive : ''}`}
+                    onClick={() => setContentTab('edit')}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.contentTab} ${contentTab === 'preview' ? styles.contentTabActive : ''}`}
+                    onClick={() => setContentTab('preview')}
+                  >
+                    Preview
+                  </button>
+                </div>
+                {contentTab === 'edit' ? (
+                  <textarea
+                    id="content"
+                    className={styles.contentTextarea}
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                    disabled={saving}
+                    placeholder="Write your post content in Markdown format..."
+                  />
+                ) : (
+                  <div className={styles.contentPreview}>
+                    {customCss && <style>{customCss}</style>}
+                    <div
+                      className={blogPostStyles.postContent}
+                      dangerouslySetInnerHTML={{
+                        __html: marked(content || ''),
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </form>
         </div>
@@ -300,7 +402,7 @@ export default function EditPost() {
               {expandedAccordions.actions && (
                 <div className={styles.accordionBody}>
                   <div className={styles.sidebarActions}>
-                    {status === 'published' && (
+                    {!isNewPost && status === 'published' && (
                       <button
                         type="button"
                         onClick={() => window.open(`/blog/${slug}`, '_blank')}
@@ -312,42 +414,46 @@ export default function EditPost() {
 
                     <button
                       type="button"
-                      onClick={handleUpdate}
+                      onClick={submitHandler}
                       className={styles.sidebarPrimaryBtn}
                       disabled={saving}
                     >
-                      {saving ? 'Saving...' : 'Save Changes'}
+                      {isNewPost ? (saving ? 'Creating...' : 'Create Post') : (saving ? 'Saving...' : 'Save Changes')}
                     </button>
 
-                    {status === 'draft' ? (
-                      <button
-                        onClick={handlePublish}
-                        className={styles.sidebarPrimaryBtn}
-                        disabled={saving}
-                      >
-                        {saving ? 'Publishing...' : 'Publish'}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleUnpublish}
-                        className={styles.sidebarSecondaryBtn}
-                        disabled={saving}
-                      >
-                        Unpublish
-                      </button>
+                    {!isNewPost && (
+                      <>
+                        {status === 'draft' ? (
+                          <button
+                            onClick={handlePublish}
+                            className={styles.sidebarPrimaryBtn}
+                            disabled={saving}
+                          >
+                            {saving ? 'Publishing...' : 'Publish'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleUnpublish}
+                            className={styles.sidebarSecondaryBtn}
+                            disabled={saving}
+                          >
+                            Unpublish
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setDeleteModalOpen(true)}
+                          className={styles.sidebarDangerBtn}
+                          disabled={saving}
+                        >
+                          Delete
+                        </button>
+                      </>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => setDeleteModalOpen(true)}
-                      className={styles.sidebarDangerBtn}
-                      disabled={saving}
-                    >
-                      Delete
-                    </button>
-
                     <Link href="/admin/posts" className={styles.sidebarSecondaryBtn}>
-                      Back to Posts
+                      {isNewPost ? 'Cancel' : 'Back to Posts'}
                     </Link>
                   </div>
                 </div>
@@ -618,7 +724,7 @@ export default function EditPost() {
         </div>
       </div>
 
-      {deleteModalOpen && (
+      {!isNewPost && deleteModalOpen && (
         <div className={styles.modalBackdrop}>
           <div className={styles.modal}>
             <div className={styles.modalTitle}>Delete Post</div>

@@ -1,0 +1,100 @@
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase-client'
+import styles from '../styles/admin-css-bar.module.css'
+import CSSEditorSidebar from './CSSEditorSidebar'
+
+export default function AdminCSSBar({ onCSSChange }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [css, setCss] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleOpen = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/blog/custom-css')
+      const data = await response.json()
+      const cssContent = data.css || ''
+      setCss(cssContent)
+
+      // Inject CSS for live preview
+      let styleElement = document.getElementById('blog-custom-css-live-editor')
+      if (!styleElement) {
+        styleElement = document.createElement('style')
+        styleElement.id = 'blog-custom-css-live-editor'
+        document.head.appendChild(styleElement)
+      }
+      styleElement.textContent = cssContent
+
+      setIsOpen(true)
+    } catch (err) {
+      console.error('Failed to load CSS:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    try {
+      const { data } = await supabase.auth.getSession()
+      const session = data?.session
+
+      if (!session) {
+        throw new Error('No active session')
+      }
+
+      const response = await fetch('/api/blog/custom-css', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ css }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save CSS')
+      }
+
+      const responseData = await response.json()
+      setIsOpen(false)
+
+      // Update the custom CSS in the parent component
+      if (onCSSChange) {
+        onCSSChange(responseData.css || css)
+      }
+
+      alert('CSS saved successfully!')
+    } catch (err) {
+      console.error('Failed to save CSS:', err)
+      throw err
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <div className={styles.adminBar}>
+        <div className={styles.adminBarContent}>
+          <span className={styles.adminLabel}>Admin</span>
+          <button onClick={handleOpen} className={styles.customizeCssBtn}>
+            {loading ? 'Loading...' : 'Customize CSS'}
+          </button>
+        </div>
+      </div>
+
+      {isOpen && (
+        <CSSEditorSidebar
+          css={css}
+          setCss={setCss}
+          onSave={handleSave}
+          onClose={() => setIsOpen(false)}
+          isSaving={isSaving}
+        />
+      )}
+    </>
+  )
+}

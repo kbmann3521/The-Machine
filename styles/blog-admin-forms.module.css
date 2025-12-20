@@ -470,12 +470,50 @@
   gap: 1.5rem;
 }
 
+.contentTabContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.contentTabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-background-primary);
+}
+
+.contentTab {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.contentTab:hover {
+  color: var(--color-text-primary);
+  background-color: rgba(25, 118, 210, 0.05);
+}
+
+.contentTabActive {
+  color: #1976d2;
+  border-bottom: 2px solid #1976d2;
+  margin-bottom: -1px;
+  background-color: var(--color-background-secondary);
+}
+
 .contentTextarea {
   min-height: 500px;
   padding: 0.75rem;
   background-color: var(--color-background-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border: none;
   color: var(--color-text-primary);
   font-family: monospace;
   font-size: 0.9rem;
@@ -485,8 +523,166 @@
 
 .contentTextarea:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+  box-shadow: inset 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.contentPreview {
+  min-height: 500px;
+  padding: 1rem 0.75rem;
+  background-color: var(--color-background-primary);
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 1.1rem;
+  line-height: 1.85;
+  overflow-y: auto;
+}
+
+.contentPreview :global(h1),
+.contentPreview :global(h2),
+.contentPreview :global(h3),
+.contentPreview :global(h4),
+.contentPreview :global(h5),
+.contentPreview :global(h6) {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.contentPreview :global(h1) {
+  font-size: 2.2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--color-border-hover);
+}
+
+.contentPreview :global(h2) {
+  font-size: 1.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.contentPreview :global(h3) {
+  font-size: 1.5rem;
+}
+
+.contentPreview :global(h4) {
+  font-size: 1.25rem;
+}
+
+.contentPreview :global(h5) {
+  font-size: 1.1rem;
+}
+
+.contentPreview :global(h6) {
+  font-size: 1rem;
+}
+
+.contentPreview :global(p) {
+  margin-bottom: 1.25rem;
+  word-spacing: 0.05em;
+}
+
+.contentPreview :global(ul),
+.contentPreview :global(ol) {
+  margin-bottom: 1.5rem;
+  margin-left: 2rem;
+}
+
+.contentPreview :global(li) {
+  margin-bottom: 0.75rem;
+  line-height: 1.8;
+}
+
+.contentPreview :global(code) {
+  background-color: var(--color-background-secondary);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #d946ef;
+  border: 1px solid var(--color-border);
+}
+
+.contentPreview :global(pre) {
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 1.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.contentPreview :global(pre code) {
+  background-color: transparent;
+  padding: 0;
+  color: var(--color-text-primary);
+  border: none;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.contentPreview :global(blockquote) {
+  border-left: 4px solid #1976d2;
+  padding-left: 1.5rem;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 1.5rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  background-color: var(--color-background-secondary);
+  padding: 1rem 1.5rem;
+  border-radius: 4px;
+}
+
+.contentPreview :global(a) {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.contentPreview :global(a:hover) {
+  color: #1565c0;
+  border-bottom-color: #1976d2;
+}
+
+.contentPreview :global(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 2rem 0;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--color-border);
+}
+
+.contentPreview :global(strong) {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.contentPreview :global(em) {
+  font-style: italic;
+}
+
+.contentPreview :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.contentPreview :global(th),
+.contentPreview :global(td) {
+  border: 1px solid var(--color-border);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.contentPreview :global(th) {
+  background-color: var(--color-background-secondary);
+  font-weight: 600;
 }
 
 .saveButtonContainer {
@@ -596,7 +792,7 @@
 }
 
 .accordionBody {
-  padding: 0 1.25rem 1rem 1.25rem;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -704,6 +900,21 @@
   color: #d32f2f;
 }
 
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+}
+
+.checkboxLabel input[type='checkbox'] {
+  margin-top: 0.25rem;
+  cursor: pointer;
+  accent-color: #2e7d32;
+}
+
 @media (max-width: 1024px) {
   .editPageContainer {
     grid-template-columns: 1fr 300px;
@@ -711,8 +922,31 @@
     padding: 1.5rem;
   }
 
-  .contentTextarea {
+  .contentTextarea,
+  .contentPreview {
     min-height: 400px;
+  }
+
+  .contentPreview {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .contentPreview :global(h1) {
+    font-size: 1.8rem;
+  }
+
+  .contentPreview :global(h2) {
+    font-size: 1.5rem;
+  }
+
+  .contentPreview :global(h3) {
+    font-size: 1.25rem;
+  }
+
+  .contentPreview :global(ul),
+  .contentPreview :global(ol) {
+    margin-left: 1.5rem;
   }
 
   .sidebarContainer {
@@ -744,8 +978,31 @@
     font-size: 1.5rem;
   }
 
-  .contentTextarea {
+  .contentTextarea,
+  .contentPreview {
     min-height: 300px;
+  }
+
+  .contentPreview {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .contentPreview :global(h1) {
+    font-size: 1.8rem;
+  }
+
+  .contentPreview :global(h2) {
+    font-size: 1.5rem;
+  }
+
+  .contentPreview :global(h3) {
+    font-size: 1.25rem;
+  }
+
+  .contentPreview :global(ul),
+  .contentPreview :global(ol) {
+    margin-left: 1.5rem;
   }
 
   .sidebarContainer {
