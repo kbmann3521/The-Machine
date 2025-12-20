@@ -26,9 +26,19 @@ export default function AdminCSSBar() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
+      const { data } = await supabase.auth.getSession()
+      const session = data?.session
+
+      if (!session) {
+        throw new Error('No active session')
+      }
+
       const response = await fetch('/api/blog/custom-css', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ css }),
       })
 
@@ -37,7 +47,6 @@ export default function AdminCSSBar() {
         throw new Error(errorData.error || 'Failed to save CSS')
       }
 
-      const data = await response.json()
       setIsOpen(false)
       alert('CSS saved successfully!')
     } catch (err) {
