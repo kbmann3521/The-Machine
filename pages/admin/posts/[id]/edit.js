@@ -65,6 +65,7 @@ export default function EditPost() {
       }
 
       if (!isNewPost && id) {
+        setLoading(true)
         try {
           const postData = await getPostById(id)
           setPost(postData)
