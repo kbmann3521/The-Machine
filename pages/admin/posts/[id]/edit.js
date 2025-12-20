@@ -223,7 +223,7 @@ export default function EditPost() {
     )
   }
 
-  if (!isNewPost && !post) {
+  if (!isNewPost && !loading && !post) {
     return (
       <div className={styles.adminContainer}>
         <Head>
