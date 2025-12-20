@@ -8,14 +8,29 @@ export default function SEODebug() {
   const [metaTag, setMetaTag] = useState(null)
 
   useEffect(() => {
+    // Check localStorage
     const pageRulesStr = typeof window !== 'undefined' ? localStorage.getItem('seoPageRules') : null
-    const pageRules = pageRulesStr ? JSON.parse(pageRulesStr) : null
+    let pageRules = null
+
+    if (pageRulesStr) {
+      try {
+        pageRules = JSON.parse(pageRulesStr)
+      } catch (e) {
+        console.error('Failed to parse seoPageRules from localStorage:', e)
+      }
+    }
 
     const adminMeta = getAdminRobotsMeta(router.pathname)
     const metaContent = adminMeta || getRobotsMetaContent(router.pathname, pageRules)
 
-    // Check actual meta tag in DOM
-    const actualMetaTag = document.querySelector('meta[name="robots"]')
+    // Check actual meta tag in DOM (with small delay to let injector run)
+    setTimeout(() => {
+      const actualMetaTag = document.querySelector('meta[name="robots"]')
+      setMetaTag({
+        exists: actualMetaTag !== null,
+        content: actualMetaTag?.getAttribute('content') || 'NOT FOUND',
+      })
+    }, 100)
 
     setDebug({
       pathname: router.pathname,
@@ -23,11 +38,7 @@ export default function SEODebug() {
       adminMeta,
       metaContent,
       localStorageExists: pageRulesStr !== null,
-    })
-
-    setMetaTag({
-      exists: actualMetaTag !== null,
-      content: actualMetaTag?.getAttribute('content') || 'NOT FOUND',
+      localStorageContent: pageRulesStr || '(empty)',
     })
   }, [router.pathname])
 
