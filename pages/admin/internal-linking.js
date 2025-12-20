@@ -62,20 +62,28 @@ export default function InternalLinkingAdmin() {
     try {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session || !session.access_token) {
+        throw new Error('Not authenticated')
+      }
+
       const response = await fetch('/api/admin/internal-linking/rules', {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },
       })
 
       if (!response.ok) {
-        throw new Error('Failed to fetch rules')
+        const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }))
+        throw new Error(errorData.error || `Failed to fetch rules: ${response.status}`)
       }
 
       const data = await response.json()
       setRules(data)
       setError('')
     } catch (err) {
+      console.error('Fetch rules error:', err)
       setError(err.message)
     } finally {
       setLoading(false)
