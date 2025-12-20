@@ -10,6 +10,7 @@ async function verifyAdminAccess(req) {
   const { data, error } = await supabase.auth.getUser(token)
 
   if (error || !data.user) {
+    console.error('Token validation error:', error)
     throw new Error('Invalid token')
   }
 
@@ -19,7 +20,13 @@ async function verifyAdminAccess(req) {
     .select('user_id')
     .eq('user_id', data.user.id)
 
-  if (adminError || !adminUsers || adminUsers.length === 0) {
+  if (adminError) {
+    console.error('Admin check query error:', adminError)
+    throw new Error(`Admin check failed: ${adminError.message}`)
+  }
+
+  if (!adminUsers || adminUsers.length === 0) {
+    console.error('User is not an admin:', data.user.id)
     throw new Error('Not an admin user')
   }
 
