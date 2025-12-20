@@ -70,6 +70,7 @@ export default function Home(props) {
     notation: 'auto',
     mode: 'float'
   })
+  const [initialToolsLoading, setInitialToolsLoading] = useState(true)
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
