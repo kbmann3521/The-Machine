@@ -837,10 +837,6 @@ export async function getServerSideProps() {
   const { fetchSeoSettings } = await import('../lib/getSeoSettings')
 
   const seoSettings = await fetchSeoSettings()
-  console.log('✅ GSSP RUNNING ON INDEX - SEO Settings:', {
-    default_title: seoSettings?.default_title,
-    default_description: seoSettings?.default_description,
-  })
 
   return {
     props: {
