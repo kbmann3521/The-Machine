@@ -29,6 +29,7 @@ export default function EditPost() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [postNotFoundError, setPostNotFoundError] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
