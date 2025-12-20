@@ -505,6 +505,12 @@ export default function EditPost() {
           </div>
         </div>
       )}
+
+      <MediaPickerModal
+        isOpen={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        onSelect={(url) => setThumbnailUrl(url)}
+      />
     </div>
   )
 }
