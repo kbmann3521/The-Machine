@@ -470,12 +470,50 @@
   gap: 1.5rem;
 }
 
+.contentTabContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.contentTabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-background-primary);
+}
+
+.contentTab {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.contentTab:hover {
+  color: var(--color-text-primary);
+  background-color: rgba(25, 118, 210, 0.05);
+}
+
+.contentTabActive {
+  color: #1976d2;
+  border-bottom: 2px solid #1976d2;
+  margin-bottom: -1px;
+  background-color: var(--color-background-secondary);
+}
+
 .contentTextarea {
   min-height: 500px;
   padding: 0.75rem;
   background-color: var(--color-background-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border: none;
   color: var(--color-text-primary);
   font-family: monospace;
   font-size: 0.9rem;
@@ -485,8 +523,131 @@
 
 .contentTextarea:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+  box-shadow: inset 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.contentPreview {
+  min-height: 500px;
+  padding: 1rem 0.75rem;
+  background-color: var(--color-background-primary);
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-y: auto;
+}
+
+.contentPreview :global(h1),
+.contentPreview :global(h2),
+.contentPreview :global(h3),
+.contentPreview :global(h4),
+.contentPreview :global(h5),
+.contentPreview :global(h6) {
+  margin: 1.5rem 0 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.contentPreview :global(h1) {
+  font-size: 2em;
+}
+
+.contentPreview :global(h2) {
+  font-size: 1.75em;
+}
+
+.contentPreview :global(h3) {
+  font-size: 1.5em;
+}
+
+.contentPreview :global(h4) {
+  font-size: 1.25em;
+}
+
+.contentPreview :global(h5) {
+  font-size: 1.1em;
+}
+
+.contentPreview :global(h6) {
+  font-size: 1em;
+}
+
+.contentPreview :global(p) {
+  margin: 1rem 0;
+}
+
+.contentPreview :global(ul),
+.contentPreview :global(ol) {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.contentPreview :global(li) {
+  margin: 0.5rem 0;
+}
+
+.contentPreview :global(code) {
+  background-color: var(--color-background-secondary);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.contentPreview :global(pre) {
+  background-color: var(--color-background-secondary);
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.contentPreview :global(pre code) {
+  background: none;
+  padding: 0;
+}
+
+.contentPreview :global(blockquote) {
+  border-left: 4px solid #1976d2;
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.contentPreview :global(a) {
+  color: #1976d2;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.contentPreview :global(a:hover) {
+  text-decoration: underline;
+}
+
+.contentPreview :global(img) {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.contentPreview :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.contentPreview :global(th),
+.contentPreview :global(td) {
+  border: 1px solid var(--color-border);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.contentPreview :global(th) {
+  background-color: var(--color-background-secondary);
+  font-weight: 600;
 }
 
 .saveButtonContainer {
