@@ -835,11 +835,15 @@ export default function Home(props) {
 
 export async function getServerSideProps() {
   console.log('✅ GSSP RUNNING ON INDEX')
+  const { fetchSeoSettings } = await import('../lib/getSeoSettings')
+
+  const seoSettings = await fetchSeoSettings()
+
   return {
     props: {
-      testTitle: 'TEST TITLE FROM GSSP',
-      testDescription: 'TEST DESCRIPTION FROM GSSP',
-      seoSettings: null, // Ignore real data for now
+      testTitle: seoSettings?.site_title || 'All-in-One Internet Tools',
+      testDescription: seoSettings?.site_description || 'Paste anything — we\'ll auto-detect the perfect tool',
+      seoSettings: seoSettings || {},
     },
   }
 }
