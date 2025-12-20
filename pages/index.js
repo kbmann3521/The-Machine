@@ -18,6 +18,7 @@ import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
 export default function Home(props) {
+  const siteName = props?.siteName || 'All-in-One Internet Tools'
   const testTitle = props?.testTitle || 'All-in-One Internet Tools'
   const testDescription = props?.testDescription || 'Paste anything — we\'ll auto-detect the perfect tool'
   const [inputText, setInputText] = useState('')
