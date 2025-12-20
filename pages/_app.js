@@ -78,7 +78,14 @@ function removeRobotsMetaTag() {
 
 export default function App({ Component, pageProps }) {
   const [seoSettings, setSeoSettings] = useState(null)
-  const [metaTags, setMetaTags] = useState(generateMetaTags())
+  const [metadata, setMetadata] = useState({
+    title: '',
+    description: '',
+    keywords: '',
+    canonical: '',
+    openGraph: {},
+    twitter: {},
+  })
 
   // Fetch SEO settings on mount
   useEffect(() => {
@@ -96,20 +103,19 @@ export default function App({ Component, pageProps }) {
         if (response.ok) {
           const data = await response.json()
           setSeoSettings(data)
-          setSiteMetadata(data)
-          setMetaTags(generateMetaTags(null, data))
+          // Generate metadata from fetched settings
+          const generatedMetadata = generatePageMetadata({ seoSettings: data })
+          setMetadata(generatedMetadata)
         }
       } catch (err) {
         console.error('Failed to load SEO settings for meta tags:', err)
-        // Use defaults on error
-        setMetaTags(generateMetaTags())
       }
     }
 
     fetchSeoSettings()
   }, [])
 
-  const currentMetaTags = metaTags
+  const base = seoSettings ? buildBaseMetadata(seoSettings) : {}
 
   return (
     <>
@@ -128,30 +134,30 @@ export default function App({ Component, pageProps }) {
         }}
       />
       <Head>
-        <title>{currentMetaTags.title}</title>
-        <meta name="description" content={currentMetaTags.description} />
-        <meta name="keywords" content={currentMetaTags.keywords} />
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+        <meta name="keywords" content={metadata.keywords} />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="language" content="English" />
-        <meta name="author" content={siteMetadata.author} />
+        {base.author && <meta name="author" content={base.author} />}
 
         {/* Open Graph */}
-        <meta property="og:type" content={seoSettings?.og_type || 'website'} />
-        <meta property="og:title" content={seoSettings?.og_title || currentMetaTags.title} />
-        <meta property="og:description" content={seoSettings?.og_description || currentMetaTags.description} />
-        <meta property="og:url" content={siteMetadata.url} />
-        {seoSettings?.og_image_url && <meta property="og:image" content={seoSettings.og_image_url} />}
+        <meta property="og:type" content={metadata.openGraph?.type || 'website'} />
+        <meta property="og:title" content={metadata.openGraph?.title || metadata.title} />
+        <meta property="og:description" content={metadata.openGraph?.description || metadata.description} />
+        {metadata.openGraph?.url && <meta property="og:url" content={metadata.openGraph.url} />}
+        {metadata.openGraph?.image && <meta property="og:image" content={metadata.openGraph.image} />}
 
         {/* Twitter Card */}
-        <meta name="twitter:card" content={seoSettings?.twitter_card_type || 'summary_large_image'} />
-        <meta name="twitter:title" content={seoSettings?.twitter_site ? `${currentMetaTags.title} - ${seoSettings.twitter_site}` : currentMetaTags.title} />
-        <meta name="twitter:description" content={currentMetaTags.description} />
-        {seoSettings?.twitter_site && <meta name="twitter:site" content={seoSettings.twitter_site} />}
-        {seoSettings?.twitter_creator && <meta name="twitter:creator" content={seoSettings.twitter_creator} />}
+        <meta name="twitter:card" content={metadata.twitter?.card || 'summary_large_image'} />
+        <meta name="twitter:title" content={metadata.twitter?.title || metadata.title} />
+        <meta name="twitter:description" content={metadata.twitter?.description || metadata.description} />
+        {metadata.twitter?.site && <meta name="twitter:site" content={metadata.twitter.site} />}
+        {metadata.twitter?.creator && <meta name="twitter:creator" content={metadata.twitter.creator} />}
 
         {/* Canonical */}
-        <link rel="canonical" href={siteMetadata.url} />
+        {metadata.canonical && <link rel="canonical" href={metadata.canonical} />}
 
         {/* Favicon */}
         {seoSettings?.favicon_url ? (
