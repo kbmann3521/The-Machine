@@ -319,4 +319,8 @@
     flex-direction: column;
     text-align: center;
   }
+
+  .postContent hr {
+    margin: 2rem 0;
+  }
 }
