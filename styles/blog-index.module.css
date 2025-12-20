@@ -30,14 +30,14 @@
 .blogContent {
   width: 100%;
   box-sizing: border-box;
-  max-width: 900px;
-  margin: 2rem auto;
+  max-width: 1000px;
+  margin: 3rem auto;
   padding: 0 1rem;
 }
 
 .postsList {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .postCard {
