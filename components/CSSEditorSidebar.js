@@ -79,7 +79,7 @@ export default function CSSEditorSidebar({ css, setCss, onSave, onClose, isSavin
           </button>
           <button
             className={styles.saveBtn}
-            onClick={onSave}
+            onClick={handleSaveClick}
             disabled={isSaving}
           >
             {isSaving ? 'Saving...' : 'Save CSS'}
