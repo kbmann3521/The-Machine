@@ -1,10 +1,10 @@
 import Head from 'next/head'
 import Script from 'next/script'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
-import { generateMetaTags, siteMetadata } from '../lib/seoUtils'
+import { generatePageMetadata, buildBaseMetadata } from '../lib/seoUtils'
 import { getRobotsMetaContent, getAdminRobotsMeta } from '../lib/getRobotsMeta'
 
 function RobotsMetaInjector() {
@@ -77,7 +77,45 @@ function removeRobotsMetaTag() {
 }
 
 export default function App({ Component, pageProps }) {
-  const metaTags = generateMetaTags()
+  const [seoSettings, setSeoSettings] = useState(null)
+  const [metadata, setMetadata] = useState({
+    title: '',
+    description: '',
+    keywords: '',
+    canonical: '',
+    openGraph: {},
+    twitter: {},
+  })
+
+  // Fetch SEO settings on mount
+  useEffect(() => {
+    const fetchSeoSettings = async () => {
+      try {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+        const response = await fetch(`${baseUrl}/api/seo/get-settings`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin',
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setSeoSettings(data)
+          // Generate metadata from fetched settings
+          const generatedMetadata = generatePageMetadata({ seoSettings: data })
+          setMetadata(generatedMetadata)
+        }
+      } catch (err) {
+        console.error('Failed to load SEO settings for meta tags:', err)
+      }
+    }
+
+    fetchSeoSettings()
+  }, [])
+
+  const base = seoSettings ? buildBaseMetadata(seoSettings) : {}
 
   return (
     <>
@@ -96,30 +134,40 @@ export default function App({ Component, pageProps }) {
         }}
       />
       <Head>
-        <title>{metaTags.title}</title>
-        <meta name="description" content={metaTags.description} />
-        <meta name="keywords" content={metaTags.keywords} />
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+        <meta name="keywords" content={metadata.keywords} />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="language" content="English" />
-        <meta name="author" content={siteMetadata.author} />
+        {base.author && <meta name="author" content={base.author} />}
 
         {/* Open Graph */}
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={metaTags.title} />
-        <meta property="og:description" content={metaTags.description} />
-        <meta property="og:url" content={siteMetadata.url} />
+        <meta property="og:type" content={metadata.openGraph?.type || 'website'} />
+        <meta property="og:title" content={metadata.openGraph?.title || metadata.title} />
+        <meta property="og:description" content={metadata.openGraph?.description || metadata.description} />
+        {metadata.openGraph?.url && <meta property="og:url" content={metadata.openGraph.url} />}
+        {metadata.openGraph?.image && <meta property="og:image" content={metadata.openGraph.image} />}
 
         {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={metaTags.title} />
-        <meta name="twitter:description" content={metaTags.description} />
+        <meta name="twitter:card" content={metadata.twitter?.card || 'summary_large_image'} />
+        <meta name="twitter:title" content={metadata.twitter?.title || metadata.title} />
+        <meta name="twitter:description" content={metadata.twitter?.description || metadata.description} />
+        {metadata.twitter?.site && <meta name="twitter:site" content={metadata.twitter.site} />}
+        {metadata.twitter?.creator && <meta name="twitter:creator" content={metadata.twitter.creator} />}
 
         {/* Canonical */}
-        <link rel="canonical" href={siteMetadata.url} />
+        {metadata.canonical && <link rel="canonical" href={metadata.canonical} />}
 
         {/* Favicon */}
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        {seoSettings?.favicon_url ? (
+          <link rel="icon" href={seoSettings.favicon_url} />
+        ) : (
+          <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        )}
+
+        {/* Theme Color */}
+        {seoSettings?.theme_color && <meta name="theme-color" content={seoSettings.theme_color} />}
       </Head>
 
       <ThemeProvider>
