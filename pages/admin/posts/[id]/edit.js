@@ -264,12 +264,6 @@ export default function EditPost() {
                 placeholder="Write your post content in Markdown format..."
               />
             </div>
-
-            <div className={styles.saveButtonContainer}>
-              <button type="submit" className={styles.primaryBtn} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
           </form>
         </div>
 
