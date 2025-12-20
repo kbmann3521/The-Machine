@@ -33,13 +33,16 @@ export default function AdminCSSBar() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save CSS')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save CSS')
       }
 
-      window.location.reload()
+      const data = await response.json()
+      setIsOpen(false)
+      alert('CSS saved successfully!')
     } catch (err) {
       console.error('Failed to save CSS:', err)
-      alert('Failed to save CSS')
+      throw err
     } finally {
       setIsSaving(false)
     }
