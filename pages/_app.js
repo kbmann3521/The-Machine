@@ -1,10 +1,8 @@
-import Head from 'next/head'
 import Script from 'next/script'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
-import { generatePageMetadata, buildBaseMetadata } from '../lib/seoUtils'
 import { getRobotsMetaContent, getAdminRobotsMeta } from '../lib/getRobotsMeta'
 
 function RobotsMetaInjector() {
@@ -77,45 +75,12 @@ function removeRobotsMetaTag() {
 }
 
 export default function App({ Component, pageProps }) {
-  const [seoSettings, setSeoSettings] = useState(null)
-  const [metadata, setMetadata] = useState({
-    title: '',
-    description: '',
-    keywords: '',
-    canonical: '',
-    openGraph: {},
-    twitter: {},
-  })
-
-  // Fetch SEO settings on mount
+  // Store seoSettings in localStorage for client-side use (if provided by page)
   useEffect(() => {
-    const fetchSeoSettings = async () => {
-      try {
-        const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
-        const response = await fetch(`${baseUrl}/api/seo/get-settings`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'same-origin',
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          setSeoSettings(data)
-          // Generate metadata from fetched settings
-          const generatedMetadata = generatePageMetadata({ seoSettings: data })
-          setMetadata(generatedMetadata)
-        }
-      } catch (err) {
-        console.error('Failed to load SEO settings for meta tags:', err)
-      }
+    if (pageProps.seoSettings && pageProps.seoSettings.page_rules) {
+      localStorage.setItem('seoPageRules', JSON.stringify(pageProps.seoSettings.page_rules))
     }
-
-    fetchSeoSettings()
-  }, [])
-
-  const base = seoSettings ? buildBaseMetadata(seoSettings) : {}
+  }, [pageProps.seoSettings])
 
   return (
     <>
@@ -133,42 +98,6 @@ export default function App({ Component, pageProps }) {
           `,
         }}
       />
-      <Head>
-        <title>{metadata.title}</title>
-        <meta name="description" content={metadata.description} />
-        <meta name="keywords" content={metadata.keywords} />
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="language" content="English" />
-        {base.author && <meta name="author" content={base.author} />}
-
-        {/* Open Graph */}
-        <meta property="og:type" content={metadata.openGraph?.type || 'website'} />
-        <meta property="og:title" content={metadata.openGraph?.title || metadata.title} />
-        <meta property="og:description" content={metadata.openGraph?.description || metadata.description} />
-        {metadata.openGraph?.url && <meta property="og:url" content={metadata.openGraph.url} />}
-        {metadata.openGraph?.image && <meta property="og:image" content={metadata.openGraph.image} />}
-
-        {/* Twitter Card */}
-        <meta name="twitter:card" content={metadata.twitter?.card || 'summary_large_image'} />
-        <meta name="twitter:title" content={metadata.twitter?.title || metadata.title} />
-        <meta name="twitter:description" content={metadata.twitter?.description || metadata.description} />
-        {metadata.twitter?.site && <meta name="twitter:site" content={metadata.twitter.site} />}
-        {metadata.twitter?.creator && <meta name="twitter:creator" content={metadata.twitter.creator} />}
-
-        {/* Canonical */}
-        {metadata.canonical && <link rel="canonical" href={metadata.canonical} />}
-
-        {/* Favicon */}
-        {seoSettings?.favicon_url ? (
-          <link rel="icon" href={seoSettings.favicon_url} />
-        ) : (
-          <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        )}
-
-        {/* Theme Color */}
-        {seoSettings?.theme_color && <meta name="theme-color" content={seoSettings.theme_color} />}
-      </Head>
 
       <ThemeProvider>
         <RobotsMetaInjector />

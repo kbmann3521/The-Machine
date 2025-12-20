@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/test-detection.module.css'
 
 const DEFAULT_TEST_CASES = [
@@ -766,4 +767,8 @@ function truncateString(str, maxLength) {
     return str.substring(0, maxLength) + '...'
   }
   return str
+}
+
+export async function getServerSideProps() {
+  return withSeoSettings()
 }

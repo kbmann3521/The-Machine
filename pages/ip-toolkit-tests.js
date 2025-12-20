@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { validateIPAddress } from '../lib/tools.js'
+import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/ip-toolkit-tests.module.css'
 
 const TEST_CASES = [
@@ -307,4 +308,8 @@ export default function IPToolkitTests() {
       </div>
     </div>
   )
+}
+
+export async function getServerSideProps() {
+  return withSeoSettings()
 }

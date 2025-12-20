@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Head from 'next/head'
+import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/jwt-tests.module.css'
 
 export default function JWTTestSuite() {
@@ -276,4 +277,8 @@ export default function JWTTestSuite() {
       </div>
     </>
   )
+}
+
+export async function getServerSideProps() {
+  return withSeoSettings()
 }

@@ -47,10 +47,14 @@ export default function AdminSEO() {
   })
 
   useEffect(() => {
+    let isMounted = true
+
     const checkAuthAndLoadSettings = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
+
+      if (!isMounted) return
 
       if (!session) {
         router.push('/admin/login')
@@ -63,6 +67,8 @@ export default function AdminSEO() {
         .eq('user_id', session.user.id)
         .single()
 
+      if (!isMounted) return
+
       if (!adminUser) {
         router.push('/admin/login')
         return
@@ -72,6 +78,10 @@ export default function AdminSEO() {
     }
 
     checkAuthAndLoadSettings()
+
+    return () => {
+      isMounted = false
+    }
   }, [router])
 
   const loadSettings = async (token) => {

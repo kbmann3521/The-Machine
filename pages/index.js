@@ -13,9 +13,12 @@ import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
+import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
-export default function Home() {
+export default function Home(props) {
+  const testTitle = props?.testTitle || 'All-in-One Internet Tools'
+  const testDescription = props?.testDescription || 'Paste anything — we\'ll auto-detect the perfect tool'
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
@@ -624,6 +627,9 @@ export default function Home() {
   return (
     <>
       <Head>
+        {/* TEST: Hardcoded title and description */}
+        <title>{testTitle}</title>
+        <meta name="description" content={testDescription} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -824,4 +830,18 @@ export default function Home() {
       )}
     </>
   )
+}
+
+export async function getServerSideProps() {
+  const { fetchSeoSettings } = await import('../lib/getSeoSettings')
+
+  const seoSettings = await fetchSeoSettings()
+
+  return {
+    props: {
+      testTitle: seoSettings?.default_title || 'All-in-One Internet Tools',
+      testDescription: seoSettings?.default_description || 'Paste anything — we\'ll auto-detect the perfect tool',
+      seoSettings: seoSettings || {},
+    },
+  }
 }
