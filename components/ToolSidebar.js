@@ -57,7 +57,7 @@ const getScoreLabel = (similarity) => {
   return 'Available'
 }
 
-export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading }) {
+export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading, initialLoading }) {
   const [searchQuery, setSearchQuery] = useState('')
   const itemRefs = useRef({})
   const prevPositionsRef = useRef({})
