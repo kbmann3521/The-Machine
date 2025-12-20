@@ -257,6 +257,12 @@ export default function NewPost() {
           </form>
         </div>
       </div>
+
+      <MediaPickerModal
+        isOpen={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        onSelect={(url) => setThumbnailUrl(url)}
+      />
     </div>
   )
 }
