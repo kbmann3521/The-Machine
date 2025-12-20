@@ -850,6 +850,7 @@ export async function getServerSideProps() {
 
   return {
     props: {
+      siteName: seoSettings?.site_name || 'All-in-One Internet Tools',
       testTitle: seoSettings?.default_title || 'All-in-One Internet Tools',
       testDescription: seoSettings?.default_description || 'Paste anything — we\'ll auto-detect the perfect tool',
       seoSettings: seoSettings || {},
