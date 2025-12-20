@@ -32,6 +32,7 @@ export default function AdminHeader({ currentSection }) {
             {currentSection === 'harnesses' && 'Test Harnesses'}
             {currentSection === 'seo' && 'SEO Config'}
             {currentSection === 'media' && 'Media Library'}
+            {currentSection === 'internal-linking' && 'Internal Linking Rules'}
             <span className={styles.dropdownIcon}>▼</span>
           </button>
           {dropdownOpen && (
