@@ -28,15 +28,19 @@ export default function BlogPost({ post }) {
     )
   }
 
+  const pageTitle = `${post.title} - Blog`
+  const pageDescription = post.excerpt || post.title
+  const ogImage = post.og_image_url || post.thumbnail_url || ''
+
   return (
     <div className={styles.postPage}>
       <Head>
-        <title>{post.title} - Blog</title>
-        <meta name="description" content={post.excerpt || post.title} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
         <meta property="og:title" content={post.title} />
-        <meta property="og:description" content={post.excerpt || post.title} />
+        <meta property="og:description" content={pageDescription} />
         <meta property="og:type" content="article" />
-        <meta property="og:image" content={post.og_image_url || post.thumbnail_url} />
+        {ogImage && <meta property="og:image" content={ogImage} />}
         <link rel="canonical" href={`https://www.pioneerwebtools.com/blog/${post.slug}`} />
       </Head>
 
