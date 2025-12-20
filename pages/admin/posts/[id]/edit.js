@@ -601,11 +601,9 @@ export default function EditPost() {
               >
                 <span className={styles.accordionTitle}>
                   SEO
-                  {seoReport && (
-                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: 'var(--color-text-secondary)' }}>
-                      • {seoReport.healthChecks.filter((c) => c.status === 'success').length} checks
-                    </span>
-                  )}
+                  <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: 'var(--color-text-secondary)' }}>
+                    • Health & Preview
+                  </span>
                 </span>
                 <span className={`${styles.accordionIcon} ${expandedAccordions.seo ? styles.expanded : ''}`}>
                   ›
