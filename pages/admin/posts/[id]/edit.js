@@ -235,7 +235,7 @@ export default function EditPost() {
     )
   }
 
-  if (!isNewPost && !loading && !post) {
+  if (!isNewPost && !loading && postNotFoundError) {
     return (
       <div className={styles.adminContainer}>
         <Head>
