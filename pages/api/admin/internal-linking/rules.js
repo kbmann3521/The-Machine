@@ -68,12 +68,14 @@ async function handleGet(req, res) {
           .eq('rule_id', rule.id)
           .eq('rolled_back', false)
 
-        const { count: postCount } = await client
+        const { data: allInserts } = await client
           .from('internal_link_inserts')
-          .select('post_id', { count: 'exact', head: true })
+          .select('post_id')
           .eq('rule_id', rule.id)
           .eq('rolled_back', false)
-          .distinct()
+
+        const uniquePosts = new Set(allInserts?.map(i => i.post_id) || [])
+        const postCount = uniquePosts.size
 
         return {
           ...rule,
