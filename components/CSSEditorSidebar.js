@@ -5,11 +5,11 @@ export default function CSSEditorSidebar({ css, setCss, onSave, onClose, isSavin
     const newCss = e.target.value
     setCss(newCss)
 
-    // Inject CSS in real-time for preview
-    let styleElement = document.getElementById('blog-custom-css-live-editor')
+    // Update the main style element for live preview
+    let styleElement = document.getElementById('blog-custom-css-style')
     if (!styleElement) {
       styleElement = document.createElement('style')
-      styleElement.id = 'blog-custom-css-live-editor'
+      styleElement.id = 'blog-custom-css-style'
       document.head.appendChild(styleElement)
     }
     styleElement.textContent = newCss
