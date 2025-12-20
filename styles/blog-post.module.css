@@ -244,8 +244,27 @@
 }
 
 @media (max-width: 768px) {
+  .postHeader {
+    padding: 2rem 1rem;
+  }
+
+  .postHeaderContent {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .postHeaderThumbnail {
+    width: 200px;
+    height: 200px;
+    align-self: center;
+  }
+
+  .postHeaderInfo {
+    width: 100%;
+  }
+
   .postTitle {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
   .postMeta {
@@ -253,11 +272,29 @@
   }
 
   .postBody {
-    padding: 1rem;
+    padding: 2rem 1rem;
   }
 
   .postContent {
     font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .postContent h1 {
+    font-size: 1.8rem;
+  }
+
+  .postContent h2 {
+    font-size: 1.5rem;
+  }
+
+  .postContent h3 {
+    font-size: 1.25rem;
+  }
+
+  .postContent ul,
+  .postContent ol {
+    margin-left: 1.5rem;
   }
 
   .postFooter {
