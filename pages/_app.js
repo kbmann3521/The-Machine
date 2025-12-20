@@ -1,10 +1,8 @@
-import Head from 'next/head'
 import Script from 'next/script'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
-import { generatePageMetadata, buildBaseMetadata } from '../lib/seoUtils'
 import { getRobotsMetaContent, getAdminRobotsMeta } from '../lib/getRobotsMeta'
 
 function RobotsMetaInjector() {
