@@ -59,17 +59,21 @@ export default function AdminCSSBar({ onCSSChange }) {
       }
 
       const responseData = await response.json()
-      setIsOpen(false)
+      const savedCss = responseData.css || css
+
+      // Update localStorage cache
+      localStorage.setItem('blog_custom_css_cache', savedCss)
 
       // Update the custom CSS in the parent component
       if (onCSSChange) {
-        onCSSChange(responseData.css || css)
+        onCSSChange(savedCss)
       }
 
+      setIsOpen(false)
       alert('CSS saved successfully!')
     } catch (err) {
       console.error('Failed to save CSS:', err)
-      throw err
+      alert(`Failed to save CSS: ${err.message}`)
     } finally {
       setIsSaving(false)
     }
