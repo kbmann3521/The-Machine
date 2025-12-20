@@ -61,6 +61,12 @@ export default function AdminHeader({ currentSection }) {
               >
                 SEO Config
               </button>
+              <button
+                onClick={() => handleNavigation('/admin/internal-linking')}
+                className={`${styles.dropdownItem} ${currentSection === 'internal-linking' ? styles.dropdownItemActive : ''}`}
+              >
+                Internal Linking Rules
+              </button>
             </div>
           )}
         </div>
