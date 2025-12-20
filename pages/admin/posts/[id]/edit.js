@@ -26,7 +26,7 @@ export default function EditPost() {
   const [ogImageUrl, setOgImageUrl] = useState('')
   const [seoNoindex, setSeoNoindex] = useState(false)
   const [thumbnailUrl, setThumbnailUrl] = useState('')
-  const [loading, setLoading] = useState(isNewPost ? false : true)
+  const [loading, setLoading] = useState(!isNewPost && id)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
