@@ -8,6 +8,7 @@ import { getPostById, updatePost, deletePost, createPost } from '../../../../lib
 import { generateSlug } from '../../../../lib/slug-utils'
 import MediaPickerModal from '../../../../components/MediaPickerModal'
 import styles from '../../../../styles/blog-admin-forms.module.css'
+import blogPostStyles from '../../../../styles/blog-post.module.css'
 
 export default function EditPost() {
   const router = useRouter()
