@@ -17,6 +17,12 @@ export default function EditPost() {
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
   const [status, setStatus] = useState('draft')
+  const [seoTitle, setSeoTitle] = useState('')
+  const [seoDescription, setSeoDescription] = useState('')
+  const [ogTitle, setOgTitle] = useState('')
+  const [ogDescription, setOgDescription] = useState('')
+  const [ogImageUrl, setOgImageUrl] = useState('')
+  const [seoNoindex, setSeoNoindex] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -55,6 +61,12 @@ export default function EditPost() {
         setExcerpt(postData.excerpt || '')
         setContent(postData.content)
         setStatus(postData.status)
+        setSeoTitle(postData.seo_title || '')
+        setSeoDescription(postData.seo_description || '')
+        setOgTitle(postData.og_title || '')
+        setOgDescription(postData.og_description || '')
+        setOgImageUrl(postData.og_image_url || '')
+        setSeoNoindex(postData.seo_noindex || false)
       } catch (err) {
         setError(err.message)
       } finally {
@@ -78,6 +90,12 @@ export default function EditPost() {
         content,
         status: newStatus || status,
         published_at: post.published_at,
+        seo_title: seoTitle,
+        seo_description: seoDescription,
+        og_title: ogTitle,
+        og_description: ogDescription,
+        og_image_url: ogImageUrl,
+        seo_noindex: seoNoindex,
       })
 
       setPost(updatedPost)
@@ -275,6 +293,118 @@ export default function EditPost() {
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
               </select>
+            </div>
+
+            {/* SEO Section */}
+            <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--color-border)' }}>
+              <h2 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '600' }}>Search & Social Metadata</h2>
+              <p style={{ marginBottom: '1.5rem', color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+                Customize how this post appears in search results and social media previews. Defaults to title and excerpt if not specified.
+              </p>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="seoTitle">
+                  Meta Title (Page Title for Search)
+                </label>
+                <input
+                  id="seoTitle"
+                  type="text"
+                  className={styles.formInput}
+                  value={seoTitle}
+                  onChange={(e) => setSeoTitle(e.target.value)}
+                  placeholder={title || 'Defaults to post title'}
+                  disabled={saving}
+                />
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
+                  {seoTitle.length}/60 characters (recommended: ~50-60)
+                </p>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="seoDescription">
+                  Meta Description (Search Result Preview)
+                </label>
+                <textarea
+                  id="seoDescription"
+                  className={styles.formTextarea}
+                  value={seoDescription}
+                  onChange={(e) => setSeoDescription(e.target.value)}
+                  placeholder={excerpt || 'Defaults to post excerpt'}
+                  rows="3"
+                  disabled={saving}
+                />
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
+                  {seoDescription.length}/160 characters (recommended: ~155-160)
+                </p>
+              </div>
+
+              <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--color-border)', marginTop: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '0.95rem', fontWeight: '600' }}>Social Media</h3>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel} htmlFor="ogTitle">
+                    Open Graph Title (Facebook/LinkedIn)
+                  </label>
+                  <input
+                    id="ogTitle"
+                    type="text"
+                    className={styles.formInput}
+                    value={ogTitle}
+                    onChange={(e) => setOgTitle(e.target.value)}
+                    placeholder={title || 'Defaults to post title'}
+                    disabled={saving}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel} htmlFor="ogDescription">
+                    Open Graph Description
+                  </label>
+                  <textarea
+                    id="ogDescription"
+                    className={styles.formTextarea}
+                    value={ogDescription}
+                    onChange={(e) => setOgDescription(e.target.value)}
+                    placeholder={excerpt || 'Defaults to post excerpt'}
+                    rows="3"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel} htmlFor="ogImageUrl">
+                    Open Graph Image URL
+                  </label>
+                  <input
+                    id="ogImageUrl"
+                    type="text"
+                    className={styles.formInput}
+                    value={ogImageUrl}
+                    onChange={(e) => setOgImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.png"
+                    disabled={saving}
+                  />
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
+                    Absolute URL, 1200x630px recommended
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--color-border)', marginTop: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1rem', fontSize: '0.95rem', fontWeight: '600' }}>Indexing</h3>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={seoNoindex}
+                    onChange={(e) => setSeoNoindex(e.target.checked)}
+                    disabled={saving}
+                  />
+                  Hide from search results (noindex)
+                </label>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.5rem 0 0' }}>
+                  {status === 'draft' ? '✓ Draft posts are automatically hidden from search' : 'Override: Hide published post from search engines'}
+                </p>
+              </div>
             </div>
 
             <div className={styles.formActions}>
