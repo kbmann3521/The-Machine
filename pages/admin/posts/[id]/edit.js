@@ -37,6 +37,7 @@ export default function EditPost() {
   const [successMessage, setSuccessMessage] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [contentTab, setContentTab] = useState('edit')
+  const [customCss, setCustomCss] = useState('')
   const [expandedAccordions, setExpandedAccordions] = useState({
     actions: true,
     basicInfo: true,
