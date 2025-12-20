@@ -70,6 +70,7 @@ export default function EditPost() {
         setOgDescription(postData.og_description || '')
         setOgImageUrl(postData.og_image_url || '')
         setSeoNoindex(postData.seo_noindex || false)
+        setThumbnailUrl(postData.thumbnail_url || '')
       } catch (err) {
         setError(err.message)
       } finally {
