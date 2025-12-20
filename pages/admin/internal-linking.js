@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
+import AdminHeader from '../../components/AdminHeader'
 import styles from '../../styles/blog-admin-forms.module.css'
 
 export default function InternalLinkingAdmin() {
