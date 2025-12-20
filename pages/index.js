@@ -16,7 +16,10 @@ import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema 
 import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
-export default function Home({ testTitle, testDescription }) {
+export default function Home(props) {
+  console.log('📍 HOME PAGE PROPS:', props)
+  const testTitle = props?.testTitle || 'PROP NOT RECEIVED'
+  const testDescription = props?.testDescription || 'PROP NOT RECEIVED'
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
