@@ -704,6 +704,22 @@
   color: #d32f2f;
 }
 
+@media (max-width: 1024px) {
+  .editPageContainer {
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .contentTextarea {
+    min-height: 400px;
+  }
+
+  .sidebarContainer {
+    top: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .adminHeader {
     flex-direction: column;
@@ -716,6 +732,27 @@
 
   .adminTitle {
     font-size: 1.5rem;
+  }
+
+  .editPageContainer {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .postTitle {
+    font-size: 1.5rem;
+  }
+
+  .contentTextarea {
+    min-height: 300px;
+  }
+
+  .sidebarContainer {
+    position: relative;
+    top: auto;
+    max-height: none;
+    sticky: initial;
   }
 
   .formActions {
