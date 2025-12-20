@@ -10,8 +10,25 @@ export default function BlogPost({ post }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [customCss, setCustomCss] = useState('')
 
+  // Apply custom CSS whenever it changes
+  useEffect(() => {
+    let styleElement = document.getElementById('blog-custom-css-style')
+    if (!styleElement) {
+      styleElement = document.createElement('style')
+      styleElement.id = 'blog-custom-css-style'
+      document.head.appendChild(styleElement)
+    }
+    styleElement.textContent = customCss
+  }, [customCss])
+
   useEffect(() => {
     const checkAdminAndLoadCss = async () => {
+      // Try to load from cache first to prevent flickering
+      const cached = localStorage.getItem('blog_custom_css_cache')
+      if (cached) {
+        setCustomCss(cached)
+      }
+
       // Check if user is admin
       const {
         data: { session },
@@ -31,7 +48,10 @@ export default function BlogPost({ post }) {
       try {
         const response = await fetch('/api/blog/custom-css')
         const data = await response.json()
-        setCustomCss(data.css || '')
+        const css = data.css || ''
+        setCustomCss(css)
+        // Cache for next visit to prevent flickering
+        localStorage.setItem('blog_custom_css_cache', css)
       } catch (err) {
         console.error('Failed to load custom CSS:', err)
       }
@@ -46,7 +66,7 @@ export default function BlogPost({ post }) {
         <Head>
           <title>Post Not Found</title>
         </Head>
-        {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} />}
+        {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} postId={post?.id} />}
         <div className={styles.postHeader}>
           <div className={styles.postHeaderContent}>
             <h1 className={styles.postTitle}>Post Not Found</h1>
@@ -79,10 +99,9 @@ export default function BlogPost({ post }) {
         <meta property="og:type" content="article" />
         {ogImage && <meta property="og:image" content={ogImage} />}
         <link rel="canonical" href={`https://www.pioneerwebtools.com/blog/${post.slug}`} />
-        {customCss && <style>{customCss}</style>}
       </Head>
 
-      {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} />}
+      {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} postId={post.id} />}
 
       <header className={styles.postHeader}>
         <div className={styles.postHeaderContent}>
@@ -92,8 +111,8 @@ export default function BlogPost({ post }) {
             </div>
           )}
           <div className={styles.postHeaderInfo}>
-            <h1 className={styles.postTitle}>{post.title}</h1>
-            <div className={styles.postMeta}>
+            <h1 className={styles.postTitle} style={{ padding: '0 16px' }}>{post.title}</h1>
+            <div className={styles.postMeta} style={{ padding: '0 16px' }}>
               <div className={styles.postMetaItem}>
                 <span>Published</span>
                 <time dateTime={post.published_at}>

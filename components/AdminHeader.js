@@ -32,6 +32,7 @@ export default function AdminHeader({ currentSection }) {
             {currentSection === 'harnesses' && 'Test Harnesses'}
             {currentSection === 'seo' && 'SEO Config'}
             {currentSection === 'media' && 'Media Library'}
+            {currentSection === 'internal-linking' && 'Internal Linking Rules'}
             <span className={styles.dropdownIcon}>▼</span>
           </button>
           {dropdownOpen && (
@@ -59,6 +60,12 @@ export default function AdminHeader({ currentSection }) {
                 className={`${styles.dropdownItem} ${currentSection === 'seo' ? styles.dropdownItemActive : ''}`}
               >
                 SEO Config
+              </button>
+              <button
+                onClick={() => handleNavigation('/admin/internal-linking')}
+                className={`${styles.dropdownItem} ${currentSection === 'internal-linking' ? styles.dropdownItemActive : ''}`}
+              >
+                Internal Linking Rules
               </button>
             </div>
           )}

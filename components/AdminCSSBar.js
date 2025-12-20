@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { supabase } from '../lib/supabase-client'
 import styles from '../styles/admin-css-bar.module.css'
 import CSSEditorSidebar from './CSSEditorSidebar'
 
-export default function AdminCSSBar({ onCSSChange }) {
+export default function AdminCSSBar({ onCSSChange, postId }) {
   const [isOpen, setIsOpen] = useState(false)
   const [css, setCss] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,11 +18,11 @@ export default function AdminCSSBar({ onCSSChange }) {
       const cssContent = data.css || ''
       setCss(cssContent)
 
-      // Inject CSS for live preview
-      let styleElement = document.getElementById('blog-custom-css-live-editor')
+      // Ensure the main style element is updated
+      let styleElement = document.getElementById('blog-custom-css-style')
       if (!styleElement) {
         styleElement = document.createElement('style')
-        styleElement.id = 'blog-custom-css-live-editor'
+        styleElement.id = 'blog-custom-css-style'
         document.head.appendChild(styleElement)
       }
       styleElement.textContent = cssContent
@@ -59,17 +60,21 @@ export default function AdminCSSBar({ onCSSChange }) {
       }
 
       const responseData = await response.json()
-      setIsOpen(false)
+      const savedCss = responseData.css || css
+
+      // Update localStorage cache
+      localStorage.setItem('blog_custom_css_cache', savedCss)
 
       // Update the custom CSS in the parent component
       if (onCSSChange) {
-        onCSSChange(responseData.css || css)
+        onCSSChange(savedCss)
       }
 
+      setIsOpen(false)
       alert('CSS saved successfully!')
     } catch (err) {
       console.error('Failed to save CSS:', err)
-      throw err
+      alert(`Failed to save CSS: ${err.message}`)
     } finally {
       setIsSaving(false)
     }
@@ -80,6 +85,11 @@ export default function AdminCSSBar({ onCSSChange }) {
       <div className={styles.adminBar}>
         <div className={styles.adminBarContent}>
           <span className={styles.adminLabel}>Admin</span>
+          {postId && (
+            <Link href={`/admin/posts/${postId}/edit`} className={styles.editPostBtn}>
+              Edit Post
+            </Link>
+          )}
           <button onClick={handleOpen} className={styles.customizeCssBtn}>
             {loading ? 'Loading...' : 'Customize CSS'}
           </button>

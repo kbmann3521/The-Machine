@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
@@ -17,6 +18,7 @@ import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
 export default function Home(props) {
+  const siteName = props?.siteName || 'All-in-One Internet Tools'
   const testTitle = props?.testTitle || 'All-in-One Internet Tools'
   const testDescription = props?.testDescription || 'Paste anything — we\'ll auto-detect the perfect tool'
   const [inputText, setInputText] = useState('')
@@ -69,6 +71,7 @@ export default function Home(props) {
     notation: 'auto',
     mode: 'float'
   })
+  const [initialToolsLoading, setInitialToolsLoading] = useState(true)
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -150,83 +153,87 @@ export default function Home(props) {
     const initializeTools = async () => {
       let allTools = []
 
-      // First, try to fetch tool metadata from Supabase
       try {
-        let response
+        // First, try to fetch tool metadata from Supabase
         try {
-          // Use absolute URL to ensure fetch works correctly in all contexts
-          const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
-          const metadataUrl = `${baseUrl}/api/tools/get-metadata`
-
-          response = await fetch(metadataUrl, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-          })
-        } catch (fetchError) {
-          console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
-          throw fetchError
-        }
-
-        if (response.ok) {
-          let data
+          let response
           try {
-            data = await response.json()
-          } catch (parseError) {
-            console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
-            throw parseError
-          }
-          if (data?.tools && typeof data.tools === 'object') {
-            // Use metadata from Supabase as source of truth
-            allTools = Object.entries(data.tools).map(([toolId, toolData]) => {
-              const localToolData = TOOLS[toolId] || {}
-              // Supabase values take priority over local code values
-              return {
-                toolId,
-                similarity: 0, // No match (white) when no input provided
-                ...localToolData,
-                ...toolData, // Supabase data overrides local data
-              }
+            // Use absolute URL to ensure fetch works correctly in all contexts
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+            const metadataUrl = `${baseUrl}/api/tools/get-metadata`
+
+            response = await fetch(metadataUrl, {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'same-origin',
             })
+          } catch (fetchError) {
+            console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
+            throw fetchError
           }
-        } else {
-          console.warn('Tool metadata endpoint returned non-200 status:', response.status)
+
+          if (response.ok) {
+            let data
+            try {
+              data = await response.json()
+            } catch (parseError) {
+              console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
+              throw parseError
+            }
+            if (data?.tools && typeof data.tools === 'object') {
+              // Use metadata from Supabase as source of truth
+              allTools = Object.entries(data.tools).map(([toolId, toolData]) => {
+                const localToolData = TOOLS[toolId] || {}
+                // Supabase values take priority over local code values
+                return {
+                  toolId,
+                  similarity: 0, // No match (white) when no input provided
+                  ...localToolData,
+                  ...toolData, // Supabase data overrides local data
+                }
+              })
+            }
+          } else {
+            console.warn('Tool metadata endpoint returned non-200 status:', response.status)
+          }
+        } catch (error) {
+          console.warn('Tool metadata fetch failed, will use local fallback:', error?.message || String(error))
         }
-      } catch (error) {
-        console.warn('Tool metadata fetch failed, will use local fallback:', error?.message || String(error))
-      }
 
-      // If no tools from Supabase, use local TOOLS as fallback
-      if (allTools.length === 0) {
-        console.warn('No tools from Supabase, using local fallback')
-        allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
-          toolId,
-          similarity: 0,
-          ...toolData,
-        }))
-      }
-
-      // Filter out tools with show_in_recommendations = false
-      let visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
-
-      // Ensure selected tool is always in the visible list
-      if (selectedToolRef.current && !visibleTools.find(t => t.toolId === selectedToolRef.current.toolId)) {
-        visibleTools = [selectedToolRef.current, ...visibleTools]
-      }
-
-      // Sync visibility map from tool metadata
-      const newVisibilityMap = {}
-      allTools.forEach(tool => {
-        if (tool.show_in_recommendations !== undefined) {
-          newVisibilityMap[tool.toolId] = tool.show_in_recommendations !== false
+        // If no tools from Supabase, use local TOOLS as fallback
+        if (allTools.length === 0) {
+          console.warn('No tools from Supabase, using local fallback')
+          allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+            toolId,
+            similarity: 0,
+            ...toolData,
+          }))
         }
-      })
 
-      if (Object.keys(newVisibilityMap).length > 0) {
-        visibilityMapRef.current = newVisibilityMap
+        // Filter out tools with show_in_recommendations = false
+        let visibleTools = allTools.filter(tool => tool.show_in_recommendations !== false)
+
+        // Ensure selected tool is always in the visible list
+        if (selectedToolRef.current && !visibleTools.find(t => t.toolId === selectedToolRef.current.toolId)) {
+          visibleTools = [selectedToolRef.current, ...visibleTools]
+        }
+
+        // Sync visibility map from tool metadata
+        const newVisibilityMap = {}
+        allTools.forEach(tool => {
+          if (tool.show_in_recommendations !== undefined) {
+            newVisibilityMap[tool.toolId] = tool.show_in_recommendations !== false
+          }
+        })
+
+        if (Object.keys(newVisibilityMap).length > 0) {
+          visibilityMapRef.current = newVisibilityMap
+        }
+
+        setPredictedTools(visibleTools)
+      } finally {
+        setInitialToolsLoading(false)
       }
-
-      setPredictedTools(visibleTools)
     }
 
     initializeTools()
@@ -655,7 +662,7 @@ export default function Home(props) {
       <div className={styles.layout}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1>All-in-One Internet Tools</h1>
+            <h1>{siteName}</h1>
             <p>Paste anything — we'll auto-detect the perfect tool</p>
           </div>
           <ThemeToggle />
@@ -667,6 +674,7 @@ export default function Home(props) {
             selectedTool={selectedTool}
             onSelectTool={handleSelectTool}
             loading={loading}
+            initialLoading={initialToolsLoading}
           />
 
           <main className={styles.mainContent}>
@@ -818,6 +826,9 @@ export default function Home(props) {
         <footer className={styles.footer}>
           <div className={styles.footerContent}>
             <p>© 2024 Pioneer Web Tools. All rights reserved.</p>
+            <Link href="/blog/why-deterministic-internet-tools-are-better-than-ai" className={styles.footerAboutLink}>
+              About
+            </Link>
           </div>
         </footer>
       </div>
@@ -839,6 +850,7 @@ export async function getServerSideProps() {
 
   return {
     props: {
+      siteName: seoSettings?.site_name || 'All-in-One Internet Tools',
       testTitle: seoSettings?.default_title || 'All-in-One Internet Tools',
       testDescription: seoSettings?.default_description || 'Paste anything — we\'ll auto-detect the perfect tool',
       seoSettings: seoSettings || {},

@@ -56,3 +56,26 @@
   cursor: not-allowed;
   background-color: #999;
 }
+
+.editPostBtn {
+  padding: 0.5rem 1rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.editPostBtn:hover {
+  background-color: #1565c0;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.editPostBtn:active {
+  transform: scale(0.98);
+}

@@ -210,6 +210,12 @@
   font-style: italic;
 }
 
+.postContent hr {
+  margin: 2.5rem 0;
+  border: none;
+  border-top: 2px solid var(--color-border);
+}
+
 .postFooter {
   width: 100%;
   box-sizing: border-box;
@@ -312,5 +318,9 @@
   .postFooter {
     flex-direction: column;
     text-align: center;
+  }
+
+  .postContent hr {
+    margin: 2rem 0;
   }
 }
