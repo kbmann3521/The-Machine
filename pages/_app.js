@@ -10,7 +10,8 @@ import { getRobotsMetaContent, getAdminRobotsMeta } from '../lib/getRobotsMeta'
 function RobotsMetaInjector() {
   const router = useRouter()
 
-  useEffect(() => {
+  // Inject meta tag based on current path
+  const injectMetaTag = () => {
     // Get admin-level robots directive
     const adminMeta = getAdminRobotsMeta(router.pathname)
     if (adminMeta) {
@@ -20,14 +21,39 @@ function RobotsMetaInjector() {
 
     // Get page-specific rules from localStorage
     const pageRulesStr = typeof window !== 'undefined' ? localStorage.getItem('seoPageRules') : null
-    const pageRules = pageRulesStr ? JSON.parse(pageRulesStr) : null
+    let pageRules = null
+    if (pageRulesStr) {
+      try {
+        pageRules = JSON.parse(pageRulesStr)
+      } catch (e) {
+        console.error('Failed to parse seoPageRules from localStorage:', e)
+      }
+    }
 
     const metaContent = getRobotsMetaContent(router.pathname, pageRules)
     if (metaContent) {
       setRobotsMetaTag(metaContent)
+      console.log(`Meta robots tag set for ${router.pathname}:`, metaContent)
     } else {
       removeRobotsMetaTag()
     }
+  }
+
+  // Run on mount and when pathname changes
+  useEffect(() => {
+    if (router.isReady) {
+      injectMetaTag()
+    }
+  }, [router.isReady, router.pathname])
+
+  // Also listen for localStorage changes (in case another tab/window saves)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      injectMetaTag()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [router.pathname])
 
   return null
