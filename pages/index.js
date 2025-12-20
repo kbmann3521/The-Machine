@@ -16,7 +16,7 @@ import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema 
 import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
-export default function Home() {
+export default function Home({ testTitle, testDescription }) {
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
