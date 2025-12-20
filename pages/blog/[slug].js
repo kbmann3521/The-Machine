@@ -42,7 +42,7 @@ export default function BlogPost({ post }) {
 
   if (!post) {
     return (
-      <div className={styles.postPage}>
+      <div className={`${styles.postPage} ${isAdmin ? styles.postPageWithAdminBar : ''}`}>
         <Head>
           <title>Post Not Found</title>
         </Head>
