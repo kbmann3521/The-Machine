@@ -99,7 +99,6 @@ export default function BlogPost({ post }) {
         <meta property="og:type" content="article" />
         {ogImage && <meta property="og:image" content={ogImage} />}
         <link rel="canonical" href={`https://www.pioneerwebtools.com/blog/${post.slug}`} />
-        {customCss && <style>{customCss}</style>}
       </Head>
 
       {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} />}
