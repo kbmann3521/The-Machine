@@ -278,17 +278,7 @@ export default function InternalLinkingAdmin() {
         <title>Internal Linking Rules - Admin</title>
       </Head>
 
-      <div className={styles.adminHeader}>
-        <div className={styles.adminHeaderTitle}>Internal Linking Rules</div>
-        <div className={styles.adminNavigation}>
-          <Link href="/admin/posts" className={styles.adminNavLink}>
-            Posts
-          </Link>
-          <button onClick={handleLogout} className={styles.logoutBtn}>
-            Logout
-          </button>
-        </div>
-      </div>
+      <AdminHeader currentSection="internal-linking" />
 
       <div className={styles.adminContent}>
         <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>
