@@ -30,6 +30,8 @@ export default function AdminHeader({ currentSection }) {
           >
             {currentSection === 'posts' && 'Blog Posts'}
             {currentSection === 'harnesses' && 'Test Harnesses'}
+            {currentSection === 'seo' && 'SEO Config'}
+            {currentSection === 'media' && 'Media Library'}
             <span className={styles.dropdownIcon}>▼</span>
           </button>
           {dropdownOpen && (
@@ -45,6 +47,12 @@ export default function AdminHeader({ currentSection }) {
                 className={`${styles.dropdownItem} ${currentSection === 'harnesses' ? styles.dropdownItemActive : ''}`}
               >
                 Test Harnesses
+              </button>
+              <button
+                onClick={() => handleNavigation('/admin/media')}
+                className={`${styles.dropdownItem} ${currentSection === 'media' ? styles.dropdownItemActive : ''}`}
+              >
+                Media Library
               </button>
               <button
                 onClick={() => handleNavigation('/admin/seo')}

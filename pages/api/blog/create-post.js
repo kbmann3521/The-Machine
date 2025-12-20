@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   try {
     await verifyAdminAccess(req)
 
-    const { title, slug: customSlug, excerpt, content, status } = req.body
+    const { title, slug: customSlug, excerpt, content, status, thumbnail_url } = req.body
 
     if (!title?.trim()) {
       return res.status(400).json({ error: 'Title is required' })
@@ -61,6 +61,7 @@ export default async function handler(req, res) {
         content: content.trim(),
         status: status || 'draft',
         published_at: publishedAt,
+        thumbnail_url: thumbnail_url || null,
       },
     ]).select()
 

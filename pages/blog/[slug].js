@@ -28,35 +28,47 @@ export default function BlogPost({ post }) {
     )
   }
 
+  const pageTitle = `${post.title} - Blog`
+  const pageDescription = post.excerpt || post.title
+  const ogImage = post.og_image_url || post.thumbnail_url || ''
+
   return (
     <div className={styles.postPage}>
       <Head>
-        <title>{post.title} - Blog</title>
-        <meta name="description" content={post.excerpt || post.title} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
         <meta property="og:title" content={post.title} />
-        <meta property="og:description" content={post.excerpt || post.title} />
+        <meta property="og:description" content={pageDescription} />
         <meta property="og:type" content="article" />
+        {ogImage && <meta property="og:image" content={ogImage} />}
         <link rel="canonical" href={`https://www.pioneerwebtools.com/blog/${post.slug}`} />
       </Head>
 
       <header className={styles.postHeader}>
         <div className={styles.postHeaderContent}>
-          <h1 className={styles.postTitle}>{post.title}</h1>
-          <div className={styles.postMeta}>
-            <div className={styles.postMetaItem}>
-              <span>Published</span>
-              <time dateTime={post.published_at}>
-                {post.publishedFormatted}
-              </time>
+          {post.thumbnail_url && (
+            <div className={styles.postHeaderThumbnail}>
+              <img src={post.thumbnail_url} alt={post.title} />
             </div>
-            {post.updated_at && post.updated_at !== post.published_at && (
+          )}
+          <div className={styles.postHeaderInfo}>
+            <h1 className={styles.postTitle}>{post.title}</h1>
+            <div className={styles.postMeta}>
               <div className={styles.postMetaItem}>
-                <span>Updated</span>
-                <time dateTime={post.updated_at}>
-                  {post.updatedFormatted}
+                <span>Published</span>
+                <time dateTime={post.published_at}>
+                  {post.publishedFormatted}
                 </time>
               </div>
-            )}
+              {post.updated_at && post.updated_at !== post.published_at && (
+                <div className={styles.postMetaItem}>
+                  <span>Updated</span>
+                  <time dateTime={post.updated_at}>
+                    {post.updatedFormatted}
+                  </time>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

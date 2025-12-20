@@ -8,41 +8,43 @@
 .blogHeader {
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(to right, var(--color-header-gradient-start), var(--color-header-gradient-end));
+  background: linear-gradient(135deg, var(--color-header-gradient-start) 0%, var(--color-header-gradient-end) 100%);
   border-bottom: 1px solid var(--color-border);
-  padding: 2rem;
+  padding: 3rem 2rem;
   text-align: center;
 }
 
 .blogHeaderTitle {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
 }
 
 .blogHeaderSubtitle {
   color: var(--color-text-secondary);
   font-size: 1.1rem;
+  font-weight: 400;
 }
 
 .blogContent {
   width: 100%;
   box-sizing: border-box;
-  max-width: 900px;
-  margin: 2rem auto;
+  max-width: 1000px;
+  margin: 3rem auto;
   padding: 0 1rem;
 }
 
 .postsList {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .postCard {
   background-color: var(--color-background-secondary);
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 1.5rem;
+  overflow: hidden;
   transition: all 0.3s ease;
   text-decoration: none;
   color: inherit;
@@ -52,31 +54,68 @@
 
 .postCard:hover {
   border-color: var(--color-border-hover);
-  background-color: var(--color-background-tertiary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+}
+
+.postCardContent {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.postCardThumbnail {
+  flex-shrink: 0;
+  width: 220px;
+  height: 160px;
+  overflow: hidden;
+  background-color: var(--color-background-primary);
+}
+
+.postCardThumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.postCard:hover .postCardThumbnail img {
+  transform: scale(1.05);
+}
+
+.postCardText {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .postCardTitle {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.5rem;
   color: var(--color-text-primary);
+  line-height: 1.3;
 }
 
 .postCardDate {
   color: var(--color-text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   margin-bottom: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .postCardExcerpt {
   color: var(--color-text-secondary);
-  line-height: 1.6;
+  line-height: 1.7;
   margin-bottom: 1rem;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-size: 0.95rem;
 }
 
 .readMoreLink {
@@ -106,7 +145,29 @@
     font-size: 2rem;
   }
 
+  .blogHeader {
+    padding: 1.5rem;
+  }
+
   .postsList {
     gap: 1rem;
+  }
+
+  .postCardContent {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .postCardThumbnail {
+    width: 100%;
+    height: 200px;
+  }
+
+  .postCardText {
+    padding: 1rem;
+  }
+
+  .postCardTitle {
+    font-size: 1.25rem;
   }
 }

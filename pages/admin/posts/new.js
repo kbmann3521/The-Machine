@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '../../../lib/supabase-client'
 import { createPost } from '../../../lib/blog-client'
 import { generateSlug } from '../../../lib/slug-utils'
+import MediaPickerModal from '../../../components/MediaPickerModal'
 import styles from '../../../styles/blog-admin-forms.module.css'
 
 export default function NewPost() {
@@ -13,9 +14,11 @@ export default function NewPost() {
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
   const [status, setStatus] = useState('draft')
+  const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -64,6 +67,7 @@ export default function NewPost() {
         excerpt,
         content,
         status,
+        thumbnail_url: thumbnailUrl,
       })
 
       router.push(`/admin/posts/${post.id}/edit`)
@@ -169,6 +173,48 @@ export default function NewPost() {
               />
             </div>
 
+            {/* Thumbnail Section */}
+            <div className={styles.thumbnailSection}>
+              <label className={styles.formLabel}>Post Thumbnail</label>
+              {thumbnailUrl ? (
+                <div className={styles.thumbnailPreview}>
+                  <div className={styles.thumbnailImage}>
+                    <img src={thumbnailUrl} alt="Post thumbnail" />
+                  </div>
+                  <div className={styles.thumbnailInfo}>
+                    <div className={styles.thumbnailUrl}>{thumbnailUrl}</div>
+                    <div className={styles.thumbnailActions}>
+                      <button
+                        type="button"
+                        onClick={() => setMediaPickerOpen(true)}
+                        className={styles.thumbnailButton}
+                        disabled={loading}
+                      >
+                        Change Thumbnail
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setThumbnailUrl('')}
+                        className={styles.removeThumbnailBtn}
+                        disabled={loading}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setMediaPickerOpen(true)}
+                  className={styles.thumbnailButton}
+                  disabled={loading}
+                >
+                  + Select Thumbnail from Media Library
+                </button>
+              )}
+            </div>
+
             <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="content">
                 Content (Markdown) <span style={{ color: '#d32f2f' }}>*</span>
@@ -211,6 +257,12 @@ export default function NewPost() {
           </form>
         </div>
       </div>
+
+      <MediaPickerModal
+        isOpen={mediaPickerOpen}
+        onClose={() => setMediaPickerOpen(false)}
+        onSelect={(url) => setThumbnailUrl(url)}
+      />
     </div>
   )
 }
