@@ -32,12 +32,19 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
+        credentials: 'same-origin',
       })
 
-      if (!response.ok) throw new Error('Failed to load media')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to load media')
+      }
+
       const data = await response.json()
-      setMedia(Array.isArray(data) ? data : (data.media || []))
+      const mediaArray = Array.isArray(data) ? data : (data.media || [])
+      setMedia(mediaArray)
     } catch (err) {
+      console.error('Media loading error:', err)
       setError(err.message)
     } finally {
       setLoading(false)
