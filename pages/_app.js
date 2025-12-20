@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import '../styles/globals.css'
 import { ThemeProvider } from '../lib/ThemeContext'
-import { generateMetaTags, siteMetadata, setSiteMetadata, defaultSiteMetadata } from '../lib/seoUtils'
+import { generatePageMetadata, buildBaseMetadata } from '../lib/seoUtils'
 import { getRobotsMetaContent, getAdminRobotsMeta } from '../lib/getRobotsMeta'
 
 function RobotsMetaInjector() {
