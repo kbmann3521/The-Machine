@@ -74,16 +74,13 @@ function removeRobotsMetaTag() {
   }
 }
 
-export default function App({ Component, pageProps, seoSettings }) {
-  const metadata = generatePageMetadata({ seoSettings })
-  const base = buildBaseMetadata(seoSettings)
-
-  // Also store in localStorage for client-side use (robots meta injector, etc.)
+export default function App({ Component, pageProps }) {
+  // Store seoSettings in localStorage for client-side use (if provided by page)
   useEffect(() => {
-    if (seoSettings && seoSettings.page_rules) {
-      localStorage.setItem('seoPageRules', JSON.stringify(seoSettings.page_rules))
+    if (pageProps.seoSettings && pageProps.seoSettings.page_rules) {
+      localStorage.setItem('seoPageRules', JSON.stringify(pageProps.seoSettings.page_rules))
     }
-  }, [seoSettings])
+  }, [pageProps.seoSettings])
 
   return (
     <>
@@ -101,42 +98,6 @@ export default function App({ Component, pageProps, seoSettings }) {
           `,
         }}
       />
-      <Head>
-        <title>{metadata.title}</title>
-        <meta name="description" content={metadata.description} />
-        <meta name="keywords" content={metadata.keywords} />
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="language" content="English" />
-        {base.author && <meta name="author" content={base.author} />}
-
-        {/* Open Graph */}
-        <meta property="og:type" content={metadata.openGraph?.type || 'website'} />
-        <meta property="og:title" content={metadata.openGraph?.title || metadata.title} />
-        <meta property="og:description" content={metadata.openGraph?.description || metadata.description} />
-        {metadata.openGraph?.url && <meta property="og:url" content={metadata.openGraph.url} />}
-        {metadata.openGraph?.image && <meta property="og:image" content={metadata.openGraph.image} />}
-
-        {/* Twitter Card */}
-        <meta name="twitter:card" content={metadata.twitter?.card || 'summary_large_image'} />
-        <meta name="twitter:title" content={metadata.twitter?.title || metadata.title} />
-        <meta name="twitter:description" content={metadata.twitter?.description || metadata.description} />
-        {metadata.twitter?.site && <meta name="twitter:site" content={metadata.twitter.site} />}
-        {metadata.twitter?.creator && <meta name="twitter:creator" content={metadata.twitter.creator} />}
-
-        {/* Canonical */}
-        {metadata.canonical && <link rel="canonical" href={metadata.canonical} />}
-
-        {/* Favicon */}
-        {seoSettings?.favicon_url ? (
-          <link rel="icon" href={seoSettings.favicon_url} />
-        ) : (
-          <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        )}
-
-        {/* Theme Color */}
-        {seoSettings?.theme_color && <meta name="theme-color" content={seoSettings.theme_color} />}
-      </Head>
 
       <ThemeProvider>
         <RobotsMetaInjector />
