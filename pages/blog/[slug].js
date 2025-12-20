@@ -66,7 +66,7 @@ export default function BlogPost({ post }) {
         <Head>
           <title>Post Not Found</title>
         </Head>
-        {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} />}
+        {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} postId={post?.id} />}
         <div className={styles.postHeader}>
           <div className={styles.postHeaderContent}>
             <h1 className={styles.postTitle}>Post Not Found</h1>
@@ -101,7 +101,7 @@ export default function BlogPost({ post }) {
         <link rel="canonical" href={`https://www.pioneerwebtools.com/blog/${post.slug}`} />
       </Head>
 
-      {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} />}
+      {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} postId={post.id} />}
 
       <header className={styles.postHeader}>
         <div className={styles.postHeaderContent}>
