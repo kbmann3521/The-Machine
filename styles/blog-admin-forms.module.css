@@ -921,7 +921,8 @@
     font-size: 1.5rem;
   }
 
-  .contentTextarea {
+  .contentTextarea,
+  .contentPreview {
     min-height: 300px;
   }
 
