@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase-client'
 import styles from '../styles/admin-css-bar.module.css'
 import CSSEditorSidebar from './CSSEditorSidebar'
 
-export default function AdminCSSBar() {
+export default function AdminCSSBar({ onCSSChange }) {
   const [isOpen, setIsOpen] = useState(false)
   const [css, setCss] = useState('')
   const [loading, setLoading] = useState(false)
