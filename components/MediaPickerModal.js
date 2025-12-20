@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase-client'
 import styles from '../styles/blog-admin-forms.module.css'
 
 export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
@@ -17,7 +18,22 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }) {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('/api/media/list')
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session) {
+        setError('Not authenticated')
+        setLoading(false)
+        return
+      }
+
+      const response = await fetch('/api/media/list', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      })
+
       if (!response.ok) throw new Error('Failed to load media')
       const data = await response.json()
       setMedia(data.media || [])
