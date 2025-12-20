@@ -768,3 +768,7 @@ function truncateString(str, maxLength) {
   }
   return str
 }
+
+export async function getServerSideProps() {
+  return withSeoSettings()
+}
