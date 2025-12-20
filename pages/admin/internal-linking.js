@@ -255,11 +255,6 @@ export default function InternalLinkingAdmin() {
     }
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/admin/login')
-  }
-
   if (loading) {
     return (
       <div className={styles.adminContainer}>
