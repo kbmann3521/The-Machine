@@ -1,16 +1,31 @@
-import { supabase } from '../../../lib/supabase-client'
+import { createServerClient } from '@supabase/ssr'
 
 export default async function handler(req, res) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return Object.entries(req.cookies).map(([name, value]) => ({
+            name,
+            value,
+          }))
+        },
+      },
+    }
+  )
+
   if (req.method === 'GET') {
-    return handleGet(req, res)
+    return handleGet(supabase, req, res)
   } else if (req.method === 'PUT') {
-    return handlePut(req, res)
+    return handlePut(supabase, req, res)
   } else {
     res.status(405).json({ error: 'Method not allowed' })
   }
 }
 
-async function handleGet(req, res) {
+async function handleGet(supabase, req, res) {
   try {
     const { data, error } = await supabase
       .from('blog_custom_css')
@@ -28,24 +43,24 @@ async function handleGet(req, res) {
   }
 }
 
-async function handlePut(req, res) {
+async function handlePut(supabase, req, res) {
   try {
     const {
       data: { session },
     } = await supabase.auth.getSession()
 
     if (!session) {
-      return res.status(401).json({ error: 'Unauthorized' })
+      return res.status(401).json({ error: 'Unauthorized - no session' })
     }
 
-    const { data: adminUser } = await supabase
+    const { data: adminUser, error: adminError } = await supabase
       .from('admin_users')
       .select('user_id')
       .eq('user_id', session.user.id)
       .single()
 
-    if (!adminUser) {
-      return res.status(403).json({ error: 'Forbidden' })
+    if (adminError || !adminUser) {
+      return res.status(403).json({ error: 'Forbidden - not an admin' })
     }
 
     const { css } = req.body
@@ -66,6 +81,7 @@ async function handlePut(req, res) {
 
     res.status(200).json({ css: data?.css_content || '' })
   } catch (err) {
+    console.error('Error in handlePut:', err)
     res.status(500).json({ error: err.message })
   }
 }
