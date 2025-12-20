@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   try {
     await verifyAdminAccess(req)
 
-    const { title, slug: customSlug, excerpt, content, status, thumbnail_url } = req.body
+    const { title, slug: customSlug, excerpt, content, status, thumbnail_url, seo_title, seo_description, og_title, og_description, og_image_url, seo_noindex, topic, search_intent } = req.body
 
     if (!title?.trim()) {
       return res.status(400).json({ error: 'Title is required' })
