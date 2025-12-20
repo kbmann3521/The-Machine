@@ -224,24 +224,20 @@ export default function EditPost() {
         </div>
       </div>
 
-      <div className={styles.adminContent}>
-        <div className={styles.adminSection}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h1 className={styles.adminTitle} style={{ margin: 0, marginBottom: '0.5rem' }}>
-              {title || 'Untitled Post'}
-            </h1>
-            <p className={styles.postMeta}>
-              Last updated: {formatDate(post.updated_at)}
-            </p>
+      <div className={styles.editPageContainer}>
+        <div className={styles.mainContentArea}>
+          <div className={styles.postHeader}>
+            <h1 className={styles.postTitle}>{title || 'Untitled Post'}</h1>
+            <p className={styles.postTimestamp}>Last updated: {formatDate(post.updated_at)}</p>
           </div>
 
           {successMessage && <div className={styles.successMessage}>{successMessage}</div>}
           {error && <div className={styles.errorMessage}>{error}</div>}
 
-          <form onSubmit={handleUpdate} className={styles.form}>
+          <form onSubmit={handleUpdate} className={styles.editForm}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="title">
-                Title <span style={{ color: '#d32f2f' }}>*</span>
+                Title <span className={styles.required}>*</span>
               </label>
               <input
                 id="title"
@@ -255,250 +251,360 @@ export default function EditPost() {
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="slug">
-                Slug <span style={{ color: '#d32f2f' }}>*</span>
-              </label>
-              <input
-                id="slug"
-                type="text"
-                className={styles.formInput}
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                required
-                disabled={saving}
-              />
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
-                URL-friendly identifier (lowercase, hyphens)
-              </p>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="excerpt">
-                Excerpt
-              </label>
-              <input
-                id="excerpt"
-                type="text"
-                className={styles.formInput}
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                disabled={saving}
-              />
-            </div>
-
-            {/* Thumbnail Section */}
-            <div className={styles.thumbnailSection}>
-              <label className={styles.formLabel}>Post Thumbnail</label>
-              {thumbnailUrl ? (
-                <div className={styles.thumbnailPreview}>
-                  <div className={styles.thumbnailImage}>
-                    <img src={thumbnailUrl} alt="Post thumbnail" />
-                  </div>
-                  <div className={styles.thumbnailInfo}>
-                    <div className={styles.thumbnailUrl}>{thumbnailUrl}</div>
-                    <div className={styles.thumbnailActions}>
-                      <button
-                        type="button"
-                        onClick={() => setMediaPickerOpen(true)}
-                        className={styles.thumbnailButton}
-                        disabled={saving}
-                      >
-                        Change Thumbnail
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setThumbnailUrl('')}
-                        className={styles.removeThumbnailBtn}
-                        disabled={saving}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setMediaPickerOpen(true)}
-                  className={styles.thumbnailButton}
-                  disabled={saving}
-                >
-                  + Select Thumbnail from Media Library
-                </button>
-              )}
-            </div>
-
-            <div className={styles.formGroup}>
               <label className={styles.formLabel} htmlFor="content">
-                Content (Markdown) <span style={{ color: '#d32f2f' }}>*</span>
+                Content (Markdown) <span className={styles.required}>*</span>
               </label>
               <textarea
                 id="content"
-                className={styles.formTextarea}
+                className={styles.contentTextarea}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
                 disabled={saving}
+                placeholder="Write your post content in Markdown format..."
               />
             </div>
 
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="status">
-                Status <span style={{ color: '#d32f2f' }}>*</span>
-              </label>
-              <select
-                id="status"
-                className={styles.formSelect}
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                disabled={saving}
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-
-            {/* SEO Section */}
-            <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--color-border)' }}>
-              <h2 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '600' }}>Search & Social Metadata</h2>
-              <p style={{ marginBottom: '1.5rem', color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
-                Customize how this post appears in search results and social media previews. Defaults to title and excerpt if not specified.
-              </p>
-
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="seoTitle">
-                  Meta Title (Page Title for Search)
-                </label>
-                <input
-                  id="seoTitle"
-                  type="text"
-                  className={styles.formInput}
-                  value={seoTitle}
-                  onChange={(e) => setSeoTitle(e.target.value)}
-                  placeholder={title || 'Defaults to post title'}
-                  disabled={saving}
-                />
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
-                  {seoTitle.length}/60 characters (recommended: ~50-60)
-                </p>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel} htmlFor="seoDescription">
-                  Meta Description (Search Result Preview)
-                </label>
-                <textarea
-                  id="seoDescription"
-                  className={styles.formTextarea}
-                  value={seoDescription}
-                  onChange={(e) => setSeoDescription(e.target.value)}
-                  placeholder={excerpt || 'Defaults to post excerpt'}
-                  rows="3"
-                  disabled={saving}
-                />
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
-                  {seoDescription.length}/160 characters (recommended: ~155-160)
-                </p>
-              </div>
-
-              <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--color-border)', marginTop: '1.5rem' }}>
-                <h3 style={{ marginBottom: '1rem', fontSize: '0.95rem', fontWeight: '600' }}>Social Media</h3>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel} htmlFor="ogTitle">
-                    Open Graph Title (Facebook/LinkedIn)
-                  </label>
-                  <input
-                    id="ogTitle"
-                    type="text"
-                    className={styles.formInput}
-                    value={ogTitle}
-                    onChange={(e) => setOgTitle(e.target.value)}
-                    placeholder={title || 'Defaults to post title'}
-                    disabled={saving}
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel} htmlFor="ogDescription">
-                    Open Graph Description
-                  </label>
-                  <textarea
-                    id="ogDescription"
-                    className={styles.formTextarea}
-                    value={ogDescription}
-                    onChange={(e) => setOgDescription(e.target.value)}
-                    placeholder={excerpt || 'Defaults to post excerpt'}
-                    rows="3"
-                    disabled={saving}
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel} htmlFor="ogImageUrl">
-                    Open Graph Image URL
-                  </label>
-                  <input
-                    id="ogImageUrl"
-                    type="text"
-                    className={styles.formInput}
-                    value={ogImageUrl}
-                    onChange={(e) => setOgImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.png"
-                    disabled={saving}
-                  />
-                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.25rem 0 0' }}>
-                    Absolute URL, 1200x630px recommended
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--color-border)', marginTop: '1.5rem' }}>
-                <h3 style={{ marginBottom: '1rem', fontSize: '0.95rem', fontWeight: '600' }}>Indexing</h3>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={seoNoindex}
-                    onChange={(e) => setSeoNoindex(e.target.checked)}
-                    disabled={saving}
-                  />
-                  Hide from search results (noindex)
-                </label>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.5rem 0 0' }}>
-                  {status === 'draft' ? '✓ Draft posts are automatically hidden from search' : 'Override: Hide published post from search engines'}
-                </p>
-              </div>
-            </div>
-
-            <div className={styles.formActions}>
+            <div className={styles.saveButtonContainer}>
               <button type="submit" className={styles.primaryBtn} disabled={saving}>
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
-
-              {status === 'draft' ? (
-                <button onClick={handlePublish} className={styles.primaryBtn} disabled={saving}>
-                  {saving ? 'Publishing...' : 'Publish'}
-                </button>
-              ) : (
-                <button onClick={handleUnpublish} className={styles.secondaryBtn} disabled={saving}>
-                  Unpublish
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setDeleteModalOpen(true)}
-                className={styles.dangerBtn}
-                disabled={saving}
-              >
-                Delete
-              </button>
-
-              <Link href="/admin/posts" className={styles.secondaryBtn}>
-                Back to Posts
-              </Link>
             </div>
           </form>
+        </div>
+
+        <div className={`${styles.sidebarContainer} ${sidebarOpen ? '' : styles.sidebarCollapsed}`}>
+          <div className={styles.sidebarHeader}>
+            <h2 className={styles.sidebarTitle}>Post Settings</h2>
+            <button
+              className={styles.sidebarToggleBtn}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle sidebar"
+            >
+              {sidebarOpen ? '✕' : '☰'}
+            </button>
+          </div>
+
+          <div className={styles.sidebarContent}>
+            {/* Actions Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('actions')}
+              >
+                <span className={styles.accordionTitle}>Actions</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.actions ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.actions && (
+                <div className={styles.accordionBody}>
+                  <div className={styles.sidebarActions}>
+                    <button
+                      type="button"
+                      onClick={handleUpdate}
+                      className={styles.sidebarPrimaryBtn}
+                      disabled={saving}
+                    >
+                      {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+
+                    {status === 'draft' ? (
+                      <button
+                        onClick={handlePublish}
+                        className={styles.sidebarPrimaryBtn}
+                        disabled={saving}
+                      >
+                        {saving ? 'Publishing...' : 'Publish'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleUnpublish}
+                        className={styles.sidebarSecondaryBtn}
+                        disabled={saving}
+                      >
+                        Unpublish
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setDeleteModalOpen(true)}
+                      className={styles.sidebarDangerBtn}
+                      disabled={saving}
+                    >
+                      Delete
+                    </button>
+
+                    <Link href="/admin/posts" className={styles.sidebarSecondaryBtn}>
+                      Back to Posts
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Basic Info Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('basicInfo')}
+              >
+                <span className={styles.accordionTitle}>Basic Info</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.basicInfo ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.basicInfo && (
+                <div className={styles.accordionBody}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="slug">
+                      Slug <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      id="slug"
+                      type="text"
+                      className={styles.formInput}
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      required
+                      disabled={saving}
+                    />
+                    <p className={styles.fieldHint}>
+                      URL-friendly identifier (lowercase, hyphens)
+                    </p>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="excerpt">
+                      Excerpt
+                    </label>
+                    <input
+                      id="excerpt"
+                      type="text"
+                      className={styles.formInput}
+                      value={excerpt}
+                      onChange={(e) => setExcerpt(e.target.value)}
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="status">
+                      Status <span className={styles.required}>*</span>
+                    </label>
+                    <select
+                      id="status"
+                      className={styles.formSelect}
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      disabled={saving}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="published">Published</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnail Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('thumbnail')}
+              >
+                <span className={styles.accordionTitle}>Thumbnail</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.thumbnail ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.thumbnail && (
+                <div className={styles.accordionBody}>
+                  {thumbnailUrl ? (
+                    <div className={styles.thumbnailPreviewSmall}>
+                      <div className={styles.thumbnailImageSmall}>
+                        <img src={thumbnailUrl} alt="Post thumbnail" />
+                      </div>
+                      <p className={styles.thumbnailUrlSmall}>{thumbnailUrl}</p>
+                      <div className={styles.thumbnailActionsSmall}>
+                        <button
+                          type="button"
+                          onClick={() => setMediaPickerOpen(true)}
+                          className={styles.sidebarPrimaryBtn}
+                          disabled={saving}
+                        >
+                          Change
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setThumbnailUrl('')}
+                          className={styles.sidebarDangerBtn}
+                          disabled={saving}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setMediaPickerOpen(true)}
+                      className={styles.sidebarPrimaryBtn}
+                      disabled={saving}
+                    >
+                      + Add Thumbnail
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* SEO Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('seo')}
+              >
+                <span className={styles.accordionTitle}>SEO</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.seo ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.seo && (
+                <div className={styles.accordionBody}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="seoTitle">
+                      Meta Title
+                    </label>
+                    <input
+                      id="seoTitle"
+                      type="text"
+                      className={styles.formInput}
+                      value={seoTitle}
+                      onChange={(e) => setSeoTitle(e.target.value)}
+                      placeholder={title || 'Defaults to post title'}
+                      disabled={saving}
+                    />
+                    <p className={styles.fieldHint}>
+                      {seoTitle.length}/60 characters (recommended: ~50-60)
+                    </p>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="seoDescription">
+                      Meta Description
+                    </label>
+                    <textarea
+                      id="seoDescription"
+                      className={styles.formTextarea}
+                      value={seoDescription}
+                      onChange={(e) => setSeoDescription(e.target.value)}
+                      placeholder={excerpt || 'Defaults to post excerpt'}
+                      rows="3"
+                      disabled={saving}
+                    />
+                    <p className={styles.fieldHint}>
+                      {seoDescription.length}/160 characters (recommended: ~155-160)
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Social Media Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('social')}
+              >
+                <span className={styles.accordionTitle}>Social Media</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.social ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.social && (
+                <div className={styles.accordionBody}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="ogTitle">
+                      Open Graph Title
+                    </label>
+                    <input
+                      id="ogTitle"
+                      type="text"
+                      className={styles.formInput}
+                      value={ogTitle}
+                      onChange={(e) => setOgTitle(e.target.value)}
+                      placeholder={title || 'Defaults to post title'}
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="ogDescription">
+                      Open Graph Description
+                    </label>
+                    <textarea
+                      id="ogDescription"
+                      className={styles.formTextarea}
+                      value={ogDescription}
+                      onChange={(e) => setOgDescription(e.target.value)}
+                      placeholder={excerpt || 'Defaults to post excerpt'}
+                      rows="3"
+                      disabled={saving}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel} htmlFor="ogImageUrl">
+                      Open Graph Image URL
+                    </label>
+                    <input
+                      id="ogImageUrl"
+                      type="text"
+                      className={styles.formInput}
+                      value={ogImageUrl}
+                      onChange={(e) => setOgImageUrl(e.target.value)}
+                      placeholder="https://example.com/image.png"
+                      disabled={saving}
+                    />
+                    <p className={styles.fieldHint}>
+                      Absolute URL, 1200x630px recommended
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Indexing Accordion */}
+            <div className={styles.accordion}>
+              <button
+                className={styles.accordionHeader}
+                onClick={() => toggleAccordion('indexing')}
+              >
+                <span className={styles.accordionTitle}>Indexing</span>
+                <span className={`${styles.accordionIcon} ${expandedAccordions.indexing ? styles.expanded : ''}`}>
+                  ›
+                </span>
+              </button>
+              {expandedAccordions.indexing && (
+                <div className={styles.accordionBody}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={seoNoindex}
+                      onChange={(e) => setSeoNoindex(e.target.checked)}
+                      disabled={saving}
+                    />
+                    Hide from search results (noindex)
+                  </label>
+                  <p className={styles.fieldHint}>
+                    {status === 'draft' ? '✓ Draft posts are automatically hidden from search' : 'Override: Hide published post from search engines'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
