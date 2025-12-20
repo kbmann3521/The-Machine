@@ -599,47 +599,192 @@ export default function EditPost() {
                 className={styles.accordionHeader}
                 onClick={() => toggleAccordion('seo')}
               >
-                <span className={styles.accordionTitle}>SEO</span>
+                <span className={styles.accordionTitle}>
+                  SEO
+                  {seoReport && (
+                    <span style={{ fontSize: '0.8rem', marginLeft: '0.5rem', color: 'var(--color-text-secondary)' }}>
+                      • {seoReport.healthChecks.filter((c) => c.status === 'success').length} checks
+                    </span>
+                  )}
+                </span>
                 <span className={`${styles.accordionIcon} ${expandedAccordions.seo ? styles.expanded : ''}`}>
                   ›
                 </span>
               </button>
               {expandedAccordions.seo && (
                 <div className={styles.accordionBody}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="seoTitle">
-                      Meta Title
-                    </label>
-                    <input
-                      id="seoTitle"
-                      type="text"
-                      className={styles.formInput}
-                      value={seoTitle}
-                      onChange={(e) => setSeoTitle(e.target.value)}
-                      placeholder={title || 'Defaults to post title'}
-                      disabled={saving}
-                    />
-                    <p className={styles.fieldHint}>
-                      {seoTitle.length}/60 characters (recommended: ~50-60)
-                    </p>
-                  </div>
+                  <div className={styles.seoSection}>
+                    {/* Section A: Search Preview */}
+                    <div>
+                      <p className={styles.seoSectionTitle}>Search Preview</p>
+                      {seoReport?.preview && (
+                        <div className={styles.seoPreview}>
+                          <div className={styles.seoPreviewTitle}>{seoReport.preview.title || '(Title missing)'}</div>
+                          <div className={styles.seoPreviewDescription}>
+                            {seoReport.preview.description || '(No description)'}
+                          </div>
+                          <div className={styles.seoPreviewUrl}>{seoReport.preview.url}</div>
+                        </div>
+                      )}
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="seoDescription">
-                      Meta Description
-                    </label>
-                    <textarea
-                      id="seoDescription"
-                      className={styles.formTextarea}
-                      value={seoDescription}
-                      onChange={(e) => setSeoDescription(e.target.value)}
-                      placeholder={excerpt || 'Defaults to post excerpt'}
-                      rows="3"
-                      disabled={saving}
-                    />
-                    <p className={styles.fieldHint}>
-                      {seoDescription.length}/160 characters (recommended: ~155-160)
-                    </p>
+                      <div className={styles.seoFieldGroup} style={{ marginTop: '1rem' }}>
+                        <label className={styles.seoFieldLabel} htmlFor="seoTitle">
+                          SEO Title
+                        </label>
+                        <input
+                          id="seoTitle"
+                          type="text"
+                          className={styles.seoFieldInput}
+                          value={seoTitle}
+                          onChange={(e) => setSeoTitle(e.target.value)}
+                          placeholder={title || 'Leave empty to use post title'}
+                          disabled={saving}
+                        />
+                        <p className={styles.fieldHint}>
+                          {seoTitle.length}/60 characters{seoTitle.length < 30 ? ' — short' : seoTitle.length > 60 ? ' — may truncate' : ' — ideal'}
+                        </p>
+                      </div>
+
+                      <div className={styles.seoFieldGroup} style={{ marginTop: '1rem' }}>
+                        <label className={styles.seoFieldLabel} htmlFor="seoDescription">
+                          Meta Description
+                        </label>
+                        <textarea
+                          id="seoDescription"
+                          style={{
+                            padding: '0.75rem',
+                            backgroundColor: 'var(--color-background-primary)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '4px',
+                            color: 'var(--color-text-primary)',
+                            fontFamily: 'inherit',
+                            fontSize: '0.85rem',
+                            minHeight: '80px',
+                            resize: 'vertical',
+                          }}
+                          value={seoDescription}
+                          onChange={(e) => setSeoDescription(e.target.value)}
+                          placeholder={excerpt || 'Optional — improves click-through rate'}
+                          disabled={saving}
+                        />
+                        <p className={styles.fieldHint}>
+                          {seoDescription.length}/160 characters{seoDescription.length < 120 ? ' — short' : seoDescription.length > 160 ? ' — may truncate' : ' — ideal'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Section B: Topic & Intent */}
+                    <div style={{ paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+                      <p className={styles.seoSectionTitle}>Topic & Intent</p>
+
+                      <div className={styles.seoFieldGroup}>
+                        <label className={styles.seoFieldLabel} htmlFor="topic">
+                          Primary Topic
+                        </label>
+                        <input
+                          id="topic"
+                          type="text"
+                          className={styles.seoFieldInput}
+                          value={topic}
+                          onChange={(e) => setTopic(e.target.value)}
+                          placeholder="e.g., Deterministic internet tools"
+                          disabled={saving}
+                        />
+                        <p className={styles.fieldHint}>Optional — for internal organization and linking suggestions</p>
+                      </div>
+
+                      <div className={styles.seoFieldGroup} style={{ marginTop: '1rem' }}>
+                        <label className={styles.seoFieldLabel} htmlFor="searchIntent">
+                          Search Intent
+                        </label>
+                        <select
+                          id="searchIntent"
+                          className={styles.seoFieldSelect}
+                          value={searchIntent}
+                          onChange={(e) => setSearchIntent(e.target.value)}
+                          disabled={saving}
+                        >
+                          <option value="">None selected</option>
+                          <option value="informational">Informational (How-to, educational)</option>
+                          <option value="comparison">Comparison (vs., best of)</option>
+                          <option value="tool">Tool usage (Using, tutorial)</option>
+                        </select>
+                        <p className={styles.fieldHint}>Helps frame your content strategy</p>
+                      </div>
+                    </div>
+
+                    {/* Section C: SEO Health Checklist */}
+                    {seoReport?.healthChecks && (
+                      <div style={{ paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+                        <p className={styles.seoSectionTitle}>SEO Health</p>
+                        <div className={styles.seoCheckList}>
+                          {seoReport.healthChecks.map((check, idx) => (
+                            <div key={idx} className={`${styles.seoCheck} ${styles[check.status]}`}>
+                              <div className={styles.seoCheckIcon}>
+                                {check.status === 'success' && '✓'}
+                                {check.status === 'warning' && '⚠'}
+                                {check.status === 'error' && '✕'}
+                                {check.status === 'info' && 'ℹ'}
+                              </div>
+                              <div>
+                                <div className={styles.seoCheckLabel}>{check.label}</div>
+                                <div className={styles.seoCheckExplanation}>{check.explanation}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Section D: Content Quality */}
+                    {seoReport?.contentQuality && (
+                      <div style={{ paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+                        <p className={styles.seoSectionTitle}>Content Quality</p>
+                        <div className={styles.seoCheckList}>
+                          {seoReport.contentQuality.map((check, idx) => (
+                            <div key={idx} className={`${styles.seoCheck} ${styles[check.status]}`}>
+                              <div className={styles.seoCheckIcon}>
+                                {check.status === 'success' && '✓'}
+                                {check.status === 'warning' && '⚠'}
+                                {check.status === 'error' && '✕'}
+                                {check.status === 'info' && 'ℹ'}
+                              </div>
+                              <div>
+                                <div className={styles.seoCheckLabel}>{check.label}</div>
+                                <div className={styles.seoCheckExplanation}>{check.explanation}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Section E: Structured Data */}
+                    {seoReport?.structuredData && (
+                      <div style={{ paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+                        <p className={styles.seoSectionTitle}>Structured Data</p>
+                        <div className={styles.seoStructuredData}>
+                          <div className={styles.seoStructuredDataLabel}>
+                            Type: {seoReport.structuredData.type} • Status: {seoReport.structuredData.status === 'valid' ? '✓ Valid' : '⚠ Incomplete'}
+                          </div>
+                          <div>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.5rem 0 0.75rem 0' }}>
+                              Included fields:
+                            </p>
+                            <ul className={styles.seoStructuredDataList}>
+                              {seoReport.structuredData.includedFields.map((field, idx) => (
+                                <li key={idx} className={styles.seoStructuredDataItem}>
+                                  {field}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '0.75rem' }}>
+                            {seoReport.structuredData.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
