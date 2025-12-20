@@ -24,10 +24,12 @@ export default function EditPost() {
   const [ogDescription, setOgDescription] = useState('')
   const [ogImageUrl, setOgImageUrl] = useState('')
   const [seoNoindex, setSeoNoindex] = useState(false)
+  const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
