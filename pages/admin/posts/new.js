@@ -197,8 +197,8 @@ export default function NewPost() {
                 <div className={styles.accordionBody}>
                   <div className={styles.sidebarActions}>
                     <button
-                      type="button"
-                      onClick={handleSubmit}
+                      type="submit"
+                      form="new-post-form"
                       className={styles.sidebarPrimaryBtn}
                       disabled={loading}
                     >
