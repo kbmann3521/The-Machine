@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/test-detection.module.css'
 
 const DEFAULT_TEST_CASES = [
