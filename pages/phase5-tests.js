@@ -404,3 +404,7 @@ export default function Phase5TestSuite() {
     </>
   )
 }
+
+export async function getServerSideProps() {
+  return withSeoSettings()
+}
