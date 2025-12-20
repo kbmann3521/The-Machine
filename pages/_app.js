@@ -76,46 +76,16 @@ function removeRobotsMetaTag() {
   }
 }
 
-export default function App({ Component, pageProps }) {
-  const [seoSettings, setSeoSettings] = useState(null)
-  const [metadata, setMetadata] = useState({
-    title: '',
-    description: '',
-    keywords: '',
-    canonical: '',
-    openGraph: {},
-    twitter: {},
-  })
+export default function App({ Component, pageProps, seoSettings }) {
+  const metadata = generatePageMetadata({ seoSettings })
+  const base = buildBaseMetadata(seoSettings)
 
-  // Fetch SEO settings on mount
+  // Also store in localStorage for client-side use (robots meta injector, etc.)
   useEffect(() => {
-    const fetchSeoSettings = async () => {
-      try {
-        const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
-        const response = await fetch(`${baseUrl}/api/seo/get-settings`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'same-origin',
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          setSeoSettings(data)
-          // Generate metadata from fetched settings
-          const generatedMetadata = generatePageMetadata({ seoSettings: data })
-          setMetadata(generatedMetadata)
-        }
-      } catch (err) {
-        console.error('Failed to load SEO settings for meta tags:', err)
-      }
+    if (seoSettings && seoSettings.page_rules) {
+      localStorage.setItem('seoPageRules', JSON.stringify(seoSettings.page_rules))
     }
-
-    fetchSeoSettings()
-  }, [])
-
-  const base = seoSettings ? buildBaseMetadata(seoSettings) : {}
+  }, [seoSettings])
 
   return (
     <>
