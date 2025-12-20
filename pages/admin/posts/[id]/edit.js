@@ -316,15 +316,43 @@ export default function EditPost() {
               <label className={styles.formLabel} htmlFor="content">
                 Content (Markdown) <span className={styles.required}>*</span>
               </label>
-              <textarea
-                id="content"
-                className={styles.contentTextarea}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-                disabled={saving}
-                placeholder="Write your post content in Markdown format..."
-              />
+              <div className={styles.contentTabContainer}>
+                <div className={styles.contentTabs}>
+                  <button
+                    type="button"
+                    className={`${styles.contentTab} ${contentTab === 'edit' ? styles.contentTabActive : ''}`}
+                    onClick={() => setContentTab('edit')}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.contentTab} ${contentTab === 'preview' ? styles.contentTabActive : ''}`}
+                    onClick={() => setContentTab('preview')}
+                  >
+                    Preview
+                  </button>
+                </div>
+                {contentTab === 'edit' ? (
+                  <textarea
+                    id="content"
+                    className={styles.contentTextarea}
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                    disabled={saving}
+                    placeholder="Write your post content in Markdown format..."
+                  />
+                ) : (
+                  <div className={styles.contentPreview}>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: marked(content || ''),
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </form>
         </div>
