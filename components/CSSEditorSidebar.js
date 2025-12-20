@@ -6,13 +6,22 @@ export default function CSSEditorSidebar({ css, setCss, onSave, onClose, isSavin
     setCss(newCss)
 
     // Inject CSS in real-time for preview
-    let styleElement = document.getElementById('blog-custom-css-editor')
+    let styleElement = document.getElementById('blog-custom-css-live-editor')
     if (!styleElement) {
       styleElement = document.createElement('style')
-      styleElement.id = 'blog-custom-css-editor'
+      styleElement.id = 'blog-custom-css-live-editor'
       document.head.appendChild(styleElement)
     }
     styleElement.textContent = newCss
+  }
+
+  const handleSaveClick = async () => {
+    try {
+      await onSave()
+    } catch (err) {
+      console.error('Error saving CSS:', err)
+      alert(`Failed to save CSS: ${err.message}`)
+    }
   }
 
   return (
