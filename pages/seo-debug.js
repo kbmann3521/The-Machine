@@ -52,7 +52,12 @@ export default function SEODebug() {
 
       <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#2d2d2d', borderRadius: '5px' }}>
         <h2>localStorage.seoPageRules</h2>
-        <pre>{debug?.localStorageExists ? JSON.stringify(debug?.pageRules, null, 2) : 'EMPTY - Not saved yet'}</pre>
+        <p>
+          <strong>Status:</strong> {debug?.localStorageExists ? '✅ Exists' : '❌ Empty - Not saved yet'}
+        </p>
+        <pre style={{ maxHeight: '300px', overflow: 'auto' }}>
+          {debug?.localStorageContent}
+        </pre>
       </div>
 
       <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#2d2d2d', borderRadius: '5px' }}>
