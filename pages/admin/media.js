@@ -146,11 +146,28 @@ export default function AdminMedia() {
 
   const copyToClipboard = async (url, id) => {
     try {
-      await navigator.clipboard.writeText(url)
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url)
+      } else {
+        // Fallback: use textarea method for non-secure contexts
+        const textarea = document.createElement('textarea')
+        textarea.value = url
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+
       setCopiedId(id)
       setTimeout(() => setCopiedId(null), 2000)
+      setError('')
     } catch (err) {
+      console.error('Copy error:', err)
       setError('Failed to copy URL')
+      setTimeout(() => setError(''), 3000)
     }
   }
 
