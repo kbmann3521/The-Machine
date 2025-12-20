@@ -31,6 +31,15 @@ export default function EditPost() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [expandedAccordions, setExpandedAccordions] = useState({
+    actions: true,
+    basicInfo: true,
+    thumbnail: false,
+    seo: false,
+    social: false,
+    indexing: false,
+  })
 
   useEffect(() => {
     if (!id) return
