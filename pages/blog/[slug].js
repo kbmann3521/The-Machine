@@ -89,67 +89,9 @@ export default function BlogPost({ post }) {
   )
 }
 
-// Simple Markdown renderer (converts common markdown to HTML)
 function MarkdownContent({ content }) {
-  const html = parseMarkdown(content)
+  const html = marked(content || '')
   return <div dangerouslySetInnerHTML={{ __html: html }} />
-}
-
-function parseMarkdown(markdown) {
-  let html = markdown
-
-  // Escape HTML special characters first
-  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-
-  // Code blocks (triple backticks)
-  html = html.replace(/```([a-z]*)\n([\s\S]*?)```/g, (match, lang, code) => {
-    const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    return `<pre><code${lang ? ` class="language-${lang}"` : ''}>${escapedCode}</code></pre>`
-  })
-
-  // Inline code (backticks)
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
-
-  // Headers
-  html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>')
-  html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>')
-  html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>')
-
-  // Bold
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>')
-
-  // Italic
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
-  html = html.replace(/_(.+?)_/g, '<em>$1</em>')
-
-  // Links
-  html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
-
-  // Blockquotes
-  html = html.replace(/^&gt; (.*?)$/gm, '<blockquote>$1</blockquote>')
-
-  // Unordered lists
-  html = html.replace(/^\* (.*?)$/gm, '<li>$1</li>')
-  html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-
-  // Ordered lists
-  html = html.replace(/^\d+\. (.*?)$/gm, '<li>$1</li>')
-
-  // Paragraphs
-  html = html.replace(/\n\n/g, '</p><p>')
-  html = `<p>${html}</p>`
-
-  // Clean up
-  html = html.replace(/<p><\/p>/g, '')
-  html = html.replace(/<p>(<h[1-6]>)/g, '$1')
-  html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<ul>|<ol>|<blockquote>)/g, '$1')
-  html = html.replace(/(<\/ul>|<\/ol>|<\/blockquote>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<pre>)/g, '$1')
-  html = html.replace(/(<\/pre>)<\/p>/g, '$1')
-
-  return html
 }
 
 function formatDateForDisplay(dateStr) {
