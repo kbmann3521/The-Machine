@@ -108,18 +108,19 @@ export default function AdminSEO() {
         if (data.updated_at) {
           setLastUpdated(new Date(data.updated_at))
         }
-        if (data.page_rules && typeof data.page_rules === 'object') {
-          setPageRules(data.page_rules)
-          // Store in localStorage for client-side robots meta injection
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('seoPageRules', JSON.stringify(data.page_rules))
-          }
-        } else {
-          // Use default page rules on first load
-          setPageRules(DEFAULT_PAGE_RULES)
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('seoPageRules', JSON.stringify(DEFAULT_PAGE_RULES))
-          }
+
+        // Determine which page rules to use
+        let rulesToUse = DEFAULT_PAGE_RULES
+        if (data.page_rules && typeof data.page_rules === 'object' && Object.keys(data.page_rules).length > 0) {
+          rulesToUse = data.page_rules
+        }
+
+        setPageRules(rulesToUse)
+
+        // Store in localStorage for client-side robots meta injection
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('seoPageRules', JSON.stringify(rulesToUse))
+          console.log('SEO page rules stored in localStorage:', rulesToUse)
         }
       }
     } catch (err) {
