@@ -686,7 +686,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.hopByHopHeaders && analysis.hopByHopHeaders.length > 0 && (
-        <StatusSection title="Hop-by-Hop Headers (RFC 7230)" icon="🔄">
+        <StatusSection title="Hop-by-Hop Headers (RFC 7230)" icon="">
           <div className={styles.hopByHopList}>
             {analysis.hopByHopHeaders.map((header, idx) => (
               <div key={idx} className={styles.hopByHopItem}>
