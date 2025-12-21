@@ -673,7 +673,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.security.missingRecommendedHeaders.length > 0 && (
-        <StatusSection title="Missing Security Headers" icon="🛡️">
+        <StatusSection title="Missing Security Headers" icon="">
           <div className={styles.missingList}>
             {analysis.security.missingRecommendedHeaders.map((header, idx) => (
               <div key={idx} className={styles.missingItem}>
