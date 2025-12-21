@@ -3034,7 +3034,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult.conversions) return null
 
     const conversions = displayResult.conversions.map(conv => ({
-      label: conv.human || `${conv.value} ${conv.unit}`,
+      label: conv.unit,
       value: conv.value,
       unit: conv.unit,
     }))
