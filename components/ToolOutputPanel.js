@@ -134,6 +134,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
 
+  // Phase 2 Optimization Handler for SVG Optimizer
+  const handlePhase2Optimize = async (level, overrides) => {
+    if (!result) return
+    setPhase2Loading(true)
+    try {
+      // Import runTool dynamically to call Phase 2
+      const { runTool } = await import('../lib/tools')
+      const phase2Config = {
+        phase2: {
+          enabled: true,
+          level,
+          overrides
+        }
+      }
+      const phase2Result = await runTool('svg-optimizer', inputText, phase2Config)
+      // Merge Phase 2 result with existing result
+      setPreviousResult(phase2Result)
+    } catch (error) {
+      console.error('Phase 2 optimization error:', error)
+    } finally {
+      setPhase2Loading(false)
+    }
+  }
+
   // Special handling for image-toolkit - show OutputTabs even when empty
   if (toolId === 'image-toolkit') {
     if (displayResult?.mode === 'resize') {
