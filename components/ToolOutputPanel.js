@@ -907,7 +907,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            📦 Base Formats
+            Base Formats
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
             <ColorCard label="HEX" value={formats.hex} fieldId="hex" />
