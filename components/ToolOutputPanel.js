@@ -1413,7 +1413,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   }
                 }}
               >
-                {copiedField === 'paletteSVG' ? '✓ Copied!' : '🖼️ SVG'}
+                {copiedField === 'paletteSVG' ? '✓ Copied!' : 'SVG'}
               </button>
             </div>
             <div style={{
