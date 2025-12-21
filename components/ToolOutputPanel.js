@@ -5118,6 +5118,54 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderSqlFormatterOutput()
       case 'color-converter':
         return renderColorConverterOutput()
+      case 'svg-optimizer': {
+        const tabs = []
+        tabs.push({
+          id: 'output',
+          label: 'OPTIMIZATION ANALYSIS',
+          content: <SVGOptimizerOutput result={displayResult} />,
+          contentType: 'component'
+        })
+
+        if (displayResult?.optimizedSvg) {
+          tabs.push({
+            id: 'optimized',
+            label: 'OPTIMIZED SVG',
+            content: displayResult.optimizedSvg,
+            contentType: 'code',
+            language: 'svg'
+          })
+        }
+
+        if (displayResult?.originalSvg) {
+          tabs.push({
+            id: 'original',
+            label: 'ORIGINAL SVG',
+            content: displayResult.originalSvg,
+            contentType: 'code',
+            language: 'svg'
+          })
+        }
+
+        if (displayResult) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          })
+        }
+
+        return (
+          <OutputTabs
+            key={toolId}
+            toolCategory={toolCategory}
+            toolId={toolId}
+            tabs={tabs.length > 0 ? tabs : [{ id: 'output', label: 'OUTPUT', content: 'No output', contentType: 'text' }]}
+            showCopyButton={true}
+          />
+        )
+      }
       case 'math-evaluator': {
         if (!displayResult || typeof displayResult !== 'object') {
           return (
