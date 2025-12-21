@@ -27,7 +27,7 @@ export default function ValuePropositionCard() {
             </div>
             <div>
               <h4 className={styles.featureName}>100% Private</h4>
-              <p className={styles.featureDesc}>No data is ever sent to servers or saved</p>
+              <p className={styles.featureDesc}>No sensitive data ever touches our servers</p>
             </div>
           </div>
 
