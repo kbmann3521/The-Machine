@@ -1,5 +1,5 @@
 import React from 'react'
-import { FaShieldHalved, FaLock, FaGaugeHigh } from 'react-icons/fa6'
+import { FaShieldHalved, FaLock, FaGaugeHigh, FaUsers } from 'react-icons/fa6'
 import styles from '../styles/value-proposition-card.module.css'
 
 export default function ValuePropositionCard() {
@@ -38,6 +38,16 @@ export default function ValuePropositionCard() {
             <div>
               <h4 className={styles.featureName}>100% Predictable</h4>
               <p className={styles.featureDesc}>Results you can trust, every single time</p>
+            </div>
+          </div>
+
+          <div className={styles.feature}>
+            <div className={styles.featureIcon}>
+              <FaUsers />
+            </div>
+            <div>
+              <h4 className={styles.featureName}>Built for Everyone</h4>
+              <p className={styles.featureDesc}>Simple for everyday users, powerful for developers and engineers</p>
             </div>
           </div>
         </div>
