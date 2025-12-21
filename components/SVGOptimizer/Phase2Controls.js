@@ -43,11 +43,18 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
     : null
 
   useEffect(() => {
+    const overrides = {}
+    Object.entries(advancedConfig).forEach(([key, value]) => {
+      if (value !== false && value !== null && value !== undefined) {
+        overrides[key] = value
+      }
+    })
+
     const configToSend = {
       phase2: {
         enabled: true,
         level: selectedLevel,
-        ...advancedConfig
+        overrides: overrides
       }
     }
     onConfigChange(configToSend)
