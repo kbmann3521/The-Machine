@@ -147,14 +147,14 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
     if (selectedSuggestion) {
       const framework = configOptions.framework || 'node'
       const modeLabels = {
-        'auto-code': '📋 Direct code match',
-        'auto-log': '📋 Found in log',
-        'auto-search': '🔍 Text search match',
-        'code': '📋 Direct code match',
-        'log': '📋 Log analysis',
-        'search': '🔍 Text search'
+        'auto-code': 'Direct code match',
+        'auto-log': 'Found in log',
+        'auto-search': 'Text search match',
+        'code': 'Direct code match',
+        'log': 'Log analysis',
+        'search': 'Text search'
       }
-      const modeLabel = modeLabels['search'] || '📋 Code match'
+      const modeLabel = modeLabels['search'] || 'Code match'
 
       return (
         <div className={styles.container}>
