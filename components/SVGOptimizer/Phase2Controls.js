@@ -102,10 +102,11 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
         level: selectedLevel,
         source: phase2Source,
         overrides: memoizedAdvancedConfig
-      }
+      },
+      outputFormat
     }
     onConfigChange(configToSend)
-  }, [selectedLevel, memoizedAdvancedConfig, phase2Source, onConfigChange])
+  }, [selectedLevel, memoizedAdvancedConfig, phase2Source, outputFormat, onConfigChange])
 
   return (
     <div className={styles.phase2Controls}>
