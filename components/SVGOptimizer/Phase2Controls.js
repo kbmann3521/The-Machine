@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styles from '../../styles/svg-optimizer.module.css'
 
 const OPTIMIZATION_LEVELS = {
@@ -19,7 +19,7 @@ const OPTIMIZATION_LEVELS = {
   }
 }
 
-export default function Phase2Controls({ onOptimize, safetyFlags, isLoading, blockedReason }) {
+export default function Phase2Controls({ onConfigChange, safetyFlags }) {
   const [selectedLevel, setSelectedLevel] = useState('safe')
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [advancedConfig, setAdvancedConfig] = useState({
@@ -33,7 +33,6 @@ export default function Phase2Controls({ onOptimize, safetyFlags, isLoading, blo
     textToPathConfirmed: false
   })
 
-  // Determine if Aggressive is blocked
   const isAggressiveBlocked = safetyFlags?.hasAnimations || safetyFlags?.hasScripts || safetyFlags?.hasBrokenReferences
   const aggressiveBlockReason = safetyFlags?.hasAnimations
     ? 'Animations detected'
@@ -43,26 +42,16 @@ export default function Phase2Controls({ onOptimize, safetyFlags, isLoading, blo
     ? 'Broken ID references'
     : null
 
-  const handleOptimizeClick = () => {
-    if (selectedLevel === 'aggressive' && isAggressiveBlocked) {
-      return
-    }
-
-    const overrides = advancedConfig.decimals !== 3 ? { decimals: advancedConfig.decimals } : {}
-    Object.keys(advancedConfig).forEach((key) => {
-      if (key !== 'decimals' && typeof advancedConfig[key] === 'boolean') {
-        overrides[key] = advancedConfig[key]
+  useEffect(() => {
+    const configToSend = {
+      phase2: {
+        enabled: true,
+        level: selectedLevel,
+        ...advancedConfig
       }
-    })
-    if (advancedConfig.textHandling !== 'preserve') {
-      overrides.textHandling = advancedConfig.textHandling
     }
-    if (advancedConfig.idCleanup !== 'preserve') {
-      overrides.idCleanup = advancedConfig.idCleanup
-    }
-
-    onOptimize(selectedLevel, overrides)
-  }
+    onConfigChange(configToSend)
+  }, [selectedLevel, advancedConfig, onConfigChange])
 
   return (
     <div className={styles.phase2Controls}>
