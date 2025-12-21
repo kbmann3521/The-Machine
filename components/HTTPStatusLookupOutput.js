@@ -287,15 +287,15 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
 
   // Show info about which mode was used
   const modeLabels = {
-    'auto-code': '📋 Direct code match',
-    'auto-log': '📋 Found in log',
-    'auto-search': '🔍 Text search match',
-    'code': '📋 Direct code match',
-    'log': '📋 Log analysis',
-    'search': '🔍 Text search'
+    'auto-code': 'Direct code match',
+    'auto-log': 'Found in log',
+    'auto-search': 'Text search match',
+    'code': 'Direct code match',
+    'log': 'Log analysis',
+    'search': 'Text search'
   }
 
-  const modeLabel = modeLabels[result.modeUsed] || '📋 Code match'
+  const modeLabel = modeLabels[result.modeUsed] || 'Code match'
 
   return (
     <div className={styles.container}>
