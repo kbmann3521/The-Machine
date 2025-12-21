@@ -5119,17 +5119,29 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'color-converter':
         return renderColorConverterOutput()
       case 'svg-optimizer': {
+        const tabs = []
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: <SVGOptimizerOutput result={displayResult} />,
+          contentType: 'component'
+        })
+
+        if (displayResult) {
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          })
+        }
+
         return (
           <OutputTabs
             key={toolId}
             toolCategory={toolCategory}
             toolId={toolId}
-            tabs={[{
-              id: 'output',
-              label: 'OUTPUT',
-              content: <SVGOptimizerOutput result={displayResult} />,
-              contentType: 'component'
-            }]}
+            tabs={tabs}
             showCopyButton={false}
           />
         )
