@@ -67,6 +67,19 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
     ? 'Broken ID references'
     : null
 
+  // When level changes, reset to preset and mark as preset mode
+  const handleLevelChange = (newLevel) => {
+    setSelectedLevel(newLevel)
+    setAdvancedConfig(PHASE2_PRESETS[newLevel])
+    setPhase2Source('preset')
+  }
+
+  // When advanced option changes, mark as custom mode
+  const handleAdvancedConfigChange = (updates) => {
+    setAdvancedConfig(prev => ({ ...prev, ...updates }))
+    setPhase2Source('custom')
+  }
+
   const memoizedAdvancedConfig = useMemo(
     () => advancedConfig,
     [
@@ -86,11 +99,12 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
       phase2: {
         enabled: true,
         level: selectedLevel,
+        source: phase2Source,
         overrides: memoizedAdvancedConfig
       }
     }
     onConfigChange(configToSend)
-  }, [selectedLevel, memoizedAdvancedConfig, onConfigChange])
+  }, [selectedLevel, memoizedAdvancedConfig, phase2Source, onConfigChange])
 
   return (
     <div className={styles.phase2Controls}>
