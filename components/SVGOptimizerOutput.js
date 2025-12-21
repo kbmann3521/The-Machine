@@ -52,10 +52,20 @@ export default function SVGOptimizerOutput({ result, onJSONToggle, onPhase2Optim
     )
   }
 
-  const { stats, analysis, diff, validation, optimizationResult, potentialOptimizations, normalization } = result
+  const { stats, analysis, diff, validation, optimizationResult, potentialOptimizations, normalization, safetyFlags } = result
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Phase 2 Controls */}
+      {!result.phase2Applied && (
+        <Phase2Controls
+          onOptimize={handlePhase2Click}
+          safetyFlags={safetyFlags}
+          isLoading={phase2Loading}
+          blockedReason={phase2Error}
+        />
+      )}
+
       {/* Optimization Result Indicator */}
       {optimizationResult && (
         <div style={{
