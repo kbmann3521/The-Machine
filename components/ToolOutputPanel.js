@@ -3033,8 +3033,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (!displayResult.conversions) return null
 
+    const unitNames = {
+      'B': 'Bytes',
+      'KB': 'Kilobytes',
+      'MB': 'Megabytes',
+      'GB': 'Gigabytes',
+      'TB': 'Terabytes',
+      'PB': 'Petabytes',
+      'EB': 'Exabytes',
+      'ZB': 'Zettabytes',
+      'YB': 'Yottabytes',
+    }
+
     const conversions = displayResult.conversions.map(conv => ({
-      label: conv.unit,
+      label: `${unitNames[conv.unit] || conv.unit} (${conv.unit})`,
       value: conv.value,
       unit: conv.unit,
     }))
