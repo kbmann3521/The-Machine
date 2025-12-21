@@ -44,16 +44,6 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Phase 2 Controls */}
-      {!result.phase2Applied && (
-        <Phase2Controls
-          onOptimize={handlePhase2Click}
-          safetyFlags={safetyFlags}
-          isLoading={phase2Loading}
-          blockedReason={phase2Error}
-        />
-      )}
-
       {/* Optimization Result Indicator */}
       {optimizationResult && (
         <div style={{
