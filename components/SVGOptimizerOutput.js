@@ -451,11 +451,108 @@ export default function SVGOptimizerOutput({ result }) {
     )
   }
 
+  const renderOptimizedSVGSection = () => {
+    if (!result?.optimizedSvg) return null
+
+    const handleCopySVG = async () => {
+      try {
+        await navigator.clipboard.writeText(result.optimizedSvg)
+        setCopiedSVG(true)
+        setTimeout(() => setCopiedSVG(false), 2000)
+      } catch (err) {
+        console.error('Copy failed:', err)
+      }
+    }
+
+    return (
+      <div style={{ marginTop: '16px' }}>
+        <button
+          onClick={() => toggleSection('optimized')}
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+            border: '1px solid rgba(156, 39, 176, 0.3)',
+            borderRadius: '4px 4px 0 0',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#9c27b0',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.15)'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.1)'}
+        >
+          <span>📋 Optimized SVG Code</span>
+          {expandedSections.optimized ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
+        </button>
+
+        {expandedSections.optimized && (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(156, 39, 176, 0.05)',
+            borderRadius: '0 0 4px 4px',
+            border: '1px solid rgba(156, 39, 176, 0.2)',
+            borderTop: 'none',
+          }}>
+            <div style={{
+              marginBottom: '12px',
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}>
+              <button
+                onClick={handleCopySVG}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: '#9c27b0',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#7b1fa2'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#9c27b0'}
+              >
+                {copiedSVG ? '✓ Copied' : <FaCopy size={12} />}
+                {!copiedSVG && 'Copy SVG'}
+              </button>
+            </div>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'var(--color-background-tertiary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              fontFamily: 'monospace',
+              fontSize: '12px',
+              color: 'var(--color-text-primary)',
+              maxHeight: '400px',
+              overflowY: 'auto',
+              wordBreak: 'break-word',
+              whiteSpace: 'pre-wrap',
+            }}>
+              {result.optimizedSvg}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '0' }}>
       {renderStatsSection()}
       {renderAnalysisSection()}
       {renderChangesSection()}
+      {renderOptimizedSVGSection()}
     </div>
   )
 }
