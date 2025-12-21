@@ -39,38 +39,25 @@ export default function SVGOptimizerOutput({ result }) {
 
     return (
       <div style={{ marginBottom: '16px' }}>
-        <button
-          onClick={() => toggleSection('stats')}
-          style={{
-            width: '100%',
-            padding: '12px 16px',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            border: '1px solid rgba(76, 175, 80, 0.3)',
-            borderRadius: '4px 4px 0 0',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#4caf50',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.15)'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.1)'}
-        >
-          <span>✓ Optimization Summary</span>
-          {expandedSections.stats ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-        </button>
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          border: '1px solid rgba(76, 175, 80, 0.3)',
+          borderRadius: '4px 4px 0 0',
+          fontSize: '13px',
+          fontWeight: '600',
+          color: '#4caf50',
+        }}>
+          ✓ Optimization Summary
+        </div>
 
-        {expandedSections.stats && (
-          <div style={{
-            padding: '16px',
-            backgroundColor: 'rgba(76, 175, 80, 0.05)',
-            borderRadius: '0 0 4px 4px',
-            border: '1px solid rgba(76, 175, 80, 0.2)',
-            borderTop: 'none',
-          }}>
+        <div style={{
+          padding: '16px',
+          backgroundColor: 'rgba(76, 175, 80, 0.05)',
+          borderRadius: '0 0 4px 4px',
+          border: '1px solid rgba(76, 175, 80, 0.2)',
+          borderTop: 'none',
+        }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div className={styles.statCard}>
                 <span className={styles.statLabel}>Original Size</span>
