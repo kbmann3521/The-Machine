@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0;
+  width: 100%;
 }
 
 .placeholder {
@@ -11,35 +11,38 @@
   justify-content: center;
   min-height: 200px;
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: 14px;
   text-align: center;
   padding: 32px 16px;
 }
 
-/* Result Card */
-.resultCard {
+/* Result Container */
+.resultContainer {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* Header */
-.resultHeader {
+/* Header Section */
+.headerSection {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(100, 108, 255, 0.05) 100%);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
 }
 
-.resultPrimary,
-.resultSecondary {
+.headerPrimary,
+.headerSecondary {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.resultLabel {
+.headerLabel {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -47,46 +50,22 @@
   color: var(--color-text-secondary);
 }
 
-.resultValue {
-  font-size: 16px;
+.headerValue {
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-text-primary);
   word-break: break-all;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: #2196f3;
 }
 
-/* Quick Copy */
-.quickCopy {
-  display: flex;
-  gap: 8px;
+/* Copy Section */
+.copySection {
+  padding: 12px 0;
 }
 
-.quickCopyButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: var(--color-background-secondary);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.quickCopyButton:hover {
-  background-color: var(--color-background-tertiary);
-  border-color: var(--color-text-secondary);
-}
-
-.quickCopyButton:active {
-  opacity: 0.8;
-}
-
-/* Badges & Flags */
-.flags {
+/* Badges Section */
+.badgesSection {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -97,8 +76,8 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
   border: 1px solid;
@@ -164,144 +143,79 @@
   border-color: rgba(33, 150, 243, 0.2);
 }
 
-/* Content */
-.content {
+/* Sections */
+.descriptionSection,
+.infoSection,
+.securitySection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
-.description {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
-  background-color: var(--color-background-secondary);
-  border-left: 3px solid #2196f3;
-  border-radius: 4px;
-}
-
-.descriptionIcon {
-  color: #2196f3;
-  flex-shrink: 0;
-  margin-top: 2px;
-  font-size: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.description > span:last-child {
-  font-size: 13px;
-  color: var(--color-text-primary);
-  line-height: 1.5;
-}
-
-/* Metadata Grid */
-.metadataGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px 16px;
-  background-color: var(--color-background-secondary);
-  border-radius: 4px;
-}
-
-.metadataRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.metadataLabel {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  min-width: 140px;
+.sectionTitle {
+  margin: 0;
+  padding: 0;
   font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.metadataValue {
-  color: var(--color-text-primary);
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.metadataValues {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: var(--color-background-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: 600;
   color: var(--color-text-secondary);
-}
-
-/* Sections */
-.section {
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.sectionToggle {
-  width: 100%;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background-color: var(--color-background-secondary);
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  font-size: 13px;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.sectionToggle:hover {
-  background-color: var(--color-background-tertiary);
-}
-
-.sectionToggle svg {
-  color: #2196f3;
-}
-
-.sectionToggle span:first-child {
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sectionToggle span:last-child {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  font-size: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .sectionContent {
-  padding: 12px 16px;
-  background-color: var(--color-background-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
 }
 
-/* Security Notes */
-.securityNotes {
+.descriptionText {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+/* Info Section */
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--color-background-secondary);
+  border-radius: 4px;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.infoValues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.infoTag {
+  display: inline-flex;
+  padding: 4px 8px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* Security Section */
+.securityList {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -310,111 +224,63 @@
   gap: 10px;
 }
 
-.securityNote {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  color: var(--color-text-primary);
+.securityItem {
+  padding: 10px 12px;
+  background-color: var(--color-background-secondary);
+  border-left: 3px solid #f44336;
+  border-radius: 4px;
   font-size: 12px;
   line-height: 1.6;
-}
-
-.securityIcon {
-  flex-shrink: 0;
-  display: inline-flex;
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-/* Applications */
-.applications {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.appTag {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  background-color: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  font-size: 12px;
-  font-weight: 500;
   color: var(--color-text-primary);
 }
 
-/* Copy Button */
-.copyButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  background-color: var(--color-background-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  font-size: 11px;
-}
-
-.copyButton:hover {
-  background-color: var(--color-background-secondary);
-  color: var(--color-text-primary);
-}
-
-.copyButton:active {
-  opacity: 0.8;
-}
-
-/* Error & Not Found */
+/* Error & Not Found Cards */
 .errorCard,
 .notFoundCard {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   gap: 12px;
-  padding: 32px 16px;
-  border-radius: 4px;
-  text-align: center;
+  padding: 24px;
+  border-radius: 6px;
   border: 1px solid var(--color-border);
+  background-color: var(--color-background-secondary);
 }
 
 .errorCard {
-  background-color: rgba(239, 83, 80, 0.05);
   border-color: rgba(239, 83, 80, 0.2);
+  background-color: rgba(239, 83, 80, 0.05);
 }
 
 .notFoundCard {
-  background-color: rgba(251, 188, 4, 0.05);
   border-color: rgba(251, 188, 4, 0.2);
+  background-color: rgba(251, 188, 4, 0.05);
 }
 
-.errorIcon,
-.notFoundIcon {
-  font-size: 32px;
+.errorIcon {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f44336;
+  text-transform: uppercase;
 }
 
-.errorText,
-.notFoundText {
+.errorText {
   color: var(--color-text-primary);
   font-size: 13px;
-  max-width: 400px;
+  line-height: 1.5;
+}
+
+.notFoundTitle {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 13px;
 }
 
 /* Suggestions */
 .suggestions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   margin-top: 12px;
-  width: 100%;
 }
 
 .suggestionsTitle {
@@ -422,7 +288,7 @@
   color: var(--color-text-secondary);
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .suggestion {
@@ -438,8 +304,8 @@
 }
 
 .suggestion:hover {
-  background-color: var(--color-background-tertiary);
   border-color: #2196f3;
+  background-color: var(--color-background-tertiary);
 }
 
 .suggestionExt {
@@ -512,26 +378,22 @@
 
 .tableInput {
   font-weight: 600;
-  color: var(--color-text-primary);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
 .tableMime {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .resultHeader {
+  .headerSection {
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  .resultValue {
-    font-size: 14px;
+  .headerValue {
+    font-size: 16px;
   }
 
   .bulkTable th,
@@ -539,22 +401,10 @@
     padding: 8px 10px;
     font-size: 11px;
   }
-
-  .metadataRow {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .metadataLabel {
-    min-width: auto;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .quickCopyButton,
-  .copyButton,
-  .suggestion,
-  .sectionToggle {
+  .suggestion {
     transition: none;
   }
 }
