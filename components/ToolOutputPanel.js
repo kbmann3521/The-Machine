@@ -28,8 +28,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [cronRunsToLoad, setCronRunsToLoad] = useState(5)
-  const [phase2Loading, setPhase2Loading] = useState(false)
-
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
@@ -133,30 +131,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setPreviousToolkitSection(activeToolkitSection)
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
-
-  // Phase 2 Optimization Handler for SVG Optimizer
-  const handlePhase2Optimize = async (level, overrides) => {
-    if (!result) return
-    setPhase2Loading(true)
-    try {
-      // Import runTool dynamically to call Phase 2
-      const { runTool } = await import('../lib/tools')
-      const phase2Config = {
-        phase2: {
-          enabled: true,
-          level,
-          overrides
-        }
-      }
-      const phase2Result = await runTool('svg-optimizer', inputText, phase2Config)
-      // Merge Phase 2 result with existing result
-      setPreviousResult(phase2Result)
-    } catch (error) {
-      console.error('Phase 2 optimization error:', error)
-    } finally {
-      setPhase2Loading(false)
-    }
-  }
 
   // Special handling for image-toolkit - show OutputTabs even when empty
   if (toolId === 'image-toolkit') {
@@ -5148,7 +5122,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         tabs.push({
           id: 'output',
           label: 'OUTPUT',
-          content: <SVGOptimizerOutput result={displayResult} onPhase2Optimize={handlePhase2Optimize} />,
+          content: <SVGOptimizerOutput result={displayResult} />,
           contentType: 'component'
         })
 
