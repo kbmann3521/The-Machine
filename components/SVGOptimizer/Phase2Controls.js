@@ -51,7 +51,8 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
       }
     }
     onConfigChange(configToSend)
-  }, [selectedLevel, advancedConfig, onConfigChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLevel, JSON.stringify(advancedConfig), onConfigChange])
 
   return (
     <div className={styles.phase2Controls}>
