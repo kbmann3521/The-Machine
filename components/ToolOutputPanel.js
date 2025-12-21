@@ -5117,34 +5117,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderSqlFormatterOutput()
       case 'color-converter':
         return renderColorConverterOutput()
-      case 'svg-optimizer': {
-        const tabs = []
-        tabs.push({
-          id: 'output',
-          label: 'OUTPUT',
-          content: <SVGOptimizerOutput result={displayResult} config={configOptions} />,
-          contentType: 'component'
-        })
-
-        if (displayResult) {
-          tabs.push({
-            id: 'json',
-            label: 'JSON',
-            content: JSON.stringify(displayResult, null, 2),
-            contentType: 'json'
-          })
-        }
-
-        return (
-          <OutputTabs
-            key={toolId}
-            toolCategory={toolCategory}
-            toolId={toolId}
-            tabs={tabs}
-            showCopyButton={true}
-          />
-        )
-      }
+      case 'svg-optimizer':
+        return renderSvgOptimizerOutput()
       case 'math-evaluator': {
         if (!displayResult || typeof displayResult !== 'object') {
           return (
