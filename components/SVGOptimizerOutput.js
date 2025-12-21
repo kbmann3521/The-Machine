@@ -386,6 +386,48 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
               </div>
             )}
 
+            {/* Viewport Metadata */}
+            {analysis.viewport && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(33, 150, 243, 0.2)' }}>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '8px',
+                }}>
+                  Viewport
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
+                  <div>{analysis.viewport.hasViewBox ? '✓' : '✗'} ViewBox {analysis.viewport.viewBox ? `"${analysis.viewport.viewBox}"` : 'missing'}</div>
+                  <div>{analysis.viewport.hasWidth ? '✓' : '✗'} Width {analysis.viewport.width ? `"${analysis.viewport.width}"` : 'not set'}</div>
+                  <div>{analysis.viewport.hasHeight ? '✓' : '✗'} Height {analysis.viewport.height ? `"${analysis.viewport.height}"` : 'not set'}</div>
+                </div>
+              </div>
+            )}
+
+            {/* References */}
+            {analysis.references && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(33, 150, 243, 0.2)' }}>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '8px',
+                }}>
+                  ID References
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
+                  <div>IDs defined: <strong>{analysis.references.idsDefined.length}</strong></div>
+                  <div>IDs referenced: <strong>{analysis.references.idsReferenced.length}</strong></div>
+                  {analysis.references.brokenReferences.length > 0 && (
+                    <div style={{ color: '#ff9800', marginTop: '4px' }}>
+                      ⚠ Broken references: {analysis.references.brokenReferences.join(', ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Warnings */}
             {analysis.warnings && analysis.warnings.length > 0 && (
               <div style={{
