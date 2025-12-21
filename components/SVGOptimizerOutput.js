@@ -90,7 +90,7 @@ export default function SVGOptimizerOutput({ result, config, onJSONToggle }) {
 
   const handleCopySVG = async () => {
     try {
-      await navigator.clipboard.writeText(result.optimizedSvg)
+      await navigator.clipboard.writeText(formattedSvg)
       setCopiedSVG(true)
       setTimeout(() => setCopiedSVG(false), 2000)
     } catch (err) {
