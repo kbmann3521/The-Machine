@@ -162,7 +162,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                 <input
                   type="checkbox"
                   checked={advancedConfig.attributeCleanup}
-                  onChange={(e) => setAdvancedConfig({ ...advancedConfig, attributeCleanup: e.target.checked })}
+                  onChange={(e) => handleAdvancedConfigChange({ attributeCleanup: e.target.checked })}
                 />
                 Attribute Cleanup
               </label>
@@ -174,7 +174,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                 <input
                   type="checkbox"
                   checked={advancedConfig.precisionReduction}
-                  onChange={(e) => setAdvancedConfig({ ...advancedConfig, precisionReduction: e.target.checked })}
+                  onChange={(e) => handleAdvancedConfigChange({ precisionReduction: e.target.checked })}
                 />
                 Precision Reduction
               </label>
@@ -187,7 +187,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                       min="0"
                       max="6"
                       value={advancedConfig.decimals}
-                      onChange={(e) => setAdvancedConfig({ ...advancedConfig, decimals: parseInt(e.target.value) })}
+                      onChange={(e) => handleAdvancedConfigChange({ decimals: parseInt(e.target.value) })}
                       className={styles.phase2Slider}
                     />
                   </label>
@@ -201,7 +201,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                 <input
                   type="checkbox"
                   checked={advancedConfig.shapeConversion}
-                  onChange={(e) => setAdvancedConfig({ ...advancedConfig, shapeConversion: e.target.checked })}
+                  onChange={(e) => handleAdvancedConfigChange({ shapeConversion: e.target.checked })}
                 />
                 Shape Conversion
               </label>
@@ -213,7 +213,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                 <input
                   type="checkbox"
                   checked={advancedConfig.pathMerging}
-                  onChange={(e) => setAdvancedConfig({ ...advancedConfig, pathMerging: e.target.checked })}
+                  onChange={(e) => handleAdvancedConfigChange({ pathMerging: e.target.checked })}
                   disabled={!advancedConfig.shapeConversion}
                 />
                 Path Merging
@@ -225,7 +225,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
               <label className={styles.phase2Label}>ID Cleanup Mode</label>
               <select
                 value={advancedConfig.idCleanup}
-                onChange={(e) => setAdvancedConfig({ ...advancedConfig, idCleanup: e.target.value })}
+                onChange={(e) => handleAdvancedConfigChange({ idCleanup: e.target.value })}
                 className={styles.phase2Select}
               >
                 <option value="preserve">Preserve All IDs</option>
@@ -239,7 +239,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
               <label className={styles.phase2Label}>Text Handling</label>
               <select
                 value={advancedConfig.textHandling}
-                onChange={(e) => setAdvancedConfig({ ...advancedConfig, textHandling: e.target.value, textToPathConfirmed: false })}
+                onChange={(e) => handleAdvancedConfigChange({ textHandling: e.target.value, textToPathConfirmed: false })}
                 className={styles.phase2Select}
               >
                 <option value="preserve">Preserve Text</option>
@@ -253,7 +253,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                     <input
                       type="checkbox"
                       checked={advancedConfig.textToPathConfirmed}
-                      onChange={(e) => setAdvancedConfig({ ...advancedConfig, textToPathConfirmed: e.target.checked })}
+                      onChange={(e) => handleAdvancedConfigChange({ textToPathConfirmed: e.target.checked })}
                     />
                     <span style={{ color: '#ff9800' }}>I understand this is irreversible and may reduce accessibility</span>
                   </label>
