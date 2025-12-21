@@ -5148,7 +5148,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         tabs.push({
           id: 'output',
           label: 'OUTPUT',
-          content: <SVGOptimizerOutput result={displayResult} />,
+          content: <SVGOptimizerOutput result={displayResult} onPhase2Optimize={handlePhase2Optimize} />,
           contentType: 'component'
         })
 
