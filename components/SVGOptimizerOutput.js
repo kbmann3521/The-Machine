@@ -43,7 +43,7 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
   const { stats, analysis, diff, validation, optimizationResult, potentialOptimizations, normalization, safetyFlags } = result
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Optimization Result Indicator */}
       {optimizationResult && (
         <div style={{
