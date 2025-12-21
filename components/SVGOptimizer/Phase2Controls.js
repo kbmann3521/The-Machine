@@ -212,28 +212,9 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
         )}
       </div>
 
-      {/* Optimize Button */}
-      <button
-        onClick={handleOptimizeClick}
-        disabled={
-          isLoading ||
-          (selectedLevel === 'aggressive' && isAggressiveBlocked) ||
-          (advancedConfig.textHandling === 'convert-to-path' && !advancedConfig.textToPathConfirmed)
-        }
-        className={styles.phase2OptimizeButton}
-      >
-        {isLoading ? 'Optimizing...' : 'Optimize'}
-      </button>
-
       {selectedLevel === 'aggressive' && isAggressiveBlocked && (
         <div className={styles.phase2BlockedMessage}>
           <strong>Aggressive mode blocked:</strong> {aggressiveBlockReason}. This SVG contains features that may be affected by aggressive optimization.
-        </div>
-      )}
-
-      {blockedReason && (
-        <div className={styles.phase2ErrorMessage}>
-          <strong>Optimization blocked:</strong> {blockedReason}
         </div>
       )}
     </div>
