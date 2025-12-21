@@ -40,10 +40,45 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
     )
   }
 
-  const { stats, analysis, diff } = result
+  const { stats, analysis, diff, validation, optimizationResult, potentialOptimizations } = result
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Optimization Result Indicator */}
+      {optimizationResult && (
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: optimizationResult === 'changes_applied' ? 'rgba(76, 175, 80, 0.1)' : optimizationResult === 'no_changes' ? 'rgba(33, 150, 243, 0.1)' : 'rgba(255, 152, 0, 0.1)',
+          border: optimizationResult === 'changes_applied' ? '1px solid rgba(76, 175, 80, 0.3)' : optimizationResult === 'no_changes' ? '1px solid rgba(33, 150, 243, 0.3)' : '1px solid rgba(255, 152, 0, 0.3)',
+          borderRadius: '4px',
+          fontSize: '13px',
+          fontWeight: '600',
+          color: optimizationResult === 'changes_applied' ? '#4caf50' : optimizationResult === 'no_changes' ? '#2196f3' : '#ff9800'
+        }}>
+          {optimizationResult === 'changes_applied' && '✓ Optimizations Applied'}
+          {optimizationResult === 'no_changes' && 'ℹ No Optimizations Needed'}
+          {optimizationResult === 'normalization_only' && 'ℹ Normalization Only (whitespace/formatting)'}
+          {optimizationResult === 'invalid_svg' && '✗ Invalid SVG'}
+        </div>
+      )}
+
+      {/* Validation Warnings */}
+      {validation?.warnings && validation.warnings.length > 0 && (
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: 'rgba(255, 193, 7, 0.1)',
+          border: '1px solid rgba(255, 193, 7, 0.3)',
+          borderRadius: '4px',
+          fontSize: '12px',
+          color: '#ffc107'
+        }}>
+          <div style={{ fontWeight: '600', marginBottom: '8px' }}>⚠ Validation Warnings</div>
+          {validation.warnings.map((w, idx) => (
+            <div key={idx} style={{ marginBottom: '4px', fontSize: '11px' }}>• {w}</div>
+          ))}
+        </div>
+      )}
+
       {/* Optimized SVG Code - TOP SECTION */}
       {result?.optimizedSvg && (
         <div>
