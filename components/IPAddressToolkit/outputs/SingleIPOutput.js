@@ -983,8 +983,7 @@ export default function SingleIPOutput({ result, detectedInput }) {
                 }}
               >
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '14px', flexShrink: 0 }}>{config.icon}</span>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, textAlign: 'left' }}>
                     <strong style={{ color: config.color, display: 'block', marginBottom: '2px' }}>
                       {issue.code}
                     </strong>
