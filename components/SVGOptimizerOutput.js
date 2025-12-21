@@ -3,21 +3,8 @@ import { FaCopy, FaChevronDown, FaChevronUp } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 
 export default function SVGOptimizerOutput({ result }) {
-  const [expandedSections, setExpandedSections] = useState({
-    stats: true,
-    analysis: false,
-    changes: false,
-    optimized: false,
-  })
   const [copiedField, setCopiedField] = useState(null)
   const [copiedSVG, setCopiedSVG] = useState(false)
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }))
-  }
 
   const handleCopyField = async (value, fieldName) => {
     try {
