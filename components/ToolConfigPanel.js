@@ -561,6 +561,13 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         </div>
       )}
 
+      {tool.toolId === 'svg-optimizer' && (
+        <Phase2Controls
+          onConfigChange={onConfigChange}
+          safetyFlags={result?.safetyFlags}
+        />
+      )}
+
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
         <div>
           {tool.toolId === 'regex-tester' && (
