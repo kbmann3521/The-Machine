@@ -232,7 +232,7 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
 
           {selectedSuggestion.devNotes && (
             <div className={styles.devNotesSection}>
-              <SectionTitle>💡 Dev Notes</SectionTitle>
+              <SectionTitle>Dev Notes</SectionTitle>
               <SectionContent>
                 <p className={styles.devNotesText}>{selectedSuggestion.devNotes}</p>
               </SectionContent>
