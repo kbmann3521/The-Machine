@@ -357,7 +357,7 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
       {/* Dev Notes */}
       {primaryCode.devNotes && (
         <div className={styles.devNotesSection}>
-          <SectionTitle>💡 Dev Notes</SectionTitle>
+          <SectionTitle>Dev Notes</SectionTitle>
           <SectionContent>
             <p className={styles.devNotesText}>{primaryCode.devNotes}</p>
           </SectionContent>
