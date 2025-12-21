@@ -286,26 +286,29 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
             )}
 
             {/* Features detected */}
-            <div style={{ marginBottom: '16px', paddingTop: '16px', borderTop: '1px solid rgba(33, 150, 243, 0.2)' }}>
-              <div style={{
-                fontSize: '12px',
-                fontWeight: '600',
-                color: 'var(--color-text-secondary)',
-                marginBottom: '8px',
-              }}>
-                Features Detected
+            {analysis.features && (
+              <div style={{ marginBottom: '16px', paddingTop: '16px', borderTop: '1px solid rgba(33, 150, 243, 0.2)' }}>
+                <div style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: '8px',
+                }}>
+                  Features Detected
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {analysis.features.usesDefs && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Definitions (&lt;defs&gt;)</div>}
+                  {analysis.features.usesText && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Text Elements</div>}
+                  {analysis.features.usesMasks && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Masks</div>}
+                  {analysis.features.usesFilters && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Filters</div>}
+                  {analysis.features.usesGradients && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Gradients</div>}
+                  {analysis.features.usesPatterns && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Patterns</div>}
+                  {!Object.values(analysis.features).some(v => v) && (
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>No special features detected</div>
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {analysis.hasDefs && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ SVG Definitions (&lt;defs&gt;)</div>}
-                {analysis.hasText && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Text Elements</div>}
-                {analysis.hasMask && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Masks</div>}
-                {analysis.hasFilter && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Filters</div>}
-                {analysis.hasUse && <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>✓ Use Elements</div>}
-                {!analysis.hasDefs && !analysis.hasText && !analysis.hasMask && !analysis.hasFilter && !analysis.hasUse && (
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>No special features detected</div>
-                )}
-              </div>
-            </div>
+            )}
 
             {/* IDs */}
             {analysis.ids && analysis.ids.length > 0 && (
