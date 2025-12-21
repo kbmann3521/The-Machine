@@ -1,10 +1,92 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 
-export default function SVGOptimizerOutput({ result, onJSONToggle }) {
+function formatSVGOutput(svg, format = 'compact') {
+  if (format === 'compact') {
+    return svg.replace(/\n\s*/g, '').trim()
+  } else if (format === 'pretty') {
+    let formatted = svg
+    let indent = 0
+    const indentStr = '  '
+
+    formatted = formatted
+      .replace(/>\s*</g, '>\n<')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    let result = ''
+    let inText = false
+    let tagBuffer = ''
+
+    for (let i = 0; i < formatted.length; i++) {
+      const char = formatted[i]
+
+      if (char === '<' && !inText) {
+        if (tagBuffer) {
+          result += tagBuffer
+          tagBuffer = ''
+        }
+
+        const endTag = formatted.substring(i, i + 2) === '</'
+        const selfClosing = formatted.substring(i).match(/^<[^>]*\/>/)
+
+        if (endTag) indent--
+
+        if (result && !result.endsWith('\n')) {
+          result += '\n'
+        }
+
+        result += indentStr.repeat(Math.max(0, indent))
+        tagBuffer = '<'
+      } else if (char === '>' && !inText) {
+        tagBuffer += char
+        result += tagBuffer
+        tagBuffer = ''
+
+        const isTextStart = /^<text\b/.test(formatted.substring(i - 4))
+        const isSelfClosing = formatted.substring(i - 1, i) === '/'
+        const isClosing = formatted.substring(i - 1, i) === '</'
+
+        if (isTextStart) inText = true
+
+        if (!isClosing && !isSelfClosing) {
+          const tagName = formatted.substring(formatted.lastIndexOf('<', i), i + 1).match(/<(\w+)/)?.[1]
+          if (!['circle', 'rect', 'ellipse', 'path', 'line', 'polygon', 'image'].includes(tagName)) {
+            indent++
+          }
+        }
+
+        result += '\n'
+      } else if (char === '>' && inText) {
+        tagBuffer += char
+        if (/<\/text>/.test(tagBuffer)) {
+          inText = false
+        }
+        result += tagBuffer
+        tagBuffer = ''
+      } else {
+        tagBuffer += char
+      }
+    }
+
+    if (tagBuffer) result += tagBuffer
+
+    return result.replace(/\n\s*\n/g, '\n').trim()
+  }
+
+  return svg
+}
+
+export default function SVGOptimizerOutput({ result, config, onJSONToggle }) {
   const [copiedSVG, setCopiedSVG] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
+
+  const outputFormat = config?.outputFormat || 'compact'
+  const formattedSvg = useMemo(() => {
+    if (!result?.optimizedSvg) return ''
+    return formatSVGOutput(result.optimizedSvg, outputFormat)
+  }, [result?.optimizedSvg, outputFormat])
 
   const handleCopySVG = async () => {
     try {
