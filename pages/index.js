@@ -479,7 +479,10 @@ export default function Home(props) {
 
   const handleConfigChange = useCallback(
     (newConfig) => {
-      setConfigOptions(newConfig)
+      setConfigOptions(prevConfig => ({
+        ...prevConfig,
+        ...newConfig
+      }))
     },
     []
   )
