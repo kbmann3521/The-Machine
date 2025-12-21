@@ -19,10 +19,8 @@ const OPTIMIZATION_LEVELS = {
   }
 }
 
-export default function Phase2Controls({ onConfigChange, safetyFlags }) {
-  const [selectedLevel, setSelectedLevel] = useState('safe')
-  const [showAdvanced, setShowAdvanced] = useState(false)
-  const [advancedConfig, setAdvancedConfig] = useState({
+const PHASE2_PRESETS = {
+  safe: {
     attributeCleanup: true,
     precisionReduction: false,
     decimals: 3,
@@ -31,7 +29,34 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
     idCleanup: 'preserve',
     textHandling: 'preserve',
     textToPathConfirmed: false
-  })
+  },
+  balanced: {
+    attributeCleanup: true,
+    precisionReduction: true,
+    decimals: 3,
+    shapeConversion: true,
+    pathMerging: false,
+    idCleanup: 'remove-unused',
+    textHandling: 'preserve',
+    textToPathConfirmed: false
+  },
+  aggressive: {
+    attributeCleanup: true,
+    precisionReduction: true,
+    decimals: 2,
+    shapeConversion: true,
+    pathMerging: true,
+    idCleanup: 'minify',
+    textHandling: 'preserve',
+    textToPathConfirmed: false
+  }
+}
+
+export default function Phase2Controls({ onConfigChange, safetyFlags }) {
+  const [selectedLevel, setSelectedLevel] = useState('safe')
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [phase2Source, setPhase2Source] = useState('preset')
+  const [advancedConfig, setAdvancedConfig] = useState(PHASE2_PRESETS.safe)
 
   const isAggressiveBlocked = safetyFlags?.hasAnimations || safetyFlags?.hasScripts || safetyFlags?.hasBrokenReferences
   const aggressiveBlockReason = safetyFlags?.hasAnimations
