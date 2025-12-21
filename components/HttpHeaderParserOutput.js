@@ -830,7 +830,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {cacheSimulation && (
-        <StatusSection title="Cache Behavior Simulation" icon="🔄">
+        <StatusSection title="Cache Behavior Simulation" icon="">
           <div className={styles.cacheSimGrid}>
             <div className={styles.cacheSimCard}>
               <div className={styles.cacheSimTitle}>Browser Cache</div>
