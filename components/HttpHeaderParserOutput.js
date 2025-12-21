@@ -700,7 +700,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.http2Compatibility && analysis.http2Compatibility.length > 0 && (
-        <StatusSection title="HTTP/2 Compatibility" icon="⚡">
+        <StatusSection title="HTTP/2 Compatibility" icon="">
           <div className={styles.compatibilityList}>
             {analysis.http2Compatibility.map((issue, idx) => (
               <div key={idx} className={`${styles.compatibilityItem} ${styles[`compat-${issue.level}`]}`}>
