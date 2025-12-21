@@ -7,8 +7,10 @@ export default function SVGOptimizerOutput({ result }) {
     stats: true,
     analysis: false,
     changes: false,
+    optimized: false,
   })
   const [copiedField, setCopiedField] = useState(null)
+  const [copiedSVG, setCopiedSVG] = useState(false)
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
