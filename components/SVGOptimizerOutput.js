@@ -348,7 +348,7 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
             )}
 
             {/* Fonts */}
-            {analysis.fonts && analysis.fonts.length > 0 && (
+            {analysis.fonts && (analysis.fonts.detected.length > 0 || analysis.fonts.implicit) && (
               <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(33, 150, 243, 0.2)' }}>
                 <div style={{
                   fontSize: '12px',
@@ -356,22 +356,33 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
                   color: 'var(--color-text-secondary)',
                   marginBottom: '8px',
                 }}>
-                  Fonts Used
+                  Fonts
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {analysis.fonts.map((font, idx) => (
-                    <span key={idx} style={{
-                      padding: '4px 8px',
-                      backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                      border: '1px solid rgba(156, 39, 176, 0.3)',
-                      borderRadius: '3px',
-                      fontSize: '11px',
-                      color: '#9c27b0'
-                    }}>
-                      {font}
-                    </span>
-                  ))}
-                </div>
+                {analysis.fonts.detected.length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: analysis.fonts.implicit ? '12px' : '0' }}>
+                    {analysis.fonts.detected.map((font, idx) => (
+                      <span key={idx} style={{
+                        padding: '4px 8px',
+                        backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                        border: '1px solid rgba(156, 39, 176, 0.3)',
+                        borderRadius: '3px',
+                        fontSize: '11px',
+                        color: '#9c27b0'
+                      }}>
+                        {font}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {analysis.fonts.implicit && (
+                  <div style={{
+                    fontSize: '11px',
+                    color: 'var(--color-text-secondary)',
+                    fontStyle: 'italic'
+                  }}>
+                    ℹ Implicit font: Text elements without explicit font-family attribute
+                  </div>
+                )}
               </div>
             )}
 
