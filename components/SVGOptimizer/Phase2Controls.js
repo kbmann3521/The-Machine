@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import styles from '../../styles/svg-optimizer.module.css'
 
 const OPTIMIZATION_LEVELS = {
