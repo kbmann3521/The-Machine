@@ -1,10 +1,20 @@
 import { useState } from 'react'
-import { FaCopy, FaChevronDown, FaChevronUp } from 'react-icons/fa6'
+import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
 
-export default function SVGOptimizerOutput({ result }) {
-  const [copiedField, setCopiedField] = useState(null)
+export default function SVGOptimizerOutput({ result, onJSONToggle }) {
   const [copiedSVG, setCopiedSVG] = useState(false)
+  const [copiedField, setCopiedField] = useState(null)
+
+  const handleCopySVG = async () => {
+    try {
+      await navigator.clipboard.writeText(result.optimizedSvg)
+      setCopiedSVG(true)
+      setTimeout(() => setCopiedSVG(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+  }
 
   const handleCopyField = async (value, fieldName) => {
     try {
@@ -32,32 +42,87 @@ export default function SVGOptimizerOutput({ result }) {
 
   const { stats, analysis, diff } = result
 
-  const renderStatsSection = () => {
-    if (!stats) return null
-
-    const bytesText = stats.bytesRemoved > 0 ? `${stats.bytesRemoved} bytes` : '0 bytes'
-
-    return (
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{
-          padding: '12px 16px',
-          backgroundColor: 'rgba(76, 175, 80, 0.1)',
-          border: '1px solid rgba(76, 175, 80, 0.3)',
-          borderRadius: '4px 4px 0 0',
-          fontSize: '13px',
-          fontWeight: '600',
-          color: '#4caf50',
-        }}>
-          ✓ Optimization Summary
+  return (
+    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Optimized SVG Code - TOP SECTION */}
+      {result?.optimizedSvg && (
+        <div>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+            border: '1px solid rgba(156, 39, 176, 0.3)',
+            borderRadius: '4px 4px 0 0',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#9c27b0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <span>📋 Optimized SVG Code</span>
+            <button
+              onClick={handleCopySVG}
+              style={{
+                padding: '4px 12px',
+                backgroundColor: '#9c27b0',
+                color: 'white',
+                border: 'none',
+                borderRadius: '3px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#7b1fa2'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#9c27b0'}
+            >
+              {copiedSVG ? '✓ Copied' : <FaCopy size={11} />}
+              {!copiedSVG && 'Copy'}
+            </button>
+          </div>
+          <div style={{
+            padding: '12px',
+            backgroundColor: 'rgba(156, 39, 176, 0.05)',
+            border: '1px solid rgba(156, 39, 176, 0.2)',
+            borderRadius: '0 0 4px 4px',
+            fontFamily: 'monospace',
+            fontSize: '11px',
+            color: 'var(--color-text-primary)',
+            maxHeight: '300px',
+            overflowY: 'auto',
+            wordBreak: 'break-word',
+            whiteSpace: 'pre-wrap',
+            backgroundColor: 'var(--color-background-tertiary)',
+          }}>
+            {result.optimizedSvg}
+          </div>
         </div>
+      )}
 
-        <div style={{
-          padding: '16px',
-          backgroundColor: 'rgba(76, 175, 80, 0.05)',
-          borderRadius: '0 0 4px 4px',
-          border: '1px solid rgba(76, 175, 80, 0.2)',
-          borderTop: 'none',
-        }}>
+      {/* Optimization Stats */}
+      {stats && (
+        <div>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            border: '1px solid rgba(76, 175, 80, 0.3)',
+            borderRadius: '4px 4px 0 0',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#4caf50',
+          }}>
+            ✓ Optimization Summary
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(76, 175, 80, 0.05)',
+            borderRadius: '0 0 4px 4px',
+            border: '1px solid rgba(76, 175, 80, 0.2)',
+            borderTop: 'none',
+          }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div className={styles.statCard}>
                 <span className={styles.statLabel}>Original Size</span>
@@ -73,7 +138,7 @@ export default function SVGOptimizerOutput({ result }) {
               </div>
               <div className={styles.statCard}>
                 <span className={styles.statLabel}>Bytes Removed</span>
-                <span className={styles.statValue}>{bytesText}</span>
+                <span className={styles.statValue}>{stats.bytesRemoved > 0 ? `${stats.bytesRemoved} bytes` : '0 bytes'}</span>
               </div>
             </div>
 
@@ -99,41 +164,23 @@ export default function SVGOptimizerOutput({ result }) {
               </div>
             )}
           </div>
-        )}
-      </div>
-    )
-  }
+        </div>
+      )}
 
-  const renderAnalysisSection = () => {
-    if (!analysis) return null
-
-    return (
-      <div style={{ marginBottom: '16px' }}>
-        <button
-          onClick={() => toggleSection('analysis')}
-          style={{
-            width: '100%',
+      {/* SVG Structural Analysis */}
+      {analysis && (
+        <div>
+          <div style={{
             padding: '12px 16px',
             backgroundColor: 'rgba(33, 150, 243, 0.1)',
             border: '1px solid rgba(33, 150, 243, 0.3)',
             borderRadius: '4px 4px 0 0',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
             fontSize: '13px',
             fontWeight: '600',
             color: '#2196f3',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.15)'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.1)'}
-        >
-          <span>📊 SVG Structural Analysis</span>
-          {expandedSections.analysis ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-        </button>
-
-        {expandedSections.analysis && (
+          }}>
+            📊 SVG Structural Analysis
+          </div>
           <div style={{
             padding: '16px',
             backgroundColor: 'rgba(33, 150, 243, 0.05)',
@@ -298,45 +345,24 @@ export default function SVGOptimizerOutput({ result }) {
               </div>
             )}
           </div>
-        )}
-      </div>
-    )
-  }
+        </div>
+      )}
 
-  const renderChangesSection = () => {
-    if (!diff) return null
-
-    const hasChanges = (diff.removedAttributes?.length > 0) || (diff.removedElements?.length > 0) || (diff.precisionChanges?.length > 0)
-
-    if (!hasChanges) return null
-
-    return (
-      <div style={{ marginBottom: '16px' }}>
-        <button
-          onClick={() => toggleSection('changes')}
-          style={{
-            width: '100%',
+      {/* Change Highlights */}
+      {diff && ((diff.removedAttributes?.length > 0) || (diff.removedElements?.length > 0) || (diff.precisionChanges?.length > 0)) && (
+        <div>
+          <div style={{
             padding: '12px 16px',
             backgroundColor: 'rgba(255, 152, 0, 0.1)',
             border: '1px solid rgba(255, 152, 0, 0.3)',
             borderRadius: '4px 4px 0 0',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
             fontSize: '13px',
             fontWeight: '600',
             color: '#ff9800',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.15)'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.1)'}
-        >
-          <span>🔍 Change Highlights</span>
-          {expandedSections.changes ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-        </button>
+          }}>
+            🔍 Change Highlights
+          </div>
 
-        {expandedSections.changes && (
           <div style={{
             padding: '16px',
             backgroundColor: 'rgba(255, 152, 0, 0.05)',
@@ -384,7 +410,7 @@ export default function SVGOptimizerOutput({ result }) {
 
             {/* Removed Elements */}
             {diff.removedElements && diff.removedElements.length > 0 && (
-              <div style={{ marginBottom: '16px', paddingTop: diff.removedAttributes?.length > 0 ? '16px' : '0', borderTop: diff.removedAttributes?.length > 0 ? '1px solid rgba(255, 152, 0, 0.2)' : 'none' }}>
+              <div style={{ marginBottom: diff.removedAttributes?.length > 0 ? '16px' : '0', paddingTop: diff.removedAttributes?.length > 0 ? '16px' : '0', borderTop: diff.removedAttributes?.length > 0 ? '1px solid rgba(255, 152, 0, 0.2)' : 'none' }}>
                 <div style={{
                   fontSize: '12px',
                   fontWeight: '600',
@@ -403,7 +429,7 @@ export default function SVGOptimizerOutput({ result }) {
 
             {/* Precision Changes */}
             {diff.precisionChanges && diff.precisionChanges.length > 0 && (
-              <div style={{ paddingTop: diff.removedAttributes?.length > 0 || diff.removedElements?.length > 0 ? '16px' : '0', borderTop: diff.removedAttributes?.length > 0 || diff.removedElements?.length > 0 ? '1px solid rgba(255, 152, 0, 0.2)' : 'none' }}>
+              <div style={{ paddingTop: (diff.removedAttributes?.length > 0 || diff.removedElements?.length > 0) ? '16px' : '0', borderTop: (diff.removedAttributes?.length > 0 || diff.removedElements?.length > 0) ? '1px solid rgba(255, 152, 0, 0.2)' : 'none' }}>
                 <div style={{
                   fontSize: '12px',
                   fontWeight: '600',
@@ -420,113 +446,8 @@ export default function SVGOptimizerOutput({ result }) {
               </div>
             )}
           </div>
-        )}
-      </div>
-    )
-  }
-
-  const renderOptimizedSVGSection = () => {
-    if (!result?.optimizedSvg) return null
-
-    const handleCopySVG = async () => {
-      try {
-        await navigator.clipboard.writeText(result.optimizedSvg)
-        setCopiedSVG(true)
-        setTimeout(() => setCopiedSVG(false), 2000)
-      } catch (err) {
-        console.error('Copy failed:', err)
-      }
-    }
-
-    return (
-      <div style={{ marginTop: '16px' }}>
-        <button
-          onClick={() => toggleSection('optimized')}
-          style={{
-            width: '100%',
-            padding: '12px 16px',
-            backgroundColor: 'rgba(156, 39, 176, 0.1)',
-            border: '1px solid rgba(156, 39, 176, 0.3)',
-            borderRadius: '4px 4px 0 0',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#9c27b0',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.15)'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.1)'}
-        >
-          <span>📋 Optimized SVG Code</span>
-          {expandedSections.optimized ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
-        </button>
-
-        {expandedSections.optimized && (
-          <div style={{
-            padding: '16px',
-            backgroundColor: 'rgba(156, 39, 176, 0.05)',
-            borderRadius: '0 0 4px 4px',
-            border: '1px solid rgba(156, 39, 176, 0.2)',
-            borderTop: 'none',
-          }}>
-            <div style={{
-              marginBottom: '12px',
-              display: 'flex',
-              justifyContent: 'flex-end',
-            }}>
-              <button
-                onClick={handleCopySVG}
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#9c27b0',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#7b1fa2'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#9c27b0'}
-              >
-                {copiedSVG ? '✓ Copied' : <FaCopy size={12} />}
-                {!copiedSVG && 'Copy SVG'}
-              </button>
-            </div>
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'var(--color-background-tertiary)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-              fontSize: '12px',
-              color: 'var(--color-text-primary)',
-              maxHeight: '400px',
-              overflowY: 'auto',
-              wordBreak: 'break-word',
-              whiteSpace: 'pre-wrap',
-            }}>
-              {result.optimizedSvg}
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '0' }}>
-      {renderStatsSection()}
-      {renderAnalysisSection()}
-      {renderChangesSection()}
-      {renderOptimizedSVGSection()}
+        </div>
+      )}
     </div>
   )
 }
