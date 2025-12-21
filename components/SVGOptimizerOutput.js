@@ -177,11 +177,32 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
               </div>
             </div>
 
-            {stats.attributesRemoved > 0 && (
+            {stats.attributes && (
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(76, 175, 80, 0.2)' }}>
-                <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                  Attributes removed: <strong>{stats.attributesRemoved}</strong>
-                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      Attributes: <strong>{stats.attributes.total}</strong> total
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      Removed: <strong>{stats.attributes.removed}</strong>
+                    </span>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      Elements: <strong>{stats.elements.total}</strong> total
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                      Removed: <strong>{stats.elements.removed}</strong>
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
