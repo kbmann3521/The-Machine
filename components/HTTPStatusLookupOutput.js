@@ -67,7 +67,7 @@ function StatusBadge({ variant = 'info', label }) {
 }
 
 function SectionTitle({ children }) {
-  return <div className={styles.sectionTitle}>{children}</div>
+  return <p className={styles.sectionTitle}>{children}</p>
 }
 
 function SectionContent({ children }) {
