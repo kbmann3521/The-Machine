@@ -176,7 +176,7 @@ export default function SVGOptimizerOutput({ result, config, onJSONToggle }) {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-            <span>📋 Optimized SVG Code</span>
+            <span>📋 Optimized SVG Code {outputFormat === 'compact' ? '(minified)' : '(formatted)'}</span>
             <button
               onClick={handleCopySVG}
               style={{
@@ -210,11 +210,12 @@ export default function SVGOptimizerOutput({ result, config, onJSONToggle }) {
             color: 'var(--color-text-primary)',
             maxHeight: '300px',
             overflowY: 'auto',
-            wordBreak: 'break-word',
-            whiteSpace: 'pre-wrap',
+            overflowX: 'auto',
+            wordBreak: outputFormat === 'pretty' ? 'break-word' : 'normal',
+            whiteSpace: outputFormat === 'pretty' ? 'pre-wrap' : 'pre',
             backgroundColor: 'var(--color-background-tertiary)',
           }}>
-            {result.optimizedSvg}
+            {formattedSvg}
           </div>
         </div>
       )}
