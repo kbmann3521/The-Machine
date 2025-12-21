@@ -1381,7 +1381,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   }
                 }}
               >
-                {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
+                {copiedField === 'paletteJSON' ? '✓ Copied!' : 'JSON'}
               </button>
               <button
                 type="button"
