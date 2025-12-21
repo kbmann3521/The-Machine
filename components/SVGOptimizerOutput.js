@@ -460,6 +460,38 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
         </div>
       )}
 
+      {/* Potential Optimizations (Phase 2) */}
+      {potentialOptimizations && Object.values(potentialOptimizations).some(v => v) && (
+        <div>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+            border: '1px solid rgba(156, 39, 176, 0.3)',
+            borderRadius: '4px 4px 0 0',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#9c27b0',
+          }}>
+            💡 Potential Optimizations (with Aggressive Mode)
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(156, 39, 176, 0.05)',
+            borderRadius: '0 0 4px 4px',
+            border: '1px solid rgba(156, 39, 176, 0.2)',
+            borderTop: 'none',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {potentialOptimizations.precisionReduction && <div style={{ fontSize: '12px' }}>✓ Reduce numeric precision (decimal places)</div>}
+              {potentialOptimizations.shapeConversion && <div style={{ fontSize: '12px' }}>✓ Convert shapes to paths</div>}
+              {potentialOptimizations.pathMerging && <div style={{ fontSize: '12px' }}>✓ Merge multiple paths</div>}
+              {potentialOptimizations.attributeCleanup && <div style={{ fontSize: '12px' }}>✓ Remove unused attributes</div>}
+              {potentialOptimizations.commentRemoval && <div style={{ fontSize: '12px' }}>✓ Remove comments (already applied)</div>}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Change Highlights */}
       {diff && ((diff.removedAttributes?.length > 0) || (diff.removedElements?.length > 0) || (diff.precisionChanges?.length > 0)) && (
         <div>
