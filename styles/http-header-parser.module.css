@@ -210,11 +210,15 @@
 .sectionHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 12px;
 }
 
 .sectionIcon {
   font-size: 18px;
+  display: none;
 }
 
 .sectionTitle {
@@ -222,6 +226,7 @@
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .sectionContent {
