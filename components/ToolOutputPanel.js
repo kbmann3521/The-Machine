@@ -1207,7 +1207,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               paddingBottom: '12px',
               borderBottom: '1px solid var(--color-border)',
             }}>
-              🎨 Linear Gradient
+              Linear Gradient
             </div>
             <div style={{ marginBottom: '20px' }}>
               <div style={{
