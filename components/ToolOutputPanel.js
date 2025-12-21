@@ -1109,7 +1109,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            🧪 Color Blindness Simulation
+            Color Blindness Simulation
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
