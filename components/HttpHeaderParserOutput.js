@@ -728,7 +728,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.compressionRecommendations && analysis.compressionRecommendations.length > 0 && (
-        <StatusSection title="Compression Recommendations" icon="📦">
+        <StatusSection title="Compression Recommendations" icon="">
           <div className={styles.recommendationsList}>
             {analysis.compressionRecommendations.map((rec, idx) => (
               <div key={idx} className={styles.recommendationItem}>
