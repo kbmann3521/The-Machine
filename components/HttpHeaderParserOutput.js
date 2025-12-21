@@ -906,7 +906,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {transformations && (
-        <StatusSection title="Header Transformations" icon="🔀">
+        <StatusSection title="Header Transformations" icon="">
           <div className={styles.transformationsGrid}>
             {[
               { label: 'Canonical Format', key: 'canonical' },
