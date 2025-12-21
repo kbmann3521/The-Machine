@@ -1338,7 +1338,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            💾 Export Palette
+            Export Palette
           </div>
           <div style={{ marginBottom: '20px' }}>
             <div style={{
