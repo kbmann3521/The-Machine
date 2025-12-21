@@ -660,7 +660,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.security.conflicts.length > 0 && (
-        <StatusSection title="Header Conflicts" icon="⚔️">
+        <StatusSection title="Header Conflicts" icon="">
           <div className={styles.conflictList}>
             {analysis.security.conflicts.map((conflict, idx) => (
               <div key={idx} className={styles.conflictItem}>
