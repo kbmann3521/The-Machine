@@ -633,7 +633,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {Object.keys(groupedHeaders).map(groupName => (
-        <StatusSection key={groupName} title={`${groupName.charAt(0).toUpperCase() + groupName.slice(1)} Headers`} icon="📦">
+        <StatusSection key={groupName} title={`${groupName.charAt(0).toUpperCase() + groupName.slice(1)} Headers`} icon="">
           <div className={styles.headerList}>
             {Object.entries(groupedHeaders[groupName]).map(([name, value]) => {
               const headerAnal = headerAnalysis[name]
