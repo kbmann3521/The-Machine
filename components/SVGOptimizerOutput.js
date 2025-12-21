@@ -40,7 +40,7 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
     )
   }
 
-  const { stats, analysis, diff, validation, optimizationResult, potentialOptimizations } = result
+  const { stats, analysis, diff, validation, optimizationResult, potentialOptimizations, normalization } = result
 
   return (
     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -191,6 +191,18 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
                     </span>
                   </div>
                 </div>
+                {stats.attributes.byElement && Object.keys(stats.attributes.byElement).length > 0 && (
+                  <div style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(76, 175, 80, 0.15)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '6px', fontWeight: '500' }}>By Element Type:</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
+                      {Object.entries(stats.attributes.byElement).map(([tag, count]) => (
+                        <div key={tag} style={{ fontSize: '11px', color: 'var(--color-text-primary)' }}>
+                          <strong>&lt;{tag}&gt;</strong>: {count}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
@@ -203,10 +215,22 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
                     </span>
                   </div>
                 </div>
+                {stats.elements.byType && Object.keys(stats.elements.byType).length > 0 && (
+                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(76, 175, 80, 0.15)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '6px', fontWeight: '500' }}>By Element Type:</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
+                      {Object.entries(stats.elements.byType).map(([tag, count]) => (
+                        <div key={tag} style={{ fontSize: '11px', color: 'var(--color-text-primary)' }}>
+                          <strong>&lt;{tag}&gt;</strong>: {count}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {stats.precisionReduced && (
+            {stats.precision && stats.precision.reduced && (
               <div style={{
                 marginTop: '12px',
                 padding: '12px',
@@ -217,6 +241,11 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
                 color: '#ffc107'
               }}>
                 ⚠ Numeric precision was reduced during optimization
+                {stats.precision.originalDecimals && stats.precision.optimizedDecimals && (
+                  <div style={{ marginTop: '6px', fontSize: '11px' }}>
+                    ({stats.precision.originalDecimals} → {stats.precision.optimizedDecimals} decimal places)
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -460,8 +489,40 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
         </div>
       )}
 
+      {/* Normalization Changes */}
+      {normalization && normalization.applied && normalization.details.length > 0 && (
+        <div>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            border: '1px solid rgba(33, 150, 243, 0.3)',
+            borderRadius: '4px 4px 0 0',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#2196f3',
+          }}>
+            ✓ Normalization Applied
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(33, 150, 243, 0.05)',
+            borderRadius: '0 0 4px 4px',
+            border: '1px solid rgba(33, 150, 243, 0.2)',
+            borderTop: 'none',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {normalization.details.map((detail, idx) => (
+                <div key={idx} style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                  • {detail}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Potential Optimizations (Phase 2) */}
-      {potentialOptimizations && Object.values(potentialOptimizations).some(v => v) && (
+      {potentialOptimizations && Object.values(potentialOptimizations).some(v => v?.possible) && (
         <div>
           <div style={{
             padding: '12px 16px',
@@ -481,12 +542,93 @@ export default function SVGOptimizerOutput({ result, onJSONToggle }) {
             border: '1px solid rgba(156, 39, 176, 0.2)',
             borderTop: 'none',
           }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {potentialOptimizations.precisionReduction && <div style={{ fontSize: '12px' }}>✓ Reduce numeric precision (decimal places)</div>}
-              {potentialOptimizations.shapeConversion && <div style={{ fontSize: '12px' }}>✓ Convert shapes to paths</div>}
-              {potentialOptimizations.pathMerging && <div style={{ fontSize: '12px' }}>✓ Merge multiple paths</div>}
-              {potentialOptimizations.attributeCleanup && <div style={{ fontSize: '12px' }}>✓ Remove unused attributes</div>}
-              {potentialOptimizations.commentRemoval && <div style={{ fontSize: '12px' }}>✓ Remove comments (already applied)</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {potentialOptimizations.precisionReduction?.possible && (
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ marginBottom: '4px' }}>✓ Reduce numeric precision (decimal places)</div>
+                  {potentialOptimizations.precisionReduction.reason && (
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                      {potentialOptimizations.precisionReduction.reason}
+                    </div>
+                  )}
+                </div>
+              )}
+              {potentialOptimizations.shapeConversion?.possible && (
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ marginBottom: '4px' }}>✓ Convert shapes to paths</div>
+                  {potentialOptimizations.shapeConversion.reason && (
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                      {potentialOptimizations.shapeConversion.reason}
+                    </div>
+                  )}
+                </div>
+              )}
+              {potentialOptimizations.pathMerging?.possible && (
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ marginBottom: '4px' }}>✓ Merge multiple paths</div>
+                  {potentialOptimizations.pathMerging.reason && (
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                      {potentialOptimizations.pathMerging.reason}
+                    </div>
+                  )}
+                </div>
+              )}
+              {potentialOptimizations.attributeCleanup?.possible && (
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ marginBottom: '4px' }}>✓ Remove unused/redundant attributes</div>
+                  {potentialOptimizations.attributeCleanup.reason && (
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                      {potentialOptimizations.attributeCleanup.reason}
+                    </div>
+                  )}
+                </div>
+              )}
+              {potentialOptimizations.commentRemoval?.possible && (
+                <div style={{ fontSize: '12px' }}>
+                  <div style={{ marginBottom: '4px' }}>✓ Remove comments</div>
+                  {potentialOptimizations.commentRemoval.reason && (
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                      {potentialOptimizations.commentRemoval.reason}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Safety Flags (Phase 2 Reference) */}
+      {result?.safetyFlags && Object.values(result.safetyFlags).some(v => v) && (
+        <div>
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+            border: '1px solid rgba(244, 67, 54, 0.3)',
+            borderRadius: '4px 4px 0 0',
+            fontSize: '13px',
+            fontWeight: '600',
+            color: '#f44336',
+          }}>
+            ⚠ Safety Flags (Phase 2 Reference)
+          </div>
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(244, 67, 54, 0.05)',
+            borderRadius: '0 0 4px 4px',
+            border: '1px solid rgba(244, 67, 54, 0.2)',
+            borderTop: 'none',
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px' }}>
+              {result.safetyFlags.hasText && <div>◆ Contains text elements</div>}
+              {result.safetyFlags.hasExternalRefs && <div>◆ Has external references (IDs)</div>}
+              {result.safetyFlags.hasFilters && <div>◆ Uses filters</div>}
+              {result.safetyFlags.hasAnimations && <div>◆ Contains animations</div>}
+              {result.safetyFlags.hasScripts && <div>◆ Contains scripts</div>}
+              {result.safetyFlags.hasMasks && <div>◆ Uses masks</div>}
+              {result.safetyFlags.hasGradients && <div>◆ Uses gradients</div>}
+              {result.safetyFlags.hasPatterns && <div>◆ Uses patterns</div>}
+              {result.safetyFlags.hasBrokenReferences && <div style={{ color: '#f44336' }}>⚠ Has broken ID references</div>}
             </div>
           </div>
         </div>
