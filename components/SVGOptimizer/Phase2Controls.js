@@ -122,7 +122,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                   name="optimizationLevel"
                   value={key}
                   checked={selectedLevel === key}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  onChange={(e) => handleLevelChange(e.target.value)}
                   disabled={disabled}
                   className={styles.phase2Radio}
                 />
