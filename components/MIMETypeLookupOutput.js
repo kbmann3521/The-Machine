@@ -1,93 +1,87 @@
 import { useState } from 'react'
-import { FaCopy, FaCheck } from 'react-icons/fa6'
+import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/mime-type-lookup.module.css'
+import toolOutputStyles from '../styles/tool-output.module.css'
 
-function CopyButton({ value, size = 'sm' }) {
-  const [copied, setCopied] = useState(false)
+function CopyCard({ label, value }) {
+  const [isCopied, setIsCopied] = useState(false)
+
+  const fallbackCopy = (text) => {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      document.execCommand('copy')
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
+    }
+    document.body.removeChild(textarea)
+  }
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
     } catch (err) {
-      console.error('Copy failed:', err)
+      fallbackCopy(value)
     }
   }
 
   return (
-    <button
-      className={styles.copyButton}
-      onClick={handleCopy}
-      title="Copy to clipboard"
-      aria-label="Copy"
-    >
-      {copied ? <FaCheck /> : <FaCopy />}
-    </button>
-  )
-}
-
-function CategoryBadge({ category }) {
-  const categoryEmoji = {
-    document: '📄',
-    image: '🖼️',
-    video: '🎬',
-    audio: '🎵',
-    archive: '📦',
-    code: '💻',
-    font: '🔤',
-  }
-
-  return (
-    <span className={`${styles.badge} ${styles[`badge-${category}`]}`}>
-      {categoryEmoji[category]} {category}
-    </span>
-  )
-}
-
-function MetadataRow({ label, value, copyable = false }) {
-  if (Array.isArray(value)) {
-    return (
-      <div className={styles.metadataRow}>
-        <span className={styles.metadataLabel}>{label}:</span>
-        <div className={styles.metadataValues}>
-          {value.map((v, idx) => (
-            <span key={idx} className={styles.tag}>{v}</span>
-          ))}
-        </div>
+    <div className={toolOutputStyles.copyCard}>
+      <div className={toolOutputStyles.copyCardHeader}>
+        <span className={toolOutputStyles.copyCardLabel}>{label}</span>
+        <button
+          type="button"
+          className="copy-action"
+          onClick={handleCopy}
+          title="Copy to clipboard"
+        >
+          {isCopied ? '✓' : <FaCopy />}
+        </button>
       </div>
-    )
-  }
-
-  return (
-    <div className={styles.metadataRow}>
-      <span className={styles.metadataLabel}>{label}:</span>
-      <span className={styles.metadataValue}>
-        {value}
-        {copyable && <CopyButton value={value} />}
-      </span>
+      <div className={toolOutputStyles.copyCardValue}>{value}</div>
     </div>
   )
 }
 
-function ResultCard({ result }) {
-  const [expandedSections, setExpandedSections] = useState({
-    security: true,
-    metadata: true,
-    applications: false,
-  })
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }))
+function CategoryBadge({ category }) {
+  const categoryColors = {
+    document: '#f5a623',
+    image: '#e91e63',
+    video: '#f44336',
+    audio: '#9c27b0',
+    archive: '#4caf50',
+    code: '#2196f3',
+    font: '#673ab7',
   }
 
+  return (
+    <span className={`${styles.badge} ${styles[`badge-${category}`]}`}>
+      {category}
+    </span>
+  )
+}
+
+function SectionTitle({ children }) {
+  return <div className={styles.sectionTitle}>{children}</div>
+}
+
+function SectionContent({ children }) {
+  return <div className={styles.sectionContent}>{children}</div>
+}
+
+function ResultCard({ result }) {
   if (result.error) {
     return (
       <div className={styles.errorCard}>
-        <div className={styles.errorIcon}>❌</div>
+        <div className={styles.errorIcon}>Error</div>
         <div className={styles.errorText}>{result.error}</div>
       </div>
     )
@@ -96,17 +90,16 @@ function ResultCard({ result }) {
   if (!result.found) {
     return (
       <div className={styles.notFoundCard}>
-        <div className={styles.notFoundIcon}>❓</div>
-        <div className={styles.notFoundText}>
-          {result.type === 'extension' && `Extension "${result.input}" not found in database`}
-          {result.type === 'mime' && `MIME type "${result.input}" not found in database`}
+        <div className={styles.notFoundTitle}>
+          {result.type === 'extension' && `Extension "${result.input}" not found`}
+          {result.type === 'mime' && `MIME type "${result.input}" not found`}
           {result.type === 'filename' && `No extension found in "${result.filename}"`}
         </div>
 
         {result.suggestions && result.suggestions.length > 0 && (
           <div className={styles.suggestions}>
-            <div className={styles.suggestionsTitle}>🔍 Did you mean:</div>
-            {result.suggestions.slice(0, 3).map((suggestion, idx) => (
+            <div className={styles.suggestionsTitle}>Did you mean:</div>
+            {result.suggestions.slice(0, 5).map((suggestion, idx) => (
               <div key={idx} className={styles.suggestion}>
                 <span className={styles.suggestionExt}>.{suggestion.extension}</span>
                 <span className={styles.suggestionMime}>{suggestion.mime}</span>
@@ -118,142 +111,107 @@ function ResultCard({ result }) {
     )
   }
 
-  // Success case - rich result
   const isMimeInput = result.type === 'mime'
 
   return (
-    <div className={styles.resultCard}>
-      {/* Header */}
-      <div className={styles.resultHeader}>
-        <div className={styles.resultPrimary}>
+    <div className={styles.resultContainer}>
+      <div className={styles.headerSection}>
+        <div className={styles.headerPrimary}>
           {isMimeInput ? (
             <>
-              <div className={styles.resultLabel}>MIME Type</div>
-              <div className={styles.resultValue}>{result.mime}</div>
+              <div className={styles.headerLabel}>MIME Type</div>
+              <div className={styles.headerValue}>{result.mime}</div>
             </>
           ) : (
             <>
-              <div className={styles.resultLabel}>Extension</div>
-              <div className={styles.resultValue}>.{result.extension}</div>
+              <div className={styles.headerLabel}>Extension</div>
+              <div className={styles.headerValue}>.{result.extension}</div>
             </>
           )}
         </div>
-        <div className={styles.resultSecondary}>
+        <div className={styles.headerSecondary}>
           {isMimeInput ? (
             <>
-              <div className={styles.resultLabel}>Extensions</div>
-              <div className={styles.resultValue}>{result.extensions.map(e => `.${e}`).join(', ')}</div>
+              <div className={styles.headerLabel}>Extensions</div>
+              <div className={styles.headerValue}>{result.extensions.map(e => `.${e}`).join(', ')}</div>
             </>
           ) : (
             <>
-              <div className={styles.resultLabel}>MIME Type</div>
-              <div className={styles.resultValue}>{result.mime}</div>
+              <div className={styles.headerLabel}>MIME Type</div>
+              <div className={styles.headerValue}>{result.mime}</div>
             </>
           )}
         </div>
       </div>
 
-      {/* Quick Copy */}
-      <div className={styles.quickCopy}>
-        <button className={styles.quickCopyButton}>
-          {isMimeInput ? (
-            <>
-              <FaCopy /> Copy Extension
-            </>
-          ) : (
-            <>
-              <FaCopy /> Copy MIME Type
-            </>
-          )}
-        </button>
+      <div className={styles.copySection}>
+        <CopyCard
+          label={isMimeInput ? 'Extension' : 'MIME Type'}
+          value={isMimeInput ? result.extensions[0] : result.mime}
+        />
       </div>
 
-      {/* Category & Flags */}
-      <div className={styles.flags}>
+      <div className={styles.badgesSection}>
         {result.category && <CategoryBadge category={result.category} />}
         {result.binary ? (
-          <span className={`${styles.badge} ${styles['badge-binary']}`}>📦 Binary</span>
+          <span className={`${styles.badge} ${styles['badge-binary']}`}>Binary</span>
         ) : (
-          <span className={`${styles.badge} ${styles['badge-text']}`}>📄 Text</span>
+          <span className={`${styles.badge} ${styles['badge-text']}`}>Text</span>
         )}
         {result.compressible && (
-          <span className={`${styles.badge} ${styles['badge-compressible']}`}>🗜️ Compressible</span>
+          <span className={`${styles.badge} ${styles['badge-compressible']}`}>Compressible</span>
         )}
       </div>
 
-      {/* Main Content */}
-      <div className={styles.content}>
-        {/* Description */}
-        {result.description && (
-          <div className={styles.description}>
-            <span className={styles.descriptionIcon}>💡</span>
-            <span>{result.description}</span>
-          </div>
-        )}
-
-        {/* Metadata Grid */}
-        <div className={styles.metadataGrid}>
-          {result.charsets && result.charsets.length > 0 && (
-            <MetadataRow label="Charsets" value={result.charsets} />
-          )}
-          {result.commonApplications && (
-            <MetadataRow label="Common Apps" value={result.commonApplications} />
-          )}
+      {result.description && (
+        <div className={styles.descriptionSection}>
+          <SectionTitle>Description</SectionTitle>
+          <SectionContent>
+            <p className={styles.descriptionText}>{result.description}</p>
+          </SectionContent>
         </div>
+      )}
 
-        {/* Security Section */}
-        {result.securityNotes && result.securityNotes.length > 0 && (
-          <div className={styles.section}>
-            <button
-              className={styles.sectionToggle}
-              onClick={() => toggleSection('security')}
-            >
-              <span>🔒</span>
-              Security & Safety
-              <span className={expandedSections.security ? '▼' : '▶'}>
-                {expandedSections.security ? '▼' : '▶'}
-              </span>
-            </button>
-            {expandedSections.security && (
-              <div className={styles.sectionContent}>
-                <ul className={styles.securityNotes}>
-                  {result.securityNotes.map((note, idx) => (
-                    <li key={idx} className={styles.securityNote}>
-                      <span className={styles.securityIcon}>⚠️</span>
-                      {note}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Applications Section */}
-        {result.commonApplications && result.commonApplications.length > 0 && (
-          <div className={styles.section}>
-            <button
-              className={styles.sectionToggle}
-              onClick={() => toggleSection('applications')}
-            >
-              <span>🗂️</span>
-              Common Applications
-              <span className={expandedSections.applications ? '▼' : '▶'}>
-                {expandedSections.applications ? '▼' : '▶'}
-              </span>
-            </button>
-            {expandedSections.applications && (
-              <div className={styles.sectionContent}>
-                <div className={styles.applications}>
-                  {result.commonApplications.map((app, idx) => (
-                    <span key={idx} className={styles.appTag}>{app}</span>
+      {(result.charsets?.length > 0 || result.commonApplications?.length > 0) && (
+        <div className={styles.infoSection}>
+          <SectionTitle>Information</SectionTitle>
+          <SectionContent>
+            {result.charsets && result.charsets.length > 0 && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Character Sets:</span>
+                <div className={styles.infoValues}>
+                  {result.charsets.map((charset, idx) => (
+                    <span key={idx} className={styles.infoTag}>{charset}</span>
                   ))}
                 </div>
               </div>
             )}
-          </div>
-        )}
-      </div>
+            {result.commonApplications && result.commonApplications.length > 0 && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Common Applications:</span>
+                <div className={styles.infoValues}>
+                  {result.commonApplications.map((app, idx) => (
+                    <span key={idx} className={styles.infoTag}>{app}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </SectionContent>
+        </div>
+      )}
+
+      {result.securityNotes && result.securityNotes.length > 0 && (
+        <div className={styles.securitySection}>
+          <SectionTitle>Security & Safety</SectionTitle>
+          <SectionContent>
+            <ul className={styles.securityList}>
+              {result.securityNotes.map((note, idx) => (
+                <li key={idx} className={styles.securityItem}>{note}</li>
+              ))}
+            </ul>
+          </SectionContent>
+        </div>
+      )}
     </div>
   )
 }
@@ -281,17 +239,10 @@ function BulkResultsTable({ results }) {
               <tr key={idx}>
                 <td className={styles.tableInput}>{result.input}</td>
                 <td>{result.type || '—'}</td>
-                <td className={styles.tableMime}>
-                  {result.mime || result.extension ? (
-                    <>
-                      {result.mime || `—`}
-                      {(result.mime || result.extension) && <CopyButton value={result.mime || result.extension} />}
-                    </>
-                  ) : '—'}
-                </td>
+                <td className={styles.tableMime}>{result.mime || '—'}</td>
                 <td>{result.extensions ? result.extensions.join(', ') : result.extension ? `.${result.extension}` : '—'}</td>
-                <td>{result.category ? <CategoryBadge category={result.category} /> : '—'}</td>
-                <td>{result.binary !== undefined ? (result.binary ? '📦' : '📄') : '—'}</td>
+                <td>{result.category || '—'}</td>
+                <td>{result.binary !== undefined ? (result.binary ? 'Binary' : 'Text') : '—'}</td>
               </tr>
             ))}
           </tbody>
