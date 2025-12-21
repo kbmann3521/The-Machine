@@ -45,7 +45,6 @@
     "node-sql-parser": "^5.3.13",
     "normalize-url": "^8.0.0",
     "openai": "^6.9.1",
-    "prettier": "^3.1.1",
     "pretty-data": "^0.40.0",
     "prismjs": "^1.30.0",
     "punycode": "^2.3.1",
@@ -73,6 +72,8 @@
     "yaml-lint": "^1.7.0"
   },
   "devDependencies": {
-    "eslint-config-next": "^14.0.0"
+    "@prettier/plugin-xml": "^3.4.2",
+    "eslint-config-next": "^14.0.0",
+    "prettier": "^3.7.4"
   }
 }
