@@ -699,6 +699,12 @@ export default function Home(props) {
                 />
               </div>
 
+              {!selectedTool && (
+                <div className={styles.infoCard}>
+                  <ValuePropositionCard />
+                </div>
+              )}
+
               {selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' && (
                 <>
                   <div className={styles.toolHeader}>
