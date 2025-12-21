@@ -781,7 +781,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
         </div>
       </StatusSection>
 
-      <StatusSection title="Performance Analysis" icon="⚡">
+      <StatusSection title="Performance Analysis" icon="">
         <div className={styles.analysisList}>
           <div className={styles.analysisItem}>
             <span className={styles.analysisLabel}>Compression:</span>
