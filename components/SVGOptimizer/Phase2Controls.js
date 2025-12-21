@@ -42,17 +42,30 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
     ? 'Broken ID references'
     : null
 
+  const memoizedAdvancedConfig = useMemo(
+    () => advancedConfig,
+    [
+      advancedConfig.attributeCleanup,
+      advancedConfig.precisionReduction,
+      advancedConfig.decimals,
+      advancedConfig.shapeConversion,
+      advancedConfig.pathMerging,
+      advancedConfig.idCleanup,
+      advancedConfig.textHandling,
+      advancedConfig.textToPathConfirmed
+    ]
+  )
+
   useEffect(() => {
     const configToSend = {
       phase2: {
         enabled: true,
         level: selectedLevel,
-        overrides: advancedConfig
+        overrides: memoizedAdvancedConfig
       }
     }
     onConfigChange(configToSend)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLevel, JSON.stringify(advancedConfig), onConfigChange])
+  }, [selectedLevel, memoizedAdvancedConfig, onConfigChange])
 
   return (
     <div className={styles.phase2Controls}>
