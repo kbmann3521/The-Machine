@@ -740,7 +740,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
         </StatusSection>
       )}
 
-      <StatusSection title="Caching Analysis" icon="💾">
+      <StatusSection title="Caching Analysis" icon="">
         <div className={styles.analysisList}>
           <div className={styles.analysisItem}>
             <span className={styles.analysisLabel}>Cacheable:</span>
