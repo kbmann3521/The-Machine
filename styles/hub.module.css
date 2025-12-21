@@ -153,6 +153,12 @@
   width: 100%;
 }
 
+.infoCard {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 12px;
+}
+
 .toolHeader {
   display: flex;
   align-items: flex-start;
