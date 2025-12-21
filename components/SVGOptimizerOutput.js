@@ -1,10 +1,22 @@
 import { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/tool-output.module.css'
+import Phase2Controls from './SVGOptimizer/Phase2Controls'
 
-export default function SVGOptimizerOutput({ result, onJSONToggle }) {
+export default function SVGOptimizerOutput({ result, onJSONToggle, onPhase2Optimize }) {
   const [copiedSVG, setCopiedSVG] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
+  const [phase2Loading, setPhase2Loading] = useState(false)
+  const [phase2Error, setPhase2Error] = useState(null)
+
+  const handlePhase2Click = (level, overrides) => {
+    setPhase2Loading(true)
+    setPhase2Error(null)
+    if (onPhase2Optimize) {
+      onPhase2Optimize(level, overrides)
+    }
+    setPhase2Loading(false)
+  }
 
   const handleCopySVG = async () => {
     try {
