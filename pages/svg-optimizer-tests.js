@@ -498,10 +498,27 @@ export default function SVGOptimizerTestSuite() {
                   borderRadius: '4px',
                   cursor: 'pointer',
                   fontWeight: 'bold',
-                  fontSize: '13px'
+                  fontSize: '13px',
+                  marginRight: '8px'
                 }}
               >
                 📋 Copy All JSONs
+              </button>
+
+              <button
+                onClick={handleDownloadAllJSON}
+                style={{
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '13px'
+                }}
+              >
+                ⬇️ Download All JSONs
               </button>
             </div>
 
