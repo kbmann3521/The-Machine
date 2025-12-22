@@ -394,6 +394,7 @@
 .textContent {
   padding: 16px;
   display: flex;
+  flex-direction: column;
   background-color: var(--color-background-primary, #fff);
 }
 
