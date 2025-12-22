@@ -124,7 +124,7 @@
 }
 
 .tabContentFull {
-  min-height: 100%;
+  /* Allow content to scroll beyond container height */
 }
 
 .codeMirrorOutputContainer {
