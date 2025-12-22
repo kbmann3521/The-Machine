@@ -479,7 +479,6 @@
 
 .errorContent {
   padding: 16px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -487,25 +486,6 @@
   flex: 1;
   min-height: 0;
   gap: 16px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-.errorContent::-webkit-scrollbar {
-  width: 4px;
-}
-
-.errorContent::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.errorContent::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 3px;
-}
-
-.errorContent::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
 }
 
 .errorMessage {
