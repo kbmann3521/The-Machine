@@ -183,20 +183,6 @@
   background-color: #1b5e20;
 }
 
-.harnessesImageWrapper {
-  margin-bottom: 1.5rem;
-  border-radius: 6px;
-  overflow: hidden;
-  background-color: var(--color-background-tertiary);
-}
-
-.harnessesImage {
-  width: 100%;
-  height: auto;
-  display: block;
-  max-width: 100%;
-}
-
 .postsTable {
   width: 100%;
   border-collapse: collapse;
