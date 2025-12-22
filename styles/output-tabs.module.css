@@ -418,29 +418,8 @@
 
 .textContent {
   padding: 16px;
-  overflow: auto;
   display: flex;
   background-color: var(--color-background-primary, #fff);
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-.textContent::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-.textContent::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.textContent::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 3px;
-}
-
-.textContent::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
 }
 
 .textCode {
