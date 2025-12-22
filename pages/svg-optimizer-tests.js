@@ -283,7 +283,7 @@ export default function SVGOptimizerTestSuite() {
           },
           body: JSON.stringify({
             toolId: 'svg-optimizer',
-            input: TEST_SVG,
+            inputText: TEST_SVG,
             config
           })
         })
