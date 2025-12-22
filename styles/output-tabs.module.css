@@ -371,6 +371,10 @@
 .jsonContent {
   padding: 16px;
   background-color: var(--color-background-primary, #fff);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .codeContentWithLineNumbers {
