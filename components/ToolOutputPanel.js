@@ -3965,6 +3965,75 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               </div>
             )}
 
+            {/* Analysis context notes */}
+            {displayResult.analysis && displayResult.analysis.context && displayResult.analysis.context.notes.length > 0 && (
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                  Why This Matters
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {displayResult.analysis.context.notes.map((note, idx) => (
+                    <div key={idx} style={{
+                      padding: '10px 12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      borderLeft: '3px solid #2196f3',
+                      color: 'var(--color-text-primary)'
+                    }}>
+                      {note}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Phase 2 step results - show what happened */}
+            {displayResult.phase2Level && displayResult.stepResults && displayResult.stepResults.length > 0 && (
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                  Optimization Steps ({displayResult.phase2Level})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {displayResult.stepResults.map((step, idx) => {
+                    const bgColor = step.executed ? 'rgba(76, 175, 80, 0.1)' : 'rgba(158, 158, 158, 0.1)'
+                    const borderColor = step.executed ? 'rgba(76, 175, 80, 0.2)' : 'rgba(158, 158, 158, 0.2)'
+                    const textColor = step.executed ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
+
+                    return (
+                      <div key={idx} style={{
+                        padding: '10px 12px',
+                        backgroundColor: bgColor,
+                        border: `1px solid ${borderColor}`,
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        color: textColor
+                      }}>
+                        <div style={{ fontWeight: '600', marginBottom: step.executed || step.reason ? '4px' : '0' }}>
+                          {step.executed ? '✓' : '○'} {step.step.replace(/([A-Z])/g, ' $1').trim()}
+                        </div>
+                        {step.executed && step.message && (
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                            {step.message}
+                          </div>
+                        )}
+                        {step.reason && (
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                            {step.reason}
+                          </div>
+                        )}
+                        {step.impact && (
+                          <div style={{ fontSize: '11px', color: '#ff9800', marginTop: '4px' }}>
+                            ⚠️ {step.impact}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Size reduction stats */}
             {displayResult.stats && (
               <>
