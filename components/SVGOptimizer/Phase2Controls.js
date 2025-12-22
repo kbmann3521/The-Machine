@@ -8,13 +8,13 @@ const OPTIMIZATION_LEVELS = {
     disabled: false
   },
   balanced: {
-    label: 'Balanced',
+    label: 'Balanced (Recommended)',
     description: 'Enables precision reduction (3 decimals) and removes unused IDs. Small, typically unnoticeable visual changes.',
     disabled: false
   },
   aggressive: {
     label: 'Aggressive',
-    description: 'Maximum size reduction with precision reduction (2 decimals) and ID minification. Advanced use only.',
+    description: '⚠ Maximum size reduction. Converts shapes to paths, merges paths, minifies IDs, reduces precision to 2 decimals. May break scripts & CSS selectors. Requires review.',
     disabled: false
   }
 }
