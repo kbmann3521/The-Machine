@@ -386,10 +386,8 @@
 }
 
 .codeContentWrapper {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: visible;
   padding-bottom: 32px;
 }
 
