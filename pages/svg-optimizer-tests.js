@@ -320,11 +320,29 @@ export default function SVGOptimizerTestSuite() {
     }))
 
     const json = JSON.stringify(allResults, null, 2)
-    navigator.clipboard.writeText(json).then(() => {
-      alert('All results copied to clipboard!')
-    }).catch(() => {
-      alert('Failed to copy to clipboard')
-    })
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(() => {
+        alert('All results copied to clipboard!')
+      }).catch(() => {
+        fallbackCopy(json)
+      })
+    } else {
+      fallbackCopy(json)
+    }
+  }
+
+  const handleDownloadAllJSON = () => {
+    if (!testResults) return
+
+    const allResults = testResults.map(({ name, config, result }) => ({
+      name,
+      config,
+      result
+    }))
+
+    const json = JSON.stringify(allResults, null, 2)
+    downloadJSON(json, 'svg-optimizer-all-results.json')
   }
 
   const handleCopyJSON = (index) => {
@@ -333,12 +351,54 @@ export default function SVGOptimizerTestSuite() {
     const { name, config, result } = testResults[index]
     const json = JSON.stringify({ name, config, result }, null, 2)
 
-    navigator.clipboard.writeText(json).then(() => {
-      setCopiedIndex(index)
-      setTimeout(() => setCopiedIndex(null), 2000)
-    }).catch(() => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(() => {
+        setCopiedIndex(index)
+        setTimeout(() => setCopiedIndex(null), 2000)
+      }).catch(() => {
+        fallbackCopy(json)
+      })
+    } else {
+      fallbackCopy(json)
+    }
+  }
+
+  const handleDownloadJSON = (index) => {
+    if (!testResults || !testResults[index]) return
+
+    const { name, config, result } = testResults[index]
+    const json = JSON.stringify({ name, config, result }, null, 2)
+    const filename = `svg-optimizer-${name.toLowerCase().replace(/\s+/g, '-')}.json`
+    downloadJSON(json, filename)
+  }
+
+  const fallbackCopy = (text) => {
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    textArea.style.position = 'fixed'
+    textArea.style.left = '-999999px'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    try {
+      document.execCommand('copy')
+      alert('Copied to clipboard!')
+    } catch (err) {
       alert('Failed to copy to clipboard')
-    })
+    }
+    document.body.removeChild(textArea)
+  }
+
+  const downloadJSON = (jsonString, filename) => {
+    const blob = new Blob([jsonString], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const toggleExpanded = (index) => {
