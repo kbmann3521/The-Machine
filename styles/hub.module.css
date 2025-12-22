@@ -295,27 +295,7 @@
   flex-direction: column;
   min-height: 0;
   contain: layout style;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  scrollbar-gutter: stable;
-}
-
-.outputSection::-webkit-scrollbar {
-  width: 4px;
-}
-
-.outputSection::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.outputSection::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 3px;
-}
-
-.outputSection::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
+  overflow: hidden;
 }
 
 .footer {
