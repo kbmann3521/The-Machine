@@ -47,8 +47,8 @@ const PHASE2_PRESETS = {
     removeUnusedDefs: true,
     precisionReduction: true,
     decimals: 2,
-    shapeConversion: false,
-    pathMerging: false,
+    shapeConversion: true,
+    pathMerging: true,
     idCleanup: 'minify',
     textHandling: 'preserve',
     textToPathConfirmed: false
