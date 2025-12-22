@@ -4,17 +4,17 @@ import styles from '../../styles/svg-optimizer.module.css'
 const OPTIMIZATION_LEVELS = {
   safe: {
     label: 'Safe',
-    description: 'Preserves rendering, accessibility, and identifiers.',
+    description: 'Preserves rendering, accessibility, and identifiers. Only removes comments and redundant whitespace.',
     disabled: false
   },
   balanced: {
     label: 'Balanced',
-    description: 'May introduce small, typically unnoticeable visual changes.',
+    description: 'Enables precision reduction (3 decimals) and removes unused IDs. Small, typically unnoticeable visual changes.',
     disabled: false
   },
   aggressive: {
     label: 'Aggressive',
-    description: 'Maximum size reduction. Advanced use only.',
+    description: 'Maximum size reduction with precision reduction (2 decimals) and ID minification. Advanced use only.',
     disabled: false
   }
 }
@@ -22,6 +22,7 @@ const OPTIMIZATION_LEVELS = {
 const PHASE2_PRESETS = {
   safe: {
     attributeCleanup: true,
+    removeUnusedDefs: true,
     precisionReduction: false,
     decimals: 3,
     shapeConversion: false,
@@ -32,20 +33,22 @@ const PHASE2_PRESETS = {
   },
   balanced: {
     attributeCleanup: true,
+    removeUnusedDefs: true,
     precisionReduction: true,
     decimals: 3,
-    shapeConversion: true,
+    shapeConversion: false,
     pathMerging: false,
-    idCleanup: 'remove-unused',
+    idCleanup: 'unused-only',
     textHandling: 'preserve',
     textToPathConfirmed: false
   },
   aggressive: {
     attributeCleanup: true,
+    removeUnusedDefs: true,
     precisionReduction: true,
     decimals: 2,
-    shapeConversion: true,
-    pathMerging: true,
+    shapeConversion: false,
+    pathMerging: false,
     idCleanup: 'minify',
     textHandling: 'preserve',
     textToPathConfirmed: false
@@ -68,14 +71,12 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
     ? 'Broken ID references'
     : null
 
-  // When level changes, reset to preset and mark as preset mode
   const handleLevelChange = (newLevel) => {
     setSelectedLevel(newLevel)
     setAdvancedConfig(PHASE2_PRESETS[newLevel])
     setPhase2Source('preset')
   }
 
-  // When advanced option changes, mark as custom mode
   const handleAdvancedConfigChange = (updates) => {
     setAdvancedConfig(prev => ({ ...prev, ...updates }))
     setPhase2Source('custom')
@@ -85,6 +86,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
     () => advancedConfig,
     [
       advancedConfig.attributeCleanup,
+      advancedConfig.removeUnusedDefs,
       advancedConfig.precisionReduction,
       advancedConfig.decimals,
       advancedConfig.shapeConversion,
@@ -214,6 +216,18 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
               <label className={styles.phase2CheckboxLabel}>
                 <input
                   type="checkbox"
+                  checked={advancedConfig.removeUnusedDefs}
+                  onChange={(e) => handleAdvancedConfigChange({ removeUnusedDefs: e.target.checked })}
+                />
+                Remove Unused Defs
+              </label>
+              <span className={styles.phase2OptionDescription}>Remove unused gradients, masks, filters, and patterns from &lt;defs&gt;</span>
+            </div>
+
+            <div className={styles.phase2Option}>
+              <label className={styles.phase2CheckboxLabel}>
+                <input
+                  type="checkbox"
                   checked={advancedConfig.precisionReduction}
                   onChange={(e) => handleAdvancedConfigChange({ precisionReduction: e.target.checked })}
                 />
@@ -270,10 +284,10 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                 className={styles.phase2Select}
               >
                 <option value="preserve">Preserve All IDs</option>
-                <option value="remove-unused">Remove Unused IDs</option>
+                <option value="unused-only">Remove Unused IDs</option>
                 <option value="minify">Minify IDs</option>
               </select>
-              <span className={styles.phase2OptionDescription}>Control how IDs are handled</span>
+              <span className={styles.phase2OptionDescription}>Control how IDs are handled during optimization</span>
             </div>
 
             <div className={styles.phase2Option}>
