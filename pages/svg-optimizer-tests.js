@@ -605,22 +605,38 @@ export default function SVGOptimizerTestSuite() {
                       )}
 
                       <div className={styles.jsonSection}>
-                        <button
-                          onClick={() => handleCopyJSON(index)}
-                          style={{
-                            backgroundColor: copiedIndex === index ? '#4CAF50' : '#2196F3',
-                            color: 'white',
-                            padding: '8px 12px',
-                            border: 'none',
-                            borderRadius: '3px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            fontSize: '12px',
-                            marginBottom: '8px'
-                          }}
-                        >
-                          {copiedIndex === index ? '✓ Copied!' : '📋 Copy JSON'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                          <button
+                            onClick={() => handleCopyJSON(index)}
+                            style={{
+                              backgroundColor: copiedIndex === index ? '#4CAF50' : '#2196F3',
+                              color: 'white',
+                              padding: '8px 12px',
+                              border: 'none',
+                              borderRadius: '3px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '12px'
+                            }}
+                          >
+                            {copiedIndex === index ? '✓ Copied!' : '📋 Copy JSON'}
+                          </button>
+                          <button
+                            onClick={() => handleDownloadJSON(index)}
+                            style={{
+                              backgroundColor: '#FF9800',
+                              color: 'white',
+                              padding: '8px 12px',
+                              border: 'none',
+                              borderRadius: '3px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              fontSize: '12px'
+                            }}
+                          >
+                            ⬇️ Download
+                          </button>
+                        </div>
                         <pre className={styles.jsonOutput}>
                           {JSON.stringify(
                             {
