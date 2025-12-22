@@ -410,7 +410,6 @@
 .codeContentWrapper {
   display: flex;
   flex-direction: column;
-  overflow-x: auto;
   padding-bottom: 32px;
 }
 
