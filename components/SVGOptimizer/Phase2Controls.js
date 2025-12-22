@@ -8,13 +8,13 @@ const OPTIMIZATION_LEVELS = {
     disabled: false
   },
   balanced: {
-    label: 'Balanced (Recommended)',
+    label: 'Balanced',
     description: 'Enables precision reduction (3 decimals) and removes unused IDs. Small, typically unnoticeable visual changes.',
     disabled: false
   },
   aggressive: {
     label: 'Aggressive',
-    description: '⚠ Maximum size reduction. Converts shapes to paths, merges paths, minifies IDs, reduces precision to 2 decimals. May break scripts & CSS selectors. Requires review.',
+    description: 'Maximum size reduction with precision reduction (2 decimals) and ID minification. Advanced use only.',
     disabled: false
   }
 }
@@ -47,8 +47,8 @@ const PHASE2_PRESETS = {
     removeUnusedDefs: true,
     precisionReduction: true,
     decimals: 2,
-    shapeConversion: true,
-    pathMerging: true,
+    shapeConversion: false,
+    pathMerging: false,
     idCleanup: 'minify',
     textHandling: 'preserve',
     textToPathConfirmed: false
@@ -269,11 +269,10 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                   type="checkbox"
                   checked={advancedConfig.pathMerging}
                   onChange={(e) => handleAdvancedConfigChange({ pathMerging: e.target.checked })}
-                  disabled={!advancedConfig.shapeConversion}
                 />
                 Path Merging
               </label>
-              <span className={styles.phase2OptionDescription}>Merge paths with identical styles</span>
+              <span className={styles.phase2OptionDescription}>Merge paths with identical styles (only if fill, stroke, fill-rule, and transform match)</span>
             </div>
 
             <div className={styles.phase2Option}>
