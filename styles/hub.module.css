@@ -285,7 +285,7 @@
   contain: layout style;
   min-height: 0;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
