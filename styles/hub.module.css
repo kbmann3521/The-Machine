@@ -284,7 +284,7 @@
   background-color: var(--color-background-secondary);
   contain: layout style;
   min-height: 0;
-  height: 100%;
+  flex: 1;
   overflow: hidden;
 }
 
