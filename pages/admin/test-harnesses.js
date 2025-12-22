@@ -12,6 +12,7 @@ const DEFAULT_TEST_HARNESSES = [
   { id: 'math-evaluator-tests', path: '/math-evaluator-tests', title: 'Math Evaluator Tests' },
   { id: 'phase5-tests', path: '/phase5-tests', title: 'Phase 5 Tests' },
   { id: 'test-detection', path: '/test-detection', title: 'Test Detection' },
+  { id: 'svg-optimizer-tests', path: '/svg-optimizer-tests', title: 'SVG Optimizer Tests' },
 ]
 
 export default function AdminTestHarnesses() {
@@ -141,14 +142,6 @@ export default function AdminTestHarnesses() {
             <h1 className={styles.adminTitle} style={{ margin: 0 }}>
               Test Harnesses
             </h1>
-          </div>
-
-          <div className={styles.harnessesImageWrapper}>
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets%2Fb088a8dca92e45c2a520aacd73f5f7f3%2F075feecf07a14ca9ab9c60e155c5b6bf?format=webp&width=800"
-              alt="Test Harnesses Overview"
-              className={styles.harnessesImage}
-            />
           </div>
 
           <table className={styles.postsTable}>
