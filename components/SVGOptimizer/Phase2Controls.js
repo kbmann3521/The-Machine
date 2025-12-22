@@ -319,6 +319,20 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
         )}
       </div>
 
+      {selectedLevel === 'aggressive' && !isAggressiveBlocked && (
+        <div style={{
+          padding: '12px',
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '4px',
+          marginTop: '12px',
+          fontSize: '13px',
+          color: '#856404'
+        }}>
+          <strong>⚠ Warning:</strong> Aggressive mode may break external JavaScript selectors and CSS rules that reference element IDs. Review the optimized SVG before deploying to production.
+        </div>
+      )}
+
       {selectedLevel === 'aggressive' && isAggressiveBlocked && (
         <div className={styles.phase2BlockedMessage}>
           <strong>Aggressive mode blocked:</strong> {aggressiveBlockReason}. This SVG contains features that may be affected by aggressive optimization.
