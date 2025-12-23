@@ -303,6 +303,18 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
                 <option value="minify">Minify IDs</option>
               </select>
               <span className={styles.phase2OptionDescription}>Control how IDs are handled during optimization</span>
+
+              {advancedConfig.idCleanup === 'unused-only' && (
+                <div className={styles.phase2OptionNote}>
+                  ℹ️ Removes IDs not referenced internally. External CSS/JS selectors may break.
+                </div>
+              )}
+
+              {advancedConfig.idCleanup === 'minify' && (
+                <div className={styles.phase2OptionWarning}>
+                  ⚠️ Minified IDs (a, b, c...) will break external CSS/JS selectors. Use only for standalone SVGs.
+                </div>
+              )}
             </div>
 
             <div className={styles.phase2Option}>
