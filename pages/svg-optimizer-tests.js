@@ -582,6 +582,35 @@ export default function SVGOptimizerTestSuite() {
                         </div>
                       )}
 
+                      {testCase.config && testCase.config.phase2 && (
+                        <div className={styles.stepsSection}>
+                          <h4>⚙️ Configuration (Mode: {testCase.config.phase2.level})</h4>
+                          <div style={{
+                            backgroundColor: 'var(--color-background-tertiary)',
+                            padding: '8px',
+                            borderRadius: '3px',
+                            fontSize: '12px',
+                            fontFamily: 'monospace'
+                          }}>
+                            <div style={{ marginBottom: '4px' }}>
+                              <strong>Precision Reduction:</strong> {testCase.config.phase2.overrides?.precisionReduction?.enabled ? `✓ (${testCase.config.phase2.overrides?.precisionReduction?.decimals} decimals)` : (testCase.config.phase2.level === 'safe' ? '❌' : testCase.config.phase2.level === 'balanced' ? '✓ (3 decimals)' : '✓ (2 decimals)')}
+                            </div>
+                            <div style={{ marginBottom: '4px' }}>
+                              <strong>Remove Unused Defs:</strong> {testCase.config.phase2.level === 'safe' ? '❌' : '✓'}
+                            </div>
+                            <div style={{ marginBottom: '4px' }}>
+                              <strong>Remove Empty Groups:</strong> ✓
+                            </div>
+                            <div style={{ marginBottom: '4px' }}>
+                              <strong>ID Cleanup:</strong> {testCase.config.phase2.level === 'safe' ? '❌' : testCase.config.phase2.level === 'balanced' ? '✓ (unused-only)' : '✓ (minify)'}
+                            </div>
+                            <div>
+                              <strong>Shape Conversion:</strong> {testCase.config.phase2.level === 'aggressive' ? '✓' : '❌'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {testCase.result && testCase.result.appliedOptimizations && testCase.result.appliedOptimizations.length > 0 && (
                         <div className={styles.stepsSection}>
                           <h4>✓ Applied Optimizations</h4>
