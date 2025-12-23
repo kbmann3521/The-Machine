@@ -90,6 +90,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
     [
       advancedConfig.attributeCleanup,
       advancedConfig.removeUnusedDefs,
+      advancedConfig.removeEmptyGroups,
       advancedConfig.precisionReduction,
       advancedConfig.decimals,
       advancedConfig.shapeConversion,
