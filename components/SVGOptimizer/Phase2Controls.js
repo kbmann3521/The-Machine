@@ -22,7 +22,8 @@ const OPTIMIZATION_LEVELS = {
 const PHASE2_PRESETS = {
   safe: {
     attributeCleanup: true,
-    removeUnusedDefs: true,
+    removeUnusedDefs: false,
+    removeEmptyGroups: true,
     precisionReduction: false,
     decimals: 3,
     shapeConversion: false,
@@ -34,6 +35,7 @@ const PHASE2_PRESETS = {
   balanced: {
     attributeCleanup: true,
     removeUnusedDefs: true,
+    removeEmptyGroups: true,
     precisionReduction: true,
     decimals: 3,
     shapeConversion: false,
@@ -45,6 +47,7 @@ const PHASE2_PRESETS = {
   aggressive: {
     attributeCleanup: true,
     removeUnusedDefs: true,
+    removeEmptyGroups: true,
     precisionReduction: true,
     decimals: 2,
     shapeConversion: true,
