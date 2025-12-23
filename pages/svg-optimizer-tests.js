@@ -621,6 +621,19 @@ export default function SVGOptimizerTestSuite() {
                                   {step.executed ? '✓' : '○'} {step.step}
                                 </div>
                                 <div className={styles.stepReason}>{step.reason}</div>
+                                {step.warning && (
+                                  <div style={{
+                                    backgroundColor: '#FFF3CD',
+                                    border: '1px solid #FFE69C',
+                                    color: '#856404',
+                                    padding: '8px',
+                                    marginTop: '8px',
+                                    borderRadius: '3px',
+                                    fontSize: '12px'
+                                  }}>
+                                    ⚠️ {step.warning}
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
