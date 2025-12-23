@@ -127,6 +127,28 @@
   margin-left: 22px;
 }
 
+.phase2OptionNote {
+  font-size: 11px;
+  color: #2196f3;
+  margin-left: 22px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background-color: rgba(33, 150, 243, 0.1);
+  border-left: 2px solid #2196f3;
+  border-radius: 2px;
+}
+
+.phase2OptionWarning {
+  font-size: 11px;
+  color: #ff9800;
+  margin-left: 22px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 2px solid #ff9800;
+  border-radius: 2px;
+}
+
 .phase2Indent {
   margin-left: 22px;
   padding: 8px;
