@@ -231,6 +231,18 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
               <label className={styles.phase2CheckboxLabel}>
                 <input
                   type="checkbox"
+                  checked={advancedConfig.removeEmptyGroups !== false}
+                  onChange={(e) => handleAdvancedConfigChange({ removeEmptyGroups: e.target.checked })}
+                />
+                Remove Empty Groups
+              </label>
+              <span className={styles.phase2OptionDescription}>Remove empty &lt;g&gt; elements with no children or attributes</span>
+            </div>
+
+            <div className={styles.phase2Option}>
+              <label className={styles.phase2CheckboxLabel}>
+                <input
+                  type="checkbox"
                   checked={advancedConfig.precisionReduction}
                   onChange={(e) => handleAdvancedConfigChange({ precisionReduction: e.target.checked })}
                 />
