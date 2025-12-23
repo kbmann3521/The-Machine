@@ -582,6 +582,29 @@ export default function SVGOptimizerTestSuite() {
                         </div>
                       )}
 
+                      {testCase.result && testCase.result.appliedOptimizations && testCase.result.appliedOptimizations.length > 0 && (
+                        <div className={styles.stepsSection}>
+                          <h4>✓ Applied Optimizations</h4>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {testCase.result.appliedOptimizations.map((optimization, optIdx) => (
+                              <span
+                                key={optIdx}
+                                style={{
+                                  backgroundColor: '#4CAF50',
+                                  color: 'white',
+                                  padding: '4px 8px',
+                                  borderRadius: '3px',
+                                  fontSize: '12px',
+                                  fontWeight: '500'
+                                }}
+                              >
+                                {optimization}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {testCase.result && testCase.result.stepResults && testCase.result.stepResults.length > 0 && (
                         <div className={styles.stepsSection}>
                           <h4>⚙️ Optimization Steps</h4>
