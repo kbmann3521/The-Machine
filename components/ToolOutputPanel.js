@@ -3807,8 +3807,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // Linting tab
     if (displayResult.linting) {
-      const lintingWarnings = (displayResult.linting.warnings || []).filter(w => w.level === 'warning')
-      const lintingHints = displayResult.linting.hints || []
+      // Support both old format (linting) and new format (lintingStages with input/output)
+      const outputLinting = displayResult.lintingStages?.output || displayResult.linting
+      const inputLinting = displayResult.lintingStages?.input
+
+      const lintingWarnings = (outputLinting.warnings || []).filter(w => w.level === 'warning')
+      const lintingHints = outputLinting.hints || []
       const totalLintIssues = lintingWarnings.length + lintingHints.length
 
       let lintingLabel = `Linting${totalLintIssues > 0 ? ` (${totalLintIssues})` : ' (✓)'}`
@@ -3817,6 +3821,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (!hasValidationErrors && totalLintIssues > 0) {
         lintingContent = (
           <div style={{ padding: '16px' }}>
+            {inputLinting && (
+              <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  📋 Input Analysis (before optimization)
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                  {(inputLinting.hints || []).length === 0 && (inputLinting.warnings || []).length === 0
+                    ? 'No issues detected in input'
+                    : `${(inputLinting.hints || []).length} hint(s), ${((inputLinting.warnings || []).filter(w => w.level === 'warning')).length} warning(s)`}
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                ✨ Output Analysis (after optimization)
+              </div>
+            </div>
+
             {lintingWarnings.length > 0 && (
               <>
                 <div style={{
