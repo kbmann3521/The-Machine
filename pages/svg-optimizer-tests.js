@@ -253,6 +253,20 @@ const OPTIMIZATION_CONFIGS = [
     }
   },
   {
+    name: 'Remove Unused IDs Only',
+    config: {
+      phase2: {
+        enabled: true,
+        level: 'safe',
+        overrides: {
+          idCleanup: { enabled: true, mode: 'unused-only' },
+          removeEmptyGroups: true
+        }
+      },
+      outputFormat: 'compact'
+    }
+  },
+  {
     name: 'Pretty Format (Balanced)',
     config: {
       phase2: {
