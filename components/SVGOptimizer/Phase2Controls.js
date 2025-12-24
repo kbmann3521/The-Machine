@@ -241,14 +241,34 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
             </div>
 
             <div className={styles.phase2Option}>
-              <label className={styles.phase2CheckboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={advancedConfig.precisionReduction}
-                  onChange={(e) => handleAdvancedConfigChange({ precisionReduction: e.target.checked })}
-                />
-                Precision Reduction
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label className={styles.phase2CheckboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={advancedConfig.precisionReduction}
+                    onChange={(e) => handleAdvancedConfigChange({ precisionReduction: e.target.checked })}
+                  />
+                  Precision Reduction
+                </label>
+                {safetyFlags?.hasText && advancedConfig.precisionReduction && advancedConfig.decimals < 3 && (
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    backgroundColor: '#fff3cd',
+                    border: '1px solid #ffc107',
+                    borderRadius: '3px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    color: '#856404',
+                    fontWeight: '500',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    <span>⚠</span>
+                    <span>Text detected — precision &lt; 3 may affect glyphs</span>
+                  </span>
+                )}
+              </div>
               {advancedConfig.precisionReduction && (
                 <div className={styles.phase2Indent}>
                   <label className={styles.phase2SliderLabel}>
