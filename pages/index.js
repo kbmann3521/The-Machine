@@ -295,7 +295,8 @@ export default function Home(props) {
     }
 
     // Only run prediction if text was ADDED, not when deleting
-    // Exception: Always run prediction when loading an example
+    // Exception: Always run prediction when loading an example or pasting content
+    // The fourth parameter can be either isPaste or isLoadExample flag
     if (!isAddition && !isLoadExample) {
       setLoading(false)
       return
