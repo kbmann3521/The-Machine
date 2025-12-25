@@ -268,7 +268,7 @@ export default function Home(props) {
     []
   )
 
-  const handleInputChange = useCallback((text, image, preview) => {
+  const handleInputChange = useCallback((text, image, preview, isLoadExample) => {
     const isAddition = text.length > previousInputLength
     const isEmpty = !text || text.trim() === ''
 
@@ -295,7 +295,8 @@ export default function Home(props) {
     }
 
     // Only run prediction if text was ADDED, not when deleting
-    if (!isAddition) {
+    // Exception: Always run prediction when loading an example
+    if (!isAddition && !isLoadExample) {
       setLoading(false)
       return
     }
