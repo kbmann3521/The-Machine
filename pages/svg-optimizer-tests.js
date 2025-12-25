@@ -2,143 +2,171 @@ import React, { useState } from 'react'
 import Head from 'next/head'
 import styles from '../styles/svg-optimizer-tests.module.css'
 
-const TEST_SVG = `<svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 300 300"
-     width="300"
-     height="300">
+const TEST_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
 
-  <!-- =========================
-       DEFINITIONS (USED + UNUSED)
-       ========================= -->
-
+  <!-- ======================
+       DEFINITIONS
+  ====================== -->
   <defs>
-    <!-- Used gradient -->
-    <linearGradient id="gradUsed" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF6B6B" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#4ECDC4" stop-opacity="1"/>
+    <linearGradient id="gradMain" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#845EC2"/>
+      <stop offset="100%" stop-color="#D65DB1"/>
     </linearGradient>
 
-    <!-- Unused gradient -->
-    <linearGradient id="gradUnused">
-      <stop offset="0%" stop-color="red"/>
-      <stop offset="100%" stop-color="blue"/>
-    </linearGradient>
+    <radialGradient id="gradRadial" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFC75F"/>
+      <stop offset="100%" stop-color="#FF6F91"/>
+    </radialGradient>
 
-    <!-- Used filter -->
-    <filter id="blurFilter">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="3.141592653589793"/>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="2"/>
     </filter>
 
-    <!-- Used mask -->
     <mask id="circleMask">
-      <circle cx="150" cy="150" r="80" fill="white"/>
+      <rect x="0" y="0" width="100%" height="100%" fill="black"/>
+      <circle cx="200" cy="150" r="80" fill="white"/>
     </mask>
+
+    <clipPath id="clipBox">
+      <rect x="50" y="50" width="300" height="200"/>
+    </clipPath>
+
+    <style><![CDATA[
+      .label {
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        fill: #FFFFFF;
+      }
+      .outline {
+        stroke: #333333;
+        stroke-width: 2;
+        fill: none;
+      }
+    ]]></style>
   </defs>
 
-  <!-- =========================
-       METADATA / ACCESSIBILITY
-       ========================= -->
+  <!-- ======================
+       BACKGROUND
+  ====================== -->
+  <rect
+    x="0"
+    y="0"
+    width="400"
+    height="300"
+    fill="url(#gradMain)"
+  />
 
-  <title>SVG Optimizer Stress Test</title>
+  <!-- ======================
+       GROUP WITH TRANSFORM
+  ====================== -->
+  <g id="shapes" transform="translate(50 40)">
+    <rect
+      x="0"
+      y="0"
+      width="120"
+      height="80"
+      rx="8"
+      fill="url(#gradRadial)"
+      stroke="#000"
+      stroke-width="1.5"
+    />
 
-  <!-- =========================
-       BACKGROUND (DEFAULT ATTRS)
-       ========================= -->
+    <circle
+      cx="180"
+      cy="40"
+      r="35"
+      fill="#4D96FF"
+      opacity="0.85"
+      filter="url(#blur)"
+    />
 
-  <rect x="0" y="0"
-        width="300"
-        height="300"
-        fill="black"
-        opacity="1.0"/>
-
-  <!-- =========================
-       SHAPES (PRECISION + CONVERT)
-       ========================= -->
-
-  <!-- High-precision rectangle -->
-  <rect x="10.123456789"
-        y="10.987654321"
-        width="120.555555555"
-        height="80.333333333"
-        rx="5.999999999"
-        ry="5.111111111"
-        fill="url(#gradUsed)"/>
-
-  <!-- Circle with filter -->
-  <circle cx="200.444444444"
-          cy="80.555555555"
-          r="30.999999999"
-          fill="#FF6B6B"
-          filter="url(#blurFilter)"/>
-
-  <!-- Ellipse (convert candidate) -->
-  <ellipse cx="80.222222222"
-           cy="180.777777777"
-           rx="40.888888888"
-           ry="20.333333333"
-           fill="#4ECDC4"/>
-
-  <!-- =========================
-       PATHS (MERGE + NO MERGE)
-       ========================= -->
-
-  <!-- Mergeable paths -->
-  <path d="M 50.123456789 250.987654321 L 80.111111111 280.222222222 L 20.444444444 280.333333333 Z"
-        fill="#845EC2"/>
-
-  <path d="M 100.555555555 250.111111111 L 130.666666666 280.888888888 L 70.777777777 280.444444444 Z"
-        fill="#845EC2"/>
-
-  <!-- NOT mergeable (different stroke) -->
-  <path d="M 160 250 L 190 280 L 130 280 Z"
-        fill="#845EC2"
-        stroke="#000000"
-        stroke-width="1"/>
-
-  <!-- =========================
-       TEXT (PRESERVE / CONVERT)
-       ========================= -->
-
-  <text x="150.000000"
-        y="140.000000"
-        font-size="24"
-        text-anchor="middle"
-        fill="white">
-    SVG Test
-  </text>
-
-  <text x="150"
-        y="270"
-        font-size="14.789456123"
-        fill="#FFFFFF"
-        text-anchor="middle">
-    Precision • Paths • IDs
-  </text>
-
-  <!-- =========================
-       GROUPS (EMPTY + UNUSED ID)
-       ========================= -->
-
-  <!-- Empty group -->
-  <g id="emptyGroup"></g>
-
-  <!-- Unused ID group -->
-  <g id="unusedGroup">
-    <line x1="10.5" y1="10.5"
-          x2="290.5" y2="290.5"
-          stroke="#FFFFFF"
-          stroke-width="0.5"/>
+    <ellipse
+      cx="280"
+      cy="40"
+      rx="45"
+      ry="25"
+      fill="#00C9A7"
+    />
   </g>
 
-  <!-- =========================
-       MASKED ELEMENT
-       ========================= -->
+  <!-- ======================
+       PATHS
+  ====================== -->
+  <path
+    d="M60 200 L180 200 L220 260 L20 260 Z"
+    fill="#F9F871"
+    stroke="#333"
+    stroke-width="2"
+  />
 
-  <circle cx="150"
-          cy="150"
-          r="100"
-          fill="#96CEB4"
-          mask="url(#circleMask)"/>
+  <path
+    d="M260 190 C300 150 360 230 320 260"
+    fill="none"
+    stroke="#FF9671"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+
+  <!-- ======================
+       USE / SYMBOL
+  ====================== -->
+  <symbol id="iconStar" viewBox="0 0 24 24">
+    <path
+      d="M12 2 L15 9 L22 9 L16.5 14 L18.5 21 L12 17 L5.5 21 L7.5 14 L2 9 L9 9 Z"
+      fill="#FFC75F"
+    />
+  </symbol>
+
+  <use href="#iconStar" x="300" y="30" width="40" height="40"/>
+
+  <!-- ======================
+       CLIPPED & MASKED GROUP
+  ====================== -->
+  <g clip-path="url(#clipBox)" mask="url(#circleMask)">
+    <rect
+      x="50"
+      y="120"
+      width="300"
+      height="140"
+      fill="#845EC2"
+    />
+  </g>
+
+  <!-- ======================
+       TEXT
+  ====================== -->
+  <text
+    x="200"
+    y="280"
+    text-anchor="middle"
+    class="label"
+  >
+    SVG Pretty Mode Test
+  </text>
+
+  <!-- ======================
+       LINE / POLY / META
+  ====================== -->
+  <line
+    x1="20"
+    y1="20"
+    x2="380"
+    y2="20"
+    stroke="#FFFFFF"
+    stroke-dasharray="6 4"
+  />
+
+  <polyline
+    points="50,100 100,140 150,110 200,160"
+    fill="none"
+    stroke="#FF6F91"
+    stroke-width="2"
+  />
+
+  <metadata>
+    <author>Your Name</author>
+    <purpose>Pretty mode formatter stress test</purpose>
+  </metadata>
 
 </svg>`
 
