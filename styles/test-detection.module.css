@@ -611,7 +611,8 @@
 
   .startButton,
   .addButton,
-  .seedButton {
+  .seedButton,
+  .regenerateButton {
     width: 100%;
   }
 
