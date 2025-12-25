@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { TOOLS } from '../../../lib/tools'
+import { TOOLS, getToolExample, getToolExampleCount } from '../../../lib/tools'
 
 let supabase = null
 
@@ -31,40 +31,23 @@ export default async function handler(req, res) {
         return
       }
 
-      // Get examples from the tool's getExamples function
-      if (toolData.getExamples && typeof toolData.getExamples === 'function') {
-        try {
-          const examples = toolData.getExamples()
+      // Get the number of examples for this tool
+      const exampleCount = getToolExampleCount(toolId, {})
 
-          if (Array.isArray(examples) && examples.length > 0) {
-            // Handle examples that might be multi-line (e.g., email validator)
-            // Each line or item becomes a separate test case
-            examples.forEach(example => {
-              if (example && typeof example === 'string') {
-                // For multi-line examples, split on newlines and create separate test cases
-                // But for most tools, just use the example as-is
-                const lines = example.split('\n').filter(line => line.trim())
-
-                // If it's a multi-line example with multiple items, create one test case per item
-                // Otherwise use the whole thing as one test case
-                if (lines.length > 2) {
-                  // Multi-line example - add the whole thing as one test case
-                  generatedCases.push({
-                    input: example,
-                    expected: toolId,
-                  })
-                } else {
-                  // Single/double line - add as-is
-                  generatedCases.push({
-                    input: example,
-                    expected: toolId,
-                  })
-                }
-              }
-            })
+      if (exampleCount > 0) {
+        // Get each example for this tool
+        for (let i = 0; i < exampleCount; i++) {
+          try {
+            const example = getToolExample(toolId, {}, i)
+            if (example && typeof example === 'string') {
+              generatedCases.push({
+                input: example,
+                expected: toolId,
+              })
+            }
+          } catch (err) {
+            console.warn(`Failed to get example ${i} for ${toolId}:`, err.message)
           }
-        } catch (err) {
-          console.warn(`Failed to get examples for ${toolId}:`, err.message)
         }
       }
     })
