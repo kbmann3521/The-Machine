@@ -611,8 +611,8 @@ export default function TestDetection() {
           <span className={styles.caseCount}>{testCases.length} test cases</span>
         </div>
         <div className={styles.controlsRight}>
-          <button className={styles.regenerateButton} onClick={handleRegenerateCases} disabled={loadingCases || regeneratingCases}>
-            {regeneratingCases ? '⚙️ Regenerating...' : '🤖 Regenerate with AI'}
+          <button className={styles.loadExamplesButton} onClick={handleLoadExamples} disabled={loadingCases || regeneratingCases}>
+            {regeneratingCases ? '⚙️ Loading...' : '📚 Load Examples'}
           </button>
           <button className={styles.seedButton} onClick={seedDefaultCases} disabled={loadingCases}>
             📋 Reset to Defaults
