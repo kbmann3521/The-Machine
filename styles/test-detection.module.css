@@ -160,8 +160,8 @@
   cursor: not-allowed;
 }
 
-.regenerateButton {
-  background: #ff9800;
+.loadExamplesButton {
+  background: #17a2b8;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -172,11 +172,11 @@
   transition: background 0.2s;
 }
 
-.regenerateButton:hover:not(:disabled) {
-  background: #e68900;
+.loadExamplesButton:hover:not(:disabled) {
+  background: #138496;
 }
 
-.regenerateButton:disabled {
+.loadExamplesButton:disabled {
   background: #6c757d;
   cursor: not-allowed;
 }
