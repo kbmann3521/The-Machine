@@ -116,81 +116,51 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
 
   return (
     <div className={styles.phase2Controls}>
-      {/* Optimization Level & Output Format Controls */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        {/* Optimization Level Dropdown */}
-        <div className={styles.phase2Section}>
-          <label className={styles.phase2Label} htmlFor="level-dropdown">Optimization Level</label>
-          <select
-            id="level-dropdown"
-            value={selectedLevel}
-            onChange={(e) => {
-              const newLevel = e.target.value
-              if (newLevel === 'aggressive' && isAggressiveBlocked) return
-              handleLevelChange(newLevel)
-            }}
-            disabled={isAggressiveBlocked && selectedLevel === 'aggressive'}
-            className={styles.phase2Select}
-            style={{ marginBottom: '8px' }}
-          >
-            {Object.entries(OPTIMIZATION_LEVELS).map(([key, level]) => {
-              const disabled = key === 'aggressive' && isAggressiveBlocked
-              return (
-                <option key={key} value={key} disabled={disabled}>
-                  {level.label}
-                  {disabled ? ` (${aggressiveBlockReason})` : ''}
-                </option>
-              )
-            })}
-          </select>
-          <p className={styles.phase2LevelDescription} style={{ marginBottom: '0' }}>
-            {OPTIMIZATION_LEVELS[selectedLevel].description}
-          </p>
-        </div>
+      {/* Optimization Level Dropdown */}
+      <div className={styles.phase2Section}>
+        <label className={styles.phase2Label} htmlFor="level-dropdown">Optimization Level</label>
+        <select
+          id="level-dropdown"
+          value={selectedLevel}
+          onChange={(e) => {
+            const newLevel = e.target.value
+            if (newLevel === 'aggressive' && isAggressiveBlocked) return
+            handleLevelChange(newLevel)
+          }}
+          disabled={isAggressiveBlocked && selectedLevel === 'aggressive'}
+          className={styles.phase2Select}
+          style={{ marginBottom: '8px' }}
+        >
+          {Object.entries(OPTIMIZATION_LEVELS).map(([key, level]) => {
+            const disabled = key === 'aggressive' && isAggressiveBlocked
+            return (
+              <option key={key} value={key} disabled={disabled}>
+                {level.label}
+                {disabled ? ` (${aggressiveBlockReason})` : ''}
+              </option>
+            )
+          })}
+        </select>
+        <p className={styles.phase2LevelDescription} style={{ marginBottom: '0' }}>
+          {OPTIMIZATION_LEVELS[selectedLevel].description}
+        </p>
+      </div>
 
-        {/* Output Format Toggle */}
-        <div className={styles.phase2Section}>
-          <label className={styles.phase2Label}>Output Format</label>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            <button
-              onClick={() => setOutputFormat('compact')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                backgroundColor: outputFormat === 'compact' ? '#2196f3' : 'rgba(33, 150, 243, 0.1)',
-                color: outputFormat === 'compact' ? 'white' : '#2196f3',
-                border: '1px solid ' + (outputFormat === 'compact' ? '#2196f3' : 'rgba(33, 150, 243, 0.3)'),
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '600',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Compact
-            </button>
-            <button
-              onClick={() => setOutputFormat('pretty')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                backgroundColor: outputFormat === 'pretty' ? '#2196f3' : 'rgba(33, 150, 243, 0.1)',
-                color: outputFormat === 'pretty' ? 'white' : '#2196f3',
-                border: '1px solid ' + (outputFormat === 'pretty' ? '#2196f3' : 'rgba(33, 150, 243, 0.3)'),
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '600',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Pretty
-            </button>
-          </div>
-          <p className={styles.phase2LevelDescription} style={{ marginBottom: '0', fontSize: '11px' }}>
-            {outputFormat === 'compact' ? 'Single line, minified' : 'Formatted with indentation'}
-          </p>
+      {/* Minify Toggle */}
+      <div className={styles.phase2Section}>
+        <div className={styles.phase2ToggleRow}>
+          <label className={styles.phase2Label}>Minify</label>
+          <button
+            onClick={() => setIsMinified(!isMinified)}
+            className={`${styles.phase2ToggleButton} ${isMinified ? styles.phase2ToggleActive : ''}`}
+            aria-pressed={isMinified}
+          >
+            <span className={styles.phase2ToggleSwitch}></span>
+          </button>
         </div>
+        <p className={styles.phase2ToggleDescription} style={{ marginBottom: '0' }}>
+          {isMinified ? 'Single line, minified' : 'Formatted with indentation'}
+        </p>
       </div>
 
       {/* Advanced Options */}
