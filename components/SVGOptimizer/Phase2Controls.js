@@ -63,7 +63,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [phase2Source, setPhase2Source] = useState('preset')
   const [advancedConfig, setAdvancedConfig] = useState(PHASE2_PRESETS.safe)
-  const [outputFormat, setOutputFormat] = useState('compact')
+  const [isMinified, setIsMinified] = useState(false)
 
   const isAggressiveBlocked = safetyFlags?.hasAnimations || safetyFlags?.hasScripts || safetyFlags?.hasBrokenReferences
   const aggressiveBlockReason = safetyFlags?.hasAnimations
