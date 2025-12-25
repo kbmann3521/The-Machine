@@ -3640,40 +3640,65 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         lintingContent = (
           <div style={{}}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {lintingWarnings.map((warning, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    padding: '12px',
-                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
-                    border: '1px solid rgba(255, 167, 38, 0.2)',
-                    borderRadius: '4px',
-                    borderLeft: '3px solid #ffa726',
-                  }}
-                >
-                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
-                    ⚠️ Warning {idx + 1}
+              {lintingWarnings.map((warning, idx) => {
+                const isDeclarationWarning = warning.warningType === 'missing-declaration'
+                const canFixDeclaration = isDeclarationWarning && configOptions?.removeXMLDeclaration !== true
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                      border: '1px solid rgba(255, 167, 38, 0.2)',
+                      borderRadius: '4px',
+                      borderLeft: '3px solid #ffa726',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                      ⚠️ Warning {idx + 1}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                      {warning.message}
+                    </div>
+                    {warning.line !== null && warning.column !== null && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Line {warning.line}, Column {warning.column}
+                      </div>
+                    )}
+                    {warning.ruleId && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Rule: {warning.ruleId}
+                      </div>
+                    )}
+                    {warning.category && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Category: {warning.category}
+                      </div>
+                    )}
+                    {isDeclarationWarning && (
+                      <div style={{ marginTop: '8px' }}>
+                        <button
+                          onClick={handleInsertXMLDeclaration}
+                          disabled={!canFixDeclaration}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: canFixDeclaration ? '#66bb6a' : '#999',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            fontSize: '11px',
+                            fontWeight: '500',
+                            cursor: canFixDeclaration ? 'pointer' : 'not-allowed',
+                            opacity: canFixDeclaration ? 1 : 0.6,
+                          }}
+                        >
+                          {configOptions?.removeXMLDeclaration ? 'Cannot add (Remove Declaration is enabled)' : 'Add XML Declaration'}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                    {warning.message}
-                  </div>
-                  {warning.line !== null && warning.column !== null && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
-                      Line {warning.line}, Column {warning.column}
-                    </div>
-                  )}
-                  {warning.ruleId && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
-                      Rule: {warning.ruleId}
-                    </div>
-                  )}
-                  {warning.category && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
-                      Category: {warning.category}
-                    </div>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )
