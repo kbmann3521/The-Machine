@@ -62,9 +62,9 @@
   color: var(--color-text-secondary);
   margin: 0;
   padding: 8px;
-  background-color: rgba(156, 39, 176, 0.05);
+  background-color: rgba(33, 150, 243, 0.05);
   border-radius: 4px;
-  border-left: 3px solid rgba(156, 39, 176, 0.3);
+  border-left: 3px solid rgba(33, 150, 243, 0.3);
 }
 
 .phase2AdvancedToggle {
