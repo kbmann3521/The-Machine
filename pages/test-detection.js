@@ -506,8 +506,8 @@ export default function TestDetection() {
     }
   }
 
-  const handleRegenerateCases = async () => {
-    const confirmMessage = 'This will generate new test inputs for all available tools using OpenAI. This will replace all current test cases. Continue?'
+  const handleLoadExamples = async () => {
+    const confirmMessage = 'This will load all examples from your tools as test cases. This will replace all current test cases. Continue?'
 
     if (!window.confirm(confirmMessage)) {
       return
@@ -516,27 +516,27 @@ export default function TestDetection() {
     try {
       setRegeneratingCases(true)
 
-      const fetchPromise = fetch('/api/test-detection/regenerate', {
+      const fetchPromise = fetch('/api/test-detection/load-from-examples', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       })
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 60000)
+        setTimeout(() => reject(new Error('Timeout')), 30000)
       )
 
       let response
       try {
         response = await Promise.race([fetchPromise, timeoutPromise])
       } catch (err) {
-        alert('Failed to regenerate cases. Request timed out. Please try again.')
+        alert('Failed to load examples. Request timed out. Please try again.')
         setRegeneratingCases(false)
         return
       }
 
       if (!response?.ok) {
-        alert('Failed to regenerate test cases. Please try again.')
+        alert('Failed to load examples. Please try again.')
         setRegeneratingCases(false)
         return
       }
@@ -545,24 +545,21 @@ export default function TestDetection() {
         const data = await response.json()
 
         if (!data.success) {
-          alert(`Failed to regenerate: ${data.error}`)
+          alert(`Failed to load examples: ${data.error}`)
           setRegeneratingCases(false)
           return
         }
 
         if (data.cases && Array.isArray(data.cases)) {
           setTestCases(data.cases)
-          const message = data.failed && data.failed > 0
-            ? `Successfully regenerated ${data.generated} test cases (${data.failed} tools failed)`
-            : `Successfully regenerated ${data.generated} test cases for all tools!`
-          alert(message)
+          alert(`Successfully loaded ${data.generated} test cases from tool examples!`)
         }
       } catch (jsonErr) {
-        alert('Failed to process regeneration response. Please try again.')
+        alert('Failed to process response. Please try again.')
       }
     } catch (error) {
-      console.debug('Error regenerating cases:', error?.message)
-      alert('Failed to regenerate test cases. Please try again.')
+      console.debug('Error loading examples:', error?.message)
+      alert('Failed to load examples. Please try again.')
     } finally {
       setRegeneratingCases(false)
     }
