@@ -51,10 +51,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
-  const handleInsertXMLDeclaration = () => {
+  const handleInsertXMLDeclaration = (xmlWithoutDeclaration) => {
     if (!onInputUpdate) return
     const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    const newInput = xmlDeclaration + (inputText || '')
+    // Add declaration to the output and set it as new input to clear the lint warning
+    const newInput = xmlDeclaration + (xmlWithoutDeclaration || '')
     onInputUpdate(newInput)
   }
 
