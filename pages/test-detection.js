@@ -3,46 +3,42 @@ import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/test-detection.module.css'
 
 const DEFAULT_TEST_CASES = [
-  { input: 'please rewrite this to sound more professional', expected: 'text-toolkit' },
-  { input: '   Hello    world! This   has   extra spaces.   ', expected: 'clean-text' },
   { input: '🔥', expected: 'ascii-unicode-converter' },
-  { input: 'Khoor Zruog', expected: 'caesar-cipher' },
-  { input: 'apple banana apple orange banana apple', expected: 'word-frequency-counter' },
-  { input: 'const x={name:"john",age:30};function hi(){console.log("hello")}', expected: 'js-formatter' },
-  { input: '<div><p>Hello</p></div>', expected: 'html-formatter' },
-  { input: '# Hello\n<div>hi</div>', expected: 'markdown-html-formatter' },
-  { input: '<root><item>1</item></root>', expected: 'xml-formatter' },
-  { input: 'server:\n  port: 3000', expected: 'yaml-formatter' },
-  { input: 'select * from users where id=3', expected: 'sql-formatter' },
-  { input: '^[A-Za-z0-9_.+-]+@[A-Za-z0-9-]+\\.[A-Za-z0-9-.]+$', expected: 'regex-tester' },
-  { input: '$.store.book[0].title', expected: 'json-path-extractor' },
+  { input: '101011', expected: 'base-converter' },
   { input: 'SGVsbG8gd29ybGQ=', expected: 'base64-converter' },
-  { input: 'hello world?', expected: 'url-converter' },
-  { input: 'Tom & Jerry > Mickey & Minnie', expected: 'html-entities-converter' },
+  { input: 'Khoor Zruog', expected: 'caesar-cipher' },
+  { input: 'Hello world', expected: 'checksum-calculator' },
+  { input: '#FF5733', expected: 'color-converter' },
+  { input: '0 0 * * *', expected: 'cron-tester' },
+  { input: 'body { color: red; }', expected: 'css-formatter' },
+  { input: 'name,age\njohn,30', expected: 'csv-json-converter' },
+  { input: 'john@example.com', expected: 'email-validator' },
+  { input: '\\n\\t\\r', expected: 'escape-unescape' },
+  { input: '1024 KB', expected: 'file-size-converter' },
+  { input: 'Content-Type: application/json', expected: 'http-header-parser' },
+  { input: '404', expected: 'http-status-lookup' },
+  { input: 'https://example.com/image.jpg', expected: 'image-toolkit' },
+  { input: '192.168.0.1', expected: 'ip-address-toolkit' },
+  { input: 'const x={name:"john",age:30};function hi(){console.log("hello")}', expected: 'js-formatter' },
+  { input: '{"name":"John","age":30}', expected: 'json-formatter' },
   {
     input: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiJ9.sig',
     expected: 'jwt-decoder',
   },
-  { input: '404', expected: 'http-status-lookup' },
-  { input: 'Content-Type: application/json', expected: 'http-header-parser' },
-  { input: '192.168.0.1', expected: 'ip-validator' },
-  { input: '3232235521', expected: 'ip-integer-converter' },
-  { input: '192.168.0.0/24', expected: 'ip-range-calculator' },
-  { input: '#FF5733', expected: 'color-converter' },
-  { input: '<svg width="100" height="100"><rect width="100" height="100"/></svg>', expected: 'svg-optimizer' },
-  { input: '1234567.89123', expected: 'number-formatter' },
-  { input: '101011', expected: 'base-converter' },
+  { input: '# Hello\n<div>hi</div>', expected: 'markdown-html-formatter' },
   { input: '(5 + 3) * 12 / 4', expected: 'math-evaluator' },
-  { input: 'Hello world', expected: 'checksum-calculator' },
-  { input: '1024 KB', expected: 'file-size-converter' },
-  { input: '2024-01-15T14:30:00Z', expected: 'time-normalizer' },
-  { input: 'name,age\njohn,30', expected: 'csv-json-converter' },
   { input: 'pdf', expected: 'mime-type-lookup' },
-  { input: '100inches', expected: 'unit-converter' },
+  { input: '1234567.89123', expected: 'number-formatter' },
+  { input: '^[A-Za-z0-9_.+-]+@[A-Za-z0-9-]+\\.[A-Za-z0-9-.]+$', expected: 'regex-tester' },
+  { input: 'select * from users where id=3', expected: 'sql-formatter' },
+  { input: '<svg width="100" height="100"><rect width="100" height="100"/></svg>', expected: 'svg-optimizer' },
+  { input: 'please rewrite this to sound more professional', expected: 'text-toolkit' },
+  { input: 'Jan 15, 2024 3pm PST', expected: 'time-normalizer' },
+  { input: '100 inches', expected: 'unit-converter' },
+  { input: 'https://example.com/path?query=value#hash', expected: 'url-toolkit' },
   { input: '550e8400-e29b-41d4-a716-446655440000', expected: 'uuid-validator' },
-  { input: 'john@example.com', expected: 'email-validator' },
-  { input: 'application/json', expected: 'mime-type-lookup' },
-  { input: '# Hello World', expected: 'markdown-html-formatter' },
+  { input: '<root><item>1</item></root>', expected: 'xml-formatter' },
+  { input: 'server:\n  port: 3000', expected: 'yaml-formatter' },
 ]
 
 export default function TestDetection() {
@@ -59,6 +55,7 @@ export default function TestDetection() {
   const [singleTestResult, setSingleTestResult] = useState(null)
   const [singleTestLoading, setSingleTestLoading] = useState(false)
   const [testResultIndex, setTestResultIndex] = useState(null)
+  const [regeneratingCases, setRegeneratingCases] = useState(false)
 
   // Load test cases from database on mount
   useEffect(() => {
@@ -509,6 +506,65 @@ export default function TestDetection() {
     }
   }
 
+  const handleLoadExamples = async () => {
+    const confirmMessage = 'This will load all examples from your tools as test cases. This will replace all current test cases. Continue?'
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      setRegeneratingCases(true)
+
+      const fetchPromise = fetch('/api/test-detection/load-from-examples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 30000)
+      )
+
+      let response
+      try {
+        response = await Promise.race([fetchPromise, timeoutPromise])
+      } catch (err) {
+        alert('Failed to load examples. Request timed out. Please try again.')
+        setRegeneratingCases(false)
+        return
+      }
+
+      if (!response?.ok) {
+        alert('Failed to load examples. Please try again.')
+        setRegeneratingCases(false)
+        return
+      }
+
+      try {
+        const data = await response.json()
+
+        if (!data.success) {
+          alert(`Failed to load examples: ${data.error}`)
+          setRegeneratingCases(false)
+          return
+        }
+
+        if (data.cases && Array.isArray(data.cases)) {
+          setTestCases(data.cases)
+          alert(`Successfully loaded ${data.generated} test cases from tool examples!`)
+        }
+      } catch (jsonErr) {
+        alert('Failed to process response. Please try again.')
+      }
+    } catch (error) {
+      console.debug('Error loading examples:', error?.message)
+      alert('Failed to load examples. Please try again.')
+    } finally {
+      setRegeneratingCases(false)
+    }
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -555,6 +611,9 @@ export default function TestDetection() {
           <span className={styles.caseCount}>{testCases.length} test cases</span>
         </div>
         <div className={styles.controlsRight}>
+          <button className={styles.loadExamplesButton} onClick={handleLoadExamples} disabled={loadingCases || regeneratingCases}>
+            {regeneratingCases ? '⚙️ Loading...' : '📚 Load Examples'}
+          </button>
           <button className={styles.seedButton} onClick={seedDefaultCases} disabled={loadingCases}>
             📋 Reset to Defaults
           </button>
@@ -587,19 +646,34 @@ export default function TestDetection() {
                   <th className={styles.indexCol}>#</th>
                   <th className={styles.inputCol}>Input</th>
                   <th className={styles.expectedCol}>Expected Tool</th>
+                  <th className={styles.resultCol}>Result</th>
                   <th className={styles.actionsCol}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {testCases.map((testCase, idx) => (
+                {testCases.map((testCase, idx) => {
+                  const testResult = results[idx]
+                  const rowClassName = testResult ? (testResult.passed ? styles.rowPassed : styles.rowFailed) : ''
+                  return (
                   <React.Fragment key={`case-${testCase.id || idx}`}>
-                    <tr>
+                    <tr className={rowClassName}>
                       <td className={styles.indexCol}>{idx + 1}</td>
                       <td className={styles.inputCol}>
                         <code>{truncateString(testCase.input, 50)}</code>
                       </td>
                       <td className={styles.expectedCol}>
                         <code>{testCase.expected}</code>
+                      </td>
+                      <td className={styles.resultCol}>
+                        {testResult && (
+                          <span>
+                            {testResult.passed ? (
+                              <span className={styles.checkmark}>✓ PASS</span>
+                            ) : (
+                              <span className={styles.cross}>✗ FAIL</span>
+                            )}
+                          </span>
+                        )}
                       </td>
                       <td className={styles.actionsCol}>
                         <button
@@ -628,7 +702,7 @@ export default function TestDetection() {
                     </tr>
                     {singleTestResult && testResultIndex === idx && (
                       <tr className={styles.resultRow}>
-                        <td colSpan="4">
+                        <td colSpan="5">
                           <div className={`${styles.singleResult} ${singleTestResult.passed ? styles.resultPassed : styles.resultFailed}`}>
                             <div className={styles.resultInlineRow}>
                               <span className={styles.resultInlineLabel}>Expected:</span>
@@ -657,10 +731,11 @@ export default function TestDetection() {
                             </button>
                           </div>
                         </td>
-                      </tr>
+                    </tr>
                     )}
                   </React.Fragment>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           )}

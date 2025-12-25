@@ -280,6 +280,16 @@
   transform: scale(0.95);
 }
 
+.placeholderText {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  opacity: 0.6;
+  padding: 4px 0;
+  width: 100%;
+  text-align: center;
+}
+
 .fileInput {
   display: none;
 }

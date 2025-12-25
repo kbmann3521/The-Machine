@@ -162,7 +162,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
         ...prev,
         [selectedTool.toolId]: nextIndex
       }))
-      onInputChange(example, null, null, false)
+      // Pass true as fourth parameter to indicate this is a "load example" action
+      // This ensures prediction always runs, even if the example is shorter than previous input
+      onInputChange(example, null, null, true)
     }
   }
 
@@ -309,9 +311,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
           </div>
         </div>
 
-        {predictedTools.length > 0 && inputText && (
-          <div className={styles.detectedToolsInsideInput}>
-            {predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
+        <div className={styles.detectedToolsInsideInput}>
+          {inputText && predictedTools.length > 0 ? (
+            predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
               // Map similarity (0.6-1.0) to opacity (0.5-0.85) for subtler visual difference
               const opacity = 0.5 + (tool.similarity - 0.6) * 0.583
               return (
@@ -326,9 +328,13 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
                   {tool.name}
                 </button>
               )
-            })}
-          </div>
-        )}
+            })
+          ) : !inputText ? (
+            <div className={styles.placeholderText}>
+              Detected tools will appear here
+            </div>
+          ) : null}
+        </div>
 
         {imagePreview && (
           <div className={styles.imagePreview}>

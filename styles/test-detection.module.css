@@ -160,6 +160,27 @@
   cursor: not-allowed;
 }
 
+.loadExamplesButton {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.loadExamplesButton:hover:not(:disabled) {
+  background: #138496;
+}
+
+.loadExamplesButton:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
 .loadingMessage {
   background: #e7f3ff;
   border: 1px solid #b3d9ff;
@@ -367,11 +388,11 @@
 }
 
 .inputCol {
-  max-width: 300px;
+  max-width: 250px;
 }
 
 .expectedCol {
-  width: 200px;
+  width: 150px;
 }
 
 .detectedCol {
@@ -590,7 +611,8 @@
 
   .startButton,
   .addButton,
-  .seedButton {
+  .seedButton,
+  .loadExamplesButton {
     width: 100%;
   }
 
