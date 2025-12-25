@@ -646,6 +646,7 @@ export default function TestDetection() {
                   <th className={styles.indexCol}>#</th>
                   <th className={styles.inputCol}>Input</th>
                   <th className={styles.expectedCol}>Expected Tool</th>
+                  <th className={styles.resultCol}>Result</th>
                   <th className={styles.actionsCol}>Actions</th>
                 </tr>
               </thead>
