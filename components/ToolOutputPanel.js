@@ -4221,9 +4221,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         </div>
       )
 
+      const rawReduction = displayResult?.stats?.reductionPercent
+      const reductionLabel = (rawReduction !== undefined && rawReduction !== null && !Number.isNaN(Number(rawReduction)))
+        ? ` (${Number(rawReduction).toFixed(1)}%)`
+        : ''
+
       tabs.push({
         id: 'analysis',
-        label: 'Analysis',
+        label: `Analysis${reductionLabel}`,
         content: statsContent,
         contentType: 'component',
       })
