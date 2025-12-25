@@ -162,7 +162,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
         ...prev,
         [selectedTool.toolId]: nextIndex
       }))
-      onInputChange(example, null, null, false)
+      // Pass true as fourth parameter to indicate this is a "load example" action
+      // This ensures prediction always runs, even if the example is shorter than previous input
+      onInputChange(example, null, null, true)
     }
   }
 
