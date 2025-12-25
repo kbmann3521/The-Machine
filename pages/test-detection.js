@@ -33,7 +33,7 @@ const DEFAULT_TEST_CASES = [
   { input: 'select * from users where id=3', expected: 'sql-formatter' },
   { input: '<svg width="100" height="100"><rect width="100" height="100"/></svg>', expected: 'svg-optimizer' },
   { input: 'please rewrite this to sound more professional', expected: 'text-toolkit' },
-  { input: '2024-01-15T14:30:00Z', expected: 'timezone-converter' },
+  { input: '1705276800', expected: 'time-normalizer' },
   { input: '100 inches', expected: 'unit-converter' },
   { input: 'https://example.com/path?query=value#hash', expected: 'url-toolkit' },
   { input: '550e8400-e29b-41d4-a716-446655440000', expected: 'uuid-validator' },
