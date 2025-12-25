@@ -184,7 +184,7 @@
 
 .phase2Select:focus {
   outline: none;
-  border-color: #9c27b0;
+  border-color: #2196f3;
   background-color: var(--color-background-tertiary);
 }
 
