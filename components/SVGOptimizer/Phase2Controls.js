@@ -149,7 +149,6 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
       {/* Minify Toggle */}
       <div className={styles.phase2Section}>
         <div className={styles.phase2ToggleRow}>
-          <label className={styles.phase2Label}>Minify</label>
           <button
             onClick={() => setIsMinified(!isMinified)}
             className={`${styles.phase2ToggleButton} ${isMinified ? styles.phase2ToggleActive : ''}`}
@@ -157,6 +156,7 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
           >
             <span className={styles.phase2ToggleSwitch}></span>
           </button>
+          <label className={styles.phase2ToggleLabel}>Minify</label>
         </div>
         <p className={styles.phase2ToggleDescription} style={{ marginBottom: '0' }}>
           {isMinified ? 'Single line, minified' : 'Formatted with indentation'}
