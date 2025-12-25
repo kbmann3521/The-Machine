@@ -252,7 +252,7 @@ export default function SVGOptimizerOutput({ result, config, onJSONToggle }) {
               </div>
               <div className={styles.statCard}>
                 <span className={styles.statLabel}>Size Reduction</span>
-                <span className={styles.statValue} style={{ color: '#4caf50' }}>{stats.reductionPercent}%</span>
+                <span className={styles.statValue} style={{ color: '#4caf50' }}>({stats.reductionPercent}%)</span>
               </div>
               <div className={styles.statCard}>
                 <span className={styles.statLabel}>Bytes Removed</span>
