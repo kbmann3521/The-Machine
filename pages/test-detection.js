@@ -651,15 +651,29 @@ export default function TestDetection() {
                 </tr>
               </thead>
               <tbody>
-                {testCases.map((testCase, idx) => (
+                {testCases.map((testCase, idx) => {
+                  const testResult = results[idx]
+                  const rowClassName = testResult ? (testResult.passed ? styles.rowPassed : styles.rowFailed) : ''
+                  return (
                   <React.Fragment key={`case-${testCase.id || idx}`}>
-                    <tr>
+                    <tr className={rowClassName}>
                       <td className={styles.indexCol}>{idx + 1}</td>
                       <td className={styles.inputCol}>
                         <code>{truncateString(testCase.input, 50)}</code>
                       </td>
                       <td className={styles.expectedCol}>
                         <code>{testCase.expected}</code>
+                      </td>
+                      <td className={styles.resultCol}>
+                        {testResult && (
+                          <span>
+                            {testResult.passed ? (
+                              <span className={styles.checkmark}>✓ PASS</span>
+                            ) : (
+                              <span className={styles.cross}>✗ FAIL</span>
+                            )}
+                          </span>
+                        )}
                       </td>
                       <td className={styles.actionsCol}>
                         <button
@@ -688,7 +702,7 @@ export default function TestDetection() {
                     </tr>
                     {singleTestResult && testResultIndex === idx && (
                       <tr className={styles.resultRow}>
-                        <td colSpan="4">
+                        <td colSpan="5">
                           <div className={`${styles.singleResult} ${singleTestResult.passed ? styles.resultPassed : styles.resultFailed}`}>
                             <div className={styles.resultInlineRow}>
                               <span className={styles.resultInlineLabel}>Expected:</span>
@@ -717,10 +731,11 @@ export default function TestDetection() {
                             </button>
                           </div>
                         </td>
-                      </tr>
+                    </tr>
                     )}
                   </React.Fragment>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           )}
