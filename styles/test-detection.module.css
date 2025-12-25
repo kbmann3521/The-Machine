@@ -612,7 +612,7 @@
   .startButton,
   .addButton,
   .seedButton,
-  .regenerateButton {
+  .loadExamplesButton {
     width: 100%;
   }
 
