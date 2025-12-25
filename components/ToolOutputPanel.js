@@ -51,6 +51,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }
 
+  const handleInsertXMLDeclaration = () => {
+    if (!onInputUpdate) return
+    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    const newInput = xmlDeclaration + (inputText || '')
+    onInputUpdate(newInput)
+  }
+
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
     if (!errors || errors.length === 0) return null
 
