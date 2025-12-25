@@ -109,10 +109,10 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
         source: phase2Source,
         overrides: memoizedAdvancedConfig
       },
-      outputFormat
+      outputFormat: isMinified ? 'compact' : 'pretty'
     }
     onConfigChange(configToSend)
-  }, [selectedLevel, memoizedAdvancedConfig, phase2Source, outputFormat, onConfigChange])
+  }, [selectedLevel, memoizedAdvancedConfig, phase2Source, isMinified, onConfigChange])
 
   return (
     <div className={styles.phase2Controls}>
