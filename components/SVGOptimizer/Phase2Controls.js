@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import styles from '../../styles/svg-optimizer.module.css'
+import toolConfigStyles from '../../styles/tool-config.module.css'
 
 const OPTIMIZATION_LEVELS = {
   safe: {
