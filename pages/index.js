@@ -834,7 +834,7 @@ export default function Home(props) {
                     inputText={inputText}
                     imagePreview={imagePreview}
                     warnings={outputWarnings}
-                    onInputUpdate={setInputText}
+                    onInputUpdate={(text) => handleInputChange(text, null, null, true)}
                   />
                 )}
               </div>
