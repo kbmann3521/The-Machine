@@ -148,20 +148,17 @@ export default function Phase2Controls({ onConfigChange, safetyFlags }) {
       </div>
 
       {/* Minify Toggle */}
-      <div className={styles.phase2Section}>
-        <div className={styles.phase2ToggleRow}>
-          <button
-            onClick={() => setIsMinified(!isMinified)}
-            className={`${styles.phase2ToggleButton} ${isMinified ? styles.phase2ToggleActive : ''}`}
-            aria-pressed={isMinified}
-          >
-            <span className={styles.phase2ToggleSwitch}></span>
-          </button>
-          <label className={styles.phase2ToggleLabel}>Minify</label>
-        </div>
-        <p className={styles.phase2ToggleDescription} style={{ marginBottom: '0' }}>
-          {isMinified ? 'Single line, minified' : 'Formatted with indentation'}
-        </p>
+      <div className={toolConfigStyles.toggleContainer}>
+        <label className={toolConfigStyles.toggleLabel}>
+          <input
+            type="checkbox"
+            checked={isMinified}
+            onChange={(e) => setIsMinified(e.target.checked)}
+            className={toolConfigStyles.toggleInput}
+          />
+          <span className={toolConfigStyles.toggleSlider}></span>
+          <span>Minify</span>
+        </label>
       </div>
 
       {/* Advanced Options */}
