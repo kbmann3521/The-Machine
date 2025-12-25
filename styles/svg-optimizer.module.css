@@ -259,6 +259,18 @@
   left: 22px;
 }
 
+.phase2ToggleLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: inherit;
+  user-select: none;
+}
+
 .phase2ToggleDescription {
   font-size: 11px;
   color: var(--color-text-secondary);
