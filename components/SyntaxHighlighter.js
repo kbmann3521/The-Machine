@@ -23,6 +23,7 @@ const TOOL_LANGUAGE_MAP = {
   'scss-formatter': 'scss',
   'html-formatter': 'markup',
   'xml-formatter': 'markup',
+  'svg-optimizer': 'markup',
   'yaml-formatter': 'yaml',
   'sql-formatter': 'sql',
   'markdown-formatter': 'markdown',

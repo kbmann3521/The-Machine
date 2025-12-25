@@ -1,0 +1,210 @@
+.phase2Controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.phase2Section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.phase2Label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.phase2LevelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.phase2LevelOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.phase2Radio {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #9c27b0;
+}
+
+.phase2RadioLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  user-select: none;
+}
+
+.phase2RadioText {
+  font-weight: 500;
+}
+
+.phase2Disabled {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+}
+
+.phase2LevelDescription {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  padding: 8px;
+  background-color: rgba(156, 39, 176, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid rgba(156, 39, 176, 0.3);
+}
+
+.phase2AdvancedToggle {
+  background: none;
+  border: none;
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9c27b0;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s;
+}
+
+.phase2AdvancedToggle:hover {
+  color: #7b1fa2;
+}
+
+.phase2Advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background-color: rgba(156, 39, 176, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid rgba(156, 39, 176, 0.2);
+}
+
+.phase2Option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.phase2CheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.phase2CheckboxLabel input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #9c27b0;
+}
+
+.phase2CheckboxLabel input[type='checkbox']:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.phase2OptionDescription {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-left: 22px;
+}
+
+.phase2OptionNote {
+  font-size: 11px;
+  color: #2196f3;
+  margin-left: 22px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background-color: rgba(33, 150, 243, 0.1);
+  border-left: 2px solid #2196f3;
+  border-radius: 2px;
+}
+
+.phase2OptionWarning {
+  font-size: 11px;
+  color: #ff9800;
+  margin-left: 22px;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 2px solid #ff9800;
+  border-radius: 2px;
+}
+
+.phase2Indent {
+  margin-left: 22px;
+  padding: 8px;
+  background-color: rgba(156, 39, 176, 0.1);
+  border-radius: 3px;
+}
+
+.phase2SliderLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.phase2Slider {
+  width: 100%;
+  max-width: 150px;
+  height: 6px;
+  cursor: pointer;
+  accent-color: #9c27b0;
+}
+
+.phase2Select {
+  padding: 8px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background-color: var(--color-background-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.phase2Select:focus {
+  outline: none;
+  border-color: #9c27b0;
+  background-color: var(--color-background-tertiary);
+}
+
+.phase2TextConfirmation {
+  margin-top: 8px;
+  padding: 10px;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid rgba(255, 193, 7, 0.4);
+  border-radius: 3px;
+}
+
+.phase2BlockedMessage {
+  padding: 12px;
+  background-color: rgba(255, 152, 0, 0.1);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+}
+
+.phase2BlockedMessage strong {
+  color: #ff9800;
+}

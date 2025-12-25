@@ -633,7 +633,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {Object.keys(groupedHeaders).map(groupName => (
-        <StatusSection key={groupName} title={`${groupName.charAt(0).toUpperCase() + groupName.slice(1)} Headers`} icon="📦">
+        <StatusSection key={groupName} title={`${groupName.charAt(0).toUpperCase() + groupName.slice(1)} Headers`} icon="">
           <div className={styles.headerList}>
             {Object.entries(groupedHeaders[groupName]).map(([name, value]) => {
               const headerAnal = headerAnalysis[name]
@@ -660,7 +660,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.security.conflicts.length > 0 && (
-        <StatusSection title="Header Conflicts" icon="⚔️">
+        <StatusSection title="Header Conflicts" icon="">
           <div className={styles.conflictList}>
             {analysis.security.conflicts.map((conflict, idx) => (
               <div key={idx} className={styles.conflictItem}>
@@ -673,7 +673,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.security.missingRecommendedHeaders.length > 0 && (
-        <StatusSection title="Missing Security Headers" icon="🛡️">
+        <StatusSection title="Missing Security Headers" icon="">
           <div className={styles.missingList}>
             {analysis.security.missingRecommendedHeaders.map((header, idx) => (
               <div key={idx} className={styles.missingItem}>
@@ -686,7 +686,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.hopByHopHeaders && analysis.hopByHopHeaders.length > 0 && (
-        <StatusSection title="Hop-by-Hop Headers (RFC 7230)" icon="🔄">
+        <StatusSection title="Hop-by-Hop Headers (RFC 7230)" icon="">
           <div className={styles.hopByHopList}>
             {analysis.hopByHopHeaders.map((header, idx) => (
               <div key={idx} className={styles.hopByHopItem}>
@@ -700,7 +700,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.http2Compatibility && analysis.http2Compatibility.length > 0 && (
-        <StatusSection title="HTTP/2 Compatibility" icon="⚡">
+        <StatusSection title="HTTP/2 Compatibility" icon="">
           <div className={styles.compatibilityList}>
             {analysis.http2Compatibility.map((issue, idx) => (
               <div key={idx} className={`${styles.compatibilityItem} ${styles[`compat-${issue.level}`]}`}>
@@ -728,7 +728,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {analysis.compressionRecommendations && analysis.compressionRecommendations.length > 0 && (
-        <StatusSection title="Compression Recommendations" icon="📦">
+        <StatusSection title="Compression Recommendations" icon="">
           <div className={styles.recommendationsList}>
             {analysis.compressionRecommendations.map((rec, idx) => (
               <div key={idx} className={styles.recommendationItem}>
@@ -740,7 +740,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
         </StatusSection>
       )}
 
-      <StatusSection title="Caching Analysis" icon="💾">
+      <StatusSection title="Caching Analysis" icon="">
         <div className={styles.analysisList}>
           <div className={styles.analysisItem}>
             <span className={styles.analysisLabel}>Cacheable:</span>
@@ -781,7 +781,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
         </div>
       </StatusSection>
 
-      <StatusSection title="Performance Analysis" icon="⚡">
+      <StatusSection title="Performance Analysis" icon="">
         <div className={styles.analysisList}>
           <div className={styles.analysisItem}>
             <span className={styles.analysisLabel}>Compression:</span>
@@ -830,7 +830,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {cacheSimulation && (
-        <StatusSection title="Cache Behavior Simulation" icon="🔄">
+        <StatusSection title="Cache Behavior Simulation" icon="">
           <div className={styles.cacheSimGrid}>
             <div className={styles.cacheSimCard}>
               <div className={styles.cacheSimTitle}>Browser Cache</div>
@@ -906,7 +906,7 @@ export default function HttpHeaderParserOutput({ result, onStrictModeToggle }) {
       )}
 
       {transformations && (
-        <StatusSection title="Header Transformations" icon="🔀">
+        <StatusSection title="Header Transformations" icon="">
           <div className={styles.transformationsGrid}>
             {[
               { label: 'Canonical Format', key: 'canonical' },

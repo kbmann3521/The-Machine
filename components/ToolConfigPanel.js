@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import styles from '../styles/tool-config.module.css'
 import { getSuggestionsForColor } from '../lib/tools/colorConverter'
 import RegexToolkit from './RegexToolkit'
+import Phase2Controls from './SVGOptimizer/Phase2Controls'
 
 export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, onSetGeneratedText }) {
   const [config, setConfig] = useState({})
@@ -558,6 +559,13 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             </div>
           )}
         </div>
+      )}
+
+      {tool.toolId === 'svg-optimizer' && (
+        <Phase2Controls
+          onConfigChange={onConfigChange}
+          safetyFlags={result?.safetyFlags}
+        />
       )}
 
       {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (

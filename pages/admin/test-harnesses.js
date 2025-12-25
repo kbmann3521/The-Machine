@@ -12,6 +12,7 @@ const DEFAULT_TEST_HARNESSES = [
   { id: 'math-evaluator-tests', path: '/math-evaluator-tests', title: 'Math Evaluator Tests' },
   { id: 'phase5-tests', path: '/phase5-tests', title: 'Phase 5 Tests' },
   { id: 'test-detection', path: '/test-detection', title: 'Test Detection' },
+  { id: 'svg-optimizer-tests', path: '/svg-optimizer-tests', title: 'SVG Optimizer Tests' },
 ]
 
 export default function AdminTestHarnesses() {

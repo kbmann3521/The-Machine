@@ -10,6 +10,7 @@ import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
+import ValuePropositionCard from '../components/ValuePropositionCard'
 import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
@@ -478,7 +479,10 @@ export default function Home(props) {
 
   const handleConfigChange = useCallback(
     (newConfig) => {
-      setConfigOptions(newConfig)
+      setConfigOptions(prevConfig => ({
+        ...prevConfig,
+        ...newConfig
+      }))
     },
     []
   )
@@ -559,35 +563,49 @@ export default function Home(props) {
           const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
           const runUrl = `${baseUrl}/api/tools/run`
 
-          const response = await fetch(runUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              toolId: tool.toolId,
-              inputText: textToUse,
-              inputImage: imageInput,
-              config: finalConfig,
-            }),
-            credentials: 'same-origin',
-          })
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
 
-          if (!response) {
-            throw new Error('No response from server')
-          }
-
-          let data
           try {
-            data = await response.json()
-          } catch (jsonError) {
-            throw new Error('Invalid response from server')
-          }
+            const response = await fetch(runUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                toolId: tool.toolId,
+                inputText: textToUse,
+                inputImage: imageInput,
+                config: finalConfig,
+              }),
+              credentials: 'same-origin',
+              signal: controller.signal,
+            })
 
-          if (!response.ok) {
-            throw new Error(data?.error || `Server error: ${response.status}`)
-          }
+            clearTimeout(timeoutId)
 
-          setOutputResult(data.result)
-          setOutputWarnings(data.warnings || [])
+            if (!response) {
+              throw new Error('No response from server')
+            }
+
+            let data
+            try {
+              data = await response.json()
+            } catch (jsonError) {
+              throw new Error('Invalid response from server')
+            }
+
+            if (!response.ok) {
+              throw new Error(data?.error || `Server error: ${response.status}`)
+            }
+
+            setOutputResult(data.result)
+            setOutputWarnings(data.warnings || [])
+          } catch (fetchErr) {
+            clearTimeout(timeoutId)
+            if (fetchErr.name === 'AbortError') {
+              throw new Error('Request timeout - server took too long to respond')
+            }
+            throw fetchErr
+          }
         }
       } catch (err) {
         const errorMessage = err?.message || 'Tool execution failed'
@@ -697,6 +715,12 @@ export default function Home(props) {
                   lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
                 />
               </div>
+
+              {!selectedTool && (
+                <div className={styles.infoCard}>
+                  <ValuePropositionCard />
+                </div>
+              )}
 
               {selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' && (
                 <>

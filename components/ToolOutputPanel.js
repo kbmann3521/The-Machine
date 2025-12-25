@@ -27,7 +27,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [cronRunsToLoad, setCronRunsToLoad] = useState(5)
-
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
@@ -907,7 +906,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            📦 Base Formats
+            Base Formats
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
             <ColorCard label="HEX" value={formats.hex} fieldId="hex" />
@@ -930,7 +929,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            🔬 Advanced Formats
+            Advanced Formats
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
             <ColorCard label="LAB" value={formats.lab} fieldId="lab" />
@@ -963,7 +962,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               paddingBottom: '12px',
               borderBottom: '1px solid var(--color-border)',
             }}>
-              🖨️ CMYK Profiles (Printing)
+              CMYK Profiles (Printing)
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
               <div style={{
@@ -1004,7 +1003,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            ♿ Accessibility (WCAG)
+            Accessibility (WCAG)
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div style={{
@@ -1050,7 +1049,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            🌈 Variants & Palettes
+            Variants & Palettes
           </div>
           <div style={{ marginBottom: '20px' }}>
             <div>
@@ -1109,7 +1108,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            🧪 Color Blindness Simulation
+            Color Blindness Simulation
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1207,7 +1206,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               paddingBottom: '12px',
               borderBottom: '1px solid var(--color-border)',
             }}>
-              🎨 Linear Gradient
+              Linear Gradient
             </div>
             <div style={{ marginBottom: '20px' }}>
               <div style={{
@@ -1338,7 +1337,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             paddingBottom: '12px',
             borderBottom: '1px solid var(--color-border)',
           }}>
-            💾 Export Palette
+            Export Palette
           </div>
           <div style={{ marginBottom: '20px' }}>
             <div style={{
@@ -1381,7 +1380,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   }
                 }}
               >
-                {copiedField === 'paletteJSON' ? '✓ Copied!' : '📄 JSON'}
+                {copiedField === 'paletteJSON' ? '✓ Copied!' : 'JSON'}
               </button>
               <button
                 type="button"
@@ -1413,7 +1412,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                   }
                 }}
               >
-                {copiedField === 'paletteSVG' ? '✓ Copied!' : '🖼️ SVG'}
+                {copiedField === 'paletteSVG' ? '✓ Copied!' : 'SVG'}
               </button>
             </div>
             <div style={{
@@ -3033,8 +3032,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (!displayResult.conversions) return null
 
+    const unitNames = {
+      'B': 'Bytes',
+      'KB': 'Kilobytes',
+      'MB': 'Megabytes',
+      'GB': 'Gigabytes',
+      'TB': 'Terabytes',
+      'PB': 'Petabytes',
+      'EB': 'Exabytes',
+      'ZB': 'Zettabytes',
+      'YB': 'Yottabytes',
+    }
+
     const conversions = displayResult.conversions.map(conv => ({
-      label: conv.human || `${conv.value} ${conv.unit}`,
+      label: `${unitNames[conv.unit] || conv.unit} (${conv.unit})`,
       value: conv.value,
       unit: conv.unit,
     }))
@@ -3671,6 +3682,562 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+
+    if (tabs.length === 0) {
+      return null
+    }
+
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+  }
+
+  const renderSvgOptimizerOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') return null
+
+    const tabs = []
+
+    // Check if there are validation errors
+    const hasValidationErrors = displayResult.validation && Array.isArray(displayResult.validation.errors)
+      ? displayResult.validation.errors.length > 0
+      : false
+
+    // Output tab - only show if no validation errors
+    if (displayResult.outputSvg && !hasValidationErrors) {
+      tabs.push({
+        id: 'output',
+        label: 'Output',
+        content: displayResult.outputSvg,
+        contentType: 'code',
+      })
+    }
+
+    // Validation tab
+    if (displayResult.validation) {
+      const validationErrors = displayResult.validation.errors || []
+      const validationWarnings = displayResult.validation.warnings || []
+
+      if (validationErrors.length > 0) {
+        const validationContent = (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✗ {validationErrors.length} SVG Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {validationErrors.map((error, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '12px',
+                    backgroundColor: 'var(--color-background-tertiary)',
+                    border: '1px solid rgba(239, 83, 80, 0.2)',
+                    borderRadius: '4px',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ef5350' }}>
+                    Error {idx + 1}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>{error}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+        tabs.push({
+          id: 'validation',
+          label: `Validation (${validationErrors.length})`,
+          content: validationContent,
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'validation',
+          label: 'Validation (✓)',
+          content: (
+            <div style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: 'var(--color-text-secondary)',
+            }}>
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ SVG is valid
+              </div>
+              {validationWarnings.length > 0 && (
+                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {validationWarnings.map((warning, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                        border: '1px solid rgba(255, 152, 0, 0.2)',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ff9800' }}>
+                        ⚠️ Warning
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>{warning}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ),
+          contentType: 'component',
+        })
+      }
+    }
+
+    // Linting tab
+    if (displayResult.linting) {
+      // Support both old format (linting) and new format (lintingStages with input/output)
+      const outputLinting = displayResult.lintingStages?.output || displayResult.linting
+      const inputLinting = displayResult.lintingStages?.input
+
+      const lintingWarnings = (outputLinting.warnings || []).filter(w => w.level === 'warning')
+      const lintingHints = outputLinting.hints || []
+      const totalLintIssues = lintingWarnings.length + lintingHints.length
+
+      let lintingLabel = `Linting${totalLintIssues > 0 ? ` (${totalLintIssues})` : ' (✓)'}`
+      let lintingContent = null
+
+      if (!hasValidationErrors && totalLintIssues > 0) {
+        lintingContent = (
+          <div style={{ padding: '16px' }}>
+            {inputLinting && (
+              <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  📋 Input Analysis (before optimization)
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
+                  {(inputLinting.hints || []).length === 0 && (inputLinting.warnings || []).length === 0
+                    ? 'No issues detected in input'
+                    : `${(inputLinting.hints || []).length} hint(s), ${((inputLinting.warnings || []).filter(w => w.level === 'warning')).length} warning(s)`}
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                ✨ Output Analysis (after optimization)
+              </div>
+            </div>
+
+            {lintingWarnings.length > 0 && (
+              <>
+                <div style={{
+                  marginBottom: '16px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                  border: '1px solid rgba(255, 152, 0, 0.3)',
+                  borderRadius: '4px',
+                  color: '#ff9800',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}>
+                  ⚠️ {lintingWarnings.length} Warning{lintingWarnings.length !== 1 ? 's' : ''}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                  {lintingWarnings.map((warning, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                        border: '1px solid rgba(255, 152, 0, 0.2)',
+                        borderRadius: '4px',
+                        borderLeft: '3px solid #ff9800',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#ff9800' }}>
+                        {warning.message}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                        {warning.description}
+                      </div>
+                      {warning.category && (
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                          Category: {warning.category}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {lintingHints.length > 0 && (
+              <>
+                <div style={{
+                  marginBottom: '12px',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: 'var(--color-text-primary)',
+                }}>
+                  ℹ️ {lintingHints.length} Suggestion{lintingHints.length !== 1 ? 's' : ''}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {lintingHints.map((hint, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: 'var(--color-background-tertiary)',
+                        border: '1px solid rgba(33, 150, 243, 0.2)',
+                        borderRadius: '4px',
+                        borderLeft: '3px solid #2196f3',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '4px', color: '#2196f3' }}>
+                        {hint.message}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                        {hint.description}
+                      </div>
+                      {hint.category && (
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                          Category: {hint.category}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      } else if (totalLintIssues === 0) {
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            textAlign: 'center',
+            color: 'var(--color-text-secondary)',
+          }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(102, 187, 106, 0.1)',
+              border: '1px solid rgba(102, 187, 106, 0.3)',
+              borderRadius: '4px',
+              color: '#66bb6a',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              ✓ No linting issues found
+            </div>
+          </div>
+        )
+      } else {
+        lintingContent = (
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.3)',
+            borderRadius: '4px',
+            color: 'var(--color-text-secondary)',
+            fontSize: '13px',
+          }}>
+            Linting disabled - validation errors must be fixed first
+          </div>
+        )
+      }
+
+      tabs.push({
+        id: 'linting',
+        label: lintingLabel,
+        content: lintingContent,
+        contentType: 'component',
+      })
+    }
+
+    // Analysis tab - show optimization stats
+    if (displayResult.stats && !hasValidationErrors) {
+      const statsContent = (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Optimization result */}
+            {displayResult.optimizationResult && (
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: displayResult.optimizationResult === 'changes_applied' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(33, 150, 243, 0.1)',
+                border: displayResult.optimizationResult === 'changes_applied' ? '1px solid rgba(76, 175, 80, 0.3)' : '1px solid rgba(33, 150, 243, 0.3)',
+                borderRadius: '4px',
+                fontSize: '13px',
+                fontWeight: '600',
+                color: displayResult.optimizationResult === 'changes_applied' ? '#4caf50' : '#2196f3'
+              }}>
+                {displayResult.optimizationResult === 'changes_applied' && '✓ Optimizations Applied'}
+                {displayResult.optimizationResult === 'no_changes' && 'ℹ No Optimizations Needed'}
+                {displayResult.optimizationResult === 'normalization_only' && 'ℹ Normalization Only'}
+              </div>
+            )}
+
+            {/* Analysis context notes */}
+            {displayResult.analysis && displayResult.analysis.context && displayResult.analysis.context.notes.length > 0 && (
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                  Why This Matters
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {displayResult.analysis.context.notes.map((note, idx) => (
+                    <div key={idx} style={{
+                      padding: '10px 12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      borderLeft: '3px solid #2196f3',
+                      color: 'var(--color-text-primary)'
+                    }}>
+                      {note}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Phase 2 step results - show what happened */}
+            {displayResult.phase2Level && displayResult.stepResults && displayResult.stepResults.length > 0 && (
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                  Optimization Steps ({displayResult.phase2Level})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {displayResult.stepResults.map((step, idx) => {
+                    const bgColor = step.executed ? 'rgba(76, 175, 80, 0.1)' : 'rgba(158, 158, 158, 0.1)'
+                    const borderColor = step.executed ? 'rgba(76, 175, 80, 0.2)' : 'rgba(158, 158, 158, 0.2)'
+                    const textColor = step.executed ? 'var(--color-text-primary)' : 'var(--color-text-secondary)'
+
+                    return (
+                      <div key={idx} style={{
+                        padding: '10px 12px',
+                        backgroundColor: bgColor,
+                        border: `1px solid ${borderColor}`,
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        color: textColor
+                      }}>
+                        <div style={{ fontWeight: '600', marginBottom: step.executed || step.reason ? '4px' : '0' }}>
+                          {step.executed ? '✓' : '○'} {step.step.replace(/([A-Z])/g, ' $1').trim()}
+                        </div>
+                        {step.executed && step.message && (
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                            {step.message}
+                          </div>
+                        )}
+                        {step.reason && (
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                            {step.reason}
+                          </div>
+                        )}
+                        {step.impact && (
+                          <div style={{ fontSize: '11px', color: '#ff9800', marginTop: '4px' }}>
+                            ⚠️ {step.impact}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Size reduction stats */}
+            {displayResult.stats && (
+              <>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                    Size Reduction
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{
+                      padding: '10px 12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span>Original Size:</span>
+                      <span style={{ fontWeight: '600', fontFamily: 'monospace' }}>{displayResult.stats.originalSize} bytes</span>
+                    </div>
+                    <div style={{
+                      padding: '10px 12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span>Optimized Size:</span>
+                      <span style={{ fontWeight: '600', fontFamily: 'monospace' }}>{displayResult.stats.optimizedSize} bytes</span>
+                    </div>
+                    <div style={{
+                      padding: '10px 12px',
+                      backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                      border: '1px solid rgba(76, 175, 80, 0.2)',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      color: '#4caf50',
+                      fontWeight: '600'
+                    }}>
+                      <span>Reduction:</span>
+                      <span style={{ fontFamily: 'monospace' }}>{displayResult.stats.bytesRemoved} bytes ({displayResult.stats.reductionPercent}%)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Elements stats */}
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                    Elements
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{
+                      padding: '10px 12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span>Total Elements:</span>
+                      <span style={{ fontWeight: '600' }}>{displayResult.stats.elements.total}</span>
+                    </div>
+                    {displayResult.stats.elements.removed > 0 && (
+                      <div style={{
+                        padding: '10px 12px',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        border: '1px solid rgba(76, 175, 80, 0.2)',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        color: '#4caf50',
+                        fontWeight: '600'
+                      }}>
+                        <span>Removed:</span>
+                        <span>{displayResult.stats.elements.removed}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Attributes stats */}
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                    Attributes
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{
+                      padding: '10px 12px',
+                      backgroundColor: 'var(--color-background-tertiary)',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span>Total Attributes:</span>
+                      <span style={{ fontWeight: '600' }}>{displayResult.stats.attributes.total}</span>
+                    </div>
+                    {displayResult.stats.attributes.removed > 0 && (
+                      <div style={{
+                        padding: '10px 12px',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        border: '1px solid rgba(76, 175, 80, 0.2)',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        color: '#4caf50',
+                        fontWeight: '600'
+                      }}>
+                        <span>Removed:</span>
+                        <span>{displayResult.stats.attributes.removed}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Precision info */}
+                {displayResult.stats.precision.reduced && (
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                      Numeric Precision
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {displayResult.stats.precision.originalDecimals && (
+                        <div style={{
+                          padding: '10px 12px',
+                          backgroundColor: 'var(--color-background-tertiary)',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          display: 'flex',
+                          justifyContent: 'space-between'
+                        }}>
+                          <span>Original Decimals:</span>
+                          <span style={{ fontWeight: '600' }}>{displayResult.stats.precision.originalDecimals}</span>
+                        </div>
+                      )}
+                      {displayResult.stats.precision.optimizedDecimals && (
+                        <div style={{
+                          padding: '10px 12px',
+                          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                          border: '1px solid rgba(76, 175, 80, 0.2)',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          color: '#4caf50',
+                          fontWeight: '600'
+                        }}>
+                          <span>Optimized Decimals:</span>
+                          <span>{displayResult.stats.precision.optimizedDecimals}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )
+
+      tabs.push({
+        id: 'analysis',
+        label: 'Analysis',
+        content: statsContent,
+        contentType: 'component',
+      })
+    }
+
+    // JSON tab
+    if (displayResult) {
+      tabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: JSON.stringify(displayResult, null, 2),
+        contentType: 'json',
+      })
+    }
 
     if (tabs.length === 0) {
       return null
@@ -5105,6 +5672,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderSqlFormatterOutput()
       case 'color-converter':
         return renderColorConverterOutput()
+      case 'svg-optimizer':
+        return renderSvgOptimizerOutput()
       case 'math-evaluator': {
         if (!displayResult || typeof displayResult !== 'object') {
           return (

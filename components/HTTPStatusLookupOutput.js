@@ -67,7 +67,7 @@ function StatusBadge({ variant = 'info', label }) {
 }
 
 function SectionTitle({ children }) {
-  return <div className={styles.sectionTitle}>{children}</div>
+  return <p className={styles.sectionTitle}>{children}</p>
 }
 
 function SectionContent({ children }) {
@@ -147,14 +147,14 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
     if (selectedSuggestion) {
       const framework = configOptions.framework || 'node'
       const modeLabels = {
-        'auto-code': '📋 Direct code match',
-        'auto-log': '📋 Found in log',
-        'auto-search': '🔍 Text search match',
-        'code': '📋 Direct code match',
-        'log': '📋 Log analysis',
-        'search': '🔍 Text search'
+        'auto-code': 'Direct code match',
+        'auto-log': 'Found in log',
+        'auto-search': 'Text search match',
+        'code': 'Direct code match',
+        'log': 'Log analysis',
+        'search': 'Text search'
       }
-      const modeLabel = modeLabels['search'] || '📋 Code match'
+      const modeLabel = modeLabels['search'] || 'Code match'
 
       return (
         <div className={styles.container}>
@@ -232,7 +232,7 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
 
           {selectedSuggestion.devNotes && (
             <div className={styles.devNotesSection}>
-              <SectionTitle>💡 Dev Notes</SectionTitle>
+              <SectionTitle>Dev Notes</SectionTitle>
               <SectionContent>
                 <p className={styles.devNotesText}>{selectedSuggestion.devNotes}</p>
               </SectionContent>
@@ -287,15 +287,15 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
 
   // Show info about which mode was used
   const modeLabels = {
-    'auto-code': '📋 Direct code match',
-    'auto-log': '📋 Found in log',
-    'auto-search': '🔍 Text search match',
-    'code': '📋 Direct code match',
-    'log': '📋 Log analysis',
-    'search': '🔍 Text search'
+    'auto-code': 'Direct code match',
+    'auto-log': 'Found in log',
+    'auto-search': 'Text search match',
+    'code': 'Direct code match',
+    'log': 'Log analysis',
+    'search': 'Text search'
   }
 
-  const modeLabel = modeLabels[result.modeUsed] || '📋 Code match'
+  const modeLabel = modeLabels[result.modeUsed] || 'Code match'
 
   return (
     <div className={styles.container}>
@@ -357,7 +357,7 @@ export default function HTTPStatusLookupOutput({ result, configOptions = {} }) {
       {/* Dev Notes */}
       {primaryCode.devNotes && (
         <div className={styles.devNotesSection}>
-          <SectionTitle>💡 Dev Notes</SectionTitle>
+          <SectionTitle>Dev Notes</SectionTitle>
           <SectionContent>
             <p className={styles.devNotesText}>{primaryCode.devNotes}</p>
           </SectionContent>
