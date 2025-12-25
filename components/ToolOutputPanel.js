@@ -3679,11 +3679,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                     {isDeclarationWarning && (
                       <div style={{ marginTop: '8px' }}>
                         <button
-                          onClick={handleInsertXMLDeclaration}
+                          onClick={() => {
+                            const currentOutput = displayResult?.finalXml || displayResult?.formatted || ''
+                            handleInsertXMLDeclaration(currentOutput)
+                          }}
                           disabled={!canFixDeclaration}
                           style={{
                             padding: '6px 12px',
-                            backgroundColor: canFixDeclaration ? '#66bb6a' : '#999',
+                            backgroundColor: canFixDeclaration ? '#0066cc' : '#999',
                             color: 'white',
                             border: 'none',
                             borderRadius: '3px',
