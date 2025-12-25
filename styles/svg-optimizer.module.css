@@ -73,14 +73,14 @@
   padding: 8px 0;
   font-size: 12px;
   font-weight: 600;
-  color: #9c27b0;
+  color: var(--color-text-primary);
   cursor: pointer;
   text-align: left;
   transition: color 0.2s;
 }
 
 .phase2AdvancedToggle:hover {
-  color: #7b1fa2;
+  color: #2196f3;
 }
 
 .phase2Advanced {
