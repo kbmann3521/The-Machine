@@ -295,7 +295,6 @@
   flex-direction: column;
   min-height: 0;
   contain: layout style;
-  overflow: hidden;
 }
 
 .footer {
