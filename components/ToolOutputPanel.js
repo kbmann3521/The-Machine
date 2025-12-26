@@ -2884,7 +2884,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.analysis) {
       const analysisContent = (
-        <div style={{ padding: 0 }}>
+        <div>
           <div className={sqlStyles.analysisGrid}>
             <div className={sqlStyles.analysisItem}>
               <span className={sqlStyles.analysisLabel}>Query Type:</span>
