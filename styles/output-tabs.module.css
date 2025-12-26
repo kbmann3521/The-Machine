@@ -141,6 +141,7 @@
   flex-direction: column;
   gap: 20px;
   flex: 0 1 auto;
+  padding: 16px;
 }
 
 .dataSection {
