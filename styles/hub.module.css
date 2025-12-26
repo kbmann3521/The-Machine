@@ -285,26 +285,7 @@
   contain: layout style;
   min-height: 0;
   flex: 1;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-.rightPanel::-webkit-scrollbar {
-  width: 4px;
-}
-
-.rightPanel::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.rightPanel::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 3px;
-}
-
-.rightPanel::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
+  overflow: hidden;
 }
 
 .outputSection {
