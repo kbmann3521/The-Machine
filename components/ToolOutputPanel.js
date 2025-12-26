@@ -2784,7 +2784,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
