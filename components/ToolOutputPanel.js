@@ -3852,7 +3852,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (!hasValidationErrors && totalLintIssues > 0) {
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             {inputLinting && (
               <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
                 <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
