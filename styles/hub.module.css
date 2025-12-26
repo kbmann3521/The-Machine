@@ -359,6 +359,10 @@
   .content {
     min-height: 0;
   }
+
+  .rightPanel {
+    max-height: calc(100vh - 130px);
+  }
 }
 
 @media (max-width: 1200px) {
