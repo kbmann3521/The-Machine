@@ -434,13 +434,12 @@
 }
 
 .errorContent {
-  padding: 16px;
+  padding: 16px 16px 24px 16px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
-  flex: 1;
-  min-height: 0;
+  flex: 0 1 auto;
   gap: 16px;
 }
 
