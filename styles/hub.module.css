@@ -405,12 +405,10 @@
   .leftPanel {
     border-right: 1px solid var(--color-border);
     border-bottom: none;
-    max-height: calc(100vh - 50px);
     padding: 20px;
   }
 
   .rightPanel {
-    max-height: calc(100vh - 50px);
     padding: 20px;
   }
 }
