@@ -4001,7 +4001,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Analysis tab - show optimization stats
     if (displayResult.stats && !hasValidationErrors) {
       const statsContent = (
-        <div style={{ padding: '16px' }}>
+        <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Optimization result */}
             {displayResult.optimizationResult && (
