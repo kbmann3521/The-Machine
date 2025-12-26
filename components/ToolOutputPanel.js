@@ -2849,7 +2849,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintWarnings.map((warning, idx) => (
                 <div
