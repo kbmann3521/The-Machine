@@ -155,55 +155,72 @@ export default function Home(props) {
       let allTools = []
 
       try {
-        // First, try to fetch tool metadata from Supabase
+        // First, try to fetch tool metadata from server
         try {
-          let response
+          let response = null
+          let data = null
+
           try {
             // Use absolute URL to ensure fetch works correctly in all contexts
             const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
             const metadataUrl = `${baseUrl}/api/tools/get-metadata`
 
-            response = await fetch(metadataUrl, {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'same-origin',
-            })
+            // Create abort controller with 15 second timeout for metadata fetch
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+            try {
+              response = await fetch(metadataUrl, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                signal: controller.signal,
+              })
+              clearTimeout(timeoutId)
+            } catch (fetchErr) {
+              clearTimeout(timeoutId)
+              if (fetchErr.name === 'AbortError') {
+                console.debug('Tool metadata fetch timed out (15s timeout)')
+              } else {
+                console.debug('Tool metadata fetch error:', fetchErr?.message || String(fetchErr))
+              }
+              throw fetchErr
+            }
           } catch (fetchError) {
-            console.debug('Tool metadata fetch error:', fetchError?.message || String(fetchError))
+            console.debug('Tool metadata fetch failed:', fetchError?.message || String(fetchError))
             throw fetchError
           }
 
-          if (response.ok) {
-            let data
+          if (response && response.ok) {
             try {
               data = await response.json()
             } catch (parseError) {
               console.debug('Tool metadata parsing error:', parseError?.message || String(parseError))
               throw parseError
             }
+
             if (data?.tools && typeof data.tools === 'object') {
-              // Use metadata from Supabase as source of truth
+              // Use metadata from server as source of truth
               allTools = Object.entries(data.tools).map(([toolId, toolData]) => {
                 const localToolData = TOOLS[toolId] || {}
-                // Supabase values take priority over local code values
+                // Server values take priority over local code values
                 return {
                   toolId,
                   similarity: 0, // No match (white) when no input provided
                   ...localToolData,
-                  ...toolData, // Supabase data overrides local data
+                  ...toolData, // Server data overrides local data
                 }
               })
             }
-          } else {
-            console.warn('Tool metadata endpoint returned non-200 status:', response.status)
+          } else if (response) {
+            console.warn('Tool metadata endpoint returned status:', response.status)
           }
         } catch (error) {
           console.warn('Tool metadata fetch failed, will use local fallback:', error?.message || String(error))
         }
 
-        // If no tools from Supabase, use local TOOLS as fallback
+        // If no tools from server, use local TOOLS as fallback
         if (allTools.length === 0) {
-          console.warn('No tools from Supabase, using local fallback')
           allTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
             toolId,
             similarity: 0,
@@ -232,6 +249,15 @@ export default function Home(props) {
         }
 
         setPredictedTools(visibleTools)
+      } catch (err) {
+        console.error('Unexpected error in initializeTools:', err?.message || String(err))
+        // Set tools to empty fallback if something goes wrong
+        const fallbackTools = Object.entries(TOOLS).map(([toolId, toolData]) => ({
+          toolId,
+          similarity: 0,
+          ...toolData,
+        }))
+        setPredictedTools(fallbackTools)
       } finally {
         setInitialToolsLoading(false)
       }
