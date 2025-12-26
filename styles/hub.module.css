@@ -425,6 +425,10 @@
     overflow: visible;
   }
 
+  .mainContent {
+    overflow-y: scroll;
+  }
+
   .header {
     height: 50px;
     padding: 10px 20px;
