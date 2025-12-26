@@ -385,6 +385,7 @@
   background-color: var(--color-background-primary, #fff);
   flex: 1;
   min-height: 0;
+  padding: 16px 16px 24px 16px;
 }
 
 .codeContentWrapper {
