@@ -1960,7 +1960,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
