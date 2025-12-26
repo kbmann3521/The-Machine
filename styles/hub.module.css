@@ -285,7 +285,9 @@
   contain: layout style;
   min-height: 0;
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .outputSection {
