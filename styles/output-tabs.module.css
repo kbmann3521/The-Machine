@@ -403,7 +403,7 @@
 
 .textCode {
   margin: 0;
-  padding: 16px;
+  padding: 16px 16px 24px 16px;
   background-color: transparent;
   font-family: 'Courier New', monospace;
   font-size: 13px;
