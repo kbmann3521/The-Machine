@@ -348,6 +348,11 @@
   .content {
     padding: 0 30px 30px 30px;
   }
+
+  .leftPanel,
+  .rightPanel {
+    max-height: calc(100vh - 50px);
+  }
 }
 
 @media (max-width: 1024px) {
