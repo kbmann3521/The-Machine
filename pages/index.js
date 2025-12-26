@@ -354,147 +354,162 @@ export default function Home(props) {
       }, 500)
 
       const predictTools = async () => {
+        let controller = null
+
         try {
           // Store the classification that triggered this search
           const triggeringClassification = fastLocalClassification(text)
           previousClassificationRef.current = triggeringClassification
 
           // Fetch with 20 second timeout
-          const controller = new AbortController()
-          abortControllerRef.current = controller
-
-          // Check if signal is already aborted before setting up timeout
           try {
-            if (controller.signal.aborted) {
-              return
-            }
+            controller = new AbortController()
+            abortControllerRef.current = controller
           } catch (e) {
-            return
+            console.debug('Failed to create AbortController:', e?.message || String(e))
+            throw new Error('Prediction service unavailable')
           }
 
+          // Set up timeout to abort fetch if it takes too long
           abortTimeoutRef.current = setTimeout(() => {
             try {
-              if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
-                abortControllerRef.current.abort()
+              if (controller && !controller.signal.aborted) {
+                controller.abort()
               }
             } catch (e) {
-              // Ignore abort errors
+              // Ignore errors during abort
             }
           }, 20000)
 
-          let response
+          let response = null
+
           try {
-            // Check again if signal was aborted during the delay
-            let isAborted = false
+            // Only proceed with fetch if controller exists and signal hasn't been aborted
+            if (!controller) {
+              throw new Error('Prediction service unavailable')
+            }
+
+            // Check if signal is already aborted (shouldn't be at this point)
+            let isSignalAborted = false
             try {
-              isAborted = controller.signal.aborted
+              isSignalAborted = controller.signal.aborted
             } catch (e) {
-              isAborted = true
+              // If we can't even check the signal, something is very wrong
+              throw e
             }
 
-            if (isAborted) {
-              response = null
-            } else {
-              const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
-              const predictUrl = `${baseUrl}/api/tools/predict`
-
-              response = await fetch(predictUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  inputText: text,
-                  inputImage: preview ? 'image' : null,
-                }),
-                signal: controller.signal,
-                credentials: 'same-origin',
-              })
+            if (isSignalAborted) {
+              // Signal was aborted, don't attempt fetch
+              return
             }
+
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+            const predictUrl = `${baseUrl}/api/tools/predict`
+
+            response = await fetch(predictUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                inputText: text,
+                inputImage: preview ? 'image' : null,
+              }),
+              signal: controller.signal,
+              credentials: 'same-origin',
+            })
           } catch (fetchError) {
+            // Clear timeout before handling error
             if (abortTimeoutRef.current) {
               clearTimeout(abortTimeoutRef.current)
               abortTimeoutRef.current = null
             }
+
             // Handle fetch errors gracefully
             if (fetchError.name === 'AbortError') {
-              console.debug('Predict API request aborted (expected during cleanup)')
-              // Don't throw - let the outer catch handle the graceful fallback
-              response = null
-            } else {
-              console.debug('Predict API fetch failed:', fetchError.message)
-              throw new Error('Prediction service unavailable')
+              console.debug('Predict API request aborted')
+              // Silently return - request was cancelled
+              return
             }
-          }
 
-          // If response is null (aborted), fall back gracefully
-          if (!response) {
+            if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
+              console.debug('Network error during prediction:', fetchError.message)
+            } else {
+              console.debug('Predict API fetch error:', fetchError?.message || String(fetchError))
+            }
+
+            // Don't throw - fall back gracefully to existing tools
             return
           }
 
+          // Clear timeout since fetch completed
           if (abortTimeoutRef.current) {
             clearTimeout(abortTimeoutRef.current)
             abortTimeoutRef.current = null
           }
 
-          if (!response || !response.ok) {
-            const errorText = response ? await response.text() : 'No response'
-            console.debug('Predict API error:', response?.status, errorText)
-            throw new Error('Prediction service unavailable')
+          // Validate response
+          if (!response) {
+            console.debug('No response from predict API')
+            return
           }
 
+          if (!response.ok) {
+            const errorText = response ? await response.text() : 'No response'
+            console.debug('Predict API error:', response?.status, errorText)
+            return
+          }
+
+          // Parse response
           let data
           try {
             data = await response.json()
           } catch (jsonError) {
-            console.debug('Failed to parse prediction response')
-            throw new Error('Invalid response from prediction service')
+            console.debug('Failed to parse prediction response:', jsonError?.message || String(jsonError))
+            return
           }
 
+          // Validate data structure
           if (!data || !Array.isArray(data.predictedTools)) {
-            throw new Error('Invalid prediction data')
+            console.debug('Invalid prediction data structure')
+            return
           }
 
+          // Map tools with metadata
           let toolsWithMetadata = data.predictedTools.map(tool => {
             const localToolData = TOOLS[tool.toolId] || {}
-            // Supabase values take priority over local code values
             return {
               ...localToolData,
-              ...tool, // Supabase data overrides local data
+              ...tool,
             }
           })
 
           // Filter out tools with show_in_recommendations = false
-          // Only Supabase controls visibility
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
-          // Silently fail - the app will continue with the existing tool list
-          // This prevents network errors from blocking the user
-          console.debug('Prediction unavailable:', err?.message || err)
-          // Don't set error - let user continue with whatever tools are already displayed
+          // Catch any unexpected errors
+          console.debug('Unexpected error in predictTools:', err?.message || String(err))
+          // Don't throw - let app continue with existing tool list
         } finally {
-          // Clear the loading timer and disable loading
+          // Always clean up resources
           if (loadingTimerRef.current) {
             clearTimeout(loadingTimerRef.current)
             loadingTimerRef.current = null
           }
-          // Clean up abort timeout
           if (abortTimeoutRef.current) {
             clearTimeout(abortTimeoutRef.current)
             abortTimeoutRef.current = null
           }
-          abortControllerRef.current = null
+          // Only clear controller ref if it's still the one we created
+          if (abortControllerRef.current === controller) {
+            abortControllerRef.current = null
+          }
           setLoading(false)
         }
       }
 
       // Execute predictTools asynchronously without blocking
-      // All errors are caught inside the function, so we don't need an outer catch
       predictTools().catch(err => {
-        // This should rarely happen as errors are caught inside predictTools
-        // but we catch it just in case
-        if (err?.name !== 'AbortError') {
-          console.debug('Unhandled error in predictTools:', err?.message || err)
-        }
+        console.debug('Unhandled error in predictTools:', err?.message || String(err))
       })
     }, 300)
   }, [fastLocalClassification, previousInputLength])
