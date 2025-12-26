@@ -383,6 +383,8 @@
   width: 100%;
   overflow: visible;
   background-color: var(--color-background-primary, #fff);
+  flex: 1;
+  min-height: 0;
 }
 
 .codeContentWrapper {
