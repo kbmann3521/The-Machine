@@ -606,48 +606,88 @@ export default function Home(props) {
           const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
           const runUrl = `${baseUrl}/api/tools/run`
 
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+          let controller = null
+          let timeoutId = null
+          let response = null
 
           try {
-            const response = await fetch(runUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                toolId: tool.toolId,
-                inputText: textToUse,
-                inputImage: imageInput,
-                config: finalConfig,
-              }),
-              credentials: 'same-origin',
-              signal: controller.signal,
-            })
+            // Create abort controller with 30 second timeout
+            try {
+              controller = new AbortController()
+            } catch (e) {
+              throw new Error('Failed to create request controller')
+            }
 
-            clearTimeout(timeoutId)
+            timeoutId = setTimeout(() => {
+              try {
+                if (controller && !controller.signal.aborted) {
+                  controller.abort()
+                }
+              } catch (e) {
+                // Ignore abort errors
+              }
+            }, 30000)
 
+            // Make the fetch request
+            try {
+              response = await fetch(runUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  toolId: tool.toolId,
+                  inputText: textToUse,
+                  inputImage: imageInput,
+                  config: finalConfig,
+                }),
+                credentials: 'same-origin',
+                signal: controller.signal,
+              })
+            } catch (fetchErr) {
+              if (fetchErr.name === 'AbortError') {
+                throw new Error('Request timeout - server took too long to respond')
+              }
+              if (fetchErr instanceof TypeError && fetchErr.message.includes('fetch')) {
+                throw new Error('Network error - unable to reach server')
+              }
+              throw fetchErr
+            } finally {
+              // Clear timeout
+              if (timeoutId) {
+                clearTimeout(timeoutId)
+                timeoutId = null
+              }
+            }
+
+            // Validate response exists
             if (!response) {
               throw new Error('No response from server')
             }
 
+            // Parse response JSON
             let data
             try {
               data = await response.json()
             } catch (jsonError) {
+              console.debug('Failed to parse tool response:', jsonError?.message || String(jsonError))
               throw new Error('Invalid response from server')
             }
 
+            // Check response status
             if (!response.ok) {
               throw new Error(data?.error || `Server error: ${response.status}`)
             }
 
+            // Validate and set result
             setOutputResult(data.result)
             setOutputWarnings(data.warnings || [])
-          } catch (fetchErr) {
-            clearTimeout(timeoutId)
-            if (fetchErr.name === 'AbortError') {
-              throw new Error('Request timeout - server took too long to respond')
+          } catch (err) {
+            // Rethrow errors to be caught by outer catch block
+            throw err
+          } finally {
+            // Always clear timeout
+            if (timeoutId) {
+              clearTimeout(timeoutId)
             }
-            throw fetchErr
           }
         }
       } catch (err) {
