@@ -137,7 +137,7 @@
 }
 
 .friendlyContent {
-  padding: 16px 16px 32px 16px;
+  padding: 16px 16px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 20px;
