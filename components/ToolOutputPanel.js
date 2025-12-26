@@ -17,7 +17,7 @@ import MIMETypeLookupOutput from './MIMETypeLookupOutput'
 import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
 import MathEvaluatorResult from './MathEvaluatorResult'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [] }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -49,6 +49,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         runsToLoad: newRunCount,
       })
     }
+  }
+
+  const handleInsertXMLDeclaration = (xmlWithoutDeclaration) => {
+    if (!onInputUpdate) return
+    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    // Add declaration to the output and set it as new input to clear the lint warning
+    const newInput = xmlDeclaration + (xmlWithoutDeclaration || '')
+    onInputUpdate(newInput)
   }
 
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
@@ -2181,12 +2189,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -3569,12 +3576,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -3633,42 +3639,70 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div style={{}}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {lintingWarnings.map((warning, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    padding: '12px',
-                    backgroundColor: 'rgba(255, 167, 38, 0.1)',
-                    border: '1px solid rgba(255, 167, 38, 0.2)',
-                    borderRadius: '4px',
-                    borderLeft: '3px solid #ffa726',
-                  }}
-                >
-                  <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
-                    ⚠️ Warning {idx + 1}
+              {lintingWarnings.map((warning, idx) => {
+                const isDeclarationWarning = warning.warningType === 'missing-declaration'
+                const canFixDeclaration = isDeclarationWarning && configOptions?.removeXMLDeclaration !== true
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                      border: '1px solid rgba(255, 167, 38, 0.2)',
+                      borderRadius: '4px',
+                      borderLeft: '3px solid #ffa726',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                      ⚠️ Warning {idx + 1}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                      {warning.message}
+                    </div>
+                    {warning.line !== null && warning.column !== null && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Line {warning.line}, Column {warning.column}
+                      </div>
+                    )}
+                    {warning.ruleId && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Rule: {warning.ruleId}
+                      </div>
+                    )}
+                    {warning.category && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Category: {warning.category}
+                      </div>
+                    )}
+                    {isDeclarationWarning && (
+                      <div style={{ marginTop: '8px' }}>
+                        <button
+                          onClick={() => {
+                            const currentOutput = displayResult?.finalXml || displayResult?.formatted || ''
+                            handleInsertXMLDeclaration(currentOutput)
+                          }}
+                          disabled={!canFixDeclaration}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: canFixDeclaration ? '#0066cc' : '#999',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            fontSize: '11px',
+                            fontWeight: '500',
+                            cursor: canFixDeclaration ? 'pointer' : 'not-allowed',
+                            opacity: canFixDeclaration ? 1 : 0.6,
+                          }}
+                        >
+                          {configOptions?.removeXMLDeclaration ? 'Cannot add (Remove Declaration is enabled)' : 'Add XML Declaration'}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                    {warning.message}
-                  </div>
-                  {warning.line !== null && warning.column !== null && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
-                      Line {warning.line}, Column {warning.column}
-                    </div>
-                  )}
-                  {warning.ruleId && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
-                      Rule: {warning.ruleId}
-                    </div>
-                  )}
-                  {warning.category && (
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
-                      Category: {warning.category}
-                    </div>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )
