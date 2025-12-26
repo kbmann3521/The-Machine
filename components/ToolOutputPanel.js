@@ -3750,7 +3750,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
