@@ -31,6 +31,7 @@
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-gutter: stable;
+  margin: auto 0;
 }
 
 .mainContent::-webkit-scrollbar {
