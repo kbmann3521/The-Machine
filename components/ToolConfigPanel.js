@@ -323,10 +323,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   max={maxVal}
                   value={displayValue}
                   onChange={e => {
-                    const inputValue = e.target.value.trim()
+                    const inputValue = e.target.value
 
-                    // Empty input - just let user see the empty field, don't update state yet
+                    // Empty input - allow it in local state so input shows empty visually
                     if (inputValue === '') {
+                      setConfig({ ...config, [field.id]: '' })
                       return
                     }
 
@@ -337,7 +338,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                       return
                     }
 
-                    // Valid number - clamp to range and update
+                    // Valid number - clamp to range and update parent
                     const clampedVal = Math.max(minVal, Math.min(maxVal, val))
                     // Skip aspect ratio sync for number inputs - user is typing manually
                     handleFieldChange(field.id, clampedVal, true)
