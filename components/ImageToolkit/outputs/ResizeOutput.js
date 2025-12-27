@@ -39,9 +39,25 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
         width: img.width,
         height: img.height,
       })
+
+      // Calculate and store aspect ratio
+      const ratio = img.width / img.height
+      setAspectRatio(ratio)
+
       // Calculate original file size from base64
       const sizeInBytes = Math.ceil((result.imageData.length * 3) / 4) - (result.imageData.endsWith('==') ? 2 : result.imageData.endsWith('=') ? 1 : 0)
       setOriginalFileSize(sizeInBytes)
+
+      // Store original config for reset
+      if (configOptions) {
+        setOriginalConfig({
+          width: img.width,
+          height: img.height,
+          scalePercent: configOptions.scalePercent || 100,
+          quality: configOptions.quality || 80,
+          lockAspectRatio: configOptions.lockAspectRatio !== false,
+        })
+      }
 
       // Update config to use original dimensions as defaults
       if (onConfigChange && configOptions) {
