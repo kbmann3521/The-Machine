@@ -282,7 +282,10 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         }
 
         const unit = getUnit()
-        const numValue = parseInt(value) || 0
+        // For display: if value is empty string, show empty; otherwise parse and show number
+        // This allows the input to visually show empty when user clears it
+        const displayValue = value === '' ? '' : (parseInt(value) || 0)
+        const numValue = parseInt(value) || 0  // For calculations
         const minVal = field.min || 0
         const maxVal = field.max || 100
 
