@@ -5463,7 +5463,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     switch (toolId) {
       case 'image-toolkit': {
         if (displayResult?.mode === 'resize' && displayResult?.imageData) {
-          const ResizeOutput = require('./ImageToolkit/outputs/ResizeOutput').default
           const tabs = [
             {
               id: 'output',
