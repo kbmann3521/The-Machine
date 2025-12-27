@@ -155,13 +155,31 @@ export default function ResizeOutput({ result }) {
     )
   }
 
-  const htmlCode = `<img src="${resizedImage}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
+  const htmlCode = `<img src="${uploadedUrl || resizedImage}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
   const reductionPercent = ((1 - (newDimensions.width * newDimensions.height) / (newDimensions.originalWidth * newDimensions.originalHeight)) * 100).toFixed(1)
 
   return (
     <div className={styles.outputContainer}>
       <div className={styles.imageContainer}>
         <img src={resizedImage} alt="Resized" className={styles.image} />
+      </div>
+
+      <div className={styles.buttonGroup}>
+        <button
+          onClick={handleDownloadImage}
+          className={styles.actionButton}
+          title="Download resized image"
+        >
+          ⬇️ Download Image
+        </button>
+        <button
+          onClick={handleUploadImage}
+          className={styles.actionButton}
+          disabled={uploading}
+          title="Upload image to get shareable URL"
+        >
+          {uploading ? '⏳ Uploading...' : '☁️ Upload & Get URL'}
+        </button>
       </div>
 
       <div className={styles.infoSection}>
@@ -181,6 +199,27 @@ export default function ResizeOutput({ result }) {
           </div>
         </div>
       </div>
+
+      {uploadedUrl && (
+        <div className={styles.infoSection}>
+          <h3 className={styles.sectionTitle}>Image URL</h3>
+          <div className={styles.urlContainer}>
+            <input
+              type="text"
+              value={uploadedUrl}
+              readOnly
+              className={styles.urlInput}
+            />
+            <button
+              onClick={() => navigator.clipboard.writeText(uploadedUrl)}
+              className={styles.copyButton}
+              title="Copy URL to clipboard"
+            >
+              Copy URL
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={styles.infoSection}>
         <h3 className={styles.sectionTitle}>HTML Code</h3>
