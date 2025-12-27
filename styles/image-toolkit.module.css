@@ -285,6 +285,11 @@
     gap: 4px;
   }
 
+  .fileSizeRow {
+    flex-direction: column;
+    gap: 4px;
+  }
+
   .buttonGroup {
     flex-direction: column;
     gap: 8px;
