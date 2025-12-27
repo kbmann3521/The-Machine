@@ -24,7 +24,7 @@ export default function ResizeOutput({ result, configOptions, onConfigChange }) 
     )
   }
 
-  // Detect original dimensions on first load
+  // Detect original dimensions on first load and update config defaults
   useEffect(() => {
     if (!result.imageData || originalDimensions) {
       return
@@ -39,6 +39,15 @@ export default function ResizeOutput({ result, configOptions, onConfigChange }) 
       // Calculate original file size from base64
       const sizeInBytes = Math.ceil((result.imageData.length * 3) / 4) - (result.imageData.endsWith('==') ? 2 : result.imageData.endsWith('=') ? 1 : 0)
       setOriginalFileSize(sizeInBytes)
+
+      // Update config to use original dimensions as defaults
+      if (onConfigChange && configOptions) {
+        onConfigChange({
+          ...configOptions,
+          width: img.width,
+          height: img.height,
+        })
+      }
     }
     img.src = result.imageData
   }, [result.imageData])
