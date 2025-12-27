@@ -14,9 +14,10 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
   const [estimatedFileSize, setEstimatedFileSize] = useState(null)
   const [copiedField, setCopiedField] = useState(null)
   const [aspectRatio, setAspectRatio] = useState(null)
-  const [lastChangedDimension, setLastChangedDimension] = useState(null)
   const canvasRef = useRef(null)
   const uploadAttemptedRef = useRef(false)
+  const prevDimensionsRef = useRef({ width: null, height: null, scale: null })
+  const lastChangeTimeRef = useRef(0)
 
   // Show placeholder when no image is uploaded yet
   if (!result || !result.imageData) {
