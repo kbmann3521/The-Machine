@@ -257,21 +257,72 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
           </label>
         )
 
-      case 'slider':
+      case 'slider': {
+        // Determine unit label based on field ID
+        const getUnit = () => {
+          if (field.id === 'quality') return '%'
+          if (field.id === 'scalePercent') return '%'
+          if (field.id === 'width' || field.id === 'height') return 'px'
+          return ''
+        }
+
+        const unit = getUnit()
+        const numValue = parseInt(value) || 0
+        const minVal = field.min || 0
+        const maxVal = field.max || 100
+
+        // For image-toolkit, check if this is Scale or Width/Height
+        const isScaleField = field.id === 'scalePercent'
+        const isDimensionField = field.id === 'width' || field.id === 'height'
+        const isImageToolkit = tool.toolId === 'image-toolkit'
+
+        // Determine if field should be disabled based on Scale mode
+        let isDisabledByScale = false
+        if (isImageToolkit && isDimensionField && config.scalePercent !== 100) {
+          // If scale is not 100%, width/height are controlled by scale
+          isDisabledByScale = true
+        }
+
+        const finalDisabled = isFieldDisabled || isDisabledByScale
+
         return (
           <div key={field.id} className={styles.sliderContainer}>
-            <input
-              type="range"
-              className={styles.slider}
-              min={field.min || 0}
-              max={field.max || 100}
-              value={value || 0}
-              onChange={e => handleFieldChange(field.id, parseInt(e.target.value))}
-              disabled={isFieldDisabled}
-            />
-            <span className={styles.sliderValue}>{value || 0}</span>
+            <div className={styles.sliderInputWrapper}>
+              <input
+                type="range"
+                className={`${styles.slider} ${finalDisabled ? styles.sliderDisabled : ''}`}
+                min={minVal}
+                max={maxVal}
+                value={numValue}
+                onChange={e => handleFieldChange(field.id, parseInt(e.target.value))}
+                disabled={finalDisabled}
+              />
+              <div className={styles.sliderInputGroup}>
+                <input
+                  type="number"
+                  className={styles.sliderInput}
+                  min={minVal}
+                  max={maxVal}
+                  value={numValue}
+                  onChange={e => {
+                    const val = parseInt(e.target.value)
+                    if (!isNaN(val) && val >= minVal && val <= maxVal) {
+                      handleFieldChange(field.id, val)
+                    }
+                  }}
+                  disabled={finalDisabled}
+                />
+                {unit && <span className={styles.sliderUnit}>{unit}</span>}
+              </div>
+            </div>
+            {isImageToolkit && isDimensionField && config.scalePercent !== 100 && (
+              <div className={styles.sliderHint}>
+                Scale mode active ({config.scalePercent}%). Adjust scale slider to change dimensions.
+              </div>
+            )}
           </div>
         )
+      }
 
       default:
         return null
