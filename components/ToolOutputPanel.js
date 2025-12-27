@@ -5460,6 +5460,43 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
+      case 'image-toolkit': {
+        if (displayResult?.mode === 'resize' && displayResult?.imageData) {
+          const ResizeOutput = require('./ImageToolkit/outputs/ResizeOutput').default
+          const tabs = [
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <ResizeOutput result={displayResult} />,
+              contentType: 'component',
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json',
+            },
+          ]
+          return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+        }
+        // If no valid result, show waiting message
+        const blankTabs = [
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: 'Waiting for image upload and processing...',
+            contentType: 'text',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: displayResult ? JSON.stringify(displayResult, null, 2) : '',
+            contentType: 'json',
+          },
+        ]
+        return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={blankTabs} showCopyButton={false} />
+      }
+
       case 'text-toolkit': {
         const tabs = []
 
