@@ -210,6 +210,25 @@
   .codeBlock {
     font-size: 11px;
   }
+
+  .buttonGroup {
+    gap: 10px;
+  }
+
+  .actionButton {
+    padding: 9px 14px;
+    font-size: 12px;
+    min-width: 140px;
+  }
+
+  .urlContainer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .urlInput {
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -231,9 +250,30 @@
     gap: 4px;
   }
 
+  .buttonGroup {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .actionButton {
+    padding: 8px 12px;
+    font-size: 11px;
+    min-width: auto;
+  }
+
   .copyButton {
     padding: 6px 10px;
     font-size: 11px;
+  }
+
+  .urlContainer {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .urlInput {
+    padding: 6px 10px;
+    font-size: 10px;
   }
 
   .codeBlock {
