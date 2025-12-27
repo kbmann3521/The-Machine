@@ -82,82 +82,93 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
     uploadOriginalImage()
   }, [result.imageData])
 
-  // Handle aspect ratio locking and scale adjustment
+  // Handle aspect ratio locking and scale adjustment - NO DEBOUNCE for synchronous updates
   useEffect(() => {
-    if (!onConfigChange || !configOptions) return
+    if (!onConfigChange || !configOptions || !aspectRatio) return
 
-    const now = Date.now()
-    const timeSinceLastChange = now - lastChangeTimeRef.current
-
-    // Debounce rapid changes to prevent feedback loops
-    if (timeSinceLastChange < 50) return
-    lastChangeTimeRef.current = now
-
-    // Check if scale changed - adjust width and height proportionally
-    if (prevDimensionsRef.current.scale !== null && result.scalePercent !== prevDimensionsRef.current.scale && originalConfig) {
-      const scaleRatio = result.scalePercent / prevDimensionsRef.current.scale
-      const newWidth = Math.round((prevDimensionsRef.current.width || result.width) * scaleRatio)
-      const newHeight = Math.round((prevDimensionsRef.current.height || result.height) * scaleRatio)
-
-      onConfigChange({
-        ...configOptions,
-        width: newWidth,
-        height: newHeight,
-        scalePercent: result.scalePercent,
-      })
-
-      prevDimensionsRef.current = {
-        width: newWidth,
-        height: newHeight,
-        scale: result.scalePercent,
-      }
-      return
-    }
-
-    // Handle aspect ratio locking
-    if (result.lockAspectRatio && aspectRatio) {
-      const widthChanged = result.width !== prevDimensionsRef.current.width
-      const heightChanged = result.height !== prevDimensionsRef.current.height
-
-      // Only adjust if exactly one dimension changed (user moved a slider)
-      if (widthChanged && !heightChanged) {
-        const newHeight = Math.round(result.width / aspectRatio)
-        if (Math.abs(newHeight - result.height) > 1) {
-          onConfigChange({
-            ...configOptions,
-            height: newHeight,
-          })
-          prevDimensionsRef.current = {
-            width: result.width,
-            height: newHeight,
-            scale: result.scalePercent,
-          }
-          return
-        }
-      } else if (heightChanged && !widthChanged) {
-        const newWidth = Math.round(result.height * aspectRatio)
-        if (Math.abs(newWidth - result.width) > 1) {
-          onConfigChange({
-            ...configOptions,
-            width: newWidth,
-          })
-          prevDimensionsRef.current = {
-            width: newWidth,
-            height: result.height,
-            scale: result.scalePercent,
-          }
-          return
-        }
-      }
-    }
-
-    // Update previous values for next comparison
-    prevDimensionsRef.current = {
+    const prevState = prevDimensionsRef.current
+    const currentState = {
       width: result.width,
       height: result.height,
       scale: result.scalePercent,
+      lockAspectRatio: result.lockAspectRatio,
     }
-  }, [result.width, result.height, result.scalePercent, result.lockAspectRatio, aspectRatio, configOptions, onConfigChange])
+
+    // Check if scale changed - adjust width and height proportionally
+    if (prevState.scale !== null && currentState.scale !== prevState.scale && originalConfig) {
+      const scaleRatio = currentState.scale / prevState.scale
+      const newWidth = Math.round(prevState.width * scaleRatio)
+      const newHeight = Math.round(prevState.height * scaleRatio)
+
+      // Only update if values changed significantly
+      if (newWidth !== currentState.width || newHeight !== currentState.height) {
+        onConfigChange({
+          ...configOptions,
+          width: newWidth,
+          height: newHeight,
+          scalePercent: currentState.scale,
+        })
+
+        prevDimensionsRef.current = {
+          width: newWidth,
+          height: newHeight,
+          scale: currentState.scale,
+          lockAspectRatio: currentState.lockAspectRatio,
+        }
+        return
+      }
+    }
+
+    // Handle aspect ratio locking with immediate sync
+    if (currentState.lockAspectRatio && aspectRatio) {
+      const widthChanged = currentState.width !== prevState.width
+      const heightChanged = currentState.height !== prevState.height
+
+      // Only adjust if exactly one dimension changed (user moved a slider)
+      if (widthChanged && !heightChanged && prevState.width !== null) {
+        const newHeight = Math.round(currentState.width / aspectRatio)
+        // Only update if the calculated height differs from current height
+        if (Math.abs(newHeight - currentState.height) > 1) {
+          onConfigChange({
+            ...configOptions,
+            width: currentState.width,
+            height: newHeight,
+          })
+
+          prevDimensionsRef.current = {
+            width: currentState.width,
+            height: newHeight,
+            scale: currentState.scale,
+            lockAspectRatio: currentState.lockAspectRatio,
+          }
+          return
+        }
+      } else if (heightChanged && !widthChanged && prevState.height !== null) {
+        const newWidth = Math.round(currentState.height * aspectRatio)
+        // Only update if the calculated width differs from current width
+        if (Math.abs(newWidth - currentState.width) > 1) {
+          onConfigChange({
+            ...configOptions,
+            width: newWidth,
+            height: currentState.height,
+          })
+
+          prevDimensionsRef.current = {
+            width: newWidth,
+            height: currentState.height,
+            scale: currentState.scale,
+            lockAspectRatio: currentState.lockAspectRatio,
+          }
+          return
+        }
+      }
+    }
+
+    // Update previous values for next comparison only if they differ significantly
+    if (JSON.stringify(prevState) !== JSON.stringify(currentState)) {
+      prevDimensionsRef.current = currentState
+    }
+  }, [result.width, result.height, result.scalePercent, result.lockAspectRatio, aspectRatio, configOptions, onConfigChange, originalConfig])
 
   // Update transformation URL whenever config changes
   useEffect(() => {
