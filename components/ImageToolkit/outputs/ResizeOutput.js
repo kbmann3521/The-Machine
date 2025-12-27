@@ -84,33 +84,6 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
     uploadOriginalImage()
   }, [result.imageData])
 
-  // Create a wrapper callback that handles aspect ratio locking synchronously
-  const handleImageConfigChange = React.useCallback((newConfig) => {
-    if (!aspectRatio) {
-      onConfigChange(newConfig)
-      return
-    }
-
-    // Handle aspect ratio locking BEFORE calling onConfigChange
-    if (newConfig.lockAspectRatio && aspectRatio) {
-      const prevWidth = result.width
-      const prevHeight = result.height
-      const newWidth = newConfig.width
-      const newHeight = newConfig.height
-
-      // If width changed but height didn't, calculate new height
-      if (newWidth !== prevWidth && newHeight === prevHeight) {
-        newConfig.height = Math.round(newWidth / aspectRatio)
-      }
-      // If height changed but width didn't, calculate new width
-      else if (newHeight !== prevHeight && newWidth === prevWidth) {
-        newConfig.width = Math.round(newHeight * aspectRatio)
-      }
-    }
-
-    // Call the actual config change with both values at once
-    onConfigChange(newConfig)
-  }, [aspectRatio, result.width, result.height, onConfigChange])
 
   // Update transformation URL whenever config changes
   useEffect(() => {
