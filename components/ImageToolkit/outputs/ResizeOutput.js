@@ -69,33 +69,6 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
     }
   }, [result.width, result.height, result.scalePercent, result.quality, imageId])
 
-  // Handle aspect ratio locking when width or height changes
-  useEffect(() => {
-    if (!result.lockAspectRatio || !originalDimensions || !configOptions || !onConfigChange) {
-      return
-    }
-
-    const originalAspectRatio = originalDimensions.width / originalDimensions.height
-
-    // If the aspect ratio has changed, it means one dimension was updated
-    // We need to adjust the other to maintain the ratio
-    const currentAspectRatio = (result.width || 800) / (result.height || 600)
-
-    if (Math.abs(currentAspectRatio - originalAspectRatio) > 0.01) {
-      // Check which dimension was likely just changed by comparing to config
-      // This is a bit tricky - we'll assume if the width/height ratio doesn't match the original,
-      // we need to adjust
-      const newHeight = Math.round((result.width || 800) / originalAspectRatio)
-
-      if (Math.abs(newHeight - (result.height || 600)) > 1) {
-        onConfigChange({
-          ...configOptions,
-          height: newHeight,
-        })
-      }
-    }
-  }, [result.width, result.height, result.lockAspectRatio, originalDimensions])
-
   // Perform client-side resize for preview and estimate file size
   useEffect(() => {
     if (!result || !result.imageData) {
