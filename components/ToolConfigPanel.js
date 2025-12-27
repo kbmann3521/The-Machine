@@ -345,18 +345,26 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   onBlur={e => {
                     const finalValue = e.target.value.trim()
 
-                    // On blur, if empty, reset to current valid value
+                    // On blur, if empty, reset to the actual current value from parent props
                     if (finalValue === '') {
-                      // Skip aspect ratio sync when resetting empty field
-                      handleFieldChange(field.id, numValue, true)
+                      const currentValue = currentConfig[field.id]
+                      if (currentValue !== undefined && currentValue !== null && currentValue !== '') {
+                        // Reset to the actual current prop value, not the calculated numValue
+                        handleFieldChange(field.id, parseInt(currentValue) || minVal, true)
+                      } else {
+                        // No valid current value, reset local state only
+                        setConfig({ ...config, [field.id]: minVal })
+                      }
                       return
                     }
 
                     const val = parseInt(finalValue, 10)
                     if (isNaN(val)) {
-                      // Invalid input, reset to current value
-                      // Skip aspect ratio sync when fixing invalid input
-                      handleFieldChange(field.id, numValue, true)
+                      // Invalid input, reset to current value from parent props
+                      const currentValue = currentConfig[field.id]
+                      if (currentValue !== undefined && currentValue !== null) {
+                        handleFieldChange(field.id, parseInt(currentValue) || minVal, true)
+                      }
                     }
                   }}
                   disabled={finalDisabled}
