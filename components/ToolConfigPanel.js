@@ -325,7 +325,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   onChange={e => {
                     const inputValue = e.target.value
 
-                    // Empty input - allow it in local state so input shows empty visually
+                    // Empty input - show empty visually, but don't update parent yet
                     if (inputValue === '') {
                       setConfig({ ...config, [field.id]: '' })
                       return
@@ -333,32 +333,32 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
                     const val = parseInt(inputValue, 10)
 
-                    // If still typing (incomplete number), wait for completion
+                    // If still typing (incomplete number), return
                     if (isNaN(val)) {
                       return
                     }
 
-                    // Valid number - clamp to range and update parent
-                    const clampedVal = Math.max(minVal, Math.min(maxVal, val))
-                    // Skip aspect ratio sync for number inputs - user is typing manually
-                    handleFieldChange(field.id, clampedVal, true)
+                    // Valid number - update immediately WITHOUT clamping
+                    // Allow any value to be entered, even if outside min/max range
+                    // Aspect ratio sync should apply even during typing
+                    handleFieldChange(field.id, val, false)  // false = DO apply aspect ratio sync
                   }}
                   onBlur={e => {
                     const finalValue = e.target.value.trim()
 
-                    // On blur, if empty, revert to parent's current value
+                    // On blur, if empty, revert to last valid value
                     if (finalValue === '') {
                       const currentValue = currentConfig[field.id]
                       const fallbackValue = currentValue !== undefined && currentValue !== null ? parseInt(currentValue) : minVal
-                      handleFieldChange(field.id, fallbackValue, true)
+                      handleFieldChange(field.id, fallbackValue, true)  // true = skip aspect ratio sync on blur
                       return
                     }
 
-                    // Validate and update if it's a valid number
+                    // Validate and clamp if it's a valid number
                     const val = parseInt(finalValue, 10)
                     if (!isNaN(val)) {
                       const clampedVal = Math.max(minVal, Math.min(maxVal, val))
-                      handleFieldChange(field.id, clampedVal, true)
+                      handleFieldChange(field.id, clampedVal, true)  // true = skip aspect ratio sync on blur
                     } else {
                       // Invalid input - revert to current value
                       const currentValue = currentConfig[field.id]
