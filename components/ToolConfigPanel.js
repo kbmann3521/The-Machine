@@ -318,9 +318,29 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   max={maxVal}
                   value={numValue}
                   onChange={e => {
-                    const val = parseInt(e.target.value)
-                    if (!isNaN(val) && val >= minVal && val <= maxVal) {
-                      handleFieldChange(field.id, val)
+                    const inputValue = e.target.value
+
+                    // Allow empty string (for clearing/backspace)
+                    if (inputValue === '') {
+                      setConfig({ ...config, [field.id]: '' })
+                      return
+                    }
+
+                    const val = parseInt(inputValue, 10)
+
+                    // Allow partial input (like typing '-' or incomplete numbers)
+                    if (isNaN(val)) {
+                      return
+                    }
+
+                    // Clamp to min/max range
+                    const clampedVal = Math.max(minVal, Math.min(maxVal, val))
+                    handleFieldChange(field.id, clampedVal)
+                  }}
+                  onBlur={e => {
+                    // On blur, if empty or invalid, reset to current value
+                    if (e.target.value === '') {
+                      setConfig({ ...config, [field.id]: numValue })
                     }
                   }}
                   disabled={finalDisabled}
