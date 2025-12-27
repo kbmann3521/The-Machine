@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react'
-import OutputTabs from '../../OutputTabs'
 import styles from '../../../styles/image-toolkit.module.css'
 
 export default function ResizeOutput({ result }) {
@@ -8,23 +7,13 @@ export default function ResizeOutput({ result }) {
   const [error, setError] = useState(null)
   const canvasRef = useRef(null)
 
-  // Show placeholder with OutputTabs when no image is uploaded yet
+  // Show placeholder when no image is uploaded yet
   if (!result || !result.imageData) {
-    const tabs = [
-      {
-        id: 'placeholder',
-        label: 'Resized Image',
-        content: 'No preview available',
-        contentType: 'text',
-      },
-      {
-        id: 'code-placeholder',
-        label: 'HTML Code',
-        content: '',
-        contentType: 'code',
-      },
-    ]
-    return <OutputTabs tabs={tabs} />
+    return (
+      <div className={styles.placeholder}>
+        <p>No image selected</p>
+      </div>
+    )
   }
 
   useEffect(() => {
