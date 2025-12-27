@@ -16,6 +16,7 @@ import JWTDecoderOutput from './JWTDecoderOutput'
 import MIMETypeLookupOutput from './MIMETypeLookupOutput'
 import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
 import MathEvaluatorResult from './MathEvaluatorResult'
+import ResizeOutput from './ImageToolkit/outputs/ResizeOutput'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate }) {
   const toolCategory = TOOLS[toolId]?.category
