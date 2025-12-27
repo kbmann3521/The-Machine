@@ -251,16 +251,30 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
   }
 
   const handleCopyCode = () => {
-    const htmlCode = transformUrl 
+    const htmlCode = transformUrl
       ? `<img src="${transformUrl}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
       : `<img src="${resizedImage}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
-    
+
     navigator.clipboard.writeText(htmlCode).then(() => {
       setCopiedField('code')
       setTimeout(() => setCopiedField(null), 2000)
     }).catch(err => {
       console.error('Copy failed:', err)
       setCopiedField(null)
+    })
+  }
+
+  const handleReset = () => {
+    if (!originalConfig || !onConfigChange || !configOptions) return
+
+    setLastChangedDimension(null)
+    onConfigChange({
+      ...configOptions,
+      width: originalConfig.width,
+      height: originalConfig.height,
+      scalePercent: originalConfig.scalePercent,
+      quality: originalConfig.quality,
+      lockAspectRatio: originalConfig.lockAspectRatio,
     })
   }
 
