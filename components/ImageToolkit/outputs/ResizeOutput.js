@@ -317,7 +317,13 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
   const handleReset = () => {
     if (!originalConfig || !onConfigChange || !configOptions) return
 
-    setLastChangedDimension(null)
+    prevDimensionsRef.current = {
+      width: originalConfig.width,
+      height: originalConfig.height,
+      scale: originalConfig.scalePercent,
+    }
+    lastChangeTimeRef.current = 0
+
     onConfigChange({
       ...configOptions,
       width: originalConfig.width,
