@@ -4,10 +4,14 @@ import styles from '../../../styles/image-toolkit.module.css'
 export default function ResizeOutput({ result }) {
   const [resizedImage, setResizedImage] = useState(null)
   const [newDimensions, setNewDimensions] = useState(null)
+  const [originalDimensions, setOriginalDimensions] = useState(null)
   const [error, setError] = useState(null)
   const [imageId, setImageId] = useState(null)
   const [transformUrl, setTransformUrl] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [originalFileSize, setOriginalFileSize] = useState(null)
+  const [estimatedFileSize, setEstimatedFileSize] = useState(null)
+  const [copiedField, setCopiedField] = useState(null)
   const canvasRef = useRef(null)
   const uploadAttemptedRef = useRef(false)
 
@@ -19,6 +23,25 @@ export default function ResizeOutput({ result }) {
       </div>
     )
   }
+
+  // Detect original dimensions on first load
+  useEffect(() => {
+    if (!result.imageData || originalDimensions) {
+      return
+    }
+
+    const img = new Image()
+    img.onload = () => {
+      setOriginalDimensions({
+        width: img.width,
+        height: img.height,
+      })
+      // Calculate original file size from base64
+      const sizeInBytes = Math.ceil((result.imageData.length * 3) / 4) - (result.imageData.endsWith('==') ? 2 : result.imageData.endsWith('=') ? 1 : 0)
+      setOriginalFileSize(sizeInBytes)
+    }
+    img.src = result.imageData
+  }, [result.imageData])
 
   // Auto-upload original image on first load
   useEffect(() => {
@@ -35,9 +58,9 @@ export default function ResizeOutput({ result }) {
     if (imageId) {
       buildTransformationUrl()
     }
-  }, [result.width, result.height, result.quality, result.resizeMode, imageId])
+  }, [result.width, result.height, result.scalePercent, result.quality, imageId])
 
-  // Perform client-side resize for preview
+  // Perform client-side resize for preview and estimate file size
   useEffect(() => {
     if (!result || !result.imageData) {
       return
@@ -84,24 +107,13 @@ export default function ResizeOutput({ result }) {
     if (!imageId) return
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    const qualityValue = Math.round((result.quality || 0.9) * 100)
     
-    // Build query parameters based on resize mode
+    // Build query parameters
     const params = new URLSearchParams()
-    params.append('q', qualityValue)
-    
-    if (result.resizeMode === 'dimensions') {
-      params.append('w', result.width || 800)
-      params.append('h', result.height || 600)
-    } else if (result.resizeMode === 'scale') {
-      params.append('scale', result.scalePercent || 50)
-    } else if (result.resizeMode === 'maxWidth') {
-      params.append('maxW', result.width || 800)
-    }
-
-    if (result.maintainAspect) {
-      params.append('aspect', '1')
-    }
+    params.append('w', result.width || 800)
+    params.append('h', result.height || 600)
+    params.append('scale', result.scalePercent || 100)
+    params.append('q', result.quality || 80)
 
     const url = `${baseUrl}/api/tools/get-image/${imageId}?${params.toString()}`
     setTransformUrl(url)
@@ -114,40 +126,22 @@ export default function ResizeOutput({ result }) {
         const canvas = canvasRef.current || document.createElement('canvas')
         const ctx = canvas.getContext('2d')
 
-        let newWidth = result.width || 800
-        let newHeight = result.height || 600
+        // Calculate dimensions based on scale percentage
+        const scale = (result.scalePercent || 100) / 100
+        let newWidth = Math.round((result.width || 800) * scale)
+        let newHeight = Math.round((result.height || 600) * scale)
 
-        if (result.resizeMode === 'scale') {
-          const scale = (result.scalePercent || 50) / 100
-          newWidth = Math.round(img.width * scale)
-          newHeight = Math.round(img.height * scale)
-        } else if (result.resizeMode === 'maxWidth') {
-          if (img.width > (result.width || 800)) {
-            const scale = (result.width || 800) / img.width
-            newWidth = result.width || 800
-            newHeight = Math.round(img.height * scale)
-          } else {
-            newWidth = img.width
-            newHeight = img.height
-          }
-        } else if (result.maintainAspect) {
-          const aspectRatio = img.width / img.height
-          if (img.width > img.height) {
-            newWidth = result.width || 800
-            newHeight = Math.round(newWidth / aspectRatio)
-          } else {
-            newHeight = result.height || 600
-            newWidth = Math.round(newHeight * aspectRatio)
-          }
-        }
+        // Ensure dimensions don't exceed original
+        if (newWidth > img.width) newWidth = img.width
+        if (newHeight > img.height) newHeight = img.height
 
         canvas.width = newWidth
         canvas.height = newHeight
 
         ctx.drawImage(img, 0, 0, newWidth, newHeight)
 
-        const quality = result.quality || 0.9
-        const resizedData = canvas.toDataURL('image/jpeg', quality)
+        const qualityRatio = (result.quality || 80) / 100
+        const resizedData = canvas.toDataURL('image/jpeg', qualityRatio)
 
         setResizedImage(resizedData)
         setNewDimensions({
@@ -156,6 +150,10 @@ export default function ResizeOutput({ result }) {
           originalWidth: img.width,
           originalHeight: img.height,
         })
+
+        // Estimate file size based on quality
+        const estimatedSize = Math.ceil((resizedData.length * 3) / 4) - (resizedData.endsWith('==') ? 2 : resizedData.endsWith('=') ? 1 : 0)
+        setEstimatedFileSize(estimatedSize)
         setError(null)
       }
 
@@ -180,6 +178,38 @@ export default function ResizeOutput({ result }) {
     document.body.removeChild(link)
   }
 
+  const handleCopyUrl = () => {
+    if (!transformUrl) return
+    navigator.clipboard.writeText(transformUrl).then(() => {
+      setCopiedField('url')
+      setTimeout(() => setCopiedField(null), 2000)
+    }).catch(err => {
+      console.error('Copy failed:', err)
+      setCopiedField(null)
+    })
+  }
+
+  const handleCopyCode = () => {
+    const htmlCode = transformUrl 
+      ? `<img src="${transformUrl}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
+      : `<img src="${resizedImage}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
+    
+    navigator.clipboard.writeText(htmlCode).then(() => {
+      setCopiedField('code')
+      setTimeout(() => setCopiedField(null), 2000)
+    }).catch(err => {
+      console.error('Copy failed:', err)
+      setCopiedField(null)
+    })
+  }
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '0 B'
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(1024))
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i]
+  }
+
   if (error) {
     return (
       <div className={styles.error}>
@@ -200,7 +230,9 @@ export default function ResizeOutput({ result }) {
     ? `<img src="${transformUrl}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
     : `<img src="${resizedImage}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
   
-  const reductionPercent = ((1 - (newDimensions.width * newDimensions.height) / (newDimensions.originalWidth * newDimensions.originalHeight)) * 100).toFixed(1)
+  const reductionPercent = originalFileSize && estimatedFileSize 
+    ? ((1 - estimatedFileSize / originalFileSize) * 100).toFixed(1)
+    : 0
 
   return (
     <div className={styles.outputContainer}>
@@ -229,8 +261,22 @@ export default function ResizeOutput({ result }) {
             <span className={styles.label}>Resized:</span>
             <span className={styles.value}>{newDimensions.width}×{newDimensions.height}px</span>
           </div>
-          <div className={styles.dimensionRow}>
-            <span className={styles.label}>Size Reduction:</span>
+        </div>
+      </div>
+
+      <div className={styles.infoSection}>
+        <h3 className={styles.sectionTitle}>File Size</h3>
+        <div className={styles.fileSizeContainer}>
+          <div className={styles.fileSizeRow}>
+            <span className={styles.label}>Original:</span>
+            <span className={styles.value}>{formatFileSize(originalFileSize)}</span>
+          </div>
+          <div className={styles.fileSizeRow}>
+            <span className={styles.label}>Optimized:</span>
+            <span className={styles.value}>{formatFileSize(estimatedFileSize)}</span>
+          </div>
+          <div className={styles.fileSizeRow}>
+            <span className={styles.label}>Reduction:</span>
             <span className={styles.value}>{reductionPercent}%</span>
           </div>
         </div>
@@ -247,11 +293,11 @@ export default function ResizeOutput({ result }) {
               className={styles.urlInput}
             />
             <button
-              onClick={() => navigator.clipboard.writeText(transformUrl)}
+              onClick={handleCopyUrl}
               className={styles.copyButton}
               title="Copy URL to clipboard"
             >
-              Copy URL
+              {copiedField === 'url' ? '✓ Copied!' : 'Copy URL'}
             </button>
           </div>
           <div className={styles.urlNote}>
@@ -264,11 +310,11 @@ export default function ResizeOutput({ result }) {
         <h3 className={styles.sectionTitle}>HTML Code</h3>
         <pre className={styles.codeBlock}>{htmlCode}</pre>
         <button
-          onClick={() => navigator.clipboard.writeText(htmlCode)}
+          onClick={handleCopyCode}
           className={styles.copyButton}
           title="Copy HTML code to clipboard"
         >
-          Copy Code
+          {copiedField === 'code' ? '✓ Copied!' : 'Copy Code'}
         </button>
       </div>
     </div>
