@@ -44,6 +44,11 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
       const ratio = img.width / img.height
       setAspectRatio(ratio)
 
+      // Also add to result so ToolConfigPanel can access it
+      if (result && !result.aspectRatio) {
+        result.aspectRatio = ratio
+      }
+
       // Calculate original file size from base64
       const sizeInBytes = Math.ceil((result.imageData.length * 3) / 4) - (result.imageData.endsWith('==') ? 2 : result.imageData.endsWith('=') ? 1 : 0)
       setOriginalFileSize(sizeInBytes)
