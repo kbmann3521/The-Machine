@@ -59,12 +59,15 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
         })
       }
 
-      // Update config to use original dimensions as defaults
+      // Update config to use original dimensions as defaults AND include aspect ratio info
       if (onConfigChange && configOptions) {
         onConfigChange({
           ...configOptions,
           width: img.width,
           height: img.height,
+          originalWidth: img.width,
+          originalHeight: img.height,
+          aspectRatio: ratio,
         })
       }
     }
