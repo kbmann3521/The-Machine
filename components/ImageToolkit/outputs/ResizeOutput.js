@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import styles from '../../../styles/image-toolkit.module.css'
 
 export default function ResizeOutput({ result }) {
