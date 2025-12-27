@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import styles from '../../../styles/image-toolkit.module.css'
 
-export default function ResizeOutput({ result }) {
+export default function ResizeOutput({ result, configOptions, onConfigChange }) {
   const [resizedImage, setResizedImage] = useState(null)
   const [newDimensions, setNewDimensions] = useState(null)
   const [originalDimensions, setOriginalDimensions] = useState(null)
