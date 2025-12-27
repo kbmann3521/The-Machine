@@ -320,24 +320,21 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   max={maxVal}
                   value={numValue}
                   onChange={e => {
-                    const inputValue = e.target.value
+                    const inputValue = e.target.value.trim()
 
-                    // Allow empty string for UX (backspace, etc) - just update local display
+                    // Empty input - just let user see the empty field, don't update state yet
                     if (inputValue === '') {
-                      setConfig({ ...config, [field.id]: '' })
                       return
                     }
 
                     const val = parseInt(inputValue, 10)
 
-                    // If still typing (incomplete number like "12"), allow it
+                    // If still typing (incomplete number), wait for completion
                     if (isNaN(val)) {
                       return
                     }
 
-                    // Only call handleFieldChange (which triggers onConfigChange)
-                    // when we have a valid number
-                    // Clamp to min/max range
+                    // Valid number - clamp to range and update
                     const clampedVal = Math.max(minVal, Math.min(maxVal, val))
                     // Skip aspect ratio sync for number inputs - user is typing manually
                     handleFieldChange(field.id, clampedVal, true)
@@ -345,26 +342,24 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   onBlur={e => {
                     const finalValue = e.target.value.trim()
 
-                    // On blur, if empty, reset to the actual current value from parent props
+                    // On blur, if empty, revert to parent's current value
                     if (finalValue === '') {
                       const currentValue = currentConfig[field.id]
-                      if (currentValue !== undefined && currentValue !== null && currentValue !== '') {
-                        // Reset to the actual current prop value, not the calculated numValue
-                        handleFieldChange(field.id, parseInt(currentValue) || minVal, true)
-                      } else {
-                        // No valid current value, reset local state only
-                        setConfig({ ...config, [field.id]: minVal })
-                      }
+                      const fallbackValue = currentValue !== undefined && currentValue !== null ? parseInt(currentValue) : minVal
+                      handleFieldChange(field.id, fallbackValue, true)
                       return
                     }
 
+                    // Validate and update if it's a valid number
                     const val = parseInt(finalValue, 10)
-                    if (isNaN(val)) {
-                      // Invalid input, reset to current value from parent props
+                    if (!isNaN(val)) {
+                      const clampedVal = Math.max(minVal, Math.min(maxVal, val))
+                      handleFieldChange(field.id, clampedVal, true)
+                    } else {
+                      // Invalid input - revert to current value
                       const currentValue = currentConfig[field.id]
-                      if (currentValue !== undefined && currentValue !== null) {
-                        handleFieldChange(field.id, parseInt(currentValue) || minVal, true)
-                      }
+                      const fallbackValue = currentValue !== undefined && currentValue !== null ? parseInt(currentValue) : minVal
+                      handleFieldChange(field.id, fallbackValue, true)
                     }
                   }}
                   disabled={finalDisabled}
