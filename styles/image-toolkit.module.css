@@ -279,6 +279,12 @@
     min-width: 140px;
   }
 
+  .resetButton {
+    padding: 9px 14px;
+    font-size: 12px;
+    min-width: 140px;
+  }
+
   .urlContainer {
     flex-direction: column;
     gap: 8px;
