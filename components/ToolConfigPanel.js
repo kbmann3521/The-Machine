@@ -31,6 +31,19 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
   const handleFieldChange = (fieldId, value) => {
     const newConfig = { ...config, [fieldId]: value }
+
+    // For image-toolkit with aspect ratio locking, calculate the other dimension immediately
+    // This prevents the glitchy two-step update that was happening in useEffect
+    if (tool.toolId === 'image-toolkit' && newConfig.lockAspectRatio && config.aspectRatio) {
+      if (fieldId === 'width' && value !== config.width) {
+        // Width changed, calculate new height
+        newConfig.height = Math.round(value / config.aspectRatio)
+      } else if (fieldId === 'height' && value !== config.height) {
+        // Height changed, calculate new width
+        newConfig.width = Math.round(value * config.aspectRatio)
+      }
+    }
+
     setConfig(newConfig)
     onConfigChange(newConfig)
   }
