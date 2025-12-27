@@ -16,8 +16,7 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
   const [aspectRatio, setAspectRatio] = useState(null)
   const canvasRef = useRef(null)
   const uploadAttemptedRef = useRef(false)
-  const prevDimensionsRef = useRef({ width: null, height: null, scale: null })
-  const lastChangeTimeRef = useRef(0)
+  const prevDimensionsRef = useRef({ width: null, height: null, scale: null, lockAspectRatio: null })
 
   // Show placeholder when no image is uploaded yet
   if (!result || !result.imageData) {
