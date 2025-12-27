@@ -102,38 +102,44 @@ export default function ResizeOutput({ result }) {
     )
   }
 
-  const tabs = [
-    {
-      id: 'resized',
-      label: 'Resized Image',
-      content: (
-        <div className={styles.imageContainer}>
-          <img src={resizedImage} alt="Resized" className={styles.image} />
-          <div className={styles.dimensions}>
-            <div className={styles.dimensionRow}>
-              <span className={styles.label}>Original:</span>
-              <span className={styles.value}>{newDimensions.originalWidth}×{newDimensions.originalHeight}px</span>
-            </div>
-            <div className={styles.dimensionRow}>
-              <span className={styles.label}>Resized:</span>
-              <span className={styles.value}>{newDimensions.width}×{newDimensions.height}px</span>
-            </div>
-            <div className={styles.dimensionRow}>
-              <span className={styles.label}>Reduction:</span>
-              <span className={styles.value}>{((1 - (newDimensions.width * newDimensions.height) / (newDimensions.originalWidth * newDimensions.originalHeight)) * 100).toFixed(1)}%</span>
-            </div>
+  const htmlCode = `<img src="${resizedImage}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`
+  const reductionPercent = ((1 - (newDimensions.width * newDimensions.height) / (newDimensions.originalWidth * newDimensions.originalHeight)) * 100).toFixed(1)
+
+  return (
+    <div className={styles.outputContainer}>
+      <div className={styles.imageContainer}>
+        <img src={resizedImage} alt="Resized" className={styles.image} />
+      </div>
+
+      <div className={styles.infoSection}>
+        <h3 className={styles.sectionTitle}>Image Dimensions</h3>
+        <div className={styles.dimensions}>
+          <div className={styles.dimensionRow}>
+            <span className={styles.label}>Original:</span>
+            <span className={styles.value}>{newDimensions.originalWidth}×{newDimensions.originalHeight}px</span>
+          </div>
+          <div className={styles.dimensionRow}>
+            <span className={styles.label}>Resized:</span>
+            <span className={styles.value}>{newDimensions.width}×{newDimensions.height}px</span>
+          </div>
+          <div className={styles.dimensionRow}>
+            <span className={styles.label}>Size Reduction:</span>
+            <span className={styles.value}>{reductionPercent}%</span>
           </div>
         </div>
-      ),
-      contentType: 'component',
-    },
-    {
-      id: 'preview-code',
-      label: 'HTML Code',
-      content: `<img src="${resizedImage}" alt="Resized Image" width="${newDimensions.width}" height="${newDimensions.height}" />`,
-      contentType: 'code',
-    },
-  ]
+      </div>
 
-  return <OutputTabs tabs={tabs} showCopyButton={true} />
+      <div className={styles.infoSection}>
+        <h3 className={styles.sectionTitle}>HTML Code</h3>
+        <pre className={styles.codeBlock}>{htmlCode}</pre>
+        <button
+          onClick={() => navigator.clipboard.writeText(htmlCode)}
+          className={styles.copyButton}
+          title="Copy HTML code to clipboard"
+        >
+          Copy Code
+        </button>
+      </div>
+    </div>
+  )
 }
