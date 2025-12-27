@@ -127,12 +127,9 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
     const url = `${baseUrl}/api/tools/get-image/${imageId}?${params.toString()}`
     setTransformUrl(url)
 
-    // Update the result object with the URL so it appears in JSON
-    if (onConfigChange && configOptions) {
-      onConfigChange({
-        ...configOptions,
-        transformUrl: url,
-      })
+    // Update the parent with the URL so it appears in JSON
+    if (onUpdateUrl) {
+      onUpdateUrl(url)
     }
   }
 
