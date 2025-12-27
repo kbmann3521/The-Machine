@@ -149,8 +149,9 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .container {
-    gap: 12px;
+  .outputContainer {
+    gap: 20px;
+    padding: 16px;
   }
 
   .dimensions {
@@ -161,13 +162,14 @@
     max-height: 300px;
   }
 
-  .modeSection {
-    padding: 10px;
+  .codeBlock {
+    font-size: 11px;
   }
 }
 
 @media (max-width: 480px) {
-  .imageContainer {
+  .outputContainer {
+    gap: 16px;
     padding: 12px;
   }
 
@@ -182,5 +184,15 @@
   .dimensionRow {
     flex-direction: column;
     gap: 4px;
+  }
+
+  .copyButton {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .codeBlock {
+    padding: 8px;
+    font-size: 10px;
   }
 }
