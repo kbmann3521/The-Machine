@@ -81,6 +81,13 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
     uploadOriginalImage()
   }, [result.imageData])
 
+  // Reset tracker when lock is toggled off
+  useEffect(() => {
+    if (!result.lockAspectRatio) {
+      setLastChangedDimension(null)
+    }
+  }, [result.lockAspectRatio])
+
   // Handle aspect ratio locking
   useEffect(() => {
     if (!result.lockAspectRatio || !aspectRatio || !onConfigChange || !configOptions) {
