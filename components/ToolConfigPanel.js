@@ -285,7 +285,9 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         // For display: if value is empty string, show empty; otherwise parse and show number
         // This allows the input to visually show empty when user clears it
         const displayValue = value === '' ? '' : (parseInt(value) || 0)
-        const numValue = parseInt(value) || 0  // For calculations
+        // For slider: if value is empty, use the previous value from currentConfig so slider doesn't snap to 0
+        const currentNumValue = parseInt(currentConfig[field.id]) || minVal
+        const numValue = value === '' ? currentNumValue : (parseInt(value) || 0)
         const minVal = field.min || 0
         const maxVal = field.max || 100
 
