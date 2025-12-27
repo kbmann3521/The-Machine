@@ -81,6 +81,34 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
     uploadOriginalImage()
   }, [result.imageData])
 
+  // Handle aspect ratio locking
+  useEffect(() => {
+    if (!result.lockAspectRatio || !aspectRatio || !onConfigChange || !configOptions) {
+      return
+    }
+
+    // Detect which dimension changed and adjust the other
+    if (result.width && lastChangedDimension !== 'width') {
+      const newHeight = Math.round(result.width / aspectRatio)
+      if (newHeight !== result.height) {
+        setLastChangedDimension('width')
+        onConfigChange({
+          ...configOptions,
+          height: newHeight,
+        })
+      }
+    } else if (result.height && lastChangedDimension !== 'height') {
+      const newWidth = Math.round(result.height * aspectRatio)
+      if (newWidth !== result.width) {
+        setLastChangedDimension('height')
+        onConfigChange({
+          ...configOptions,
+          width: newWidth,
+        })
+      }
+    }
+  }, [result.width, result.height, result.lockAspectRatio, aspectRatio])
+
   // Update transformation URL whenever config changes
   useEffect(() => {
     if (imageId) {
