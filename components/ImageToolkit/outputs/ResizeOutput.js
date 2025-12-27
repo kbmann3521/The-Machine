@@ -323,6 +323,13 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
         >
           ⬇️ Download Image
         </button>
+        <button
+          onClick={handleReset}
+          className={styles.resetButton}
+          title="Reset to original image dimensions"
+        >
+          ↻ Reset Settings
+        </button>
       </div>
 
       <div className={styles.infoSection}>
