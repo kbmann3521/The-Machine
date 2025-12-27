@@ -339,21 +339,24 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     // when we have a valid number
                     // Clamp to min/max range
                     const clampedVal = Math.max(minVal, Math.min(maxVal, val))
-                    handleFieldChange(field.id, clampedVal)
+                    // Skip aspect ratio sync for number inputs - user is typing manually
+                    handleFieldChange(field.id, clampedVal, true)
                   }}
                   onBlur={e => {
                     const finalValue = e.target.value.trim()
 
                     // On blur, if empty, reset to current valid value
                     if (finalValue === '') {
-                      handleFieldChange(field.id, numValue)
+                      // Skip aspect ratio sync when resetting empty field
+                      handleFieldChange(field.id, numValue, true)
                       return
                     }
 
                     const val = parseInt(finalValue, 10)
                     if (isNaN(val)) {
                       // Invalid input, reset to current value
-                      handleFieldChange(field.id, numValue)
+                      // Skip aspect ratio sync when fixing invalid input
+                      handleFieldChange(field.id, numValue, true)
                     }
                   }}
                   disabled={finalDisabled}
