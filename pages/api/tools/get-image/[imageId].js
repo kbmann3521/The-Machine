@@ -27,59 +27,34 @@ export default async function handler(req, res) {
     
     const width = searchParams.get('w') ? parseInt(searchParams.get('w'), 10) : null
     const height = searchParams.get('h') ? parseInt(searchParams.get('h'), 10) : null
-    const maxWidth = searchParams.get('maxW') ? parseInt(searchParams.get('maxW'), 10) : null
-    const scale = searchParams.get('scale') ? parseInt(searchParams.get('scale'), 10) : null
+    const scale = searchParams.get('scale') ? parseInt(searchParams.get('scale'), 10) : 100
     const quality = searchParams.get('q') ? parseInt(searchParams.get('q'), 10) : 80
-    const maintainAspect = searchParams.get('aspect') === '1'
 
     // Convert data URL to buffer
     const base64Data = cacheEntry.imageData.replace(/^data:image\/\w+;base64,/, '')
     const buffer = Buffer.from(base64Data, 'base64')
 
-    // Create sharp instance
-    let pipeline = sharp(buffer)
-
     // Get metadata to calculate dimensions
-    const metadata = await pipeline.metadata()
-    let resizeWidth = metadata.width
-    let resizeHeight = metadata.height
+    const metadata = await sharp(buffer).metadata()
 
-    // Calculate target dimensions based on parameters
-    if (scale) {
-      const scaleRatio = scale / 100
-      resizeWidth = Math.round(metadata.width * scaleRatio)
-      resizeHeight = Math.round(metadata.height * scaleRatio)
-    } else if (maxWidth && metadata.width > maxWidth) {
-      const aspectRatio = metadata.height / metadata.width
-      resizeWidth = maxWidth
-      resizeHeight = Math.round(maxWidth * aspectRatio)
-    } else if (width && height) {
-      resizeWidth = width
-      resizeHeight = height
-      
-      // If maintaining aspect ratio, adjust height based on width
-      if (maintainAspect) {
-        const aspectRatio = metadata.height / metadata.width
-        resizeHeight = Math.round(width * aspectRatio)
-      }
-    } else if (width) {
-      resizeWidth = width
-      if (maintainAspect) {
-        const aspectRatio = metadata.height / metadata.width
-        resizeHeight = Math.round(width * aspectRatio)
-      }
-    }
+    // Calculate target dimensions
+    const scaleRatio = scale / 100
+    let resizeWidth = width ? Math.round(width * scaleRatio) : metadata.width
+    let resizeHeight = height ? Math.round(height * scaleRatio) : metadata.height
 
-    // Apply transformations
-    pipeline = pipeline.resize(resizeWidth, resizeHeight, {
-      fit: 'cover',
-      position: 'center',
-      withoutEnlargement: true,
-    })
+    // Clamp to max image size
+    const maxDim = Math.max(metadata.width, metadata.height)
+    if (resizeWidth > metadata.width) resizeWidth = metadata.width
+    if (resizeHeight > metadata.height) resizeHeight = metadata.height
 
-    // Convert to JPEG with quality
-    const outputBuffer = await pipeline
-      .jpeg({ quality: Math.min(Math.max(quality, 1), 100) })
+    // Apply transformation
+    const outputBuffer = await sharp(buffer)
+      .resize(resizeWidth, resizeHeight, {
+        fit: 'cover',
+        position: 'center',
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: Math.min(Math.max(quality, 10), 100) })
       .toBuffer()
 
     // Set response headers for caching (1 hour)
