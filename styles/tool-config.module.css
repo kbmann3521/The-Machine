@@ -246,9 +246,16 @@
 
 .sliderContainer {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.sliderInputWrapper {
+  display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 4px;
+  width: 100%;
 }
 
 .slider {
@@ -259,6 +266,17 @@
   outline: none;
   -webkit-appearance: none;
   appearance: none;
+  cursor: pointer;
+}
+
+.slider:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sliderDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .slider::-webkit-slider-thumb {
@@ -272,7 +290,7 @@
   transition: background-color 0.2s;
 }
 
-.slider::-webkit-slider-thumb:hover {
+.slider::-webkit-slider-thumb:hover:not(:disabled) {
   background-color: #0052a3;
 }
 
@@ -286,8 +304,18 @@
   transition: background-color 0.2s;
 }
 
-.slider::-moz-range-thumb:hover {
+.slider::-moz-range-thumb:hover:not(:disabled) {
   background-color: #0052a3;
+}
+
+.slider:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.slider:disabled::-moz-range-thumb {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .sliderValue {
@@ -296,6 +324,69 @@
   font-weight: 500;
   min-width: 30px;
   text-align: right;
+}
+
+.sliderInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--form-input-bg, var(--color-background-secondary));
+  border: var(--form-input-border, 1px solid var(--color-border));
+  border-radius: var(--form-input-border-radius, 5px);
+  padding: 2px 6px;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.sliderInputGroup:focus-within {
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.sliderInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12px;
+  color: var(--form-input-text, var(--color-text-primary));
+  padding: 4px 4px;
+  height: 100%;
+  box-sizing: border-box;
+  width: 50px;
+}
+
+.sliderInput::-webkit-outer-spin-button,
+.sliderInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.sliderInput[type=number] {
+  -moz-appearance: textfield;
+}
+
+.sliderInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--color-text-secondary);
+}
+
+.sliderUnit {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  margin-left: 2px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.sliderHint {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  padding: 4px 0;
+  font-style: italic;
+  opacity: 0.8;
 }
 
 /* Test Mode Toggle */

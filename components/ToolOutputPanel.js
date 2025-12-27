@@ -16,6 +16,7 @@ import JWTDecoderOutput from './JWTDecoderOutput'
 import MIMETypeLookupOutput from './MIMETypeLookupOutput'
 import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
 import MathEvaluatorResult from './MathEvaluatorResult'
+import ResizeOutput from './ImageToolkit/outputs/ResizeOutput'
 
 export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate }) {
   const toolCategory = TOOLS[toolId]?.category
@@ -27,6 +28,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [previousToolkitSection, setPreviousToolkitSection] = useState(null)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [cronRunsToLoad, setCronRunsToLoad] = useState(5)
+  const [enhancedResult, setEnhancedResult] = useState(null)
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
@@ -138,31 +140,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setPreviousToolkitSection(activeToolkitSection)
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
-
-  // Special handling for image-toolkit - show OutputTabs even when empty
-  if (toolId === 'image-toolkit') {
-    if (displayResult?.mode === 'resize') {
-      const ResizeOutput = require('./ImageToolkit/outputs/ResizeOutput').default
-      return <ResizeOutput result={displayResult} />
-    }
-
-    if (displayResult?.mode === 'base64') {
-      const Base64Output = require('./ImageToolkit/outputs/Base64Output').default
-      return <Base64Output result={displayResult} />
-    }
-
-    // Default blank state with OutputTabs design
-    const defaultTabs = [
-      {
-        id: 'output',
-        label: 'Output',
-        content: '',
-        contentType: 'text',
-      },
-    ]
-    return <OutputTabs key={toolId} tabs={defaultTabs} toolCategory={toolCategory} toolId={toolId} />
-  }
-
 
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
@@ -1960,7 +1937,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -2784,7 +2761,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
@@ -2849,7 +2825,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintWarnings.map((warning, idx) => (
                 <div
@@ -2885,7 +2861,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.analysis) {
       const analysisContent = (
-        <>
+        <div>
           <div className={sqlStyles.analysisGrid}>
             <div className={sqlStyles.analysisItem}>
               <span className={sqlStyles.analysisLabel}>Query Type:</span>
@@ -2926,7 +2902,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               </div>
             </div>
           )}
-        </>
+        </div>
       )
       tabs.push({
         id: 'analysis',
@@ -3751,7 +3727,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -3797,12 +3773,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -3854,7 +3829,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (!hasValidationErrors && totalLintIssues > 0) {
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             {inputLinting && (
               <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
                 <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -4003,7 +3978,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Analysis tab - show optimization stats
     if (displayResult.stats && !hasValidationErrors) {
       const statsContent = (
-        <div style={{ padding: '16px' }}>
+        <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Optimization result */}
             {displayResult.optimizationResult && (
@@ -5487,6 +5462,49 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // Router for output rendering
   const renderOutput = () => {
     switch (toolId) {
+      case 'image-toolkit': {
+        if (displayResult?.mode === 'resize' && displayResult?.imageData) {
+          const handleUpdateResultWithUrl = (transformUrl) => {
+            setEnhancedResult({
+              ...displayResult,
+              transformUrl: transformUrl,
+            })
+          }
+
+          const tabs = [
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <ResizeOutput result={displayResult} configOptions={configOptions} onConfigChange={onConfigChange} onUpdateUrl={handleUpdateResultWithUrl} />,
+              contentType: 'component',
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(enhancedResult || displayResult, null, 2),
+              contentType: 'json',
+            },
+          ]
+          return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+        }
+        // If no valid result, show waiting message
+        const blankTabs = [
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: 'Waiting for image upload and processing...',
+            contentType: 'text',
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: displayResult ? JSON.stringify(displayResult, null, 2) : '',
+            contentType: 'json',
+          },
+        ]
+        return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={blankTabs} showCopyButton={false} />
+      }
+
       case 'text-toolkit': {
         const tabs = []
 

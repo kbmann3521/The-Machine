@@ -6,16 +6,17 @@
   min-height: 100%;
 }
 
-.modeSection {
-  padding: 12px;
-  background-color: var(--color-background-secondary, #f5f5f5);
-  border-radius: 6px;
-  border: 1px solid var(--color-border, #ddd);
-}
-
 .outputSection {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+}
+
+.outputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
 }
 
 .placeholder {
@@ -58,10 +59,8 @@
 
 .imageContainer {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 20px;
+  justify-content: center;
 }
 
 .image {
@@ -69,6 +68,129 @@
   max-height: 400px;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.infoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text, #333);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.codeBlock {
+  margin: 0;
+  padding: 12px;
+  background-color: var(--color-background-secondary, #f5f5f5);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  padding: 10px 16px;
+  background-color: var(--color-primary, #0066cc);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  flex: 1;
+  min-width: 150px;
+}
+
+.actionButton:hover:not(:disabled) {
+  background-color: var(--color-primary-hover, #0052a3);
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resetButton {
+  padding: 10px 16px;
+  background-color: #667085;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  flex: 1;
+  min-width: 150px;
+}
+
+.resetButton:hover {
+  background-color: #555b6f;
+}
+
+.resetButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.urlContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.urlInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background-color: var(--color-background-secondary, #f5f5f5);
+}
+
+.copyButton {
+  padding: 8px 12px;
+  background-color: var(--color-primary, #0066cc);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.copyButton:hover {
+  background-color: var(--color-primary-hover, #0052a3);
+}
+
+.urlNote {
+  font-size: 12px;
+  color: var(--color-text-secondary, #666);
+  padding: 8px 12px;
+  background-color: rgba(0, 102, 204, 0.08);
+  border-left: 3px solid #0066cc;
+  border-radius: 2px;
+  margin-top: 8px;
 }
 
 .dimensions {
@@ -79,7 +201,24 @@
   max-width: 400px;
 }
 
+.fileSizeContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+}
+
 .dimensionRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: var(--color-background-secondary, #f5f5f5);
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #ddd);
+}
+
+.fileSizeRow {
   display: flex;
   justify-content: space-between;
   padding: 8px 12px;
@@ -105,11 +244,16 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .container {
-    gap: 12px;
+  .outputContainer {
+    gap: 20px;
+    padding: 16px;
   }
 
   .dimensions {
+    grid-template-columns: 1fr;
+  }
+
+  .fileSizeContainer {
     grid-template-columns: 1fr;
   }
 
@@ -117,13 +261,43 @@
     max-height: 300px;
   }
 
-  .modeSection {
-    padding: 10px;
+  .codeBlock {
+    font-size: 11px;
+  }
+
+  .urlNote {
+    font-size: 11px;
+  }
+
+  .buttonGroup {
+    gap: 10px;
+  }
+
+  .actionButton {
+    padding: 9px 14px;
+    font-size: 12px;
+    min-width: 140px;
+  }
+
+  .resetButton {
+    padding: 9px 14px;
+    font-size: 12px;
+    min-width: 140px;
+  }
+
+  .urlContainer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .urlInput {
+    font-size: 11px;
   }
 }
 
 @media (max-width: 480px) {
-  .imageContainer {
+  .outputContainer {
+    gap: 16px;
     padding: 12px;
   }
 
@@ -138,5 +312,47 @@
   .dimensionRow {
     flex-direction: column;
     gap: 4px;
+  }
+
+  .fileSizeRow {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .actionButton {
+    padding: 8px 12px;
+    font-size: 11px;
+    min-width: auto;
+  }
+
+  .resetButton {
+    padding: 8px 12px;
+    font-size: 11px;
+    min-width: auto;
+  }
+
+  .copyButton {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .urlContainer {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .urlInput {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  .codeBlock {
+    padding: 8px;
+    font-size: 10px;
   }
 }

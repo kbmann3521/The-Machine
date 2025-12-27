@@ -29,8 +29,23 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     )
   }
 
-  const handleFieldChange = (fieldId, value) => {
+  const handleFieldChange = (fieldId, value, skipAspectRatioSync = false) => {
     const newConfig = { ...config, [fieldId]: value }
+
+    // For image-toolkit with aspect ratio locking, calculate the other dimension immediately
+    // This prevents the glitchy two-step update that was happening in useEffect
+    // BUT: Skip this for number inputs (they should be independent)
+    // Only sync when user moves the SLIDER
+    if (!skipAspectRatioSync && tool.toolId === 'image-toolkit' && newConfig.lockAspectRatio && config.aspectRatio) {
+      if (fieldId === 'width' && value !== config.width) {
+        // Width changed, calculate new height
+        newConfig.height = Math.round(value / config.aspectRatio)
+      } else if (fieldId === 'height' && value !== config.height) {
+        // Height changed, calculate new width
+        newConfig.width = Math.round(value * config.aspectRatio)
+      }
+    }
+
     setConfig(newConfig)
     onConfigChange(newConfig)
   }
@@ -257,21 +272,116 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
           </label>
         )
 
-      case 'slider':
+      case 'slider': {
+        // Determine unit label based on field ID
+        const getUnit = () => {
+          if (field.id === 'quality') return '%'
+          if (field.id === 'scalePercent') return '%'
+          if (field.id === 'width' || field.id === 'height') return 'px'
+          return ''
+        }
+
+        const unit = getUnit()
+        const minVal = field.min || 0
+        const maxVal = field.max || 100
+
+        // For display: if value is empty string, show empty; otherwise parse and show number
+        // This allows the input to visually show empty when user clears it
+        const displayValue = value === '' ? '' : (parseInt(value) || 0)
+        // For slider: if value is empty, use the previous value from currentConfig so slider doesn't snap to 0
+        const currentNumValue = parseInt(currentConfig[field.id]) || minVal
+        const numValue = value === '' ? currentNumValue : (parseInt(value) || 0)
+
+        // For image-toolkit, check if this is Scale or Width/Height
+        const isScaleField = field.id === 'scalePercent'
+        const isDimensionField = field.id === 'width' || field.id === 'height'
+        const isImageToolkit = tool.toolId === 'image-toolkit'
+
+        // Determine if field should be disabled based on Scale mode
+        let isDisabledByScale = false
+        if (isImageToolkit && isDimensionField && config.scalePercent !== 100) {
+          // If scale is not 100%, width/height are controlled by scale
+          isDisabledByScale = true
+        }
+
+        const finalDisabled = isFieldDisabled || isDisabledByScale
+
         return (
           <div key={field.id} className={styles.sliderContainer}>
-            <input
-              type="range"
-              className={styles.slider}
-              min={field.min || 0}
-              max={field.max || 100}
-              value={value || 0}
-              onChange={e => handleFieldChange(field.id, parseInt(e.target.value))}
-              disabled={isFieldDisabled}
-            />
-            <span className={styles.sliderValue}>{value || 0}</span>
+            <div className={styles.sliderInputWrapper}>
+              <input
+                type="range"
+                className={`${styles.slider} ${finalDisabled ? styles.sliderDisabled : ''}`}
+                min={minVal}
+                max={maxVal}
+                value={numValue}
+                onChange={e => handleFieldChange(field.id, parseInt(e.target.value))}
+                disabled={finalDisabled}
+              />
+              <div className={styles.sliderInputGroup}>
+                <input
+                  type="number"
+                  className={styles.sliderInput}
+                  min={minVal}
+                  max={maxVal}
+                  value={displayValue}
+                  onChange={e => {
+                    const inputValue = e.target.value
+
+                    // Empty input - show empty visually, but don't update parent yet
+                    if (inputValue === '') {
+                      setConfig({ ...config, [field.id]: '' })
+                      return
+                    }
+
+                    const val = parseInt(inputValue, 10)
+
+                    // If still typing (incomplete number), return
+                    if (isNaN(val)) {
+                      return
+                    }
+
+                    // Valid number - update immediately WITHOUT clamping
+                    // Allow any value to be entered, even if outside min/max range
+                    // Aspect ratio sync should apply even during typing
+                    handleFieldChange(field.id, val, false)  // false = DO apply aspect ratio sync
+                  }}
+                  onBlur={e => {
+                    const finalValue = e.target.value.trim()
+
+                    // On blur, if empty, revert to last valid value
+                    if (finalValue === '') {
+                      const currentValue = currentConfig[field.id]
+                      const fallbackValue = currentValue !== undefined && currentValue !== null ? parseInt(currentValue) : minVal
+                      handleFieldChange(field.id, fallbackValue, true)  // true = skip aspect ratio sync on blur
+                      return
+                    }
+
+                    // Validate and clamp if it's a valid number
+                    const val = parseInt(finalValue, 10)
+                    if (!isNaN(val)) {
+                      const clampedVal = Math.max(minVal, Math.min(maxVal, val))
+                      handleFieldChange(field.id, clampedVal, true)  // true = skip aspect ratio sync on blur
+                    } else {
+                      // Invalid input - revert to current value
+                      const currentValue = currentConfig[field.id]
+                      const fallbackValue = currentValue !== undefined && currentValue !== null ? parseInt(currentValue) : minVal
+                      handleFieldChange(field.id, fallbackValue, true)
+                    }
+                  }}
+                  disabled={finalDisabled}
+                />
+                {unit && <span className={styles.sliderUnit}>{unit}</span>}
+              </div>
+            </div>
+            {isImageToolkit && isDimensionField && config.scalePercent !== 100 && (
+              <div className={styles.sliderHint}>
+                Scale mode active ({config.scalePercent}%). Adjust scale slider to change dimensions.
+              </div>
+            )}
           </div>
         )
+      }
 
       default:
         return null
