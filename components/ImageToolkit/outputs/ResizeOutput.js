@@ -116,7 +116,7 @@ export default function ResizeOutput({ result, configOptions, onConfigChange }) 
     if (!imageId) return
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    
+
     // Build query parameters
     const params = new URLSearchParams()
     params.append('w', result.width || 800)
@@ -126,6 +126,14 @@ export default function ResizeOutput({ result, configOptions, onConfigChange }) 
 
     const url = `${baseUrl}/api/tools/get-image/${imageId}?${params.toString()}`
     setTransformUrl(url)
+
+    // Update the result object with the URL so it appears in JSON
+    if (onConfigChange && configOptions) {
+      onConfigChange({
+        ...configOptions,
+        transformUrl: url,
+      })
+    }
   }
 
   const performResize = () => {
