@@ -6,16 +6,17 @@
   min-height: 100%;
 }
 
-.modeSection {
-  padding: 12px;
-  background-color: var(--color-background-secondary, #f5f5f5);
-  border-radius: 6px;
-  border: 1px solid var(--color-border, #ddd);
-}
-
 .outputSection {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+}
+
+.outputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
 }
 
 .placeholder {
