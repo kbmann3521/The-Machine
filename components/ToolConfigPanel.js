@@ -320,7 +320,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   onChange={e => {
                     const inputValue = e.target.value
 
-                    // Allow empty string (for clearing/backspace)
+                    // Allow empty string for UX (backspace, etc) - just update local display
                     if (inputValue === '') {
                       setConfig({ ...config, [field.id]: '' })
                       return
@@ -328,19 +328,30 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
                     const val = parseInt(inputValue, 10)
 
-                    // Allow partial input (like typing '-' or incomplete numbers)
+                    // If still typing (incomplete number like "12"), allow it
                     if (isNaN(val)) {
                       return
                     }
 
+                    // Only call handleFieldChange (which triggers onConfigChange)
+                    // when we have a valid number
                     // Clamp to min/max range
                     const clampedVal = Math.max(minVal, Math.min(maxVal, val))
                     handleFieldChange(field.id, clampedVal)
                   }}
                   onBlur={e => {
-                    // On blur, if empty or invalid, reset to current value
-                    if (e.target.value === '') {
-                      setConfig({ ...config, [field.id]: numValue })
+                    const finalValue = e.target.value.trim()
+
+                    // On blur, if empty, reset to current valid value
+                    if (finalValue === '') {
+                      handleFieldChange(field.id, numValue)
+                      return
+                    }
+
+                    const val = parseInt(finalValue, 10)
+                    if (isNaN(val)) {
+                      // Invalid input, reset to current value
+                      handleFieldChange(field.id, numValue)
                     }
                   }}
                   disabled={finalDisabled}
