@@ -321,7 +321,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   className={styles.sliderInput}
                   min={minVal}
                   max={maxVal}
-                  value={numValue}
+                  value={displayValue}
                   onChange={e => {
                     const inputValue = e.target.value.trim()
 
