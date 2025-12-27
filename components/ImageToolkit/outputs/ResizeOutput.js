@@ -5,6 +5,7 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
   const [resizedImage, setResizedImage] = useState(null)
   const [newDimensions, setNewDimensions] = useState(null)
   const [originalDimensions, setOriginalDimensions] = useState(null)
+  const [originalConfig, setOriginalConfig] = useState(null)
   const [error, setError] = useState(null)
   const [imageId, setImageId] = useState(null)
   const [transformUrl, setTransformUrl] = useState(null)
@@ -12,6 +13,8 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
   const [originalFileSize, setOriginalFileSize] = useState(null)
   const [estimatedFileSize, setEstimatedFileSize] = useState(null)
   const [copiedField, setCopiedField] = useState(null)
+  const [aspectRatio, setAspectRatio] = useState(null)
+  const [lastChangedDimension, setLastChangedDimension] = useState(null)
   const canvasRef = useRef(null)
   const uploadAttemptedRef = useRef(false)
 
