@@ -331,8 +331,8 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
       width: originalConfig.width,
       height: originalConfig.height,
       scale: originalConfig.scalePercent,
+      lockAspectRatio: originalConfig.lockAspectRatio,
     }
-    lastChangeTimeRef.current = 0
 
     onConfigChange({
       ...configOptions,
