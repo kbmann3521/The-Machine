@@ -221,6 +221,10 @@
     font-size: 11px;
   }
 
+  .urlNote {
+    font-size: 11px;
+  }
+
   .buttonGroup {
     gap: 10px;
   }
