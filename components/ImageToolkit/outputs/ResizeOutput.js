@@ -93,32 +93,27 @@ export default function ResizeOutput({ result }) {
 
     setUploading(true)
     try {
-      // Convert base64 to blob
-      const response = await fetch(resizedImage)
-      const blob = await response.blob()
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+      const uploadUrl = `${baseUrl}/api/tools/upload-image`
 
-      // Create FormData
-      const formData = new FormData()
-      formData.append('file', blob, `resized-image-${Date.now()}.jpg`)
-
-      // Upload to imgbb (free image hosting)
-      const uploadFormData = new FormData()
-      uploadFormData.append('image', blob)
-
-      // Use a simple temp upload service (ImgBB)
-      const apiKey = 'ed9c79b95e7e0cace08099b1eafcc8d9' // Public key for demo
-      const uploadResponse = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
-        body: uploadFormData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageData: resizedImage,
+        }),
       })
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image')
+        const errorData = await uploadResponse.json()
+        throw new Error(errorData.error || 'Failed to upload image')
       }
 
       const data = await uploadResponse.json()
-      if (data.success) {
-        setUploadedUrl(data.data.url)
+      if (data.success && data.url) {
+        setUploadedUrl(`${baseUrl}${data.url}`)
+      } else {
+        throw new Error('Invalid response from server')
       }
     } catch (err) {
       console.error('Upload error:', err)
