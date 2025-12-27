@@ -29,12 +29,14 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     )
   }
 
-  const handleFieldChange = (fieldId, value) => {
+  const handleFieldChange = (fieldId, value, skipAspectRatioSync = false) => {
     const newConfig = { ...config, [fieldId]: value }
 
     // For image-toolkit with aspect ratio locking, calculate the other dimension immediately
     // This prevents the glitchy two-step update that was happening in useEffect
-    if (tool.toolId === 'image-toolkit' && newConfig.lockAspectRatio && config.aspectRatio) {
+    // BUT: Skip this for number inputs (they should be independent)
+    // Only sync when user moves the SLIDER
+    if (!skipAspectRatioSync && tool.toolId === 'image-toolkit' && newConfig.lockAspectRatio && config.aspectRatio) {
       if (fieldId === 'width' && value !== config.width) {
         // Width changed, calculate new height
         newConfig.height = Math.round(value / config.aspectRatio)
