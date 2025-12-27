@@ -5,6 +5,8 @@ export default function ResizeOutput({ result }) {
   const [resizedImage, setResizedImage] = useState(null)
   const [newDimensions, setNewDimensions] = useState(null)
   const [error, setError] = useState(null)
+  const [uploadedUrl, setUploadedUrl] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const canvasRef = useRef(null)
 
   // Show placeholder when no image is uploaded yet
