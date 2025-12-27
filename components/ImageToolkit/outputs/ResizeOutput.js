@@ -88,6 +88,57 @@ export default function ResizeOutput({ result }) {
     }
   }
 
+  const handleUploadImage = async () => {
+    if (!resizedImage) return
+
+    setUploading(true)
+    try {
+      // Convert base64 to blob
+      const response = await fetch(resizedImage)
+      const blob = await response.blob()
+
+      // Create FormData
+      const formData = new FormData()
+      formData.append('file', blob, `resized-image-${Date.now()}.jpg`)
+
+      // Upload to imgbb (free image hosting)
+      const uploadFormData = new FormData()
+      uploadFormData.append('image', blob)
+
+      // Use a simple temp upload service (ImgBB)
+      const apiKey = 'ed9c79b95e7e0cace08099b1eafcc8d9' // Public key for demo
+      const uploadResponse = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const data = await uploadResponse.json()
+      if (data.success) {
+        setUploadedUrl(data.data.url)
+      }
+    } catch (err) {
+      console.error('Upload error:', err)
+      setError(`Upload failed: ${err.message}`)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDownloadImage = () => {
+    if (!resizedImage) return
+
+    const link = document.createElement('a')
+    link.href = resizedImage
+    link.download = `resized-image-${Date.now()}.jpg`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   if (error) {
     return (
       <div className={styles.error}>
