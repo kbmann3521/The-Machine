@@ -99,6 +99,51 @@
   word-break: break-word;
 }
 
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  padding: 10px 16px;
+  background-color: var(--color-primary, #0066cc);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  flex: 1;
+  min-width: 150px;
+}
+
+.actionButton:hover:not(:disabled) {
+  background-color: var(--color-primary-hover, #0052a3);
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.urlContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.urlInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background-color: var(--color-background-secondary, #f5f5f5);
+}
+
 .copyButton {
   padding: 8px 12px;
   background-color: var(--color-primary, #0066cc);
