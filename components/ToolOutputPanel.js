@@ -5464,17 +5464,24 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     switch (toolId) {
       case 'image-toolkit': {
         if (displayResult?.mode === 'resize' && displayResult?.imageData) {
+          const handleUpdateResultWithUrl = (transformUrl) => {
+            setEnhancedResult({
+              ...displayResult,
+              transformUrl: transformUrl,
+            })
+          }
+
           const tabs = [
             {
               id: 'output',
               label: 'OUTPUT',
-              content: <ResizeOutput result={displayResult} configOptions={configOptions} onConfigChange={onConfigChange} />,
+              content: <ResizeOutput result={displayResult} configOptions={configOptions} onConfigChange={onConfigChange} onUpdateUrl={handleUpdateResultWithUrl} />,
               contentType: 'component',
             },
             {
               id: 'json',
               label: 'JSON',
-              content: JSON.stringify(displayResult, null, 2),
+              content: JSON.stringify(enhancedResult || displayResult, null, 2),
               contentType: 'json',
             },
           ]
