@@ -330,6 +330,12 @@
     min-width: auto;
   }
 
+  .resetButton {
+    padding: 8px 12px;
+    font-size: 11px;
+    min-width: auto;
+  }
+
   .copyButton {
     padding: 6px 10px;
     font-size: 11px;
