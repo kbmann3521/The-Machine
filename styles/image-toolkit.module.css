@@ -230,6 +230,10 @@
     grid-template-columns: 1fr;
   }
 
+  .fileSizeContainer {
+    grid-template-columns: 1fr;
+  }
+
   .image {
     max-height: 300px;
   }
