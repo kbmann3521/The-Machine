@@ -5467,7 +5467,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             {
               id: 'output',
               label: 'OUTPUT',
-              content: <ResizeOutput result={displayResult} />,
+              content: <ResizeOutput result={displayResult} configOptions={configOptions} onConfigChange={onConfigChange} />,
               contentType: 'component',
             },
             {
