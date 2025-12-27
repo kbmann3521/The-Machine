@@ -37,15 +37,15 @@ function CopyCard({ label, value, variant = 'default' }) {
 
 function IssueBadge({ level }) {
   const config = {
-    error: { icon: '✕', label: 'Error', color: '#ef5350' },
-    warning: { icon: '⚠', label: 'Warning', color: '#ffc107' },
-    info: { icon: 'ℹ', label: 'Info', color: '#2196f3' },
+    error: { label: 'Error', color: '#ef5350' },
+    warning: { label: 'Warning', color: '#ffc107' },
+    info: { label: 'Info', color: '#2196f3' },
   }
   const cfg = config[level] || config.info
 
   return (
     <span className={`${styles.issueBadge} ${styles[`issueBadge-${level}`]}`}>
-      {cfg.icon} {cfg.label}
+      {cfg.label}
     </span>
   )
 }
@@ -593,7 +593,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 1. Token Intelligence + 2. Time-to-Live (hidden for JWE - payload is encrypted) */}
       {tokenType && !isJWE && (
-        <StatusSection title="Token Intelligence" icon="🧠">
+        <StatusSection title="Token Intelligence">
           <div className={styles.tokenTypeSection}>
             <div className={styles.tokenTypeCard}>
               <div className={styles.tokenTypeLabel}>Type</div>
@@ -646,23 +646,20 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 3. Security & Privacy Analysis */}
       {sensitiveData && (sensitiveData.containsPII || sensitiveData.containsSensitive || sensitiveData.containsFreeText) && (
-        <StatusSection title="Security & Privacy" icon="🔒">
+        <StatusSection title="Security & Privacy">
           <div className={styles.sensitiveDataWarnings}>
             {sensitiveData.containsSensitive && (
               <div className={`${styles.sensitiveAlert} ${styles.sensitiveAlertError}`}>
-                <span className={styles.alertIcon}>🚨</span>
                 <span className={styles.alertText}>Payload contains sensitive data fields. Never store secrets or keys in tokens.</span>
               </div>
             )}
             {sensitiveData.containsPII && (
               <div className={`${styles.sensitiveAlert} ${styles.sensitiveAlertWarning}`}>
-                <span className={styles.alertIcon}>⚠️</span>
                 <span className={styles.alertText}>Payload contains personally identifiable information (PII). Consider minimizing personal data in tokens.</span>
               </div>
             )}
             {sensitiveData.containsFreeText && (
               <div className={`${styles.sensitiveAlert} ${styles.sensitiveAlertInfo}`}>
-                <span className={styles.alertIcon}>ℹ️</span>
                 <span className={styles.alertText}>Payload contains unstructured free-text data. Consider using structured fields instead.</span>
               </div>
             )}
@@ -672,7 +669,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 4. Header Analysis */}
       {headerSecurityWarnings && headerSecurityWarnings.length > 0 && (
-        <StatusSection title="Header Analysis" icon="📌">
+        <StatusSection title="Header Analysis">
           <div className={styles.headerWarningsList}>
             {headerSecurityWarnings.map((warning, idx) => (
               <div key={idx} className={`${styles.headerWarningItem} ${styles[`headerWarning-${warning.level}`]}`}>
@@ -686,13 +683,12 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* Privacy Notice Banner */}
       <div className={styles.privacyNoticeBanner}>
-        <span className={styles.privacyIcon}>🔒</span>
         <span className={styles.privacyText}>For your protection, all JWT debugging and validation happens in the browser.</span>
       </div>
 
       {/* 5. Encryption (JWE) or Signature Verification (JWS) */}
       {isJWE && jwe && (
-        <StatusSection title="Encryption (JWE)" icon="🔐">
+        <StatusSection title="Encryption (JWE)">
           <div className={styles.encryptionSection}>
             <div className={styles.encryptionCard}>
               <div className={styles.encryptionAlgorithm}>
@@ -717,7 +713,6 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
               )}
 
               <div className={styles.encryptionStatus}>
-                <span className={styles.statusIcon}>🔒</span>
                 <span className={styles.statusText}>Payload Encrypted</span>
               </div>
 
@@ -822,7 +817,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* Signature Verification (JWS only) */}
       {!isJWE && signatureVerification && (
-        <StatusSection title="Signature Verification" icon="🔐">
+        <StatusSection title="Signature Verification">
           {(() => {
             const hmacAlgorithms = ['HS256', 'HS384', 'HS512']
             const rsaAlgorithms = ['RS256', 'RS384', 'RS512']
@@ -849,7 +844,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                       <label htmlFor="verification-secret" className={styles.verificationInputLabel}>
                         <span>Verification Secret</span>
                         {verificationSecret && (
-                          <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                          <span className={styles.verificationInputIndicator}>Provided</span>
                         )}
                       </label>
                       <div className={styles.secretInputWrapper}>
@@ -869,7 +864,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                           onClick={() => setShowSecretInput(!showSecretInput)}
                           title={showSecretInput ? 'Hide secret' : 'Show secret'}
                         >
-                          {showSecretInput ? '👁️' : '🔒'}
+                          {showSecretInput ? 'Hide' : 'Show'}
                         </button>
                       </div>
                     </div>
@@ -929,7 +924,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                           <label htmlFor="verification-public-key" className={styles.verificationInputLabel}>
                             <span>Public Key (PEM Format)</span>
                             {verificationPublicKey && (
-                              <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                              <span className={styles.verificationInputIndicator}>Provided</span>
                             )}
                           </label>
                           <textarea
@@ -943,7 +938,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                           />
                           {showPublicKeyInput && (
                             <div className={styles.publicKeyDetails}>
-                              <p className={styles.detailsLabel}>📌 Expected Format:</p>
+                              <p className={styles.detailsLabel}>Expected Format:</p>
                               <code className={styles.detailsCode}>
 {`-----BEGIN PUBLIC KEY-----
 [base64-encoded key data]
@@ -959,7 +954,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                           <label htmlFor="verification-public-key" className={styles.verificationInputLabel}>
                             <span>Public Key (PEM Format)</span>
                             {verificationPublicKey && (
-                              <span className={styles.verificationInputIndicator}>✓ Provided</span>
+                              <span className={styles.verificationInputIndicator}>Provided</span>
                             )}
                           </label>
                           <textarea
@@ -1002,19 +997,16 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                   <div className={`${styles.verificationStatus} ${styles[`status-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
                     {verificationToDisplay.verified === true && (
                       <>
-                        <span className={styles.statusIcon}>✅</span>
                         <span className={styles.statusText}>Signature Valid</span>
                       </>
                     )}
                     {verificationToDisplay.verified === false && (
                       <>
-                        <span className={styles.statusIcon}>❌</span>
                         <span className={styles.statusText}>Signature Invalid</span>
                       </>
                     )}
                     {verificationToDisplay.verified === null && (
                       <>
-                        <span className={styles.statusIcon}>❓</span>
                         <span className={styles.statusText}>Cannot Verify</span>
                       </>
                     )}
@@ -1027,9 +1019,9 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
                   {keySource === 'jwks' && signatureVerification.keyId && (
                     <div className={styles.jwksVerificationMetadata}>
-                      <span className={styles.metadataItem}>🔑 Verified with key ID: <strong>{signatureVerification.keyId}</strong></span>
+                      <span className={styles.metadataItem}>Verified with key ID: <strong>{signatureVerification.keyId}</strong></span>
                       {signatureVerification.issuer && (
-                        <span className={styles.metadataItem}>📍 Issuer: <strong>{signatureVerification.issuer}</strong></span>
+                        <span className={styles.metadataItem}>Issuer: <strong>{signatureVerification.issuer}</strong></span>
                       )}
                     </div>
                   )}
@@ -1041,7 +1033,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
       )}
 
       {/* 6. Token Structure (Header / Payload / Signature for JWS, or 5 parts for JWE) */}
-      <StatusSection title="Token Structure" icon="🧱">
+      <StatusSection title="Token Structure">
         <div className={styles.tokenStructure}>
           {isJWE ? (
             <>
@@ -1087,7 +1079,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 7. Decoded JSON (Raw) - Header and Payload prettified (only for JWS) */}
       {!isJWE && (
-        <StatusSection title="Decoded JSON" icon="📝">
+        <StatusSection title="Decoded JSON">
           <div className={styles.decodedJsonSection}>
             <div className={styles.decodedJsonItem}>
               <div className={styles.decodedJsonItemTitle}>Header</div>
@@ -1103,7 +1095,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 7b. Protected Header JSON (only for JWE) */}
       {isJWE && jwe.protectedHeader && (
-        <StatusSection title="Protected Header (Decrypted)" icon="📝">
+        <StatusSection title="Protected Header (Decrypted)">
           <div className={styles.decodedJsonSection}>
             <div className={styles.decodedJsonItem}>
               <div className={styles.decodedJsonItemTitle}>Protected Header</div>
@@ -1115,7 +1107,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 8. Claims (Field-by-field View) - only for JWS */}
       {!isJWE && (
-        <StatusSection title="Claims" icon="📋">
+        <StatusSection title="Claims">
           <div className={styles.claimsFieldByFieldSection}>
             <div className={styles.claimsGrid}>
               {Object.entries(token.payload).map(([key, value]) => (
@@ -1130,7 +1122,6 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
             </div>
             {validation.payloadDuplicateKeys && validation.payloadDuplicateKeys.length > 0 && (
               <div className={styles.duplicateKeysWarning}>
-                <span className={styles.warningIcon}>⚠️</span>
                 <span>Duplicate keys found: {validation.payloadDuplicateKeys.join(', ')}</span>
               </div>
             )}
@@ -1140,7 +1131,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 9. Claim Analysis (Semantic Validation) - only for JWS */}
       {!isJWE && diagnostics.length > 0 && (
-        <StatusSection title="Claim Analysis" icon="🔍">
+        <StatusSection title="Claim Analysis">
           <div className={styles.diagnosticsList}>
             {diagnostics.map((issue, idx) => (
               <div key={idx} className={`${styles.diagnosticsItem} ${styles[`diagnostics-${issue.level}`]}`}>
@@ -1154,7 +1145,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
 
       {/* 10. Claim Presence Summary - only for JWS */}
       {!isJWE && (
-        <StatusSection title="Claim Presence" icon="📌">
+        <StatusSection title="Claim Presence">
         <div className={styles.claimPresenceList}>
           <div className={styles.claimPresenceGroup}>
             <h4 className={styles.claimPresenceTitle}>Present Claims ({claims.present.length})</h4>
@@ -1162,7 +1153,7 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
               <div className={styles.claimPresenceItems}>
                 {claims.present.map((claim) => (
                   <span key={claim} className={styles.claimPresenceBadge}>
-                    ✅ {claim}
+                    {claim}
                   </span>
                 ))}
               </div>
