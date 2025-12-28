@@ -73,6 +73,7 @@ body {
 }
 
 @media (min-width: 769px) {
+
   html,
   body {
     height: 100%;
@@ -220,7 +221,7 @@ input[type="file"] {
   cursor: pointer;
 }
 
-.toggle-input:checked + .toggle-slider {
+.toggle-input:checked+.toggle-slider {
   background-color: #0066cc;
 }
 
@@ -238,7 +239,7 @@ input[type="file"] {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.toggle-input:checked + .toggle-slider::after {
+.toggle-input:checked+.toggle-slider::after {
   left: 20px;
 }
 
@@ -300,7 +301,7 @@ input[type="file"] {
   transform: translateY(-50%);
 }
 
-.toggle-inline .toggle-input:checked + .toggle-slider::after {
+.toggle-inline .toggle-input:checked+.toggle-slider::after {
   left: 20px;
 }
 
