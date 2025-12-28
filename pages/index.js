@@ -406,16 +406,21 @@ export default function Home(props) {
             const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
             const predictUrl = `${baseUrl}/api/tools/predict`
 
-            response = await fetch(predictUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                inputText: text,
-                inputImage: preview ? 'image' : null,
-              }),
-              signal: controller.signal,
-              credentials: 'same-origin',
-            })
+            try {
+              response = await fetch(predictUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  inputText: text,
+                  inputImage: preview ? 'image' : null,
+                }),
+                signal: controller.signal,
+                credentials: 'same-origin',
+              })
+            } catch (innerFetchError) {
+              // Re-throw to be caught by outer catch block
+              throw innerFetchError
+            }
           } catch (fetchError) {
             // Clear timeout before handling error
             if (abortTimeoutRef.current) {
