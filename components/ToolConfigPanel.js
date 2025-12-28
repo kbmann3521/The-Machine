@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import styles from '../styles/tool-config.module.css'
 import { getSuggestionsForColor } from '../lib/tools/colorConverter'
-import RegexToolkit from './RegexToolkit'
 import Phase2Controls from './SVGOptimizer/Phase2Controls'
+
+// Lazy-load RegexToolkit - only needed when configuring regex patterns
+const RegexToolkit = dynamic(() => import('./RegexToolkit'), { ssr: false })
 
 export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, onSetGeneratedText }) {
   const [config, setConfig] = useState({})
