@@ -340,7 +340,7 @@
 @media (min-width: 1201px) {
   .content {
     min-height: 0;
-    max-height: calc(100vh - 150px);
+    max-height: 100%;
   }
 }
 
