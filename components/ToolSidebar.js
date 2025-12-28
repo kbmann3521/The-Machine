@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator } from 'react-icons/fa6'
-import { BsRegex } from 'react-icons/bs'
+import { BsRegex, BsQrCode } from 'react-icons/bs'
 import { ImCalculator } from 'react-icons/im'
 import styles from '../styles/tool-sidebar.module.css'
 
@@ -40,6 +40,7 @@ const toolIcons = {
   'js-formatter': FaCode,
   'email-validator': FaEnvelope,
   'ip-address-toolkit': FaNetworkWired,
+  'qr-code-generator': BsQrCode,
 }
 
 const getScoreColor = (similarity) => {
