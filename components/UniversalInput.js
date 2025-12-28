@@ -314,8 +314,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
         <div className={styles.detectedToolsInsideInput}>
           {inputText && predictedTools.length > 0 ? (
             predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
-              // Map similarity (0.6-1.0) to opacity (0.5-0.85) for subtler visual difference
-              const opacity = 0.5 + (tool.similarity - 0.6) * 0.583
+              // Map similarity (0.6-1.0) to opacity (0.3-1.0) based on confidence
+              // Lower bound (0.6 similarity) = 30% opacity, upper bound (1.0) = 100% opacity
+              const opacity = 0.3 + (tool.similarity - 0.6) * 1.75
               return (
                 <button
                   key={tool.toolId}

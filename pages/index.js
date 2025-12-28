@@ -8,6 +8,7 @@ import NumericConfig from '../components/NumericConfig'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
+import QRCodeGeneratorOutputPanel from '../components/QRCodeGeneratorOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import ValuePropositionCard from '../components/ValuePropositionCard'
@@ -903,6 +904,11 @@ export default function Home(props) {
                   />
                 ) : selectedTool?.toolId === 'email-validator' ? (
                   <EmailValidatorOutputPanel
+                    key={selectedTool?.toolId}
+                    result={outputResult}
+                  />
+                ) : selectedTool?.toolId === 'qr-code-generator' ? (
+                  <QRCodeGeneratorOutputPanel
                     key={selectedTool?.toolId}
                     result={outputResult}
                   />

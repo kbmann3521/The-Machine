@@ -50,7 +50,7 @@ export default async function handler(req, res) {
           .map(([toolId]) => toolId)
       )
 
-      predictedTools = Object.entries(TOOLS)
+      let predictedTools = Object.entries(TOOLS)
         .map(([toolId, toolData]) => {
           if (visibilityMap[toolId] === false) return null
 
@@ -73,6 +73,14 @@ export default async function handler(req, res) {
         .filter(Boolean)
 
       predictedTools.sort((a, b) => b.similarity - a.similarity)
+
+      // Append QR Code Generator to the end (universal fallback for any image)
+      const qrCodeGeneratorTool = predictedTools.find(tool => tool.toolId === 'qr-code-generator')
+      if (qrCodeGeneratorTool) {
+        predictedTools = predictedTools.filter(tool => tool.toolId !== 'qr-code-generator')
+        predictedTools.push(qrCodeGeneratorTool)
+      }
+
       return res.status(200).json({ predictedTools })
     }
 
@@ -96,7 +104,7 @@ export default async function handler(req, res) {
     )
 
     // Build full scored list of tools
-    const toolsWithScores = []
+    let toolsWithScores = []
 
     for (const [toolId, toolData] of Object.entries(TOOLS)) {
       if (visibilityMap[toolId] === false) continue
@@ -128,6 +136,16 @@ export default async function handler(req, res) {
 
     // Sort tools globally by similarity
     toolsWithScores.sort((a, b) => b.similarity - a.similarity)
+
+    // Append QR Code Generator to the end of all detections (universal fallback)
+    const qrCodeGeneratorTool = toolsWithScores.find(tool => tool.toolId === 'qr-code-generator')
+    if (qrCodeGeneratorTool) {
+      // Remove it from current position
+      toolsWithScores = toolsWithScores.filter(tool => tool.toolId !== 'qr-code-generator')
+      // Add it at the end
+      toolsWithScores.push(qrCodeGeneratorTool)
+    }
+
     predictedTools = toolsWithScores
 
     return res.status(200).json({
