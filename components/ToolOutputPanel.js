@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { FaCopy } from 'react-icons/fa6'
+import dynamic from 'next/dynamic'
 import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
@@ -8,8 +9,10 @@ import CSVWarningsPanel from './CSVWarningsPanel'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
 import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
-import RegexTesterOutput from './RegexTesterOutput'
 import URLToolkitOutput from '../lib/tools/URLToolkitOutput'
+
+// Lazy-load RegexTesterOutput - only needed when displaying regex results
+const RegexTesterOutput = dynamic(() => import('./RegexTesterOutput'), { ssr: false })
 import HTTPStatusLookupOutput from './HTTPStatusLookupOutput'
 import HttpHeaderParserOutput from './HttpHeaderParserOutput'
 import JWTDecoderOutput from './JWTDecoderOutput'
