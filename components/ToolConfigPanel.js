@@ -247,7 +247,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
       case 'toggle':
         return (
-          <div key={field.id} className={styles.toggleContainer}>
+          <div key={field.id} className={styles.toggleContainer} title={field.tooltip}>
             <label className={styles.toggleLabel}>
               <input
                 type="checkbox"
@@ -259,6 +259,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               <span className={styles.toggleSlider}></span>
               <span>{field.label}</span>
             </label>
+            {field.tooltip && <span className={styles.tooltipIcon} title={field.tooltip}>ℹ️</span>}
           </div>
         )
 
