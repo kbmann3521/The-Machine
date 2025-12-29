@@ -1811,9 +1811,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       primaryTabContent = displayResult.obfuscated
     }
 
-    // Add primary tab FIRST - only show if isWellFormed is true
+    // Check for validation errors first
+    let hasValidationErrors = false
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error' && d.category !== 'lint')
+      hasValidationErrors = validationErrors.length > 0
+    }
+
+    // Add primary tab FIRST - only show if isWellFormed is true AND no validation errors
     if (primaryTabId && primaryTabContent) {
-      if (displayResult.isWellFormed) {
+      if (displayResult.isWellFormed && !hasValidationErrors) {
         if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
           tabs.push({
             id: primaryTabId,
@@ -1822,39 +1829,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'code',
           })
         }
-      } else {
-        // Show error message when code is not well-formed
-        const errorContent = (
-          <div style={{ padding: '16px' }}>
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'rgba(239, 83, 80, 0.1)',
-              border: '1px solid rgba(239, 83, 80, 0.3)',
-              borderRadius: '4px',
-              color: '#ef5350',
-              fontSize: '13px',
-              marginBottom: '12px',
-            }}>
-              Cannot format because code contains errors. Showing original code.
-            </div>
-            <pre style={{
-              backgroundColor: 'var(--color-background-tertiary)',
-              padding: '12px',
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-            }}>
-              <code>{primaryTabContent}</code>
-            </pre>
-          </div>
-        )
-        tabs.push({
-          id: primaryTabId,
-          label: 'Output',
-          content: errorContent,
-          contentType: 'component',
-        })
       }
     }
 
@@ -1866,7 +1840,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -1935,7 +1909,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
@@ -2000,7 +1973,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintingWarnings.map((warning, idx) => (
                 <div
@@ -2104,6 +2077,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Add JSON tab - shows input, output, and diagnostics only
+    const jsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted || displayResult.minified || displayResult.obfuscated,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      analysis: displayResult.analysis,
+      optionsApplied: {
+        mode: displayResult.optionsApplied?.mode,
+        indentSize: displayResult.optionsApplied?.indentSize,
+      },
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(jsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
+
     if (tabs.length === 0) return null
 
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
@@ -2140,7 +2133,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2277,6 +2270,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Add JSON tab - shows input, output, and diagnostics only
+    const yamlJsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      optionsApplied: {
+        mode: displayResult.optionsApplied?.mode,
+        indentSize: displayResult.optionsApplied?.indentSize,
+      },
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(yamlJsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
+
     if (tabs.length === 0) return null
 
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
@@ -2354,12 +2366,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -2421,7 +2432,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintingWarnings.map((warning, idx) => (
                 <div
@@ -2464,6 +2475,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         contentType: 'component',
       })
     }
+
+    // Add JSON tab - shows input, output, and diagnostics only
+    const mdJsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      optionsApplied: {
+        showValidation: displayResult.optionsApplied?.showValidation,
+        showLinting: displayResult.optionsApplied?.showLinting,
+      },
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(mdJsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
 
     if (tabs.length === 0) return null
 
@@ -2677,7 +2707,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div style={{ padding: '0px' }}>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2768,7 +2798,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -2926,6 +2956,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         contentType: 'code',
       })
     }
+
+    // Add JSON tab - shows input, output, and diagnostics only
+    const sqlJsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      analysis: displayResult.analysis,
+      optionsApplied: {
+        language: displayResult.optionsApplied?.language,
+        showLinting: displayResult.optionsApplied?.showLinting,
+      },
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(sqlJsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
 
     if (tabs.length === 0) return null
 
@@ -3269,8 +3319,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = []
 
-    // Add primary output tab first - only show if validation passed
-    if (displayResult.formatted && !displayResult.hideOutput) {
+    // Check for validation errors first
+    let hasValidationErrors = false
+    if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+      hasValidationErrors = validationErrors.length > 0
+    }
+
+    // Add primary output tab first - only show if validation passed AND no validation errors
+    if (displayResult.formatted && !displayResult.hideOutput && !hasValidationErrors) {
       tabs.push({
         id: 'formatted',
         label: 'Output',
@@ -3285,7 +3342,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -3314,12 +3371,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -3526,7 +3582,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div style={{ paddingLeft: '0px' }}>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -3695,6 +3751,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Add JSON tab - shows input, output, and diagnostics only
+    const xmlJsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      lintWarnings: displayResult.lintWarnings || [],
+      validation: displayResult.validation,
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(xmlJsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
 
     if (tabs.length === 0) {
       return null

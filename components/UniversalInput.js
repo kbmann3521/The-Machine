@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
-import LineHighlightOverlay from './LineHighlightOverlay'
 import CodeMirrorEditor from './CodeMirrorEditor'
 import styles from '../styles/universal-input.module.css'
 
@@ -12,9 +11,35 @@ const TOOLS_WITH_LINE_NUMBERS = new Set([
   'sql-formatter',          // SQL Formatter
   'xml-formatter',          // XML Formatter
   'yaml-formatter',         // YAML Formatter
+  'svg-optimizer',          // SVG Optimizer
 ])
 
-export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, validationErrors = [], lintingWarnings = [] }) {
+// Map tool IDs to their correct language for syntax highlighting
+const getLanguageForTool = (toolId) => {
+  switch (toolId) {
+    case 'json-formatter':
+      return 'json'
+    case 'js-formatter':
+      return 'javascript'
+    case 'css-formatter':
+      return 'css'
+    case 'html-formatter':
+    case 'markdown-html-formatter':
+      return 'html'
+    case 'xml-formatter':
+      return 'xml'
+    case 'svg-optimizer':
+      return 'svg'
+    case 'yaml-formatter':
+      return 'yaml'
+    case 'sql-formatter':
+      return 'sql'
+    default:
+      return 'javascript'
+  }
+}
+
+export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
   const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
 
   const getPlaceholder = () => {
@@ -304,20 +329,17 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               accept="image/*"
               className={styles.fileInput}
             />
-            <LineHighlightOverlay
-              inputText={inputText}
-              validationErrors={validationErrors}
-              lintingWarnings={lintingWarnings}
-            />
             <div className={styles.toolTextbox}>
               <div className={styles.toolTextboxHeader}>Input</div>
               <div className={styles.toolTextboxEditor}>
                 <CodeMirrorEditor
                   value={inputText}
                   onChange={handleTextChange}
-                  language="javascript"
+                  language={getLanguageForTool(selectedTool?.toolId)}
                   placeholder={getPlaceholder()}
                   showLineNumbers={shouldShowLineNumbers}
+                  editorType="input"
+                  highlightingEnabled={isScriptingLanguageTool(selectedTool?.toolId)}
                 />
               </div>
             </div>
@@ -384,9 +406,11 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
                 <CodeMirrorEditor
                   value={compareText || ''}
                   onChange={handleCompareTextChange}
-                  language="javascript"
+                  language={getLanguageForTool(selectedTool?.toolId)}
                   placeholder="Enter second input to compare checksums..."
                   showLineNumbers={shouldShowLineNumbers}
+                  editorType="input"
+                  highlightingEnabled={isScriptingLanguageTool(selectedTool?.toolId)}
                 />
               </div>
             </div>

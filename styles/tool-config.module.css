@@ -143,6 +143,21 @@
   border: var(--form-input-border, 1px solid var(--color-border));
   border-radius: var(--form-input-border-radius, 5px);
   box-sizing: border-box;
+  position: relative;
+}
+
+.tooltipIcon {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  cursor: help;
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.tooltipIcon:hover {
+  opacity: 1;
 }
 
 /* Toggle label matches form input font sizes for consistency, with condensed font for readability */
