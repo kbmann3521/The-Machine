@@ -1,9 +1,25 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '../lib/ThemeContext'
 import styles from '../styles/theme-toggle.module.css'
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // Only render after hydration to prevent mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <button
+        className={styles.toggleButton}
+        disabled
+        aria-label="Toggle theme"
+      />
+    )
+  }
 
   return (
     <button

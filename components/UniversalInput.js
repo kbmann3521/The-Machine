@@ -1,9 +1,22 @@
 import { useState, useRef, useEffect } from 'react'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
 import LineHighlightOverlay from './LineHighlightOverlay'
+import CodeMirrorEditor from './CodeMirrorEditor'
 import styles from '../styles/universal-input.module.css'
 
+// Tools that should display line numbers in CodeMirror
+const TOOLS_WITH_LINE_NUMBERS = new Set([
+  'js-formatter',           // JavaScript Formatter Suite
+  'json-formatter',         // JSON Formatter
+  'markdown-html-formatter', // Markdown + HTML Formatter
+  'sql-formatter',          // SQL Formatter
+  'xml-formatter',          // XML Formatter
+  'yaml-formatter',         // YAML Formatter
+])
+
 export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, validationErrors = [], lintingWarnings = [] }) {
+  const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
+
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type or paste content here..."
@@ -296,13 +309,18 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               validationErrors={validationErrors}
               lintingWarnings={lintingWarnings}
             />
-            <textarea
-              value={inputText}
-              onChange={(e) => handleTextChange(e.target.value)}
-              onPaste={handlePaste}
-              placeholder={getPlaceholder()}
-              className={styles.simpleTextarea}
-            />
+            <div className={styles.toolTextbox}>
+              <div className={styles.toolTextboxHeader}>Input</div>
+              <div className={styles.toolTextboxEditor}>
+                <CodeMirrorEditor
+                  value={inputText}
+                  onChange={handleTextChange}
+                  language="javascript"
+                  placeholder={getPlaceholder()}
+                  showLineNumbers={shouldShowLineNumbers}
+                />
+              </div>
+            </div>
             <div
               className={styles.resizeHandle}
               onMouseDown={handleResizeStart}
@@ -361,13 +379,17 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
         {selectedTool?.toolId === 'checksum-calculator' && configOptions.compareMode && (
           <div className={styles.compareInputWrapper}>
             <div className={styles.compareInputLabel}>Input B (Compare)</div>
-            <textarea
-              value={compareText || ''}
-              onChange={(e) => handleCompareTextChange(e.target.value)}
-              placeholder="Enter second input to compare checksums..."
-              className={styles.simpleTextarea}
-              style={{ minHeight: '120px' }}
-            />
+            <div className={styles.toolTextbox} style={{ minHeight: '140px' }}>
+              <div className={styles.toolTextboxEditor}>
+                <CodeMirrorEditor
+                  value={compareText || ''}
+                  onChange={handleCompareTextChange}
+                  language="javascript"
+                  placeholder="Enter second input to compare checksums..."
+                  showLineNumbers={shouldShowLineNumbers}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

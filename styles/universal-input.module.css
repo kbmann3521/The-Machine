@@ -378,6 +378,60 @@
   box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
+/* CodeMirror Editor Integration */
+.toolTextbox {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-background-secondary);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.toolTextboxHeader {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.toolTextboxEditor {
+  flex: 1;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.toolTextboxEditor :global(.cm-editor) {
+  height: 100%;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  border-radius: 0 0 6px 6px;
+}
+
+.toolTextboxEditor :global(.cm-content) {
+  padding: 10px 0;
+  font-family: 'Courier New', monospace;
+  line-height: 1.5;
+}
+
+.toolTextboxEditor :global(.cm-line) {
+  padding: 0 10px;
+}
+
+.toolTextboxEditor :global(.cm-focused) {
+  outline: none;
+}
+
+.toolTextboxEditor :global(.cm-lineNumbers) {
+  min-width: 40px;
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 0;
