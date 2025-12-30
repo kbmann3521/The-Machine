@@ -802,6 +802,7 @@ export default function Home(props) {
                   onSelectTool={handleSelectTool}
                   validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
                   lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
+                  result={outputResult}
                 />
               </div>
 

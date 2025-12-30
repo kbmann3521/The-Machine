@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react'
 import { EditorState, Compartment } from '@codemirror/state'
 import { EditorView, lineNumbers } from '@codemirror/view'
 import { keymap } from '@codemirror/view'
-import { defaultKeymap } from '@codemirror/commands'
+import { defaultKeymap, historyKeymap, indentWithTab, history } from '@codemirror/commands'
+import { searchKeymap } from '@codemirror/search'
 import { javascript } from '@codemirror/lang-javascript'
 import { xml } from '@codemirror/lang-xml'
 import { html } from '@codemirror/lang-html'
@@ -12,6 +13,7 @@ import { yaml } from '@codemirror/lang-yaml'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
 import { useTheme } from '../lib/ThemeContext'
+import { createFormatterLinter, createLintTheme } from '../lib/codemirrorLinting'
 
 /**
  * ============================================================================
@@ -156,6 +158,8 @@ function createDynamicTheme(editorType = 'input', isDarkMode = false) {
 const caretThemeLight = EditorView.theme({
   '.cm-cursor': {
     borderLeftColor: '#000000',
+    borderLeftWidth: '2px',
+    marginLeft: '-1px',
   },
 })
 
@@ -166,6 +170,8 @@ const caretThemeLight = EditorView.theme({
 const caretThemeDark = EditorView.theme({
   '.cm-cursor': {
     borderLeftColor: '#ffffff',
+    borderLeftWidth: '2px',
+    marginLeft: '-1px',
   },
 }, { dark: true })
 
@@ -224,6 +230,9 @@ export default function CodeMirrorEditor({
   showLineNumbers = false,
   editorType = 'input',
   highlightingEnabled = true,
+  diagnostics = [],
+  formatMode = 'beautify',
+  enableLinting = true,
 }) {
   const { theme } = useTheme()
   const editorRef = useRef(null)
@@ -233,6 +242,8 @@ export default function CodeMirrorEditor({
   const themeCompartmentRef = useRef(new Compartment())
   const caretCompartmentRef = useRef(new Compartment())
   const syntaxCompartmentRef = useRef(new Compartment())
+  const lintThemeCompartmentRef = useRef(new Compartment())
+  const linterCompartmentRef = useRef(new Compartment())
 
   useEffect(() => {
     valueRef.current = value
@@ -244,46 +255,78 @@ export default function CodeMirrorEditor({
     // Determine if dark mode is active
     const isDarkMode = theme === 'dark'
 
+    // Create linter if diagnostics are available and linting is enabled
+    let linterExtensions = []
+    if (enableLinting && diagnostics && diagnostics.length > 0) {
+      const formatter = createFormatterLinter(diagnostics, {
+        shouldSuppressInMinifyMode: true,
+        formatMode,
+      })
+      linterExtensions = [formatter]
+    }
+
+    // Build extensions list
+    const extensions = [
+      // Line number gutter (conditional)
+      ...(showLineNumbers ? [lineNumbers()] : []),
+
+      // History/Undo support (input only) - CRITICAL: must be included for Ctrl+Z to work
+      ...(!readOnly ? [history()] : []),
+
+      // Keyboard shortcuts (undo/redo, find, indent, select all, copy, paste, etc.)
+      // Input editor: full set with undo/redo + search
+      // Output editor: read-only safe (no undo/redo)
+      ...(!readOnly ? [
+        keymap.of([
+          indentWithTab,          // Tab key indents
+          ...historyKeymap,       // Ctrl/Cmd+Z (undo), Ctrl/Cmd+Shift+Z (redo), Ctrl+Y (redo)
+          ...defaultKeymap,       // copy, paste, select all, arrow keys, etc.
+          ...searchKeymap         // Ctrl/Cmd+F (find), Ctrl/Cmd+G (find next)
+        ])
+      ] : [
+        keymap.of([
+          ...defaultKeymap,       // copy, select all, etc.
+          ...searchKeymap         // Ctrl/Cmd+F (find)
+        ])
+      ]),
+
+      // Language-specific syntax highlighting (parser)
+      getLanguageExtension(language),
+
+      // Syntax highlighting (token colors)
+      syntaxCompartmentRef.current.of(highlightingEnabled ? syntaxHighlighting(createSyntaxTheme(isDarkMode)) : []),
+
+      // Linting and error highlighting (CM6 native)
+      linterCompartmentRef.current.of(linterExtensions),
+
+      // Linting theme colors (error/warning/info)
+      lintThemeCompartmentRef.current.of(createLintTheme(isDarkMode)),
+
+      // Line wrapping (input only)
+      ...(editorType === 'input' ? [EditorView.lineWrapping] : []),
+
+      // Dynamic theme based on CSS variables
+      themeCompartmentRef.current.of(createDynamicTheme(editorType, isDarkMode)),
+
+      // Caret theme
+      caretCompartmentRef.current.of(createCaretTheme(isDarkMode)),
+
+      // Read-only mode (output editors only)
+      ...(readOnly ? [EditorState.readOnly.of(true)] : []),
+
+      // Track changes
+      EditorView.updateListener.of((update) => {
+        if (update.docChanged && !readOnly) {
+          const newValue = update.state.doc.toString()
+          onChange?.(newValue)
+        }
+      }),
+    ]
+
     // Create initial state
     const state = EditorState.create({
       doc: value ?? '',
-      extensions: [
-        // Line number gutter (conditional)
-        showLineNumbers ? lineNumbers() : [],
-
-        // Basic keyboard support
-        !readOnly ? keymap.of(defaultKeymap) : [],
-
-        // Language-specific syntax highlighting (parser)
-        getLanguageExtension(language),
-
-        // Syntax highlighting (token colors only - does NOT override layout)
-        // Uses professional neutral palette that works on both light and dark backgrounds
-        // Only enable for tools where syntax highlighting makes sense (formatters, SVG optimizer, etc.)
-        // Use compartment to allow dynamic updates when theme changes
-        syntaxCompartmentRef.current.of(highlightingEnabled ? syntaxHighlighting(createSyntaxTheme(isDarkMode)) : []),
-
-        // Line wrapping (input editors only; output editors scroll horizontally)
-        // CM6 default is horizontal scrolling; wrapping is opt-in
-        editorType === 'input' ? EditorView.lineWrapping : [],
-
-        // Dynamic theme based on CSS variables (using compartment for updates)
-        themeCompartmentRef.current.of(createDynamicTheme(editorType, isDarkMode)),
-
-        // Caret theme that changes based on light/dark mode (using compartment)
-        caretCompartmentRef.current.of(createCaretTheme(isDarkMode)),
-
-        // Read-only mode if needed
-        readOnly ? EditorState.readOnly.of(true) : [],
-
-        // Track changes
-        EditorView.updateListener.of((update) => {
-          if (update.docChanged && !readOnly) {
-            const newValue = update.state.doc.toString()
-            onChange?.(newValue)
-          }
-        }),
-      ],
+      extensions,
     })
 
     // Create editor view
@@ -306,10 +349,11 @@ export default function CodeMirrorEditor({
 
     const isDarkMode = theme === 'dark'
 
-    // Update the layout theme, caret theme, and syntax highlighting theme without recreating the entire editor
+    // Update the layout theme, caret theme, syntax highlighting, and linting theme
     const effects = [
       themeCompartmentRef.current.reconfigure(createDynamicTheme(editorType, isDarkMode)),
       caretCompartmentRef.current.reconfigure(createCaretTheme(isDarkMode)),
+      lintThemeCompartmentRef.current.reconfigure(createLintTheme(isDarkMode)),
     ]
 
     // Update syntax highlighting if it's enabled
@@ -335,6 +379,27 @@ export default function CodeMirrorEditor({
       })
     }
   }, [value])
+
+  // Update linting when diagnostics or formatMode changes
+  useEffect(() => {
+    if (!viewRef.current || !enableLinting) return
+
+    // Create new linter with updated diagnostics
+    let linterExtensions = []
+    if (diagnostics && diagnostics.length > 0) {
+      const formatter = createFormatterLinter(diagnostics, {
+        shouldSuppressInMinifyMode: true,
+        formatMode,
+      })
+      linterExtensions = [formatter]
+    }
+
+    // Update the linter compartment with the new linter or empty array
+    // This ensures errors are cleared when there are no diagnostics
+    viewRef.current.dispatch({
+      effects: linterCompartmentRef.current.reconfigure(linterExtensions),
+    })
+  }, [diagnostics, formatMode, enableLinting])
 
   return (
     <div
