@@ -39,7 +39,7 @@ const getLanguageForTool = (toolId) => {
   }
 }
 
-export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool }) {
+export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null }) {
   const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
 
   const getPlaceholder = () => {
@@ -340,6 +340,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
                   showLineNumbers={shouldShowLineNumbers}
                   editorType="input"
                   highlightingEnabled={isScriptingLanguageTool(selectedTool?.toolId)}
+                  diagnostics={result?.diagnostics || []}
+                  formatMode={result?.optionsApplied?.mode || 'beautify'}
+                  enableLinting={true}
                 />
               </div>
             </div>
