@@ -67,7 +67,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   const startHeightRef = useRef(0)
   const isPasteRef = useRef(false)
 
-  // Load saved height from localStorage on mount
+  // Load saved height from localStorage on mount (client-side only)
   useEffect(() => {
     const savedHeight = localStorage.getItem('inputBoxHeight')
     if (savedHeight) {
@@ -75,6 +75,13 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       setInputHeight(height)
     }
   }, [])
+
+  // Auto-save height whenever it changes (debounced via resize end)
+  useEffect(() => {
+    if (!isResizing) {
+      localStorage.setItem('inputBoxHeight', inputHeight.toString())
+    }
+  }, [inputHeight, isResizing])
 
   // Reset example index when tool changes
   useEffect(() => {
@@ -105,8 +112,6 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
 
     const handleMouseUp = () => {
       setIsResizing(false)
-      // Save to localStorage when resize is complete
-      localStorage.setItem('inputBoxHeight', inputHeight.toString())
     }
 
     document.addEventListener('mousemove', handleMouseMove)
@@ -116,7 +121,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isResizing, inputHeight])
+  }, [isResizing])
 
   const handleTextChange = (value) => {
     setInputText(value)
