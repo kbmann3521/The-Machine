@@ -3,13 +3,17 @@ import { NextResponse } from 'next/server'
 export function middleware(request) {
   const { pathname } = request.nextUrl
 
-  // Protect admin routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    // Check for authentication here (token, session, etc.)
-    // For now, this is a placeholder - add your auth logic
+  // Protect admin routes (but allow login page)
+  if (pathname.startsWith('/admin')) {
+    // Allow /admin/login without authentication
+    if (pathname === '/admin/login') {
+      return NextResponse.next()
+    }
+
+    // Check for authentication for all other admin pages
     const isAuthenticated = request.cookies.get('auth-token')?.value
 
-    if (!isAuthenticated && pathname.startsWith('/admin')) {
+    if (!isAuthenticated) {
       // Redirect to login
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
