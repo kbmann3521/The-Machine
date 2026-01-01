@@ -8,6 +8,15 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['*.fly.dev', '*.builder.codes'],
+
+  // Exclude test files from being built as pages
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
+
+  // Skip building test pages in production
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 5,
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Mark server-only packages as external to prevent bundling warnings
