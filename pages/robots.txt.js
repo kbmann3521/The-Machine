@@ -7,6 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 const DEFAULT_ROBOTS = `User-agent: *
 Allow: /
+Allow: /api/sitemap
 
 Disallow: /api/
 Disallow: /.next/
