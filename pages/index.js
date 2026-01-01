@@ -36,7 +36,7 @@ export default function Home(props) {
   const [toolLoading, setToolLoading] = useState(false)
   const [inputChangeKey, setInputChangeKey] = useState(0)
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
-  const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
+  const [activeToolkitSection, setActiveToolkitSection] = useState('textAnalyzer')
   const [findReplaceConfig, setFindReplaceConfig] = useState({
     findText: '',
     replaceText: '',
@@ -64,6 +64,11 @@ export default function Home(props) {
     removeBlankLines: true,
     removeTimestamps: false,
     removeDuplicateLines: false,
+  })
+  const [delimiterTransformerConfig, setDelimiterTransformerConfig] = useState({
+    delimiter: ' ',
+    mode: 'rows',
+    joinSeparator: ' ',
   })
   const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
@@ -567,7 +572,7 @@ export default function Home(props) {
             useRegex: findReplaceConfig.useRegex || false,
             matchCase: findReplaceConfig.matchCase || false,
           }
-        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'diff') {
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'textDiff') {
           finalConfig = {
             ...config,
             text2: diffConfig.text2 || '',
@@ -594,6 +599,13 @@ export default function Home(props) {
             removeBlankLines: removeExtrasConfig.removeBlankLines !== false,
             removeTimestamps: removeExtrasConfig.removeTimestamps === true,
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
+          }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'delimiterTransformer') {
+          finalConfig = {
+            ...config,
+            delimiter: delimiterTransformerConfig.delimiter ?? ' ',
+            mode: delimiterTransformerConfig.mode ?? 'rows',
+            joinSeparator: delimiterTransformerConfig.joinSeparator ?? ',',
           }
         } else if (tool.toolId === 'checksum-calculator') {
           finalConfig = {
@@ -704,7 +716,7 @@ export default function Home(props) {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig, delimiterTransformerConfig]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -735,7 +747,7 @@ export default function Home(props) {
     }
 
     runTool()
-  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey])
+  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, activeToolkitSection])
 
 
   return (
@@ -803,6 +815,7 @@ export default function Home(props) {
                   validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
                   lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
                   result={outputResult}
+                  activeToolkitSection={activeToolkitSection}
                 />
               </div>
 
@@ -849,6 +862,8 @@ export default function Home(props) {
                       onSortLinesConfigChange={setSortLinesConfig}
                       removeExtrasConfig={removeExtrasConfig}
                       onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                      delimiterTransformerConfig={delimiterTransformerConfig}
+                      onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
                       onSetGeneratedText={handleInputChange}
                     />
                     {selectedTool?.toolId === 'math-evaluator' && (

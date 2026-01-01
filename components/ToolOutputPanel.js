@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaCopy } from 'react-icons/fa6'
+import { FaCopy, FaCheck } from 'react-icons/fa6'
 import dynamic from 'next/dynamic'
 import styles from '../styles/tool-output.module.css'
 import sqlStyles from '../styles/sql-formatter.module.css'
@@ -32,6 +32,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [cronRunsToLoad, setCronRunsToLoad] = useState(5)
   const [enhancedResult, setEnhancedResult] = useState(null)
+  const [caseConverterCopied, setCaseConverterCopied] = useState({})
+  const [expandedMetric, setExpandedMetric] = useState(null)
+  const [analyzerSearchQuery, setAnalyzerSearchQuery] = useState('')
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
@@ -113,8 +116,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       'slugGenerator': 'slugGenerator',
       'reverseText': 'reverseText',
       'removeExtras': 'removeExtras',
-      'whitespaceVisualizer': 'whitespaceVisualizer',
       'sortLines': 'sortLines',
+      'delimiterTransformer': 'delimiterTransformer',
     }
     return keyMap[section]
   }
@@ -146,7 +149,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
-    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
+    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
   // Show blank tabs when no result
@@ -187,10 +190,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         textToCopy = displayResult.reverseText
       } else if (activeToolkitSection === 'removeExtras' && displayResult.removeExtras) {
         textToCopy = displayResult.removeExtras
-      } else if (activeToolkitSection === 'whitespaceVisualizer' && displayResult.whitespaceVisualizer) {
-        textToCopy = displayResult.whitespaceVisualizer
       } else if (activeToolkitSection === 'sortLines' && displayResult.sortLines) {
         textToCopy = displayResult.sortLines
+      } else if (activeToolkitSection === 'delimiterTransformer' && displayResult.delimiterTransformer) {
+        textToCopy = displayResult.delimiterTransformer
       }
     }
 
@@ -3579,6 +3582,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
       const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+      const primaryErrors = validationErrors.filter(e => e.primary !== false) // Show primary and errors without flag
+      const secondaryErrors = validationErrors.filter(e => e.secondary === true)
 
       if (validationErrors.length > 0) {
         const validationContent = (
@@ -3593,15 +3598,37 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               fontSize: '13px',
               fontWeight: '500',
             }}>
-              ✗ {validationErrors.length} XML Error{validationErrors.length !== 1 ? 's' : ''} Found
+              ✗ {primaryErrors.length} XML Error{primaryErrors.length !== 1 ? 's' : ''} Found
+              {secondaryErrors.length > 0 && ` (+${secondaryErrors.length} related)`}
             </div>
-            {renderValidationErrorsUnified(validationErrors, 'Input Validation Errors (prevents formatting)')}
+            {renderValidationErrorsUnified(primaryErrors, 'Primary Errors')}
+
+            {secondaryErrors.length > 0 && (
+              <details style={{ marginTop: '16px' }}>
+                <summary style={{
+                  cursor: 'pointer',
+                  padding: '12px',
+                  backgroundColor: 'rgba(239, 83, 80, 0.05)',
+                  border: '1px solid rgba(239, 83, 80, 0.15)',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#ef5350',
+                  userSelect: 'none',
+                }}>
+                  📋 Show related errors ({secondaryErrors.length})
+                </summary>
+                <div style={{ marginTop: '12px' }}>
+                  {renderValidationErrorsUnified(secondaryErrors, 'Related Issues (may be caused by primary error above)')}
+                </div>
+              </details>
+            )}
           </div>
         )
 
         tabs.push({
           id: 'validation',
-          label: `Validation (${validationErrors.length})`,
+          label: `Validation (${primaryErrors.length}${secondaryErrors.length > 0 ? `+${secondaryErrors.length}` : ''})`,
           content: validationContent,
           contentType: 'component',
         })
@@ -4708,27 +4735,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
 
       case 'text-toolkit':
-        // Word Counter
-        if (section === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
-          return [
-            { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
-            { label: 'Character Count', value: String(result.wordCounter.characterCount || 0) },
-            { label: 'Character Count (no spaces)', value: String(result.wordCounter.characterCountNoSpaces || 0) },
-            { label: 'Sentence Count', value: String(result.wordCounter.sentenceCount || 0) },
-            { label: 'Line Count', value: String(result.wordCounter.lineCount || 0) },
-            { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
-          ].filter(f => f.value !== undefined && f.value !== null)
-        }
-        // Word Frequency
-        if (section === 'wordFrequency' && result.wordFrequency && typeof result.wordFrequency === 'object') {
-          const fields = []
-          if (result.wordFrequency.totalUniqueWords !== undefined) fields.push({ label: 'Total Unique Words', value: String(result.wordFrequency.totalUniqueWords) })
-          if (result.wordFrequency.totalWords !== undefined) fields.push({ label: 'Total Words', value: String(result.wordFrequency.totalWords) })
-          if (result.wordFrequency.frequency && typeof result.wordFrequency.frequency === 'object') {
-            fields.push({ label: 'Frequency Map', value: JSON.stringify(result.wordFrequency.frequency, null, 2) })
-          }
-          return fields.filter(f => f.value !== undefined && f.value !== null)
-        }
         // Text Analyzer
         if (section === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
           const analyzerFields = []
@@ -4736,14 +4742,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             analyzerFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
             analyzerFields.push({ label: 'Flesch Reading Ease', value: String(result.textAnalyzer.readability.fleschReadingEase) })
             analyzerFields.push({ label: 'Flesch-Kincaid Grade', value: String(result.textAnalyzer.readability.fleschKincaidGrade) })
+            analyzerFields.push({ label: 'Gunning Fog Index', value: String((result.textAnalyzer.statistics?.gunningFogIndex || 0).toFixed(1)) })
+            analyzerFields.push({ label: 'SMOG Index', value: String((result.textAnalyzer.statistics?.smogIndex || 0).toFixed(1)) })
           }
           if (result.textAnalyzer.statistics) {
             analyzerFields.push({ label: 'Words', value: String(result.textAnalyzer.statistics.words) })
             analyzerFields.push({ label: 'Characters', value: String(result.textAnalyzer.statistics.characters) })
             analyzerFields.push({ label: 'Sentences', value: String(result.textAnalyzer.statistics.sentences) })
-            analyzerFields.push({ label: 'Lines', value: String(result.textAnalyzer.statistics.lines) })
-            analyzerFields.push({ label: 'Avg Word Length', value: String((result.textAnalyzer.statistics.averageWordLength || 0).toFixed(2)) })
-            analyzerFields.push({ label: 'Avg Words per Sentence', value: String((result.textAnalyzer.statistics.averageWordsPerSentence || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Paragraphs', value: String(result.textAnalyzer.statistics.paragraphs || 0) })
+            analyzerFields.push({ label: 'Avg Word Length', value: String((result.textAnalyzer.statistics.avgWordLength || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Avg Words per Sentence', value: String((result.textAnalyzer.statistics.avgWordsPerSentence || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Lexical Density', value: String((result.textAnalyzer.statistics.lexicalDensity || 0).toFixed(2)) + '%' })
+            analyzerFields.push({ label: 'Stop Words %', value: String((result.textAnalyzer.statistics.stopWordsPercent || 0).toFixed(1)) + '%' })
+            analyzerFields.push({ label: 'Est. Read Time', value: String(result.textAnalyzer.statistics.estimatedReadTimeMinutes || 0) + ' min' })
           }
           return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
         }
@@ -5583,118 +5594,143 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'text-toolkit': {
         const tabs = []
 
-        if (activeToolkitSection === 'wordCounter' && displayResult?.wordCounter) {
-          // Word Counter - show structured fields as main output, plus JSON
-          tabs.push({
-            id: 'output',
-            label: 'OUTPUT',
-            content: renderStructuredOutput(),
-            contentType: 'component'
-          })
-          tabs.push({
-            id: 'json',
-            label: 'JSON',
-            content: JSON.stringify(displayResult.wordCounter, null, 2),
-            contentType: 'json'
-          })
-        } else if (activeToolkitSection === 'wordFrequency' && displayResult?.wordFrequency) {
-          // Word Frequency - show copy cards for each word, plus JSON
-          const wordFreqData = displayResult.wordFrequency
-          const frequencyViewContent = (
-            <div className={styles.wordFrequencyView}>
-              {wordFreqData.totalUniqueWords !== undefined && (
-                <div className={styles.frequencyHeader}>
-                  <div className={styles.frequencyStat}>
-                    <span className={styles.frequencyLabel}>Total Unique Words</span>
-                    <span className={styles.frequencyValue}>{wordFreqData.totalUniqueWords}</span>
+        if (activeToolkitSection === 'textAnalyzer' && displayResult?.textAnalyzer) {
+          // Text Analyzer - show comprehensive metrics in table layout
+          const analyzerData = displayResult.textAnalyzer
+
+          // Define tiers with metrics
+          const stats = analyzerData.statistics
+          const readable = analyzerData.readability
+
+          const tiers = [
+            {
+              id: 'tier1',
+              metrics: [
+                { label: 'Words', value: stats.words },
+                { label: 'Characters', value: stats.characters },
+                { label: 'Characters (no spaces)', value: stats.charactersNoSpaces },
+                { label: 'Sentences', value: stats.sentences },
+                { label: 'Paragraphs', value: stats.paragraphs },
+                { label: 'Estimated read time', value: `${stats.estimatedReadTimeMinutes} min` },
+                { label: 'Readability level', value: readable.readabilityLevel },
+                { label: 'Flesch Reading Ease', value: readable.fleschReadingEase },
+                { label: 'Flesch-Kincaid Grade', value: readable.fleschKincaidGrade },
+              ]
+            },
+            {
+              id: 'tier2',
+              metrics: [
+                { label: 'Average words per sentence', value: (stats.avgWordsPerSentence || 0).toFixed(2) },
+                { label: 'Average word length', value: (stats.avgWordLength || 0).toFixed(2) },
+                { label: 'Average syllables per word', value: (stats.avgSyllablesPerWord || 0).toFixed(2) },
+                { label: 'Longest sentence', value: `${stats.longestSentenceLength} words`, expandable: true, expandContent: stats.longestSentence ? (<div><strong>Text:</strong><pre style={{ margin: '8px 0', padding: '8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px', fontSize: '11px', maxHeight: '200px', overflow: 'auto' }}>{stats.longestSentence.substring(0, 500)}{stats.longestSentence.length > 500 ? '...' : ''}</pre></div>) : null },
+                { label: 'Shortest sentence', value: `${stats.shortestSentenceLength} words`, expandable: true, expandContent: stats.shortestSentence ? (<div><strong>Text:</strong><pre style={{ margin: '8px 0', padding: '8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px', fontSize: '11px' }}>{stats.shortestSentence}</pre></div>) : null },
+                { label: 'Median sentence length', value: `${stats.medianSentenceLength} words` },
+              ]
+            },
+            {
+              id: 'tier3',
+              metrics: [
+                { label: 'Unique word count', value: stats.uniqueWordsFreq?.length || 0 },
+                { label: 'Type-token ratio', value: (stats.typeTokenRatio || 0).toFixed(4) },
+                { label: 'Lexical density', value: `${(stats.lexicalDensity || 0).toFixed(2)}%` },
+                { label: 'Content density', value: `${(stats.contentDensity || 0).toFixed(2)}%` },
+                { label: 'Stop words %', value: `${(stats.stopWordsPercent || 0).toFixed(1)}%` },
+                { label: 'Stop words count', value: `${stats.stopWordsCount} (${(stats.stopWordsPercent || 0).toFixed(1)}%)`, expandable: true, expandContent: stats.stopWordsList && stats.stopWordsList.length > 0 ? (<div><strong>Examples:</strong><div style={{ marginTop: '8px', fontSize: '12px', lineHeight: '1.5' }}>{stats.stopWordsList.slice(0, 20).join(', ')}{stats.stopWordsList.length > 20 ? '...' : ''}</div></div>) : null },
+              ]
+            },
+            {
+              id: 'tier4',
+              metrics: [
+                { label: 'Gunning Fog Index', value: (stats.gunningFogIndex || 0).toFixed(1) },
+                { label: 'SMOG Index', value: (stats.smogIndex || 0).toFixed(1) },
+                { label: 'Coleman-Liau Index', value: (stats.colemanLiauIndex || 0).toFixed(1) },
+                { label: 'Automated Readability Index', value: (stats.automatedReadabilityIndex || 0).toFixed(1) },
+              ]
+            },
+            {
+              id: 'tier5',
+              metrics: [
+                { label: 'Longest word', value: stats.longestWord || 'N/A' },
+                { label: 'Shortest word', value: stats.shortestWord || 'N/A' },
+                { label: 'Min word length', value: stats.minWordLength },
+                { label: 'Max word length', value: stats.maxWordLength },
+                { label: 'Median word length', value: stats.medianWordLength },
+              ]
+            },
+            {
+              id: 'tier6',
+              metrics: [
+                { label: 'Top keywords', value: `${stats.topKeywords?.length || 0} keywords`, expandable: true, expandContent: stats.topKeywords && stats.topKeywords.length > 0 ? (<table className={styles.frequencyTable}><thead><tr><th>Keyword</th><th style={{ textAlign: 'right' }}>Count</th><th style={{ textAlign: 'right' }}>%</th></tr></thead><tbody>{stats.topKeywords.map((item, i) => (<tr key={i}><td className={styles.frequencyTableWord}>{item.word}</td><td className={styles.frequencyTableCount}>{item.count || 0}</td><td className={styles.frequencyTablePercent}>{(item.percent || 0).toFixed(1)}%</td></tr>))}</tbody></table>) : null },
+                { label: 'Unique words frequency', value: `${stats.uniqueWordsFreq?.length || 0} unique`, expandable: true, expandContent: stats.uniqueWordsFreq && stats.uniqueWordsFreq.length > 0 ? (<table className={styles.frequencyTable}><thead><tr><th>Word</th><th style={{ textAlign: 'right' }}>Count</th><th style={{ textAlign: 'right' }}>%</th></tr></thead><tbody>{stats.uniqueWordsFreq.slice(0, 15).map((item, i) => { const count = item.count || 0; const percent = stats.words ? ((count / stats.words) * 100).toFixed(1) : '0'; return (<tr key={i}><td className={styles.frequencyTableWord}>{item.word}</td><td className={styles.frequencyTableCount}>{count}</td><td className={styles.frequencyTablePercent}>{percent}%</td></tr>); })}</tbody></table>) : null },
+              ]
+            },
+            {
+              id: 'tier7',
+              metrics: [
+                { label: 'Uppercase count', value: stats.uppercase },
+                { label: 'Lowercase count', value: stats.lowercase },
+                { label: 'Digits', value: stats.digits },
+                { label: 'Punctuation', value: stats.punctuation },
+                { label: 'Whitespace', value: stats.whitespace, expandable: true, expandContent: (<div><strong>Whitespace Visualization:</strong><div className={styles.whitespaceVisualization}>{stats.whitespaceSafeText || 'No whitespace'}</div><div style={{ marginTop: '12px' }}><strong>Whitespace Breakdown:</strong><div style={{ marginTop: '8px', fontSize: '12px' }}>• Spaces: {stats.spaceCount || 0}<br />• Tabs: {stats.tabCount || 0}<br />• Newlines: {stats.newlineCount || 0}</div></div></div>) },
+                { label: 'Spaces', value: stats.spaceCount || 0 },
+                { label: 'Tabs', value: stats.tabCount || 0 },
+                { label: 'Newlines', value: stats.newlineCount || 0 },
+              ]
+            },
+          ]
+
+          // Filter tiers based on search
+          const filteredTiers = tiers.map(tier => ({
+            ...tier,
+            metrics: tier.metrics.filter(m => m.label.toLowerCase().includes(analyzerSearchQuery.toLowerCase()))
+          })).filter(t => t.metrics.length > 0)
+
+          const MetricRow = ({ metric }) => (
+            <div className={styles.analyzerMetricRow}>
+              <div
+                className={styles.analyzerMetricHeader}
+                onClick={() => metric.expandable && setExpandedMetric(expandedMetric === metric.label ? null : metric.label)}
+                style={{ cursor: metric.expandable ? 'pointer' : 'default' }}
+              >
+                <div className={styles.analyzerMetricLabel}>{metric.label.toLowerCase()} - {metric.value}</div>
+                {metric.expandable && (
+                  <div className={styles.analyzerMetricExpander}>
+                    {expandedMetric === metric.label ? '▼' : '▶'}
                   </div>
-                  <div className={styles.frequencyStat}>
-                    <span className={styles.frequencyLabel}>Total Words</span>
-                    <span className={styles.frequencyValue}>{wordFreqData.totalWords}</span>
-                  </div>
-                </div>
-              )}
-              <div className={styles.frequencyCardsContainer}>
-                {wordFreqData.frequency && Array.isArray(wordFreqData.frequency) && wordFreqData.frequency.length > 0 ? (
-                  wordFreqData.frequency.map((item, idx) => (
-                    <div key={idx} className={styles.frequencyCard}>
-                      <div className={styles.frequencyCardHeader}>
-                        <span className={styles.frequencyCardWord}>{item.word}</span>
-                        <span className={styles.frequencyCardCount}>{item.count}</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.noData}>No frequency data available</div>
                 )}
               </div>
-            </div>
-          )
-          tabs.push({
-            id: 'output',
-            label: 'OUTPUT',
-            content: frequencyViewContent,
-            contentType: 'component'
-          })
-          tabs.push({
-            id: 'json',
-            label: 'JSON',
-            content: JSON.stringify(displayResult.wordFrequency, null, 2),
-            contentType: 'json'
-          })
-        } else if (activeToolkitSection === 'textAnalyzer' && displayResult?.textAnalyzer) {
-          // Text Analyzer - show cards for readability and statistics, plus JSON
-          const analyzerData = displayResult.textAnalyzer
-          const analyzerViewContent = (
-            <div className={styles.textAnalyzerView}>
-              {analyzerData.readability && (
-                <div className={styles.analyzerSection}>
-                  <h3 className={styles.analyzerSectionTitle}>Readability</h3>
-                  <div className={styles.analyzerCardsGrid}>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Reading Level</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.readability.readabilityLevel}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Flesch Reading Ease</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschReadingEase}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Flesch-Kincaid Grade</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschKincaidGrade}</span>
-                    </div>
-                  </div>
+              {metric.expandable && expandedMetric === metric.label && metric.expandContent && (
+                <div className={styles.analyzerMetricDetail}>
+                  {metric.expandContent}
                 </div>
               )}
-              {analyzerData.statistics && (
-                <div className={styles.analyzerSection}>
-                  <h3 className={styles.analyzerSectionTitle}>Text Statistics</h3>
-                  <div className={styles.analyzerCardsGrid}>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Words</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.words}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Characters</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.characters}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Sentences</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.sentences}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Lines</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.lines}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Avg Word Length</span>
-                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordLength || 0).toFixed(2)}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Avg Words per Sentence</span>
-                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordsPerSentence || 0).toFixed(2)}</span>
-                    </div>
+            </div>
+          )
+
+          const analyzerViewContent = (
+            <div className={styles.analyzerTableContainer}>
+              <div className={styles.analyzerSearchContainer}>
+                <input
+                  type="text"
+                  placeholder="Search metrics..."
+                  value={analyzerSearchQuery}
+                  onChange={(e) => setAnalyzerSearchQuery(e.target.value)}
+                  className={styles.analyzerSearchInput}
+                />
+              </div>
+
+              {filteredTiers.length > 0 ? (
+                filteredTiers.map(tier => (
+                  <div key={tier.id}>
+                    {tier.metrics.map((metric, idx) => (
+                      <MetricRow key={idx} metric={metric} />
+                    ))}
                   </div>
+                ))
+              ) : (
+                <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                  No metrics match your search
                 </div>
               )}
             </div>
@@ -5714,31 +5750,59 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         } else if (activeToolkitSection === 'caseConverter' && displayResult?.caseConverter) {
           // Case Converter - show friendly view, plus JSON
           const caseConverterData = displayResult.caseConverter
+
+          const handleCaseConverterCopy = (key, value) => {
+            navigator.clipboard.writeText(value).catch((err) => {
+              // Fallback for older browsers
+              const textarea = document.createElement('textarea')
+              textarea.value = value
+              textarea.style.position = 'fixed'
+              textarea.style.opacity = '0'
+              document.body.appendChild(textarea)
+              textarea.select()
+              try {
+                document.execCommand('copy')
+              } catch (e) {
+                console.error('Copy failed:', e)
+              }
+              document.body.removeChild(textarea)
+            })
+            setCaseConverterCopied(prev => ({ ...prev, [key]: true }))
+            setTimeout(() => {
+              setCaseConverterCopied(prev => ({ ...prev, [key]: false }))
+            }, 2000)
+          }
+
+          const CaseConverterCopyCard = ({ label, value }) => (
+            <div className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{label}</span>
+                <button
+                  type="button"
+                  className="copy-action"
+                  onClick={() => handleCaseConverterCopy(label, value)}
+                  title="Copy to clipboard"
+                >
+                  {caseConverterCopied[label] ? <FaCheck /> : <FaCopy />}
+                </button>
+              </div>
+              <div className={styles.copyCardValue}>{value}</div>
+            </div>
+          )
+
           const friendlyViewContent = (
             <div className={styles.caseConverterView}>
               {caseConverterData.uppercase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Uppercase</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.uppercase}</div>
-                </div>
+                <CaseConverterCopyCard label="Uppercase" value={caseConverterData.uppercase} />
               )}
               {caseConverterData.lowercase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Lowercase</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.lowercase}</div>
-                </div>
+                <CaseConverterCopyCard label="Lowercase" value={caseConverterData.lowercase} />
               )}
               {caseConverterData.titleCase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Title Case</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.titleCase}</div>
-                </div>
+                <CaseConverterCopyCard label="Title Case" value={caseConverterData.titleCase} />
               )}
               {caseConverterData.sentenceCase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Sentence Case</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.sentenceCase}</div>
-                </div>
+                <CaseConverterCopyCard label="Sentence Case" value={caseConverterData.sentenceCase} />
               )}
             </div>
           )
@@ -5754,6 +5818,67 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             content: JSON.stringify(displayResult.caseConverter, null, 2),
             contentType: 'json'
           })
+        } else if (activeToolkitSection === 'textDiff' && displayResult?.textDiff) {
+          // Diff Checker - show friendly view with differences highlighted, plus JSON
+          const diffData = displayResult.textDiff
+
+          const DiffRow = ({ lineNum, text1, text2, isIdentical }) => {
+            const hasDifference = text1 !== text2
+            return (
+              <div className={styles.diffRow} style={{ backgroundColor: hasDifference ? 'rgba(239, 83, 80, 0.08)' : 'transparent' }}>
+                <div className={styles.diffLineNum}>{lineNum}</div>
+                <div className={styles.diffColumn}>
+                  <div className={styles.diffColumnLabel}>Input A</div>
+                  <div className={styles.diffColumnContent} style={{ color: hasDifference ? '#ef5350' : 'inherit' }}>{text1}</div>
+                </div>
+                <div className={styles.diffColumn}>
+                  <div className={styles.diffColumnLabel}>Input B</div>
+                  <div className={styles.diffColumnContent} style={{ color: hasDifference ? '#ef5350' : 'inherit' }}>{text2}</div>
+                </div>
+              </div>
+            )
+          }
+
+          const friendlyViewContent = (
+            <div className={styles.diffCheckerView}>
+              <div className={styles.diffSummary}>
+                <div className={styles.diffSummaryItem}>
+                  <span className={styles.diffSummaryLabel}>Input A Lines:</span>
+                  <span className={styles.diffSummaryValue}>{diffData.text1Lines}</span>
+                </div>
+                <div className={styles.diffSummaryItem}>
+                  <span className={styles.diffSummaryLabel}>Input B Lines:</span>
+                  <span className={styles.diffSummaryValue}>{diffData.text2Lines}</span>
+                </div>
+                <div className={styles.diffSummaryItem}>
+                  <span className={styles.diffSummaryLabel}>Status:</span>
+                  <span className={styles.diffSummaryValue} style={{ color: diffData.identical ? '#4caf50' : '#ef5350', fontWeight: 600 }}>
+                    {diffData.identical ? '✓ Identical' : `${diffData.differences.length} Difference${diffData.differences.length !== 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              </div>
+              {!diffData.identical && diffData.differences.length > 0 && (
+                <div className={styles.diffTable}>
+                  {diffData.differences.map((diff, idx) => (
+                    <DiffRow key={idx} lineNum={diff.line} text1={diff.text1} text2={diff.text2} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: friendlyViewContent,
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.textDiff, null, 2),
+            contentType: 'json'
+          })
         } else {
           // Text-based toolkit sections
           const textContent = displayResult?.[activeToolkitSection]
@@ -5765,7 +5890,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               contentType: 'text'
             })
             // Add JSON tab for slug generator, reverse text, and clean text
-            if (['slugGenerator', 'reverseText', 'removeExtras'].includes(activeToolkitSection)) {
+            if (['slugGenerator', 'reverseText', 'removeExtras', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection)) {
               tabs.push({
                 id: 'json',
                 label: 'JSON',
