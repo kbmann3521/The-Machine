@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { validateIPAddress } from '../lib/tools.js'
-import { withSeoSettings } from '../lib/getSeoSettings'
+import { withSeoSettings } from '../lib/getSeoSettings.js'
 import styles from '../styles/ip-toolkit-tests.module.css'
 
 const TEST_CASES = [

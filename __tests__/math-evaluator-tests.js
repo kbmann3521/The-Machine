@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { mathEvaluator } from '../lib/tools.js'
 import NumericConfig from '../components/NumericConfig.js'
 import MathEvaluatorResult from '../components/MathEvaluatorResult.js'
-import { withSeoSettings } from '../lib/getSeoSettings'
+import { withSeoSettings } from '../lib/getSeoSettings.js'
 import styles from '../styles/math-evaluator-tests.module.css'
 
 const TEST_CASES = [
