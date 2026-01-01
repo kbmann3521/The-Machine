@@ -165,6 +165,21 @@
   align-self: flex-end;
 }
 
+@media (max-width: 640px) {
+  .uploadImageButton {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    gap: 0;
+  }
+
+  .uploadImageIcon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+}
+
 .uploadImageButton:hover {
   background-color: var(--color-background-tertiary);
   border-color: #0066cc;
@@ -230,6 +245,89 @@
 
 .clearInputButton:active {
   background-color: rgba(239, 83, 80, 0.1);
+}
+
+@media (max-width: 640px) {
+  .clearInputButton {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .clearInputButton::before {
+    content: '✕';
+    font-size: 16px;
+    line-height: 1;
+  }
+}
+
+.buttonText {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  .buttonText {
+    display: none;
+  }
+}
+
+.caseTypeSelect {
+  padding: 6px 8px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+  max-width: 110px;
+}
+
+.caseTypeSelect:hover {
+  background-color: var(--color-border);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.caseTypeSelect:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+@media (max-width: 640px) {
+  .caseTypeSelect {
+    max-width: 90px;
+    padding: 5px 6px;
+    font-size: 10px;
+  }
+}
+
+.useOutputButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.useOutputButton:hover {
+  background-color: var(--color-border);
+  border-color: #0066cc;
+  transform: scale(1.05);
+}
+
+.useOutputButton:active {
+  transform: scale(0.95);
 }
 
 .detectedToolsInsideInput {
@@ -392,13 +490,24 @@
 
 .toolTextboxHeader {
   padding: 8px 12px;
-  font-size: 12px;
-  color: var(--color-text-secondary);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-background-tertiary);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.headerButtonGroup {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 .toolTextboxEditor {

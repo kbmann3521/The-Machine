@@ -7,10 +7,12 @@ import Phase2Controls from './SVGOptimizer/Phase2Controls'
 // Lazy-load RegexToolkit - only needed when configuring regex patterns
 const RegexToolkit = dynamic(() => import('./RegexToolkit'), { ssr: false })
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, onSetGeneratedText }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText }) {
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
+  const [localDelimiter, setLocalDelimiter] = useState(delimiterTransformerConfig?.delimiter ?? ' ')
+  const [localJoinSeparator, setLocalJoinSeparator] = useState(delimiterTransformerConfig?.joinSeparator ?? ' ')
 
   useEffect(() => {
     if (tool?.configSchema) {
@@ -23,6 +25,16 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       setConfig(mergedConfig)
     }
   }, [tool?.toolId, currentConfig])
+
+  // Sync local delimiter state when parent config changes
+  useEffect(() => {
+    setLocalDelimiter(delimiterTransformerConfig?.delimiter ?? ' ')
+  }, [delimiterTransformerConfig?.delimiter])
+
+  // Sync local join separator state when parent config changes
+  useEffect(() => {
+    setLocalJoinSeparator(delimiterTransformerConfig?.joinSeparator ?? ' ')
+  }, [delimiterTransformerConfig?.joinSeparator])
 
   if (!tool) {
     return (
@@ -392,35 +404,53 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     }
   }
 
-  const toolkitSections = [
-    { id: 'wordCounter', label: 'Word Counter' },
-    { id: 'wordFrequency', label: 'Word Frequency' },
-    { id: 'caseConverter', label: 'Case Converter' },
+  const analyticalSections = [
     { id: 'textAnalyzer', label: 'Text Analyzer' },
+    { id: 'textDiff', label: 'Diff Checker' },
+  ]
+
+  const transformativeSections = [
+    { id: 'caseConverter', label: 'Case Converter' },
     { id: 'slugGenerator', label: 'Slug Generator' },
     { id: 'reverseText', label: 'Reverse Text' },
     { id: 'removeExtras', label: 'Clean Text' },
-    { id: 'whitespaceVisualizer', label: 'Whitespace' },
     { id: 'sortLines', label: 'Sort Lines' },
     { id: 'findReplace', label: 'Find & Replace' },
-    { id: 'textDiff', label: 'Diff Checker' },
+    { id: 'delimiterTransformer', label: 'Delimiter Transformer' },
   ]
 
   return (
     <div className={styles.container}>
       {tool.toolId === 'text-toolkit' && (
         <div className={styles.toolkitFilters}>
-          <div className={styles.filterLabel}>Filter Results:</div>
-          <div className={styles.filterButtonsGrid}>
-            {toolkitSections.map(section => (
-              <button
-                key={section.id}
-                className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
-                onClick={() => onToolkitSectionChange(section.id)}
-              >
-                {section.label}
-              </button>
-            ))}
+          <div className={styles.filterSectionGroup}>
+            <div className={styles.filterGroupLabel}>Analytical</div>
+            <div className={styles.filterButtonsGrid}>
+              {analyticalSections.map(section => (
+                <button
+                  key={section.id}
+                  className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
+                  onClick={() => onToolkitSectionChange(section.id)}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.filterSectionGroup}>
+            <div className={styles.filterGroupLabel}>Transformative</div>
+            <div className={styles.filterButtonsGrid}>
+              {transformativeSections.map(section => (
+                <button
+                  key={section.id}
+                  className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
+                  onClick={() => onToolkitSectionChange(section.id)}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {activeToolkitSection === 'findReplace' && (
@@ -670,6 +700,96 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   rows={4}
                 />
               </div>
+            </div>
+          )}
+
+          {activeToolkitSection === 'delimiterTransformer' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="splitDelimiter">
+                  Split By (character)
+                </label>
+                <input
+                  id="splitDelimiter"
+                  type="text"
+                  className={styles.input}
+                  placeholder="e.g., comma, semicolon, or space"
+                  value={localDelimiter}
+                  onChange={(e) => {
+                    const newValue = e.target.value
+                    setLocalDelimiter(newValue)
+                    onDelimiterTransformerConfigChange({
+                      ...delimiterTransformerConfig,
+                      delimiter: newValue
+                    })
+                  }}
+                  maxLength="5"
+                  autoComplete="off"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>
+                  Output Format
+                </label>
+                <div className={styles.radioGroup}>
+                  <label className={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="delimiterOutputMode"
+                      value="rows"
+                      checked={delimiterTransformerConfig?.mode === 'rows' || !delimiterTransformerConfig?.mode}
+                      onChange={(e) => {
+                        const newConfig = {
+                          ...delimiterTransformerConfig,
+                          mode: e.target.value
+                        }
+                        onDelimiterTransformerConfigChange(newConfig)
+                      }}
+                    />
+                    <span>Rows (one per line)</span>
+                  </label>
+                  <label className={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="delimiterOutputMode"
+                      value="singleLine"
+                      checked={delimiterTransformerConfig?.mode === 'singleLine'}
+                      onChange={(e) => {
+                        const newConfig = {
+                          ...delimiterTransformerConfig,
+                          mode: e.target.value
+                        }
+                        onDelimiterTransformerConfigChange(newConfig)
+                      }}
+                    />
+                    <span>Single Line (rejoin with separator)</span>
+                  </label>
+                </div>
+              </div>
+              {delimiterTransformerConfig?.mode === 'singleLine' && (
+                <div className={styles.field}>
+                  <label className={styles.fieldLabel} htmlFor="joinSeparator">
+                    Join With (separator)
+                  </label>
+                  <input
+                    id="joinSeparator"
+                    type="text"
+                    className={styles.input}
+                    placeholder="e.g., space, comma, dash"
+                    value={localJoinSeparator}
+                    onChange={(e) => {
+                      const newValue = e.target.value
+                      setLocalJoinSeparator(newValue)
+                      onDelimiterTransformerConfigChange({
+                        ...delimiterTransformerConfig,
+                        joinSeparator: newValue
+                      })
+                    }}
+                    maxLength="5"
+                    autoComplete="off"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

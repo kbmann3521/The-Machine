@@ -527,8 +527,24 @@
 .toolkitFilters {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 15px;
+}
+
+.filterSectionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterGroupLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  opacity: 0.8;
 }
 
 .filterLabel {
@@ -626,4 +642,46 @@
 
 .inlineToggleLabel .toggleInput:checked + .toggleSlider::after {
   left: 20px;
+}
+
+/* Radio Button Group Styling */
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1;
+  user-select: none;
+}
+
+.radioLabel input[type="radio"] {
+  cursor: pointer;
+  accent-color: #0066cc;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.radioLabel input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.radioLabel:hover input[type="radio"]:not(:disabled) {
+  opacity: 0.8;
+}
+
+.radioLabel span {
+  flex: 1;
 }

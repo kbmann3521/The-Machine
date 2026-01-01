@@ -420,7 +420,7 @@ export default function CodeMirrorEditor({
           style={{
             position: 'absolute',
             top: '10px',
-            left: '50px',
+            left: '8px',
             color: 'var(--color-text-secondary)',
             opacity: '0.5',
             pointerEvents: 'none',

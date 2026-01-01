@@ -39,7 +39,7 @@ const getLanguageForTool = (toolId) => {
   }
 }
 
-export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null }) {
+export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null }) {
   const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
 
   const getPlaceholder = () => {
@@ -60,6 +60,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
   const [exampleIndex, setExampleIndex] = useState({})
+  const [selectedCaseType, setSelectedCaseType] = useState('lowercase')
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
   const startYRef = useRef(0)
@@ -217,6 +218,51 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     onInputChange('', null, null, false)
   }
 
+  const getOutputToUse = () => {
+    if (!result) return null
+
+    // For Text Toolkit, only show button for specific sections
+    if (selectedTool?.toolId === 'text-toolkit' && activeToolkitSection) {
+      // Only these sections support "use output as input"
+      if (activeToolkitSection === 'caseConverter' && result.caseConverter) {
+        return result.caseConverter[selectedCaseType]
+      }
+
+      const supportedSections = {
+        'slugGenerator': 'slugGenerator',
+        'reverseText': 'reverseText',
+        'removeExtras': 'removeExtras',
+        'sortLines': 'sortLines',
+        'findReplace': 'findReplace',
+        'caseConverter': 'caseConverter',
+        'delimiterTransformer': 'delimiterTransformer'
+      }
+
+      const key = supportedSections[activeToolkitSection]
+      if (key && result[key]) {
+        return result[key]
+      }
+      return null
+    }
+
+    // For regular tools, use the output field
+    if (result?.output) {
+      return result.output
+    }
+
+    return null
+  }
+
+  const handleUseOutput = () => {
+    const output = getOutputToUse()
+    if (output) {
+      const outputText = typeof output === 'string' ? output : JSON.stringify(output, null, 2)
+      setInputText(outputText)
+      setCharCount(outputText.length)
+      onInputChange(outputText, null, null, false)
+    }
+  }
+
   const getInstructionText = () => {
     if (!selectedTool) return null
 
@@ -276,44 +322,6 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     <div className={styles.container}>
       <div className={styles.inputWrapper}>
         <div className={styles.inputFieldContainer}>
-          <div className={styles.buttonsWrapper}>
-            <button
-              className={styles.uploadImageButton}
-              onClick={openFileDialog}
-              title="Click to upload an image"
-              type="button"
-            >
-              <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              Upload Image
-            </button>
-            <div className={styles.buttonGroup}>
-              {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
-                <button
-                  className={styles.loadExampleButton}
-                  onClick={handleLoadExample}
-                  title="Load example input and see output"
-                  type="button"
-                >
-                  Load Example
-                </button>
-              )}
-              {inputText && (
-                <button
-                  className={styles.clearInputButton}
-                  onClick={handleClearInput}
-                  title="Clear all input and output"
-                  type="button"
-                >
-                  Clear Input
-                </button>
-              )}
-            </div>
-          </div>
-
           <div
             className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''} ${isResizing ? styles.resizing : ''}`}
             onDragOver={handleDragOver}
@@ -330,7 +338,73 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               className={styles.fileInput}
             />
             <div className={styles.toolTextbox}>
-              <div className={styles.toolTextboxHeader}>Input</div>
+              <div className={styles.toolTextboxHeader}>
+                <div className={styles.headerContent}>
+                  <button
+                    className={styles.uploadImageButton}
+                    onClick={openFileDialog}
+                    title="Click to upload an image"
+                    type="button"
+                  >
+                    <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span className={styles.buttonText}>Upload Image</span>
+                  </button>
+                  <div className={styles.headerButtonGroup}>
+                    {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
+                      <button
+                        className={styles.loadExampleButton}
+                        onClick={handleLoadExample}
+                        title="Load example input and see output"
+                        type="button"
+                      >
+                        Load Example
+                      </button>
+                    )}
+                    {inputText && (
+                      <>
+                        <button
+                          className={styles.clearInputButton}
+                          onClick={handleClearInput}
+                          title="Clear all input and output"
+                          type="button"
+                        >
+                          <span className={styles.buttonText}>Clear Input</span>
+                        </button>
+                        {getOutputToUse() && (
+                          <>
+                            {activeToolkitSection === 'caseConverter' && (
+                              <select
+                                className={styles.caseTypeSelect}
+                                value={selectedCaseType}
+                                onChange={(e) => setSelectedCaseType(e.target.value)}
+                                title="Select case type to use"
+                              >
+                                <option value="uppercase">UPPERCASE</option>
+                                <option value="lowercase">lowercase</option>
+                                <option value="titleCase">Title Case</option>
+                                <option value="sentenceCase">Sentence case</option>
+                              </select>
+                            )}
+                            <button
+                              className={styles.useOutputButton}
+                              onClick={handleUseOutput}
+                              title="Use output as input"
+                              type="button"
+                              aria-label="Use output as input"
+                            >
+                              ⬇️
+                            </button>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className={styles.toolTextboxEditor}>
                 <CodeMirrorEditor
                   value={inputText}
