@@ -152,7 +152,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background-color: transparent;
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -162,7 +162,8 @@
   color: var(--color-text-secondary);
   transition: all 0.2s;
   white-space: nowrap;
-  align-self: flex-end;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
@@ -199,7 +200,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background-color: #0066cc;
   border: 1px solid #0066cc;
   border-radius: 4px;
@@ -209,6 +210,8 @@
   color: #ffffff;
   transition: all 0.2s;
   white-space: nowrap;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .loadExampleButton:hover {
@@ -225,7 +228,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background-color: var(--color-background-tertiary);
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -235,6 +238,8 @@
   color: var(--color-text-secondary);
   transition: all 0.2s;
   white-space: nowrap;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .clearInputButton:hover {
@@ -273,7 +278,7 @@
 }
 
 .caseTypeSelect {
-  padding: 6px 8px;
+  padding: 4px 8px;
   background-color: var(--color-background-tertiary);
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -283,6 +288,8 @@
   color: var(--color-text-secondary);
   transition: all 0.2s;
   max-width: 110px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .caseTypeSelect:hover {
@@ -318,6 +325,7 @@
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .useOutputButton:hover {
@@ -489,11 +497,13 @@
 }
 
 .toolTextboxHeader {
-  padding: 8px 12px;
+  height: 50px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-background-tertiary);
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
 .headerContent {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EditorState, Compartment } from '@codemirror/state'
 import { EditorView, lineNumbers } from '@codemirror/view'
 import { keymap } from '@codemirror/view'
@@ -244,10 +244,41 @@ export default function CodeMirrorEditor({
   const syntaxCompartmentRef = useRef(new Compartment())
   const lintThemeCompartmentRef = useRef(new Compartment())
   const linterCompartmentRef = useRef(new Compartment())
+  const [gutterWidth, setGutterWidth] = useState(0)
 
   useEffect(() => {
     valueRef.current = value
   }, [value])
+
+  // Calculate gutter width when line numbers are shown
+  useEffect(() => {
+    if (!viewRef.current || !showLineNumbers) {
+      setGutterWidth(0)
+      return
+    }
+
+    const measureGutterWidth = () => {
+      const gutterElement = editorRef.current?.querySelector('.cm-gutters')
+      if (gutterElement) {
+        setGutterWidth(gutterElement.offsetWidth)
+      }
+    }
+
+    // Measure after a short delay to ensure CM6 has rendered
+    const timer = setTimeout(measureGutterWidth, 50)
+
+    // Also set up a ResizeObserver to track gutter width changes
+    if (editorRef.current) {
+      const gutterElement = editorRef.current.querySelector('.cm-gutters')
+      if (gutterElement) {
+        const observer = new ResizeObserver(measureGutterWidth)
+        observer.observe(gutterElement)
+        return () => observer.disconnect()
+      }
+    }
+
+    return () => clearTimeout(timer)
+  }, [showLineNumbers, viewRef.current])
 
   useEffect(() => {
     if (!editorRef.current) return
@@ -420,7 +451,7 @@ export default function CodeMirrorEditor({
           style={{
             position: 'absolute',
             top: '10px',
-            left: '8px',
+            left: `${gutterWidth + 8}px`,
             color: 'var(--color-text-secondary)',
             opacity: '0.5',
             pointerEvents: 'none',
