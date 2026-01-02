@@ -90,6 +90,31 @@
   animation: spin 0.8s linear infinite;
 }
 
+.spinnerDots {
+  display: none;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #0066cc;
+  animation: blink 1.4s infinite;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 @keyframes spinSmooth {
   to {
     transform: rotate(360deg);
@@ -110,6 +135,18 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%, 20%, 50%, 80%, 100% {
+    opacity: 0.4;
+  }
+  40% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
   }
 }
 
@@ -263,7 +300,7 @@
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 991px) {
   .sidebar {
     width: 100%;
     height: auto;
@@ -293,8 +330,23 @@
     flex-shrink: 0;
   }
 
-  .toolItemAnimated {
-    animation: none;
+  .loadingState {
+    padding: 16px 20px;
+    flex: 1;
+  }
+
+  .spinnerContainer {
+    gap: 8px;
+  }
+
+  .spinner {
+    display: none;
+  }
+
+  .spinnerDots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .toolIcon {

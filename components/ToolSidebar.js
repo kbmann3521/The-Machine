@@ -141,6 +141,11 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         <div className={styles.loadingState}>
           <div className={styles.spinnerContainer}>
             <div className={styles.spinner} />
+            <div className={styles.spinnerDots}>
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+            </div>
             <p className={styles.loadingText}>Loading tools...</p>
           </div>
         </div>
