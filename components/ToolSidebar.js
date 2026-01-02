@@ -60,8 +60,10 @@ const getScoreLabel = (similarity) => {
 
 export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading, initialLoading }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [showCascadeAnimation, setShowCascadeAnimation] = useState(true)
   const itemRefs = useRef({})
   const prevPositionsRef = useRef({})
+  const hasLoadedRef = useRef(false)
 
   const filteredTools = useMemo(() => {
     let tools = [...predictedTools].sort((a, b) => a.name.localeCompare(b.name))
@@ -79,6 +81,22 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
   }, [predictedTools, searchQuery])
 
   const topMatch = filteredTools[0]
+
+  // Disable cascade animation after initial load or when searching
+  useEffect(() => {
+    if (!initialLoading && !hasLoadedRef.current) {
+      // First time tools finish loading - allow animation for this render
+      hasLoadedRef.current = true
+    } else if (searchQuery.trim()) {
+      // Disable animation when user starts searching
+      setShowCascadeAnimation(false)
+    } else if (!searchQuery.trim() && !initialLoading) {
+      // Re-enable animation when search is cleared (but only on subsequent clears)
+      if (hasLoadedRef.current) {
+        setShowCascadeAnimation(false)
+      }
+    }
+  }, [initialLoading, searchQuery])
 
   // Position tracking (animations disabled)
   useEffect(() => {
@@ -139,9 +157,11 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                 key={tool.toolId}
                 ref={(el) => setItemRef(tool.toolId, el)}
                 className={`${styles.toolItem} ${
+                  showCascadeAnimation ? styles.toolItemAnimated : ''
+                } ${
                   isSelected ? styles.selected : ''
                 } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
-                style={{ animationDelay: `${index * 50}ms` }}
+                style={showCascadeAnimation ? { animationDelay: `${index * 50}ms` } : {}}
                 onClick={() => onSelectTool(tool)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
                 role="button"
