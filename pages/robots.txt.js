@@ -11,10 +11,11 @@ if (supabaseUrl && supabaseKey) {
 
 const DEFAULT_ROBOTS = `User-agent: *
 Allow: /
-Allow: /api/sitemap
 
 Disallow: /api/
 Disallow: /.next/
+Disallow: /admin/
+Disallow: /debug/
 
 Sitemap: https://www.pioneerwebtools.com/api/sitemap`
 
