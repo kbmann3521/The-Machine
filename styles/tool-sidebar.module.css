@@ -102,10 +102,10 @@
   }
 }
 
-@keyframes fadeInFromTop {
+@keyframes floatUpFromBottom {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -145,7 +145,12 @@
   cursor: pointer;
   text-align: left;
   width: 100%;
-  animation: fadeInFromTop 0.4s ease-out forwards;
+}
+
+.toolItemAnimated {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: floatUpFromBottom 0.5s ease-out forwards;
 }
 
 @media (min-width: 992px) {
@@ -268,11 +273,6 @@
     flex-basis: auto;
   }
 
-  .loadingState {
-    padding: 20px;
-    min-height: 80px;
-  }
-
   .toolsList {
     flex-direction: row;
     overflow-x: auto;
@@ -291,6 +291,10 @@
     gap: 8px;
     padding: 8px 12px;
     flex-shrink: 0;
+  }
+
+  .toolItemAnimated {
+    animation: none;
   }
 
   .toolIcon {
