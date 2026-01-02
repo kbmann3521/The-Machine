@@ -331,8 +331,12 @@
   }
 
   .loadingState {
-    padding: 16px 20px;
+    padding: 6px 4px 6px 20px;
     flex: 1;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .spinnerContainer {

@@ -11,6 +11,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  transition: padding-right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebarOpenDesktop {
@@ -30,7 +31,6 @@
   flex-direction: column;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  scrollbar-gutter: stable;
 }
 
 .mainContent::-webkit-scrollbar {
@@ -51,8 +51,8 @@
 }
 
 .header {
-  height: 50px;
-  padding: 10px 30px;
+  height: 60px;
+  padding: 15px 30px;
   background: linear-gradient(135deg, var(--color-header-gradient-start) 0%, var(--color-header-gradient-end) 100%);
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 0;
@@ -363,8 +363,8 @@
   }
 
   .header {
-    height: 50px;
-    padding: 10px 25px;
+    height: 60px;
+    padding: 15px 25px;
     justify-content: space-between;
     align-items: center;
   }
@@ -412,8 +412,8 @@
   }
 
   .header {
-    height: 50px;
-    padding: 10px 20px;
+    height: 60px;
+    padding: 15px 20px;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -496,8 +496,8 @@
 
 @media (max-width: 640px) {
   .header {
-    height: 50px;
-    padding: 10px 15px;
+    height: 60px;
+    padding: 15px 15px;
   }
 
   .header h1 {
