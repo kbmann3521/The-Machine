@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import UniversalInput from '../components/UniversalInput'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
@@ -20,6 +21,7 @@ import { withSeoSettings } from '../lib/getSeoSettings'
 import styles from '../styles/hub.module.css'
 
 export default function Home(props) {
+  const router = useRouter()
   const siteName = props?.siteName || 'All-in-One Internet Tools'
   const testTitle = props?.testTitle || 'All-in-One Internet Tools'
   const testDescription = props?.testDescription || 'Paste anything — we\'ll auto-detect the perfect tool'
@@ -290,6 +292,11 @@ export default function Home(props) {
       }
       setConfigOptions(initialConfig)
 
+      // Update URL with selected tool
+      if (tool?.toolId) {
+        router.push({ query: { tool: tool.toolId } }, undefined, { shallow: true })
+      }
+
       // Only reset output when switching to a different tool
       if (toolChanged) {
         setOutputResult(null)
@@ -297,8 +304,20 @@ export default function Home(props) {
         setToolLoading(false)
       }
     },
-    []
+    [router]
   )
+
+  // Handle tool selection from URL query parameter
+  useEffect(() => {
+    if (!router.isReady || !router.query.tool || predictedTools.length === 0) return
+
+    const toolId = router.query.tool
+    const tool = predictedTools.find(t => t.toolId === toolId)
+
+    if (tool && selectedToolRef.current?.toolId !== toolId) {
+      handleSelectTool(tool)
+    }
+  }, [router.isReady, router.query.tool, predictedTools, handleSelectTool])
 
   const handleInputChange = useCallback((text, image, preview, isLoadExample) => {
     const isAddition = text.length > previousInputLength

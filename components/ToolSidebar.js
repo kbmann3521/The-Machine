@@ -141,6 +141,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                 className={`${styles.toolItem} ${
                   isSelected ? styles.selected : ''
                 } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
+                style={{ animationDelay: `${index * 50}ms` }}
                 onClick={() => onSelectTool(tool)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
                 role="button"
