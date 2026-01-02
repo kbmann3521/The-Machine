@@ -212,6 +212,10 @@ function getLanguageExtension(language = 'javascript') {
       return sql()
     case 'yaml':
       return yaml()
+    case 'text':
+      // Plain text mode with no syntax highlighting or language-specific features
+      // This disables auto-indentation and other language-specific behaviors
+      return []
     case 'javascript':
     default:
       return javascript()

@@ -256,6 +256,11 @@
     flex-basis: auto;
   }
 
+  .loadingState {
+    padding: 20px;
+    min-height: 80px;
+  }
+
   .toolsList {
     flex-direction: row;
     overflow-x: auto;
@@ -263,6 +268,7 @@
     gap: 8px;
     padding: 4px 4px 8px 20px;
     margin: 0;
+    min-height: 70px;
   }
 
   .toolItem {

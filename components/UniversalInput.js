@@ -34,6 +34,14 @@ const getLanguageForTool = (toolId) => {
       return 'yaml'
     case 'sql-formatter':
       return 'sql'
+    case 'text-toolkit':
+    case 'text-analyzer':
+    case 'find-replace':
+    case 'clean-text':
+    case 'reverse-text':
+    case 'sort-lines':
+    case 'delimiter-transformer':
+      return 'text'
     default:
       return 'javascript'
   }
