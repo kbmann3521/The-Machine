@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { EditorState, Compartment } from '@codemirror/state'
+import { EditorState, Compartment, EditorSelection } from '@codemirror/state'
 import { EditorView, lineNumbers } from '@codemirror/view'
 import { keymap } from '@codemirror/view'
-import { defaultKeymap, historyKeymap, indentWithTab, history } from '@codemirror/commands'
+import { defaultKeymap, historyKeymap, history } from '@codemirror/commands'
 import { searchKeymap } from '@codemirror/search'
 import { javascript } from '@codemirror/lang-javascript'
 import { xml } from '@codemirror/lang-xml'
@@ -218,6 +218,17 @@ function getLanguageExtension(language = 'javascript') {
   }
 }
 
+// Custom tab handler that inserts actual tab characters (\t)
+// instead of spaces, so tab count in text analyzer works correctly
+const insertTabCharacter = (view) => {
+  const state = view.state
+  const changes = state.changeByRange(range => ({
+    changes: { from: range.from, to: range.to, insert: '\t' },
+    range: EditorSelection.cursor(range.from + 1),
+  }))
+  view.dispatch(changes)
+  return true
+}
 
 export default function CodeMirrorEditor({
   value = '',
@@ -309,7 +320,7 @@ export default function CodeMirrorEditor({
       // Output editor: read-only safe (no undo/redo)
       ...(!readOnly ? [
         keymap.of([
-          indentWithTab,          // Tab key indents
+          { key: 'Tab', run: insertTabCharacter }, // Tab key inserts actual tab character
           ...historyKeymap,       // Ctrl/Cmd+Z (undo), Ctrl/Cmd+Shift+Z (redo), Ctrl+Y (redo)
           ...defaultKeymap,       // copy, paste, select all, arrow keys, etc.
           ...searchKeymap         // Ctrl/Cmd+F (find), Ctrl/Cmd+G (find next)
