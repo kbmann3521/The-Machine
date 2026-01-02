@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { supabase } from '../../lib/supabase-client'
@@ -10,34 +10,8 @@ export default function AdminLogin() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [checkingAuth, setCheckingAuth] = useState(true)
   const [isSignUp, setIsSignUp] = useState(false)
   const router = useRouter()
-
-  useEffect(() => {
-    const checkExistingSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (session) {
-        const { data: adminUser } = await supabase
-          .from('admin_users')
-          .select('user_id')
-          .eq('user_id', session.user.id)
-          .single()
-
-        if (adminUser) {
-          router.push('/admin/posts')
-          return
-        }
-      }
-
-      setCheckingAuth(false)
-    }
-
-    checkExistingSession()
-  }, [router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -81,49 +55,65 @@ export default function AdminLogin() {
           setLoading(false)
         }
       } else {
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
+        try {
+          const { data, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
 
-        if (signInError) {
-          setError(signInError.message)
-          setLoading(false)
-          return
-        }
-
-        if (data.user) {
-          // Check if user is in admin_users table
-          const { data: adminUsers, error: adminCheckError } = await supabase
-            .from('admin_users')
-            .select('user_id')
-            .eq('user_id', data.user.id)
-
-          if (adminCheckError || !adminUsers || adminUsers.length === 0) {
-            await supabase.auth.signOut()
-            setError('You do not have admin access. Contact the site administrator.')
+          if (signInError) {
+            setError(signInError.message)
             setLoading(false)
             return
           }
 
-          router.push('/admin/posts')
+          if (data.user) {
+            // Check if user is in admin_users table
+            const { data: adminUsers, error: adminCheckError } = await supabase
+              .from('admin_users')
+              .select('user_id')
+              .eq('user_id', data.user.id)
+
+            if (adminCheckError || !adminUsers || adminUsers.length === 0) {
+              await supabase.auth.signOut()
+              setError('You do not have admin access. Contact the site administrator.')
+              setLoading(false)
+              return
+            }
+
+            // Wait for the session to be available client-side
+            let sessionAvailable = false
+            let attempts = 0
+            const maxAttempts = 20 // 2 seconds max
+
+            while (!sessionAvailable && attempts < maxAttempts) {
+              const { data: { session: currentSession } } = await supabase.auth.getSession()
+              if (currentSession) {
+                sessionAvailable = true
+                break
+              }
+              attempts++
+              await new Promise(resolve => setTimeout(resolve, 100))
+            }
+
+            if (sessionAvailable) {
+              // Redirect to admin posts page
+              await router.push('/admin/posts')
+            } else {
+              setError('Session timeout. Please try logging in again.')
+              setLoading(false)
+            }
+          }
+        } catch (err) {
+          setError('Network error: ' + (err.message || 'Failed to connect to authentication service'))
+          setLoading(false)
+          return
         }
       }
     } catch (err) {
       setError('An unexpected error occurred')
       setLoading(false)
     }
-  }
-
-  if (checkingAuth) {
-    return (
-      <div className={styles.adminContainer}>
-        <Head>
-          <title>Admin Login</title>
-        </Head>
-        <div className={styles.loadingState}>Loading...</div>
-      </div>
-    )
   }
 
   return (
@@ -230,4 +220,28 @@ export default function AdminLogin() {
       </div>
     </div>
   )
+}
+
+export async function getServerSideProps(context) {
+  try {
+    // Check if user has an active session by looking for auth cookie
+    const authCookie = context.req.cookies['sb-lkcwoiyuzivqzynhwfsh-auth-token']
+
+    if (authCookie) {
+      // User is already logged in, redirect to admin panel
+      return {
+        redirect: {
+          destination: '/admin/posts',
+          permanent: false,
+        },
+      }
+    }
+  } catch (err) {
+    console.error('Error checking auth in getServerSideProps:', err)
+  }
+
+  // User is not logged in, allow them to see the login page
+  return {
+    props: {},
+  }
 }
