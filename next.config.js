@@ -122,7 +122,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/api/sitemap',
+        source: '/sitemap.xml',
         headers: [
           {
             key: 'Content-Type',
@@ -130,7 +130,7 @@ const nextConfig = {
           },
           {
             key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=3600',
+            value: 'public, max-age=86400, s-maxage=86400',
           },
         ],
       }

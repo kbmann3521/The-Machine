@@ -17,7 +17,7 @@ Disallow: /.next/
 Disallow: /admin/
 Disallow: /debug/
 
-Sitemap: https://www.pioneerwebtools.com/api/sitemap`
+Sitemap: https://www.pioneerwebtools.com/sitemap.xml`
 
 function RobotsTxt() {
   return null
