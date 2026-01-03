@@ -10,15 +10,13 @@ if (supabaseUrl && supabaseKey) {
 }
 
 const DEFAULT_ROBOTS = `User-agent: *
-Allow: /
-Allow: /api/sitemap.xml
-
+Allow: /api/sitemap
 Disallow: /admin/
 Disallow: /api/
 Disallow: /.next/
 Disallow: /debug/
 
-Sitemap: https://www.pioneerwebtools.com/api/sitemap.xml`
+Sitemap: https://www.pioneerwebtools.com/api/sitemap`
 
 function RobotsTxt() {
   return null
