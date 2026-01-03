@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { FaCopy, FaCheck } from 'react-icons/fa6'
 import dynamic from 'next/dynamic'
 import styles from '../styles/tool-output.module.css'
@@ -6,6 +6,7 @@ import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CSVWarningsPanel from './CSVWarningsPanel'
+import MarkdownRenderer from './MarkdownRenderer'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
 import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
@@ -35,9 +36,41 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [caseConverterCopied, setCaseConverterCopied] = useState({})
   const [expandedMetric, setExpandedMetric] = useState(null)
   const [analyzerSearchQuery, setAnalyzerSearchQuery] = useState('')
+  const [markdownCustomCss, setMarkdownCustomCss] = useState('')
+  const [scannedSelectors, setScannedSelectors] = useState({ tags: [], classes: [], suggestions: [] })
+  const cssTextareaRef = useRef(null)
+
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
+
+  const handleSelectorsDetected = (selectors) => {
+    setScannedSelectors(selectors)
+  }
+
+  const handleInsertSelector = (selector) => {
+    if (!cssTextareaRef.current) return
+
+    const textarea = cssTextareaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = textarea.value
+
+    // Insert selector template
+    const selectorTemplate = `${selector} {
+
+}\n`
+
+    const newText = text.slice(0, start) + selectorTemplate + text.slice(end)
+    setMarkdownCustomCss(newText)
+
+    // Restore focus and position cursor inside the braces
+    setTimeout(() => {
+      textarea.focus()
+      const cursorPos = start + selector.length + 4 // Position after '{\n  '
+      textarea.setSelectionRange(cursorPos, cursorPos)
+    }, 0)
+  }
 
   const handleDialectChange = (dialect) => {
     if (onConfigChange) {
@@ -2479,6 +2512,147 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Rendered tab - shows the formatted markdown rendered as HTML
+    if (displayResult.formatted && displayResult.isWellFormed !== false) {
+      tabs.push({
+        id: 'rendered',
+        label: 'Rendered',
+        content: (
+          <MarkdownRenderer
+            markdown={displayResult.formatted}
+            customCss={markdownCustomCss}
+            onSelectorsDetected={handleSelectorsDetected}
+          />
+        ),
+        contentType: 'component',
+      })
+    }
+
+    // CSS Editor tab - allows users to customize markdown rendering styles
+    if (displayResult.formatted && displayResult.isWellFormed !== false) {
+      tabs.push({
+        id: 'css',
+        label: 'CSS',
+        content: (
+          <div style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '16px',
+          }}>
+            <div style={{
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              lineHeight: '1.5',
+              marginBottom: '4px',
+            }}>
+              💡 <strong>Preview Styling:</strong> Edit CSS to customize how the markdown appears in the preview. Styles are scoped to <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'var(--color-background-secondary)', padding: '2px 4px', borderRadius: '2px' }}>.pwt-markdown-preview</code> and may need adjustment when used in your own project.
+            </div>
+
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'var(--color-background-secondary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              fontSize: '12px',
+            }}>
+              <div style={{ marginBottom: '8px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                📍 Suggested Selectors:
+              </div>
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '6px',
+              }}>
+                {scannedSelectors.suggestions && scannedSelectors.suggestions.length > 0 ? (
+                  scannedSelectors.suggestions.map((selector, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleInsertSelector(selector)}
+                      title={`Click to insert "${selector}" selector`}
+                      style={{
+                        padding: '6px 10px',
+                        backgroundColor: '#0066cc',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#0052a3'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#0066cc'}
+                    >
+                      {selector}
+                    </button>
+                  ))
+                ) : (
+                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '11px', fontStyle: 'italic' }}>
+                    No selectors detected yet
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <textarea
+              ref={cssTextareaRef}
+              value={markdownCustomCss}
+              onChange={(e) => setMarkdownCustomCss(e.target.value)}
+              style={{
+                minHeight: '600px',
+                flex: 1,
+                fontFamily: "'Courier New', 'Monaco', 'Menlo', monospace",
+                fontSize: '13px',
+                padding: '12px',
+                backgroundColor: 'var(--color-background-secondary)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '4px',
+                color: 'var(--color-text-primary)',
+                resize: 'vertical',
+                lineHeight: '1.6',
+              }}
+              placeholder={`/* Scope CSS to preview root */
+.pwt-markdown-preview h1 {
+  font-size: 32px;
+  color: #333;
+  font-weight: 700;
+}
+
+.pwt-markdown-preview p {
+  line-height: 1.8;
+  color: #666;
+}
+
+.pwt-markdown-preview a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.pwt-markdown-preview code {
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 2px;
+}`}
+              spellCheck="false"
+            />
+            <div style={{
+              fontSize: '11px',
+              color: 'var(--color-text-secondary)',
+              lineHeight: '1.6',
+              padding: '8px',
+              backgroundColor: 'var(--color-background-secondary)',
+              borderRadius: '4px',
+            }}>
+              ℹ️ <strong>How to target elements:</strong> Most selectors require the <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview</code> prefix. For example: <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview h1</code>, <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview blockquote</code>, or <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview .language-bash</code>
+            </div>
+          </div>
+        ),
+        contentType: 'component',
+      })
+    }
+
     // Add JSON tab - shows input, output, and diagnostics only
     const mdJsonWithInputOutput = {
       input: inputText,
@@ -2500,7 +2674,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    return (
+      <>
+        {/* Hidden MarkdownRenderer for selector scanning */}
+        {displayResult.formatted && displayResult.isWellFormed !== false && (
+          <div style={{ display: 'none' }}>
+            <MarkdownRenderer
+              markdown={displayResult.formatted}
+              customCss={markdownCustomCss}
+              onSelectorsDetected={handleSelectorsDetected}
+            />
+          </div>
+        )}
+        <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+      </>
+    )
   }
 
   const renderCssFormatterOutput = () => {
