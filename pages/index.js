@@ -38,6 +38,7 @@ export default function Home(props) {
   const [toolLoading, setToolLoading] = useState(false)
   const [inputChangeKey, setInputChangeKey] = useState(0)
   const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeToolkitSection, setActiveToolkitSection] = useState('textAnalyzer')
   const [findReplaceConfig, setFindReplaceConfig] = useState({
     findText: '',
@@ -306,6 +307,16 @@ export default function Home(props) {
     },
     [router]
   )
+
+  const handleHomeClick = useCallback(() => {
+    setSelectedTool(null)
+    setOutputWarnings([])
+    selectedToolRef.current = null
+    setOutputResult(null)
+    setError(null)
+    setToolLoading(false)
+    router.push('/', undefined, { shallow: true })
+  }, [router])
 
   // Handle tool selection from URL query parameter
   useEffect(() => {
@@ -799,10 +810,15 @@ export default function Home(props) {
 
       <div className={styles.layout}>
         <div className={styles.header}>
-          <div className={styles.headerContent}>
+          <button
+            className={styles.headerContent}
+            onClick={handleHomeClick}
+            title="Go to home and deselect tool"
+            aria-label="Go to home and deselect tool"
+          >
             <h1>{siteName}</h1>
             <p>Paste anything — we'll auto-detect the perfect tool</p>
-          </div>
+          </button>
           <ThemeToggle />
         </div>
 
@@ -813,6 +829,8 @@ export default function Home(props) {
             onSelectTool={handleSelectTool}
             loading={loading}
             initialLoading={initialToolsLoading}
+            sidebarOpen={sidebarOpen}
+            onSidebarToggle={setSidebarOpen}
           />
 
           <main className={styles.mainContent}>

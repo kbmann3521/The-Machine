@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator } from 'react-icons/fa6'
+import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator, FaChevronLeft } from 'react-icons/fa6'
 import { BsRegex, BsQrCode } from 'react-icons/bs'
 import { ImCalculator } from 'react-icons/im'
 import styles from '../styles/tool-sidebar.module.css'
@@ -58,7 +58,7 @@ const getScoreLabel = (similarity) => {
   return 'Available'
 }
 
-export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading, initialLoading }) {
+export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading, initialLoading, sidebarOpen = true, onSidebarToggle }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [showCascadeAnimation, setShowCascadeAnimation] = useState(true)
   const itemRefs = useRef({})
@@ -125,8 +125,16 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
   }
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${!sidebarOpen ? styles.collapsed : ''}`}>
       <div className={styles.header}>
+        <button
+          className={styles.collapseButton}
+          onClick={() => onSidebarToggle?.(!sidebarOpen)}
+          title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          <FaChevronLeft />
+        </button>
         <input
           type="text"
           placeholder="Search by tool name or function..."
@@ -141,6 +149,11 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         <div className={styles.loadingState}>
           <div className={styles.spinnerContainer}>
             <div className={styles.spinner} />
+            <div className={styles.spinnerDots}>
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+            </div>
             <p className={styles.loadingText}>Loading tools...</p>
           </div>
         </div>

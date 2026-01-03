@@ -5,6 +5,7 @@ import { keymap } from '@codemirror/view'
 import { defaultKeymap, historyKeymap, history } from '@codemirror/commands'
 import { searchKeymap } from '@codemirror/search'
 import { javascript } from '@codemirror/lang-javascript'
+import { json } from '@codemirror/lang-json'
 import { xml } from '@codemirror/lang-xml'
 import { html } from '@codemirror/lang-html'
 import { markdown } from '@codemirror/lang-markdown'
@@ -23,30 +24,30 @@ import { createFormatterLinter, createLintTheme } from '../lib/codemirrorLinting
  * ============================================================================
  */
 
-// Light mode syntax colors
+// Light mode syntax colors (professional JSON standard)
 const syntaxLight = HighlightStyle.define([
-  { tag: tags.keyword, color: '#1f4fd8' },              // Keywords (blue)
-  { tag: tags.atom, color: '#9f1239' },                 // Atoms/booleans (rose)
-  { tag: tags.number, color: '#9f1239' },               // Numbers (rose)
-  { tag: tags.string, color: '#065f46' },               // Strings (teal/green)
-  { tag: tags.comment, color: '#6b7280', fontStyle: 'italic' },  // Comments (gray)
-  { tag: tags.operator, color: '#374151' },             // Operators (dark gray)
-  { tag: tags.punctuation, color: '#374151' },          // Punctuation (dark gray)
-  { tag: tags.propertyName, color: '#92400e' },         // Property names (amber)
+  { tag: tags.keyword, color: '#7c3aed' },              // Keywords / booleans (purple)
+  { tag: tags.atom, color: '#7c3aed' },                 // Atoms/booleans/null (purple)
+  { tag: tags.number, color: '#d97706' },               // Numbers (amber/orange) - numeric accent
+  { tag: tags.string, color: '#059669' },               // String values (green) - bright and prominent for data
+  { tag: tags.comment, color: '#9ca3af', fontStyle: 'italic' },  // Comments (gray)
+  { tag: tags.operator, color: '#6b7280' },             // Operators (dark gray)
+  { tag: tags.punctuation, color: '#9ca3af' },          // Punctuation (light gray) - low contrast structural
+  { tag: tags.propertyName, color: '#2563eb' },         // JSON object keys (muted blue) - less visually loud than values
   { tag: tags.className, color: '#1f4fd8' },            // Class names (blue)
   { tag: tags.variableName, color: '#0f766e' },         // Variable names (teal)
 ])
 
-// Dark mode syntax colors (same hues, brighter for dark backgrounds)
+// Dark mode syntax colors (professional JSON standard)
 const syntaxDark = HighlightStyle.define([
-  { tag: tags.keyword, color: '#7aa2f7' },              // Keywords (bright blue)
-  { tag: tags.atom, color: '#f7768e' },                 // Atoms/booleans (bright rose)
-  { tag: tags.number, color: '#f7768e' },               // Numbers (bright rose)
-  { tag: tags.string, color: '#9ece6a' },               // Strings (bright green)
+  { tag: tags.keyword, color: '#d8b4fe' },              // Keywords / booleans (bright purple)
+  { tag: tags.atom, color: '#d8b4fe' },                 // Atoms/booleans/null (bright purple)
+  { tag: tags.number, color: '#fbbf24' },               // Numbers (bright amber/orange) - numeric accent
+  { tag: tags.string, color: '#a7f3d0' },               // String values (bright green) - prominent for data visibility
   { tag: tags.comment, color: '#9aa5ce', fontStyle: 'italic' },  // Comments (light gray)
-  { tag: tags.operator, color: '#c0caf5' },             // Operators (light gray)
-  { tag: tags.punctuation, color: '#c0caf5' },          // Punctuation (light gray)
-  { tag: tags.propertyName, color: '#e0af68' },         // Property names (bright amber)
+  { tag: tags.operator, color: '#9ca3af' },             // Operators (medium gray)
+  { tag: tags.punctuation, color: '#6b7280' },          // Punctuation (dark gray) - low contrast structural
+  { tag: tags.propertyName, color: '#7dd3fc' },         // JSON object keys (cyan/blue) - muted, less visually loud than values
   { tag: tags.className, color: '#7aa2f7' },            // Class names (bright blue)
   { tag: tags.variableName, color: '#7dcfff' },         // Variable names (bright cyan)
 ])
@@ -197,8 +198,8 @@ function createSyntaxTheme(isDarkMode) {
 function getLanguageExtension(language = 'javascript') {
   switch (language?.toLowerCase()) {
     case 'json':
-      // JSON uses JavaScript parser with json: true flag
-      return javascript({ json: true })
+      // JSON uses dedicated JSON parser for proper key/value distinction
+      return json()
     case 'xml':
     case 'svg':
       // SVG uses XML language (no separate SVG language exists)
