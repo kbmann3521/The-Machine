@@ -1,23 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { FaCopy } from 'react-icons/fa6'
-import SyntaxHighlighter from './SyntaxHighlighter'
-import { isScriptingLanguageTool } from '../lib/tools'
 import styles from '../styles/output-tabs.module.css'
 
 // Dynamically import CodeMirrorEditor to avoid SSR issues
 const CodeMirrorEditor = dynamic(() => import('./CodeMirrorEditor'), { ssr: false })
-
-// Formatter tools that should use CodeMirror for output
-const FORMATTER_TOOLS_WITH_CM6 = new Set([
-  'js-formatter',
-  'json-formatter',
-  'markdown-html-formatter',
-  'sql-formatter',
-  'xml-formatter',
-  'yaml-formatter',
-  'svg-optimizer',
-])
 
 export default function OutputTabs({
   tabs = null,
@@ -413,36 +400,19 @@ export default function OutputTabs({
         else if (contentType === 'json') language = 'json'
       }
 
-      // Use CodeMirror for formatter tool outputs
-      if (FORMATTER_TOOLS_WITH_CM6.has(toolId)) {
-        // Hide line numbers for JSON tabs
-        const showLineNumbers = language !== 'json'
-        return (
-          <div className={styles.codeContentWithLineNumbers} style={{ height: '100%' }}>
-            <div className={styles.codeContentWrapper} ref={codeContentRef} style={{ height: '100%' }}>
-              <CodeMirrorEditor
-                value={codeContent}
-                language={language}
-                readOnly={true}
-                showLineNumbers={showLineNumbers}
-                editorType="output"
-                style={{ height: '100%' }}
-                highlightingEnabled={isScriptingLanguageTool(toolId)}
-              />
-            </div>
-          </div>
-        )
-      }
-
-      // Use SyntaxHighlighter for other tools
+      // Use CodeMirror for all code/JSON tabs
+      const showLineNumbers = language !== 'json'
       return (
-        <div className={styles.codeContentWithLineNumbers}>
-          <div className={styles.codeContentWrapper} ref={codeContentRef}>
-            <SyntaxHighlighter
-              code={codeContent}
+        <div className={styles.codeContentWithLineNumbers} style={{ height: '100%' }}>
+          <div className={styles.codeContentWrapper} ref={codeContentRef} style={{ height: '100%' }}>
+            <CodeMirrorEditor
+              value={codeContent}
               language={language}
-              toolId={toolId}
-              className={styles.jsonCode}
+              readOnly={true}
+              showLineNumbers={showLineNumbers}
+              editorType="output"
+              style={{ height: '100%' }}
+              highlightingEnabled={true}
             />
           </div>
         </div>
@@ -493,13 +463,16 @@ export default function OutputTabs({
 
     const jsonContent = JSON.stringify(content, null, 2)
     return (
-      <div className={`${styles.codeContentWithLineNumbers} ${styles.codeContentNoLineNumbers}`}>
-        <div className={styles.codeContentWrapper}>
-          <SyntaxHighlighter
-            code={jsonContent}
+      <div className={`${styles.codeContentWithLineNumbers} ${styles.codeContentNoLineNumbers}`} style={{ height: '100%' }}>
+        <div className={styles.codeContentWrapper} style={{ height: '100%' }}>
+          <CodeMirrorEditor
+            value={jsonContent}
             language="json"
-            toolId={toolId}
-            className={styles.jsonCode}
+            readOnly={true}
+            showLineNumbers={false}
+            editorType="output"
+            style={{ height: '100%' }}
+            highlightingEnabled={true}
           />
         </div>
       </div>
