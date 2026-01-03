@@ -1,4 +1,4 @@
-import { TOOLS } from '../lib/tools'
+import { TOOLS } from '../../lib/tools'
 
 export default function handler(req, res) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com'

@@ -122,7 +122,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/sitemap.xml',
+        source: '/api/sitemap.xml',
         headers: [
           {
             key: 'Content-Type',
