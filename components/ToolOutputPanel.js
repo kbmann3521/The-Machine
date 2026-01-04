@@ -7,8 +7,11 @@ import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CSVWarningsPanel from './CSVWarningsPanel'
 import MarkdownRenderer from './MarkdownRenderer'
+import HTMLRenderer from './HTMLRenderer'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
+import { scanSelectorsFromHTML } from '../lib/tools/selectorScanner'
+import { marked } from 'marked'
 import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
 import URLToolkitOutput from '../lib/tools/URLToolkitOutput'
 
@@ -43,9 +46,23 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
+  const isMarkdownFormatter = toolId === 'markdown-html-formatter'
+  const enableHtmlPreview = isMarkdownFormatter
+    ? configOptions?.enableHtml === true
+    : true
+  const enableGfmFeatures = isMarkdownFormatter
+    ? configOptions?.enableGfm !== false
+    : true
 
-  const handleSelectorsDetected = (selectors) => {
-    setScannedSelectors(selectors)
+  const shouldRenderMarkdownFormatterAsHtml = (formatterResult) => {
+    if (!formatterResult) return false
+    if (formatterResult.appliedConversion === 'html') {
+      return true
+    }
+    if (formatterResult.appliedConversion === 'markdown') {
+      return false
+    }
+    return formatterResult.contentMode === 'html'
   }
 
   const handleInsertSelector = (selector) => {
@@ -179,6 +196,49 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setPreviousToolkitSection(activeToolkitSection)
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
+
+  // Scan selectors from canonical HTML for markdown formatter
+  // This ensures consistent selector detection across both Markdown and HTML modes
+  const emptySelectorState = React.useMemo(() => ({
+    tags: [],
+    classes: [],
+    suggestions: { structure: [], headings: [], text: [], code: [] }
+  }), [])
+
+  React.useEffect(() => {
+    if (toolId !== 'markdown-html-formatter') {
+      setScannedSelectors(emptySelectorState)
+      return
+    }
+
+    if (!displayResult?.formatted || typeof displayResult.formatted !== 'string') {
+      setScannedSelectors(emptySelectorState)
+      return
+    }
+
+    const formattedOutput = displayResult.formatted
+    const selectorHtmlFlag = isMarkdownFormatter
+      ? shouldRenderMarkdownFormatterAsHtml(displayResult)
+      : isHtmlContent(formattedOutput)
+    let htmlForSelectors = ''
+
+    if (selectorHtmlFlag) {
+      htmlForSelectors = formattedOutput
+    } else {
+      try {
+        htmlForSelectors = marked.parse(formattedOutput)
+      } catch (error) {
+        console.warn('Failed to convert markdown to HTML for selector scanning:', error)
+        htmlForSelectors = ''
+      }
+    }
+
+    if (htmlForSelectors) {
+      setScannedSelectors(scanSelectorsFromHTML(htmlForSelectors))
+    } else {
+      setScannedSelectors(emptySelectorState)
+    }
+  }, [toolId, displayResult?.formatted, emptySelectorState])
 
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
@@ -2330,9 +2390,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
+  // Helper to detect if content is HTML or Markdown
+  const isHtmlContent = (content) => {
+    if (!content || typeof content !== 'string') return false
+    // Simple check: if content contains HTML-like tags, it's likely HTML
+    return /<[a-z][\w\s="'/:.-]*>/i.test(content.trim())
+  }
+
   const renderMarkdownFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
+
+    // Detect if the formatted output is HTML or Markdown using formatter metadata
+    const isHtml = isMarkdownFormatter
+      ? shouldRenderMarkdownFormatterAsHtml(displayResult)
+      : isHtmlContent(displayResult.formatted)
 
     // Add primary output tab - always show formatted result unless hideOutput is set
     if (displayResult.formatted !== undefined) {
@@ -2512,16 +2584,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    // Rendered tab - shows the formatted markdown rendered as HTML
+    // Rendered tab - shows the formatted content rendered as HTML
     if (displayResult.formatted && displayResult.isWellFormed !== false) {
       tabs.push({
         id: 'rendered',
         label: 'Rendered',
-        content: (
+        content: isHtml ? (
+          <HTMLRenderer
+            html={displayResult.formatted}
+            customCss={markdownCustomCss}
+          />
+        ) : (
           <MarkdownRenderer
             markdown={displayResult.formatted}
             customCss={markdownCustomCss}
-            onSelectorsDetected={handleSelectorsDetected}
+            allowHtml={enableHtmlPreview}
+            enableGfm={enableGfmFeatures}
           />
         ),
         contentType: 'component',
@@ -2557,43 +2635,208 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               borderRadius: '4px',
               fontSize: '12px',
             }}>
-              <div style={{ marginBottom: '8px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+              <div style={{ marginBottom: '12px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
                 📍 Suggested Selectors:
               </div>
-              <div style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '6px',
-              }}>
-                {scannedSelectors.suggestions && scannedSelectors.suggestions.length > 0 ? (
-                  scannedSelectors.suggestions.map((selector, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleInsertSelector(selector)}
-                      title={`Click to insert "${selector}" selector`}
-                      style={{
-                        padding: '6px 10px',
-                        backgroundColor: '#0066cc',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        fontFamily: 'monospace',
-                        transition: 'background-color 0.2s',
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#0052a3'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#0066cc'}
-                    >
-                      {selector}
-                    </button>
-                  ))
-                ) : (
-                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '11px', fontStyle: 'italic' }}>
-                    No selectors detected yet
-                  </span>
-                )}
-              </div>
+
+              {scannedSelectors.suggestions && (
+                typeof scannedSelectors.suggestions === 'object' &&
+                !Array.isArray(scannedSelectors.suggestions) &&
+                (scannedSelectors.suggestions.structure?.length > 0 ||
+                 scannedSelectors.suggestions.headings?.length > 0 ||
+                 scannedSelectors.suggestions.text?.length > 0 ||
+                 scannedSelectors.suggestions.code?.length > 0)
+              ) ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Structure Category */}
+                  {scannedSelectors.suggestions.structure?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Structure
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.structure.map((selector, idx) => (
+                          <button
+                            key={`structure-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                              color: '#4caf50',
+                              border: '1px solid rgba(76, 175, 80, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.3)'
+                              e.target.style.borderColor = 'rgba(76, 175, 80, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.2)'
+                              e.target.style.borderColor = 'rgba(76, 175, 80, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Headings Category */}
+                  {scannedSelectors.suggestions.headings?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Headings
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.headings.map((selector, idx) => (
+                          <button
+                            key={`headings-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                              color: '#2196f3',
+                              border: '1px solid rgba(33, 150, 243, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                              e.target.style.borderColor = 'rgba(33, 150, 243, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.2)'
+                              e.target.style.borderColor = 'rgba(33, 150, 243, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Text Category */}
+                  {scannedSelectors.suggestions.text?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Text
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.text.map((selector, idx) => (
+                          <button
+                            key={`text-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(156, 39, 176, 0.2)',
+                              color: '#9c27b0',
+                              border: '1px solid rgba(156, 39, 176, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.3)'
+                              e.target.style.borderColor = 'rgba(156, 39, 176, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.2)'
+                              e.target.style.borderColor = 'rgba(156, 39, 176, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Code Category */}
+                  {scannedSelectors.suggestions.code?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Code
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.code.map((selector, idx) => (
+                          <button
+                            key={`code-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                              color: '#ff9800',
+                              border: '1px solid rgba(255, 152, 0, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.3)'
+                              e.target.style.borderColor = 'rgba(255, 152, 0, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.2)'
+                              e.target.style.borderColor = 'rgba(255, 152, 0, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <span style={{ color: 'var(--color-text-secondary)', fontSize: '11px', fontStyle: 'italic' }}>
+                  No selectors detected yet
+                </span>
+              )}
             </div>
 
             <textarea
@@ -2675,19 +2918,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (tabs.length === 0) return null
 
     return (
-      <>
-        {/* Hidden MarkdownRenderer for selector scanning */}
-        {displayResult.formatted && displayResult.isWellFormed !== false && (
-          <div style={{ display: 'none' }}>
-            <MarkdownRenderer
-              markdown={displayResult.formatted}
-              customCss={markdownCustomCss}
-              onSelectorsDetected={handleSelectorsDetected}
-            />
-          </div>
-        )}
-        <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
-      </>
+      <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
     )
   }
 
