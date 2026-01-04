@@ -7,7 +7,7 @@ import Phase2Controls from './SVGOptimizer/Phase2Controls'
 // Lazy-load RegexToolkit - only needed when configuring regex patterns
 const RegexToolkit = dynamic(() => import('./RegexToolkit'), { ssr: false })
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText }) {
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
@@ -25,6 +25,30 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       setConfig(mergedConfig)
     }
   }, [tool?.toolId, currentConfig])
+
+  useEffect(() => {
+    if (tool?.toolId !== 'markdown-html-formatter') {
+      return
+    }
+
+    const mode = contentClassification?.mode || 'markdown'
+    const allowedValues = new Set(['none'])
+    if (mode === 'markdown') {
+      allowedValues.add('html')
+    }
+    if (mode === 'html') {
+      allowedValues.add('markdown')
+    }
+
+    setConfig(prevConfig => {
+      if (!prevConfig || prevConfig.convertTo === undefined || allowedValues.has(prevConfig.convertTo)) {
+        return prevConfig
+      }
+      const updatedConfig = { ...prevConfig, convertTo: 'none' }
+      onConfigChange(updatedConfig)
+      return updatedConfig
+    })
+  }, [contentClassification?.mode, onConfigChange, tool?.toolId])
 
   // Sync local delimiter state when parent config changes
   useEffect(() => {
@@ -74,6 +98,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   ]
 
   const isGeneratorTool = tool && noInputRequiredTools.includes(tool.toolId)
+  const classificationMode = contentClassification?.mode || 'markdown'
 
   const renderField = field => {
     const value = config[field.id]
@@ -107,6 +132,38 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id)) ||
       (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id)) ||
       (isChecksumAutoDetect && checksumDisabledFields.includes(field.id))
+
+    if (tool.toolId === 'markdown-html-formatter' && field.id === 'convertTo') {
+      const convertOptions = [{ value: 'none', label: 'None' }]
+      if (classificationMode === 'markdown') {
+        convertOptions.push({ value: 'html', label: 'HTML' })
+      }
+      if (classificationMode === 'html') {
+        convertOptions.push({ value: 'markdown', label: 'Markdown' })
+      }
+
+      if (convertOptions.length <= 1) {
+        return null
+      }
+
+      const normalizedValue = convertOptions.some(option => option.value === value) ? value : 'none'
+
+      return (
+        <select
+          key={field.id}
+          className={styles.select}
+          value={normalizedValue}
+          onChange={e => handleFieldChange(field.id, e.target.value)}
+          disabled={isFieldDisabled}
+        >
+          {convertOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )
+    }
 
     switch (field.type) {
       case 'text':
@@ -846,12 +903,16 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                         if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                           return null;
                         }
+                        const renderedField = renderField(field)
+                        if (!renderedField) {
+                          return null
+                        }
                         return (
                           <div key={field.id} className={styles.field}>
                             <label className={styles.fieldLabel} htmlFor={field.id}>
                               {field.label}
                             </label>
-                            {renderField(field)}
+                            {renderedField}
                           </div>
                         );
                       })}
@@ -863,12 +924,16 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                         if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                           return null;
                         }
+                        const renderedField = renderField(field)
+                        if (!renderedField) {
+                          return null
+                        }
                         return (
                           <div key={field.id} className={styles.field}>
                             <label className={styles.fieldLabel} htmlFor={field.id}>
                               {field.label}
                             </label>
-                            {renderField(field)}
+                            {renderedField}
                           </div>
                         );
                       })}
@@ -895,12 +960,17 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     }
                   }
 
+                  const renderedField = renderField(field)
+                  if (!renderedField) {
+                    return null
+                  }
+
                   return (
                     <div key={field.id} className={styles.field}>
                       <label className={styles.fieldLabel} htmlFor={field.id}>
                         {field.label}
                       </label>
-                      {renderField(field)}
+                      {renderedField}
                     </div>
                   )
                 })}

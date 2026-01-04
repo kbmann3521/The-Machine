@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HTML Renderer Stress Test (Plain)</title>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>HTML Renderer Stress Test Collection (Plain)</h1>
+      <p>Each section below is separated by an <code>&lt;hr&gt;</code> tag so you can test rendering without any CSS influence.</p>
+    </header>
+
+    <hr />
+
+    <section aria-labelledby="plain-headings">
+      <h2 id="plain-headings">Heading Samples</h2>
+      <p>All heading levels appear together.</p>
+      <h1>Heading Level One</h1>
+      <h2>Heading Level Two</h2>
+      <h3>Heading Level Three</h3>
+      <h4>Heading Level Four</h4>
+      <h5>Heading Level Five</h5>
+      <h6>Heading Level Six</h6>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-text">
+      <h2 id="plain-text">Text Formatting</h2>
+      <p>
+        <strong>Bold text</strong>, <em>italic text</em>, <mark>highlighted text</mark>, <code>inline code</code>, and
+        <a href="https://example.com">links</a> share a single paragraph.
+      </p>
+      <blockquote>
+        "Simplicity is the ultimate sophistication."
+        <cite>— Leonardo da Vinci</cite>
+      </blockquote>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-lists">
+      <h2 id="plain-lists">List Structures</h2>
+      <ul>
+        <li>Discovery</li>
+        <li>Planning</li>
+        <li>Execution</li>
+      </ul>
+      <ol>
+        <li>Research</li>
+        <li>Prototype</li>
+        <li>Launch</li>
+      </ol>
+      <dl>
+        <dt>API</dt>
+        <dd>Application Programming Interface</dd>
+        <dt>SPA</dt>
+        <dd>Single Page Application</dd>
+      </dl>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-figure">
+      <h2 id="plain-figure">Image &amp; Figure</h2>
+      <p>Image with caption only.</p>
+      <figure>
+        <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=60" alt="Mountain valley" />
+        <figcaption>A calm mountain valley at sunrise.</figcaption>
+      </figure>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-buttons">
+      <h2 id="plain-buttons">Buttons</h2>
+      <button type="button">Primary</button>
+      <button type="button">Secondary</button>
+      <button type="button" disabled>Disabled</button>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-form">
+      <h2 id="plain-form">Form Controls</h2>
+      <form>
+        <label>
+          Full Name
+          <input type="text" name="fullName" placeholder="Alex Rivera" />
+        </label>
+        <br />
+        <label>
+          Email Address
+          <input type="email" name="email" placeholder="alex@example.com" />
+        </label>
+        <br />
+        <label>
+          Region
+          <select name="region">
+            <option value="">Select...</option>
+            <option value="na">North America</option>
+            <option value="eu">Europe</option>
+            <option value="apac">Asia-Pacific</option>
+          </select>
+        </label>
+        <br />
+        <label>
+          Summary
+          <textarea name="summary" rows="3" cols="30"></textarea>
+        </label>
+        <fieldset>
+          <legend>Delivery Preference</legend>
+          <label><input type="radio" name="delivery" value="standard" checked /> Standard</label>
+          <label><input type="radio" name="delivery" value="express" /> Express</label>
+        </fieldset>
+        <fieldset>
+          <legend>Platforms</legend>
+          <label><input type="checkbox" name="platforms" value="ios" /> iOS</label>
+          <label><input type="checkbox" name="platforms" value="android" /> Android</label>
+          <label><input type="checkbox" name="platforms" value="web" /> Web</label>
+        </fieldset>
+        <label>
+          Upload Progress
+          <progress value="65" max="100">65%</progress>
+        </label>
+        <br />
+        <label>
+          Usage Meter
+          <meter value="0.4" min="0" max="1">40%</meter>
+        </label>
+      </form>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-table">
+      <h2 id="plain-table">Table</h2>
+      <table>
+        <caption>Weekly Production Metrics</caption>
+        <thead>
+          <tr>
+            <th scope="col">Day</th>
+            <th scope="col">Units</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Monday</td>
+            <td>120</td>
+            <td>Ramp-up</td>
+          </tr>
+          <tr>
+            <td>Tuesday</td>
+            <td>145</td>
+            <td>Peak output</td>
+          </tr>
+          <tr>
+            <td>Wednesday</td>
+            <td>138</td>
+            <td>Maintenance</td>
+          </tr>
+          <tr>
+            <td>Thursday</td>
+            <td>150</td>
+            <td>Record day</td>
+          </tr>
+          <tr>
+            <td>Friday</td>
+            <td>112</td>
+            <td>Short staffing</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-media">
+      <h2 id="plain-media">Media Elements</h2>
+      <video controls>
+        <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <audio controls>
+        <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3" type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-semantic">
+      <h2 id="plain-semantic">Article &amp; Aside</h2>
+      <article>
+        <h3>Product Launch Recap</h3>
+        <time datetime="2024-04-18">April 18, 2024</time>
+        <p>The launch introduced adaptive theming, multilingual support, and low-latency collaboration.</p>
+      </article>
+      <aside>
+        <h3>Quick Stats</h3>
+        <ul>
+          <li>12K beta sign-ups</li>
+          <li>97% satisfaction</li>
+          <li>Sub-200ms latency</li>
+        </ul>
+      </aside>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-pre">
+      <h2 id="plain-pre">Preformatted Code</h2>
+      <pre><code>function formatMarkdown(input) {
+  return marked.parse(input);
+}
+
+const htmlString = formatMarkdown("## Sample Heading\n\nContent block.");
+console.log(htmlString);
+</code></pre>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-details">
+      <h2 id="plain-details">Details &amp; Summary</h2>
+      <details open>
+        <summary>Environment Setup Checklist</summary>
+        <ul>
+          <li>Install dependencies</li>
+          <li>Create <code>.env.local</code></li>
+          <li>Run tests with <code>npm run test</code></li>
+        </ul>
+      </details>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="plain-marquee">
+      <h2 id="plain-marquee">Marquee</h2>
+      <marquee behavior="alternate" scrollamount="6">
+        Marquee content for legacy compatibility checks.
+      </marquee>
+    </section>
+  </main>
+</body>
+</html>

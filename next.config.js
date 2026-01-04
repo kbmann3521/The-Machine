@@ -23,7 +23,7 @@ const nextConfig = {
       config.externals = [
         ...(typeof config.externals === 'function' ? [] : config.externals || []),
         'marked',
-        'turndown',
+        'node-html-markdown',
         'js-beautify',
         'html-minifier-terser',
       ]

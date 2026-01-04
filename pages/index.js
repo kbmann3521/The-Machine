@@ -18,6 +18,7 @@ import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
 import { withSeoSettings } from '../lib/getSeoSettings'
+import { classifyMarkdownHtmlInput } from '../lib/contentClassifier'
 import styles from '../styles/hub.module.css'
 
 export default function Home(props) {
@@ -82,6 +83,7 @@ export default function Home(props) {
     mode: 'float'
   })
   const [initialToolsLoading, setInitialToolsLoading] = useState(true)
+  const [contentClassification, setContentClassification] = useState(() => classifyMarkdownHtmlInput(''))
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -333,6 +335,9 @@ export default function Home(props) {
   const handleInputChange = useCallback((text, image, preview, isLoadExample) => {
     const isAddition = text.length > previousInputLength
     const isEmpty = !text || text.trim() === ''
+
+    const nextClassification = classifyMarkdownHtmlInput(text)
+    setContentClassification(nextClassification)
 
     // Update the ref to track actual input value (not state, which may lag)
     currentInputRef.current = text
@@ -889,6 +894,7 @@ export default function Home(props) {
                       onRegenerate={handleRegenerate}
                       currentConfig={configOptions}
                       result={outputResult}
+                      contentClassification={contentClassification}
                       activeToolkitSection={activeToolkitSection}
                       onToolkitSectionChange={setActiveToolkitSection}
                       findReplaceConfig={findReplaceConfig}

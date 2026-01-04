@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { FaCopy, FaCheck } from 'react-icons/fa6'
 import dynamic from 'next/dynamic'
 import styles from '../styles/tool-output.module.css'
@@ -6,8 +6,12 @@ import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CSVWarningsPanel from './CSVWarningsPanel'
+import MarkdownRenderer from './MarkdownRenderer'
+import HTMLRenderer from './HTMLRenderer'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
+import { scanSelectorsFromHTML } from '../lib/tools/selectorScanner'
+import { marked } from 'marked'
 import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
 import URLToolkitOutput from '../lib/tools/URLToolkitOutput'
 
@@ -35,9 +39,55 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [caseConverterCopied, setCaseConverterCopied] = useState({})
   const [expandedMetric, setExpandedMetric] = useState(null)
   const [analyzerSearchQuery, setAnalyzerSearchQuery] = useState('')
+  const [markdownCustomCss, setMarkdownCustomCss] = useState('')
+  const [scannedSelectors, setScannedSelectors] = useState({ tags: [], classes: [], suggestions: [] })
+  const cssTextareaRef = useRef(null)
+
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   const displayResult = isInputEmpty ? null : result
+  const isMarkdownFormatter = toolId === 'markdown-html-formatter'
+  const enableHtmlPreview = isMarkdownFormatter
+    ? configOptions?.enableHtml === true
+    : true
+  const enableGfmFeatures = isMarkdownFormatter
+    ? configOptions?.enableGfm !== false
+    : true
+
+  const shouldRenderMarkdownFormatterAsHtml = (formatterResult) => {
+    if (!formatterResult) return false
+    if (formatterResult.appliedConversion === 'html') {
+      return true
+    }
+    if (formatterResult.appliedConversion === 'markdown') {
+      return false
+    }
+    return formatterResult.contentMode === 'html'
+  }
+
+  const handleInsertSelector = (selector) => {
+    if (!cssTextareaRef.current) return
+
+    const textarea = cssTextareaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = textarea.value
+
+    // Insert selector template
+    const selectorTemplate = `${selector} {
+
+}\n`
+
+    const newText = text.slice(0, start) + selectorTemplate + text.slice(end)
+    setMarkdownCustomCss(newText)
+
+    // Restore focus and position cursor inside the braces
+    setTimeout(() => {
+      textarea.focus()
+      const cursorPos = start + selector.length + 4 // Position after '{\n  '
+      textarea.setSelectionRange(cursorPos, cursorPos)
+    }, 0)
+  }
 
   const handleDialectChange = (dialect) => {
     if (onConfigChange) {
@@ -146,6 +196,49 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setPreviousToolkitSection(activeToolkitSection)
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
+
+  // Scan selectors from canonical HTML for markdown formatter
+  // This ensures consistent selector detection across both Markdown and HTML modes
+  const emptySelectorState = React.useMemo(() => ({
+    tags: [],
+    classes: [],
+    suggestions: { structure: [], headings: [], text: [], code: [] }
+  }), [])
+
+  React.useEffect(() => {
+    if (toolId !== 'markdown-html-formatter') {
+      setScannedSelectors(emptySelectorState)
+      return
+    }
+
+    if (!displayResult?.formatted || typeof displayResult.formatted !== 'string') {
+      setScannedSelectors(emptySelectorState)
+      return
+    }
+
+    const formattedOutput = displayResult.formatted
+    const selectorHtmlFlag = isMarkdownFormatter
+      ? shouldRenderMarkdownFormatterAsHtml(displayResult)
+      : isHtmlContent(formattedOutput)
+    let htmlForSelectors = ''
+
+    if (selectorHtmlFlag) {
+      htmlForSelectors = formattedOutput
+    } else {
+      try {
+        htmlForSelectors = marked.parse(formattedOutput)
+      } catch (error) {
+        console.warn('Failed to convert markdown to HTML for selector scanning:', error)
+        htmlForSelectors = ''
+      }
+    }
+
+    if (htmlForSelectors) {
+      setScannedSelectors(scanSelectorsFromHTML(htmlForSelectors))
+    } else {
+      setScannedSelectors(emptySelectorState)
+    }
+  }, [toolId, displayResult?.formatted, emptySelectorState])
 
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
@@ -2297,9 +2390,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
+  // Helper to detect if content is HTML or Markdown
+  const isHtmlContent = (content) => {
+    if (!content || typeof content !== 'string') return false
+    // Simple check: if content contains HTML-like tags, it's likely HTML
+    return /<[a-z][\w\s="'/:.-]*>/i.test(content.trim())
+  }
+
   const renderMarkdownFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
+
+    // Detect if the formatted output is HTML or Markdown using formatter metadata
+    const isHtml = isMarkdownFormatter
+      ? shouldRenderMarkdownFormatterAsHtml(displayResult)
+      : isHtmlContent(displayResult.formatted)
 
     // Add primary output tab - always show formatted result unless hideOutput is set
     if (displayResult.formatted !== undefined) {
@@ -2340,7 +2445,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2479,6 +2584,317 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Rendered tab - shows the formatted content rendered as HTML
+    if (displayResult.formatted && displayResult.isWellFormed !== false) {
+      tabs.push({
+        id: 'rendered',
+        label: 'Rendered',
+        content: isHtml ? (
+          <HTMLRenderer
+            html={displayResult.formatted}
+            customCss={markdownCustomCss}
+          />
+        ) : (
+          <MarkdownRenderer
+            markdown={displayResult.formatted}
+            customCss={markdownCustomCss}
+            allowHtml={enableHtmlPreview}
+            enableGfm={enableGfmFeatures}
+          />
+        ),
+        contentType: 'component',
+      })
+    }
+
+    // CSS Editor tab - allows users to customize markdown rendering styles
+    if (displayResult.formatted && displayResult.isWellFormed !== false) {
+      tabs.push({
+        id: 'css',
+        label: 'CSS',
+        content: (
+          <div style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}>
+            <div style={{
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              lineHeight: '1.5',
+              marginBottom: '4px',
+            }}>
+              💡 <strong>Preview Styling:</strong> Edit CSS to customize how the markdown appears in the preview. Styles are scoped to <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'var(--color-background-secondary)', padding: '2px 4px', borderRadius: '2px' }}>.pwt-markdown-preview</code> and may need adjustment when used in your own project.
+            </div>
+
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'var(--color-background-secondary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              fontSize: '12px',
+            }}>
+              <div style={{ marginBottom: '12px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                📍 Suggested Selectors:
+              </div>
+
+              {scannedSelectors.suggestions && (
+                typeof scannedSelectors.suggestions === 'object' &&
+                !Array.isArray(scannedSelectors.suggestions) &&
+                (scannedSelectors.suggestions.structure?.length > 0 ||
+                 scannedSelectors.suggestions.headings?.length > 0 ||
+                 scannedSelectors.suggestions.text?.length > 0 ||
+                 scannedSelectors.suggestions.code?.length > 0)
+              ) ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Structure Category */}
+                  {scannedSelectors.suggestions.structure?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Structure
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.structure.map((selector, idx) => (
+                          <button
+                            key={`structure-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                              color: '#4caf50',
+                              border: '1px solid rgba(76, 175, 80, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.3)'
+                              e.target.style.borderColor = 'rgba(76, 175, 80, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.2)'
+                              e.target.style.borderColor = 'rgba(76, 175, 80, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Headings Category */}
+                  {scannedSelectors.suggestions.headings?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Headings
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.headings.map((selector, idx) => (
+                          <button
+                            key={`headings-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                              color: '#2196f3',
+                              border: '1px solid rgba(33, 150, 243, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                              e.target.style.borderColor = 'rgba(33, 150, 243, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.2)'
+                              e.target.style.borderColor = 'rgba(33, 150, 243, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Text Category */}
+                  {scannedSelectors.suggestions.text?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Text
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.text.map((selector, idx) => (
+                          <button
+                            key={`text-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(156, 39, 176, 0.2)',
+                              color: '#9c27b0',
+                              border: '1px solid rgba(156, 39, 176, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.3)'
+                              e.target.style.borderColor = 'rgba(156, 39, 176, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.2)'
+                              e.target.style.borderColor = 'rgba(156, 39, 176, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Code Category */}
+                  {scannedSelectors.suggestions.code?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '6px',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Code
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {scannedSelectors.suggestions.code.map((selector, idx) => (
+                          <button
+                            key={`code-${idx}`}
+                            onClick={() => handleInsertSelector(selector)}
+                            title={`Click to insert "${selector}" selector`}
+                            style={{
+                              padding: '6px 10px',
+                              backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                              color: '#ff9800',
+                              border: '1px solid rgba(255, 152, 0, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              fontFamily: 'monospace',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.3)'
+                              e.target.style.borderColor = 'rgba(255, 152, 0, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.2)'
+                              e.target.style.borderColor = 'rgba(255, 152, 0, 0.5)'
+                            }}
+                          >
+                            {selector}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <span style={{ color: 'var(--color-text-secondary)', fontSize: '11px', fontStyle: 'italic' }}>
+                  No selectors detected yet
+                </span>
+              )}
+            </div>
+
+            <textarea
+              ref={cssTextareaRef}
+              value={markdownCustomCss}
+              onChange={(e) => setMarkdownCustomCss(e.target.value)}
+              style={{
+                minHeight: '600px',
+                flex: 1,
+                fontFamily: "'Courier New', 'Monaco', 'Menlo', monospace",
+                fontSize: '13px',
+                padding: '12px',
+                backgroundColor: 'var(--color-background-secondary)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '4px',
+                color: 'var(--color-text-primary)',
+                resize: 'vertical',
+                lineHeight: '1.6',
+              }}
+              placeholder={`/* Scope CSS to preview root */
+.pwt-markdown-preview h1 {
+  font-size: 32px;
+  color: #333;
+  font-weight: 700;
+}
+
+.pwt-markdown-preview p {
+  line-height: 1.8;
+  color: #666;
+}
+
+.pwt-markdown-preview a {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.pwt-markdown-preview code {
+  background-color: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 2px;
+}`}
+              spellCheck="false"
+            />
+            <div style={{
+              fontSize: '11px',
+              color: 'var(--color-text-secondary)',
+              lineHeight: '1.6',
+              padding: '8px',
+              backgroundColor: 'var(--color-background-secondary)',
+              borderRadius: '4px',
+            }}>
+              ℹ️ <strong>How to target elements:</strong> Most selectors require the <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview</code> prefix. For example: <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview h1</code>, <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview blockquote</code>, or <code style={{ fontFamily: 'monospace' }}>.pwt-markdown-preview .language-bash</code>
+            </div>
+          </div>
+        ),
+        contentType: 'component',
+      })
+    }
+
     // Add JSON tab - shows input, output, and diagnostics only
     const mdJsonWithInputOutput = {
       input: inputText,
@@ -2500,7 +2916,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    return (
+      <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    )
   }
 
   const renderCssFormatterOutput = () => {
