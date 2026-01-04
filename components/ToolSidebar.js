@@ -43,6 +43,42 @@ const toolIcons = {
   'qr-code-generator': BsQrCode,
 }
 
+// Map tool IDs to their category groups
+const toolGroups = {
+  'text-toolkit': 'Text & Encoding',
+  'ascii-unicode-converter': 'Text & Encoding',
+  'base-converter': 'Text & Encoding',
+  'base64-converter': 'Text & Encoding',
+  'caesar-cipher': 'Text & Encoding',
+  'regex-tester': 'Text & Encoding',
+  'js-formatter': 'Data Formats & Languages',
+  'json-formatter': 'Data Formats & Languages',
+  'markdown-html-formatter': 'Data Formats & Languages',
+  'sql-formatter': 'Data Formats & Languages',
+  'xml-formatter': 'Data Formats & Languages',
+  'yaml-formatter': 'Data Formats & Languages',
+  'csv-json-converter': 'Data Formats & Languages',
+  'url-toolkit': 'Web & Networking',
+  'http-header-parser': 'Web & Networking',
+  'http-status-lookup': 'Web & Networking',
+  'mime-type-lookup': 'Web & Networking',
+  'ip-address-toolkit': 'Web & Networking',
+  'jwt-decoder': 'Web & Networking',
+  'email-validator': 'Validation & Identifiers',
+  'uuid-validator': 'Validation & Identifiers',
+  'checksum-calculator': 'Validation & Identifiers',
+  'number-formatter': 'Numbers, Time & Math',
+  'math-evaluator': 'Numbers, Time & Math',
+  'unit-converter': 'Numbers, Time & Math',
+  'file-size-converter': 'Numbers, Time & Math',
+  'time-normalizer': 'Numbers, Time & Math',
+  'cron-tester': 'Numbers, Time & Math',
+  'image-toolkit': 'Media & Visual',
+  'svg-optimizer': 'Media & Visual',
+  'qr-code-generator': 'Media & Visual',
+  'color-converter': 'Media & Visual',
+}
+
 const getScoreColor = (similarity) => {
   // Create gradient from green (high similarity) to white (low similarity)
   const hue = similarity * 120 // 0 = red, 120 = green
@@ -66,7 +102,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
   const hasLoadedRef = useRef(false)
 
   const filteredTools = useMemo(() => {
-    let tools = [...predictedTools].sort((a, b) => a.name.localeCompare(b.name))
+    let tools = [...predictedTools]
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -77,10 +113,50 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
       )
     }
 
-    return tools
+    // Group tools by category
+    const groupOrder = [
+      'Text & Encoding',
+      'Data Formats & Languages',
+      'Web & Networking',
+      'Validation & Identifiers',
+      'Numbers, Time & Math',
+      'Media & Visual',
+    ]
+
+    const grouped = {}
+    tools.forEach(tool => {
+      const group = toolGroups[tool.toolId] || 'Other'
+      if (!grouped[group]) {
+        grouped[group] = []
+      }
+      grouped[group].push(tool)
+    })
+
+    // Sort tools within each group alphabetically
+    Object.keys(grouped).forEach(group => {
+      grouped[group].sort((a, b) => a.name.localeCompare(b.name))
+    })
+
+    // Return flattened array with group headers
+    const result = []
+    groupOrder.forEach(group => {
+      if (grouped[group]) {
+        result.push({ isGroupHeader: true, groupName: group })
+        result.push(...grouped[group])
+      }
+    })
+    // Add any remaining groups not in groupOrder
+    Object.keys(grouped).forEach(group => {
+      if (!groupOrder.includes(group)) {
+        result.push({ isGroupHeader: true, groupName: group })
+        result.push(...grouped[group])
+      }
+    })
+
+    return result
   }, [predictedTools, searchQuery])
 
-  const topMatch = filteredTools[0]
+  const topMatch = filteredTools.find(item => !item.isGroupHeader) || null
 
   // Disable cascade animation after initial load or when searching
   useEffect(() => {
@@ -159,9 +235,23 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         </div>
       )}
 
-      {!initialLoading && filteredTools.length > 0 && (
+      {!initialLoading && filteredTools.some(item => !item.isGroupHeader) && (
         <nav className={styles.toolsList} aria-label="Available tools">
-          {filteredTools.map((tool, index) => {
+          {filteredTools.map((item, index) => {
+            // Render group header
+            if (item.isGroupHeader) {
+              return (
+                <div
+                  key={`group-${item.groupName}`}
+                  className={styles.groupHeader}
+                >
+                  {item.groupName}
+                </div>
+              )
+            }
+
+            // Render tool item
+            const tool = item
             const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
             const isSelected = selectedTool?.toolId === tool.toolId
 
@@ -198,7 +288,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         </nav>
       )}
 
-      {!initialLoading && predictedTools.length > 0 && filteredTools.length === 0 && (
+      {!initialLoading && predictedTools.length > 0 && !filteredTools.some(item => !item.isGroupHeader) && (
         <div className={styles.emptyState}>
           <p>No tools match your search. Try a different query.</p>
         </div>
