@@ -48,6 +48,7 @@ export default function CSSPreview({
   const [appliedChanges, setAppliedChanges] = useState(null) // Phase 6(E): Track last applied changes for feedback (format: { count, summary })
   const [isFullscreen, setIsFullscreen] = useState(false) // Fullscreen modal state
   const [bgColorPickerHovered, setBgColorPickerHovered] = useState(false) // Track color picker hover for scale effect
+  const [currentPreviewHTML, setCurrentPreviewHTML] = useState('') // Track current preview HTML for fullscreen modal
 
   // Helper function to determine if a hex color is light or dark
   const isColorLight = (hex) => {
@@ -94,37 +95,47 @@ export default function CSSPreview({
       const nodeMapping = getSyntheticNodeMapping(nodes)
 
       // Build complete preview document
-      // Phase 7D: Filter out disabled properties for what-if simulation
-      // Phase 7C: Filter out removed rules
+      // Phase 7C: Filter out removed rules (but keep disabled properties for commenting)
+      // Phase 7D: Disabled properties are handled via CSS comments in buildPreviewCss
       const filteredRulesTree = rulesTree
         .filter(rule => !removedRules.has(rule.ruleIndex))
-        .map(rule => {
-          const filteredDeclarations = (rule.declarations || []).filter(decl => {
-            const disabledKey = `${rule.ruleIndex}-${decl.property}`
-            return !disabledProperties.has(disabledKey)
-          })
-          return {
-            ...rule,
-            declarations: filteredDeclarations,
-          }
-        })
+
       const htmlDoc = buildPreviewDocument(
         filteredRulesTree,
         declaredVariables,
         variableOverrides,
-        html
+        html,
+        disabledProperties
       )
 
-      // Inject into iframe
+      // Store current HTML for fullscreen modal
+      setCurrentPreviewHTML(htmlDoc)
+
+      // Inject into iframe using contentDocument.write()
+      // This ensures reliable updates when properties are disabled
       const iframe = iframeRef.current
-      iframe.srcdoc = htmlDoc
+
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+        if (iframeDoc) {
+          iframeDoc.open()
+          iframeDoc.write(htmlDoc)
+          iframeDoc.close()
+        } else {
+          // Fallback to srcdoc if contentDocument is not available
+          iframe.srcdoc = htmlDoc
+        }
+      } catch (e) {
+        console.warn('Error writing to iframe.contentDocument:', e)
+        iframe.srcdoc = htmlDoc
+      }
 
       // Store mapping on iframe for future reference (Phase 6)
       iframe._syntheticNodeMapping = nodeMapping
       setNodeMapping(nodeMapping)
 
-      // After iframe loads, apply styles and pseudo-states
-      iframe.onload = () => {
+      // Callback to handle post-load setup (apply pseudo-states, overrides, etc.)
+      const setupIframeContent = () => {
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
         if (!iframeDoc) return
 
@@ -154,11 +165,21 @@ export default function CSSPreview({
 
         // Phase 6(D): Re-apply all staged overrides after iframe loads
         // This ensures edits persist across viewport changes or re-renders
+        // BUT: Skip overrides for disabled properties
         Object.entries(previewOverrides).forEach(([selector, overrideProps]) => {
           try {
             const elements = iframeDoc.querySelectorAll(selector)
             elements.forEach(el => {
               Object.entries(overrideProps).forEach(([property, value]) => {
+                // Find the rule that this override applies to and check if it's disabled
+                const correspondingRule = rulesTree.find(r => r.selector === selector)
+                if (correspondingRule) {
+                  const disabledKey = `${correspondingRule.ruleIndex}-${property}`
+                  if (disabledProperties.has(disabledKey)) {
+                    // Skip this property since it's disabled
+                    return
+                  }
+                }
                 el.style.setProperty(property, value, 'important')
               })
             })
@@ -198,6 +219,11 @@ export default function CSSPreview({
           }
         }, true) // Use capture phase to intercept before other handlers
       }
+
+      // Call setup immediately after writing to contentDocument
+      // Also set up onload as a fallback for srcdoc cases
+      setupIframeContent()
+      iframe.onload = setupIframeContent
     } catch (error) {
       console.error('Error generating preview:', error)
     }
@@ -277,6 +303,7 @@ export default function CSSPreview({
   // Phase 7D: Toggle property disabled state for what-if simulation
   const handleTogglePropertyDisabled = (ruleIndex, property) => {
     const disabledKey = `${ruleIndex}-${property}`
+
     setDisabledProperties(prev => {
       const next = new Set(prev)
       if (next.has(disabledKey)) {
@@ -286,6 +313,27 @@ export default function CSSPreview({
       }
       return next
     })
+
+    // Also remove any preview overrides for this property to avoid conflicting styles
+    // Find the rule selector to identify which elements might be affected
+    const affectedRule = rulesTree.find(r => r.ruleIndex === ruleIndex)
+    if (affectedRule && previewOverrides[affectedRule.selector]) {
+      setPreviewOverrides(prev => {
+        const next = { ...prev }
+        const selector = affectedRule.selector
+        if (next[selector] && next[selector][property]) {
+          // Remove this specific property override
+          const updatedProps = { ...next[selector] }
+          delete updatedProps[property]
+          if (Object.keys(updatedProps).length === 0) {
+            delete next[selector]
+          } else {
+            next[selector] = updatedProps
+          }
+        }
+        return next
+      })
+    }
   }
 
   // Phase 7C: Serialize rulesTree to CSS text
@@ -807,7 +855,7 @@ export default function CSSPreview({
             }}
           >
             <iframe
-              srcdoc={iframeRef.current?.srcdoc || ''}
+              srcDoc={currentPreviewHTML}
               sandbox="allow-same-origin"
               style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
               title="CSS Preview Fullscreen"
