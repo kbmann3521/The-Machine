@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { generateSyntheticDom, buildDomFromNodes, getSyntheticNodeMapping, getAffectingRulesForSelector, togglePseudoStateOnAll } from '../lib/tools/syntheticDom'
 import { buildPreviewDocument } from '../lib/tools/previewCss'
 import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
+import { useTheme } from '../lib/ThemeContext'
 import RuleInspector from './RuleInspector'
 import styles from '../styles/output-tabs.module.css'
 
@@ -26,6 +27,7 @@ export default function CSSPreview({
   variableOverrides = {},
   onApplyEdits = null,
 }) {
+  const { theme } = useTheme()
   const iframeRef = useRef(null)
   const [viewportWidth, setViewportWidth] = useState(1024)
   const [bgColor, setBgColor] = useState('#ffffff')
@@ -45,6 +47,7 @@ export default function CSSPreview({
   const [removedRules, setRemovedRules] = useState(new Set()) // Phase 7C: Rules marked for removal (stores ruleIndex)
   const [appliedChanges, setAppliedChanges] = useState(null) // Phase 6(E): Track last applied changes for feedback (format: { count, summary })
   const [isFullscreen, setIsFullscreen] = useState(false) // Fullscreen modal state
+  const [bgColorPickerHovered, setBgColorPickerHovered] = useState(false) // Track color picker hover for scale effect
 
   // Helper function to determine if a hex color is light or dark
   const isColorLight = (hex) => {
@@ -558,12 +561,22 @@ export default function CSSPreview({
               type="color"
               value={bgColor}
               onChange={(e) => setBgColor(e.target.value)}
+              onMouseEnter={() => setBgColorPickerHovered(true)}
+              onMouseLeave={() => setBgColorPickerHovered(false)}
               style={{
-                width: '40px',
+                width: '36px',
                 height: '36px',
-                border: '1px solid var(--color-border, #ddd)',
+                padding: 0,
+                border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
                 borderRadius: '4px',
                 cursor: 'pointer',
+                flexShrink: 0,
+                boxSizing: 'border-box',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                transform: bgColorPickerHovered ? 'scale(1.08)' : 'scale(1)',
+                transition: 'transform 0.15s ease',
               }}
               title="Click to pick a color"
             />
@@ -581,10 +594,15 @@ export default function CSSPreview({
               style={{
                 flex: 1,
                 padding: '6px 8px',
-                border: '1px solid var(--color-border, #ddd)',
+                height: '36px',
+                border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
                 borderRadius: '4px',
                 fontFamily: "'Courier New', monospace",
                 fontSize: '12px',
+                backgroundColor: theme === 'dark' ? '#2a2a2a' : '#ffffff',
+                color: theme === 'dark' ? '#e0e0e0' : 'var(--color-text-primary, #000)',
+                caretColor: theme === 'dark' ? '#0ea5e9' : 'var(--color-text-primary, #000)',
+                boxSizing: 'border-box',
               }}
               title="Enter hex color (e.g., #ffffff)"
             />
