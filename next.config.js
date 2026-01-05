@@ -26,6 +26,12 @@ const nextConfig = {
         'node-html-markdown',
         'js-beautify',
         'html-minifier-terser',
+        // Markdown + HTML Toolkit dependencies
+        'remark',
+        'remark-rehype',
+        'rehype-sanitize',
+        'rehype-stringify',
+        'remark-gfm',
       ]
     }
     return config

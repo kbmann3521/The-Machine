@@ -229,9 +229,24 @@
   gap: 8px;
 }
 
+.groupHeader {
+  padding: 12px 12px 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
 @media (max-width: 991px) {
   .toolsList {
     margin: 10px 0;
+  }
+
+  .groupHeader {
+    display: none;
   }
 }
 
