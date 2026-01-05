@@ -44,6 +44,7 @@ export default function CSSPreview({
   const [disabledProperties, setDisabledProperties] = useState(new Set()) // Phase 7D: Disabled properties for what-if simulation (format: "ruleIndex-property")
   const [removedRules, setRemovedRules] = useState(new Set()) // Phase 7C: Rules marked for removal (stores ruleIndex)
   const [appliedChanges, setAppliedChanges] = useState(null) // Phase 6(E): Track last applied changes for feedback (format: { count, summary })
+  const [isFullscreen, setIsFullscreen] = useState(false) // Fullscreen modal state
 
   // Helper function to determine if a hex color is light or dark
   const isColorLight = (hex) => {
@@ -62,6 +63,20 @@ export default function CSSPreview({
       </div>
     )
   }
+
+  // Handle ESC key to exit fullscreen
+  useEffect(() => {
+    if (!isFullscreen) return
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isFullscreen])
 
   // Generate preview HTML on mount and when dependencies change
   useEffect(() => {
@@ -497,6 +512,14 @@ export default function CSSPreview({
         >
           {showControls ? '▼ Preview Settings' : '▶ Preview Settings'}
         </button>
+        <button
+          className={styles.controlsToggleBtn}
+          onClick={() => setIsFullscreen(true)}
+          title="Expand preview to fullscreen"
+          style={{ marginLeft: 'auto' }}
+        >
+          ⛶ Fullscreen
+        </button>
       </div>
 
       {/* Collapsible Controls Panel */}
@@ -692,6 +715,88 @@ export default function CSSPreview({
           </div>
         )}
       </div>
+
+      {/* Fullscreen Modal */}
+      {isFullscreen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'transparent',
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {/* Fullscreen Header */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 16px',
+              backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
+              borderBottom: '1px solid var(--color-border, #ddd)',
+              flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-primary, #000)' }}>
+              CSS Preview — Fullscreen Mode
+            </span>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              title="Exit fullscreen"
+              style={{
+                padding: '6px 10px',
+                backgroundColor: 'transparent',
+                border: '1px solid var(--color-border, #ddd)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: 'var(--color-text-secondary, #666)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#0066cc'
+                e.target.style.borderColor = '#0066cc'
+                e.target.style.color = 'white'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent'
+                e.target.style.borderColor = 'var(--color-border, #ddd)'
+                e.target.style.color = 'var(--color-text-secondary, #666)'
+              }}
+            >
+              ✕ Exit (ESC)
+            </button>
+          </div>
+
+          {/* Fullscreen Preview */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              minHeight: 0,
+              overflow: 'hidden',
+              backgroundColor: bgColor,
+            }}
+          >
+            <iframe
+              srcdoc={iframeRef.current?.srcdoc || ''}
+              sandbox="allow-same-origin"
+              style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
+              title="CSS Preview Fullscreen"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
