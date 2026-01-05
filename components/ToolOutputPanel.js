@@ -25,7 +25,7 @@ import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
 import MathEvaluatorResult from './MathEvaluatorResult'
 import ResizeOutput from './ImageToolkit/outputs/ResizeOutput'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -115,6 +115,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Add declaration to the output and set it as new input to clear the lint warning
     const newInput = xmlDeclaration + (xmlWithoutDeclaration || '')
     onInputUpdate(newInput)
+  }
+
+  // Phase 6(E): Handle applying CSS edits from the preview inspector to the source
+  // The CSS passed here is the ENTIRE mutated stylesheet (not just new rules)
+  // We replace the entire input with this to preserve cascade and rule structure
+  const handleApplyCSSStagedEdits = (editedCSS) => {
+    if (!onInputUpdate || !editedCSS) return
+    // Replace the entire CSS with the mutated version (preserves source structure)
+    onInputUpdate(editedCSS)
   }
 
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
@@ -2925,8 +2934,39 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
 
-    // Add primary output tab FIRST - always show formatted result (or error message if not available)
-    if (displayResult.formatted) {
+    // Check if CSS is valid
+    const isValid = displayResult.isWellFormed !== false
+    const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+      ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+      : []
+
+    // Add primary output tab FIRST
+    // If CSS is invalid, show validation errors instead of formatted output
+    if (!isValid && validationErrors.length > 0) {
+      tabs.push({
+        id: 'formatted',
+        label: 'OUTPUT',
+        content: (
+          <div>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
+          </div>
+        ),
+        contentType: 'component',
+      })
+    } else if (displayResult.formatted) {
+      // Show formatted CSS if validation passed
       tabs.push({
         id: 'formatted',
         label: 'OUTPUT',
@@ -2964,7 +3004,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2975,7 +3015,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               fontSize: '13px',
               fontWeight: '500',
             }}>
-              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+              {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
             {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
           </div>
@@ -2990,15 +3030,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         tabs.push({
           id: 'validation',
-          label: 'Validation (✓)',
+          label: 'Validation',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -3006,7 +3045,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 fontSize: '13px',
                 fontWeight: '500',
               }}>
-                ✓ Valid CSS
+                Valid CSS
               </div>
             </div>
           ),
@@ -3058,7 +3097,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintingWarnings.map((warning, idx) => (
                 <div
@@ -3104,7 +3143,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} analysisData={displayResult.analysis} showCopyButton={true} onApplyEdits={handleApplyCSSStagedEdits} showAnalysisTab={showAnalysisTab} onShowAnalysisTabChange={onShowAnalysisTabChange} showRulesTab={showRulesTab} onShowRulesTabChange={onShowRulesTabChange} />
   }
 
   const renderSqlFormatterOutput = () => {

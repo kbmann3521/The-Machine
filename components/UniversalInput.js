@@ -12,6 +12,7 @@ const TOOLS_WITH_LINE_NUMBERS = new Set([
   'xml-formatter',          // XML Formatter
   'yaml-formatter',         // YAML Formatter
   'svg-optimizer',          // SVG Optimizer
+  'css-formatter',          // CSS Toolkit
 ])
 
 // Map tool IDs to their correct language for syntax highlighting
@@ -256,6 +257,11 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
         return result[key]
       }
       return null
+    }
+
+    // For CSS Formatter, use the formatted field
+    if (selectedTool?.toolId === 'css-formatter' && result?.formatted) {
+      return result.formatted
     }
 
     // For regular tools, use the output field

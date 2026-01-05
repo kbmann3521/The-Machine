@@ -613,6 +613,7 @@
   padding-right: 4px;
 }
 
+
 /* Inline toggles use global form input styling for consistency, with condensed font */
 .inlineToggleLabel {
   display: flex;
@@ -626,6 +627,7 @@
   color: var(--form-input-text, var(--color-text-primary));
   white-space: nowrap;
 }
+
 
 .inlineToggleLabel .toggleSlider {
   width: 36px;

@@ -1,0 +1,732 @@
+/* Rule Inspector Panel — Right Drawer for Phase 6 */
+
+.inspectorPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-left: 1px solid var(--color-border, #ddd);
+  overflow: hidden;
+}
+
+.inspectorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--color-background-primary, #fff);
+  border-bottom: 1px solid var(--color-border, #ddd);
+  flex-shrink: 0;
+}
+
+.inspectorTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inspectorTitle code {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(0, 102, 204, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #0066cc;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #666);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-text-primary, #000);
+}
+
+.rulesList {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+}
+
+.rulesList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rulesList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rulesList::-webkit-scrollbar-thumb {
+  background: var(--color-text-secondary, #999);
+  border-radius: 3px;
+}
+
+.ruleItem {
+  margin-bottom: 8px;
+  background-color: var(--color-background-primary, #fff);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.ruleHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  text-align: left;
+}
+
+.ruleHeader:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+}
+
+.ruleHeader.expanded {
+  border-bottom-color: var(--color-border, #ddd);
+  background-color: rgba(0, 102, 204, 0.05);
+}
+
+.ruleChevron {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  min-width: 12px;
+}
+
+.ruleLabel {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  word-break: break-word;
+  color: #0066cc;
+}
+
+.specificity {
+  font-size: 11px;
+  color: var(--color-text-secondary, #666);
+  padding: 2px 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+  font-family: monospace;
+}
+
+.lineNumber {
+  font-size: 10px;
+  color: var(--color-text-secondary, #999);
+  padding: 2px 6px;
+  border-radius: 2px;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.propertyToggleBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #999);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  min-width: 16px;
+  text-align: center;
+}
+
+.propertyToggleBtn:hover {
+  opacity: 1;
+  color: #ff9800;
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+.propertyToggleBtn.propertyToggleBtnActive {
+  opacity: 1;
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.declarationDisabled {
+  opacity: 0.5;
+  text-decoration: line-through;
+  background-color: rgba(255, 152, 0, 0.05) !important;
+}
+
+.declarationsContainer {
+  padding: 8px;
+  background-color: rgba(0, 102, 204, 0.02);
+}
+
+.declarations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.declaration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 2px;
+  background-color: var(--color-background-primary, #fff);
+  word-break: break-word;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.declaration.readonly {
+  color: var(--color-text-secondary, #666);
+}
+
+.declaration.editable {
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.declaration.editable:hover {
+  background-color: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.property {
+  font-weight: 600;
+  color: #d73a49;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.colon {
+  color: var(--color-text-secondary, #666);
+}
+
+.value {
+  color: #0066cc;
+  flex: 1;
+  word-break: break-word;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.semicolon {
+  color: var(--color-text-secondary, #666);
+}
+
+.editButton {
+  background: none;
+  border: none;
+  color: #ffc107;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.editButton:hover {
+  opacity: 1;
+}
+
+.noDeclarations {
+  padding: 8px;
+  color: var(--color-text-secondary, #666);
+  font-style: italic;
+  font-size: 11px;
+  text-align: center;
+}
+
+.inspectorFooter {
+  padding: 8px 12px;
+  background-color: var(--color-background-primary, #fff);
+  border-top: 1px solid var(--color-border, #ddd);
+  flex-shrink: 0;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.applyEditsButton {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: #0066cc;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.applyEditsButton:hover {
+  background-color: #0052a3;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+}
+
+/* Phase 7A & 7B: Impact Analysis & Dead Rule Detection Styles */
+
+.impactInfo {
+  padding: 8px;
+  background-color: rgba(102, 187, 106, 0.08);
+  border-left: 3px solid #66bb6a;
+  margin-bottom: 8px;
+  border-radius: 2px;
+}
+
+.impactInfo.impactInfoRedundant {
+  background-color: rgba(76, 175, 200, 0.08);
+  border-left-color: #4cafca;
+}
+
+.redundancyIndicator {
+  padding: 6px 8px;
+  background-color: rgba(76, 175, 200, 0.15);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4cafca;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(76, 175, 200, 0.3);
+}
+
+.impactSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.impactLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #66bb6a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.impactElement {
+  font-size: 11px;
+  color: var(--color-text-primary, #000);
+  font-family: 'Courier New', monospace;
+  padding: 4px 8px;
+  background-color: rgba(102, 187, 106, 0.1);
+  border-radius: 2px;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.impactElement:hover {
+  background-color: rgba(102, 187, 106, 0.25);
+  border-left: 2px solid #66bb6a;
+  padding-left: 6px;
+}
+
+.impactProperties {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-left: 8px;
+  padding-top: 4px;
+}
+
+.impactProperty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: var(--color-text-secondary, #666);
+}
+
+.impactPropName {
+  font-weight: 600;
+  color: #d73a49;
+  flex-shrink: 0;
+}
+
+.impactEffective {
+  color: #66bb6a;
+  font-weight: 500;
+  font-size: 10px;
+}
+
+.impactInert {
+  color: #9e9e9e;
+  font-weight: 500;
+  font-size: 10px;
+}
+
+.impactOverriddenBy {
+  color: #ff9800;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* Editor Container for Phase 6(B) */
+
+.editorContainer {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.confirmEditButton {
+  background: none;
+  border: none;
+  color: #66bb6a;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.confirmEditButton:hover {
+  opacity: 1;
+}
+
+/* Phase 7C: Refactor Suggestions Panel */
+
+.suggestionsPanelCollapsible {
+  margin-top: 8px;
+  border-top: 1px solid rgba(33, 150, 243, 0.2);
+}
+
+.suggestionsToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-align: left;
+}
+
+.suggestionsToggle:hover {
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+.suggestionsToggle.suggestionsToggleExpanded {
+  color: #2196f3;
+  background-color: rgba(33, 150, 243, 0.08);
+}
+
+.suggestionsChevron {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  min-width: 8px;
+}
+
+.suggestionsLabel {
+  flex: 1;
+}
+
+.suggestionsPanel {
+  padding: 8px;
+  background-color: rgba(33, 150, 243, 0.04);
+  border-left: 3px solid #2196f3;
+  margin-bottom: 8px;
+  border-radius: 2px;
+}
+
+.suggestionItem {
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border-left: 2px solid rgba(33, 150, 243, 0.3);
+  border-radius: 2px;
+  font-size: 10px;
+}
+
+.suggestionItem.severity-info {
+  border-left-color: #2196f3;
+}
+
+.suggestionItem.severity-low {
+  border-left-color: #ffc107;
+}
+
+.suggestionItem.severity-medium {
+  border-left-color: #ff9800;
+}
+
+.suggestionItem.severity-high {
+  border-left-color: #f44336;
+}
+
+.suggestionTitle {
+  font-weight: 600;
+  color: #2196f3;
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+
+.suggestionDescription {
+  color: var(--color-text-secondary, #666);
+  font-size: 10px;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+
+.suggestionDetails {
+  color: #999;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  padding: 3px 6px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 2px;
+  margin-top: 3px;
+  word-break: break-word;
+}
+
+.suggestionProperties {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.suggestionProperty {
+  display: flex;
+  gap: 6px;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.suggestionPropName {
+  font-weight: 600;
+  color: #d73a49;
+  min-width: 80px;
+}
+
+.suggestionPropValue {
+  color: #0066cc;
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Apply Refactor Button */
+
+.applyRefactorButton {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background-color: rgba(76, 175, 200, 0.15);
+  border: 1px solid rgba(76, 175, 200, 0.4);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #4cafca;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  text-align: center;
+}
+
+.applyRefactorButton:hover {
+  background-color: rgba(76, 175, 200, 0.25);
+  border-color: rgba(76, 175, 200, 0.6);
+  box-shadow: 0 1px 4px rgba(76, 175, 200, 0.2);
+}
+
+/* Confirmation Modal Overlay */
+
+.confirmationOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirmationModal {
+  background-color: var(--color-background-primary, #fff);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 420px;
+  width: 90%;
+  overflow: hidden;
+  animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.confirmationHeader {
+  padding: 16px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-bottom: 1px solid var(--color-border, #ddd);
+}
+
+.confirmationTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+}
+
+.confirmationContent {
+  padding: 16px;
+}
+
+.confirmationWarning {
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 3px solid #ff9800;
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.4;
+}
+
+.confirmationDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.confirmationDetailItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.confirmationDetailLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  flex-shrink: 0;
+  min-width: 60px;
+}
+
+.confirmationDetailValue {
+  color: var(--color-text-primary, #000);
+  font-family: 'Courier New', monospace;
+  word-break: break-word;
+}
+
+.confirmationActions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-top: 1px solid var(--color-border, #ddd);
+  justify-content: flex-end;
+}
+
+.confirmationCancelButton {
+  padding: 6px 16px;
+  background-color: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirmationCancelButton:hover {
+  background-color: var(--color-background-primary, #fff);
+  border-color: var(--color-text-secondary, #666);
+}
+
+.confirmationRemoveButton {
+  padding: 6px 16px;
+  background-color: #f44336;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirmationRemoveButton:hover {
+  background-color: #d32f2f;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}

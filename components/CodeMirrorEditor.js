@@ -8,6 +8,7 @@ import { javascript } from '@codemirror/lang-javascript'
 import { json } from '@codemirror/lang-json'
 import { xml } from '@codemirror/lang-xml'
 import { html } from '@codemirror/lang-html'
+import { css } from '@codemirror/lang-css'
 import { markdown } from '@codemirror/lang-markdown'
 import { sql } from '@codemirror/lang-sql'
 import { yaml } from '@codemirror/lang-yaml'
@@ -207,6 +208,8 @@ function getLanguageExtension(language = 'javascript') {
     case 'html':
     case 'markup':
       return html()
+    case 'css':
+      return css()
     case 'markdown':
       return markdown()
     case 'sql':

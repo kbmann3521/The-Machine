@@ -84,6 +84,8 @@ export default function Home(props) {
   })
   const [initialToolsLoading, setInitialToolsLoading] = useState(true)
   const [contentClassification, setContentClassification] = useState(() => classifyMarkdownHtmlInput(''))
+  const [showAnalysisTab, setShowAnalysisTab] = useState(false)
+  const [showRulesTab, setShowRulesTab] = useState(false)
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -908,6 +910,10 @@ export default function Home(props) {
                       delimiterTransformerConfig={delimiterTransformerConfig}
                       onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
                       onSetGeneratedText={handleInputChange}
+                      showAnalysisTab={showAnalysisTab}
+                      onShowAnalysisTabChange={setShowAnalysisTab}
+                      showRulesTab={showRulesTab}
+                      onShowRulesTabChange={setShowRulesTab}
                     />
                     {selectedTool?.toolId === 'math-evaluator' && (
                       <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
@@ -986,6 +992,10 @@ export default function Home(props) {
                     imagePreview={imagePreview}
                     warnings={outputWarnings}
                     onInputUpdate={(text) => handleInputChange(text, null, null, true)}
+                    showAnalysisTab={showAnalysisTab}
+                    onShowAnalysisTabChange={setShowAnalysisTab}
+                    showRulesTab={showRulesTab}
+                    onShowRulesTabChange={setShowRulesTab}
                   />
                 )}
               </div>
