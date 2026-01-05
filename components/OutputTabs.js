@@ -2,9 +2,13 @@ import React, { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/output-tabs.module.css'
+import RuleExplorer from './RuleExplorer'
 
 // Dynamically import CodeMirrorEditor to avoid SSR issues
 const CodeMirrorEditor = dynamic(() => import('./CodeMirrorEditor'), { ssr: false })
+
+// Dynamically import CSSPreview to avoid SSR issues
+const CSSPreview = dynamic(() => import('./CSSPreview'), { ssr: false })
 
 export default function OutputTabs({
   tabs = null,
@@ -15,14 +19,218 @@ export default function OutputTabs({
   onCopyCard = null,
   toolCategory = null,
   toolId = null,
+  analysisData = null,
+  onApplyEdits = null,
+  showAnalysisTab = false,
+  onShowAnalysisTabChange = null,
+  showRulesTab = false,
+  onShowRulesTabChange = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
   const [copied, setCopied] = useState(false)
   const [copiedCardId, setCopiedCardId] = useState(null)
+  const [highlightedRange, setHighlightedRange] = useState(null)
+  const [localShowAnalysisTab, setLocalShowAnalysisTab] = useState(showAnalysisTab)
+  const [localShowRulesTab, setLocalShowRulesTab] = useState(showRulesTab)
   const codeContentRef = useRef(null)
   const textContentRef = useRef(null)
   const prevToolIdRef = useRef(toolId)
+  const editorRef = useRef(null)
+
+  // Use provided props if available, otherwise use local state
+  const finalShowAnalysisTab = showAnalysisTab !== undefined ? showAnalysisTab : localShowAnalysisTab
+  const finalShowRulesTab = showRulesTab !== undefined ? showRulesTab : localShowRulesTab
+
+  const handleShowAnalysisTabChange = (value) => {
+    if (onShowAnalysisTabChange) {
+      onShowAnalysisTabChange(value)
+    } else {
+      setLocalShowAnalysisTab(value)
+    }
+  }
+
+  const handleShowRulesTabChange = (value) => {
+    if (onShowRulesTabChange) {
+      onShowRulesTabChange(value)
+    } else {
+      setLocalShowRulesTab(value)
+    }
+  }
+
+  // Generate analysis tab for CSS Toolkit (Phase 2)
+  const generateAnalysisTab = (analysis) => {
+    if (!analysis || typeof analysis !== 'object') {
+      return null
+    }
+
+    const renderAnalysisContent = () => {
+      return (
+        <div className={styles.analysisPanel}>
+          {/* Total Stats */}
+          <div className={styles.analysisSection}>
+            <h3 className={styles.analysisSectionTitle}>Overview</h3>
+            <div className={styles.analysisGrid}>
+              <div className={styles.analysisStat}>
+                <div className={styles.statLabel}>Total Rules</div>
+                <div className={styles.statValue}>{analysis.totalRules || 0}</div>
+              </div>
+              <div className={styles.analysisStat}>
+                <div className={styles.statLabel}>Unique Selectors</div>
+                <div className={styles.statValue}>{analysis.uniqueSelectors?.length || 0}</div>
+              </div>
+              <div className={styles.analysisStat}>
+                <div className={styles.statLabel}>Unique Properties</div>
+                <div className={styles.statValue}>{analysis.uniqueProperties?.length || 0}</div>
+              </div>
+              <div className={styles.analysisStat}>
+                <div className={styles.statLabel}>Max Nesting Depth</div>
+                <div className={styles.statValue}>{analysis.maxNestingDepth || 0}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* CSS Variables */}
+          {analysis.variables && (analysis.variables.declared?.length > 0 || analysis.variables.used?.length > 0) && (
+            <div className={styles.analysisSection}>
+              <h3 className={styles.analysisSectionTitle}>CSS Variables ({(analysis.variables.declared?.length || 0) + (analysis.variables.used?.length || 0)})</h3>
+              <div className={styles.variablesList}>
+                {/* Declared Variables */}
+                {analysis.variables.declared && analysis.variables.declared.length > 0 && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Declared Variables
+                    </div>
+                    {analysis.variables.declared.map((variable, idx) => (
+                      <div key={`decl-${idx}`} className={styles.variableItem}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                          <code className={styles.variableName}>{variable.name}</code>
+                          <span className={styles.variableValue}>{variable.value}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: 'auto', flexShrink: 0 }}>
+                          {variable.scope && variable.scope !== ':root' && (
+                            <span style={{ fontSize: '10px', color: '#999', fontFamily: 'monospace' }}>
+                              {variable.scope}
+                            </span>
+                          )}
+                          {variable.loc?.startLine && <span className={styles.variableLine}>Line {variable.loc.startLine}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {/* Used Variables */}
+                {analysis.variables.used && analysis.variables.used.length > 0 && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '8px', marginTop: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Used Variables
+                    </div>
+                    {analysis.variables.used.map((variable, idx) => (
+                      <div key={`used-${idx}`} className={styles.variableItem}>
+                        <code className={styles.variableName}>{variable.name}</code>
+                        <span className={styles.variableValue} style={{ fontSize: '11px' }}>in {variable.property}</span>
+                        {variable.loc?.startLine && <span className={styles.variableLine}>Line {variable.loc.startLine}</span>}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Media Queries */}
+          {analysis.mediaQueries && analysis.mediaQueries.length > 0 && (
+            <div className={styles.analysisSection}>
+              <h3 className={styles.analysisSectionTitle}>Media Queries ({analysis.mediaQueries.length})</h3>
+              <div className={styles.mediaQueriesList}>
+                {analysis.mediaQueries.map((mq, idx) => (
+                  <div key={idx} className={styles.mediaQueryItem}>
+                    <code className={styles.mediaQueryText}>@media {mq.query}</code>
+                    <div className={styles.mediaQueryMeta}>
+                      {mq.breakpoint && <span className={styles.breakpoint}>Breakpoint: {mq.breakpoint}</span>}
+                      <span className={styles.ruleCount}>{mq.ruleCount} rule{mq.ruleCount !== 1 ? 's' : ''}</span>
+                      {mq.line && <span className={styles.lineNum}>Line {mq.line}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Unique Selectors */}
+          {analysis.uniqueSelectors && analysis.uniqueSelectors.length > 0 && (
+            <div className={styles.analysisSection}>
+              <h3 className={styles.analysisSectionTitle}>Unique Selectors ({analysis.uniqueSelectors.length})</h3>
+              <div className={styles.selectorsList}>
+                {analysis.uniqueSelectors.map((selector, idx) => (
+                  <div key={idx} className={styles.selectorItem}>
+                    <code className={styles.selector}>{selector}</code>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Unique Properties */}
+          {analysis.uniqueProperties && analysis.uniqueProperties.length > 0 && (
+            <div className={styles.analysisSection}>
+              <h3 className={styles.analysisSectionTitle}>Properties Used ({analysis.uniqueProperties.length})</h3>
+              <div className={styles.propertiesList}>
+                {analysis.uniqueProperties.map((prop, idx) => (
+                  <span key={idx} className={styles.propertyTag}>{prop}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* At-Rules */}
+          {analysis.atRules && analysis.atRules.length > 0 && (
+            <div className={styles.analysisSection}>
+              <h3 className={styles.analysisSectionTitle}>At-Rules ({analysis.atRules.length})</h3>
+              <div className={styles.atRulesList}>
+                {analysis.atRules.map((rule, idx) => (
+                  <div key={idx} className={styles.atRuleItem}>
+                    <code className={styles.atRuleName}>@{rule.name}</code>
+                    {rule.params && <span className={styles.atRuleParams}>{rule.params}</span>}
+                    {rule.line && <span className={styles.lineNum}>Line {rule.line}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Duplicate Declarations */}
+          {analysis.duplicateDeclarations && analysis.duplicateDeclarations.length > 0 && (
+            <div className={styles.analysisSection}>
+              <h3 className={styles.analysisSectionTitle}>Duplicate Declarations ({analysis.duplicateDeclarations.length})</h3>
+              <div className={styles.duplicatesList}>
+                {analysis.duplicateDeclarations.map((dup, idx) => (
+                  <div key={idx} className={styles.duplicateItem}>
+                    <div className={styles.duplicateProp}>
+                      <code>{dup.prop}: {dup.value}</code>
+                    </div>
+                    <div className={styles.duplicateSelectors}>
+                      {dup.selectors.map((sel, sIdx) => (
+                        <span key={sIdx} className={styles.dupSelector}>{sel}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    return {
+      id: 'analysis',
+      label: 'Analysis',
+      content: renderAnalysisContent,
+      contentType: 'component',
+    }
+  }
 
   // Generate a user-friendly view from JSON data
   const generateFriendlyTab = (jsonContent) => {
@@ -221,6 +429,121 @@ export default function OutputTabs({
     }
   }
 
+  // Add Analysis tab for CSS Toolkit (Phase 2)
+  if (toolId === 'css-formatter' && analysisData && finalShowAnalysisTab) {
+    if (!tabConfig) {
+      tabConfig = []
+    }
+    // Only add analysis tab if it doesn't already exist
+    const hasAnalysisTab = tabConfig.some(t => t.id === 'analysis')
+    if (!hasAnalysisTab) {
+      const analysisTab = generateAnalysisTab(analysisData)
+      if (analysisTab) {
+        // Insert analysis tab after the first tab (typically output/formatted)
+        tabConfig.splice(1, 0, analysisTab)
+      }
+    }
+  }
+
+  // Add Rules tab for CSS Toolkit (Phase 3)
+  if (toolId === 'css-formatter' && analysisData && analysisData.rulesTree && finalShowRulesTab) {
+    if (!tabConfig) {
+      tabConfig = []
+    }
+    // Only add rules tab if it doesn't already exist
+    const hasRulesTab = tabConfig.some(t => t.id === 'rules')
+    if (!hasRulesTab && analysisData.rulesTree.length > 0) {
+      const rulesTab = {
+        id: 'rules',
+        label: 'Rules',
+        content: (
+          <RuleExplorer
+            rules={analysisData.rulesTree}
+            onSelect={(loc) => {
+              setHighlightedRange(loc)
+              // Auto-scroll to the Rules tab was clicked
+              setUserSelectedTabId('rules')
+            }}
+          />
+        ),
+        contentType: 'component',
+      }
+      // Insert rules tab after analysis tab if it exists, otherwise after output
+      const analysisTabIdx = tabConfig.findIndex(t => t.id === 'analysis')
+      if (analysisTabIdx >= 0) {
+        tabConfig.splice(analysisTabIdx + 1, 0, rulesTab)
+      } else {
+        tabConfig.splice(1, 0, rulesTab)
+      }
+    }
+  }
+
+  // Add Preview tab for CSS Toolkit (Phase 5)
+  if (toolId === 'css-formatter' && analysisData && analysisData.rulesTree) {
+    if (!tabConfig) {
+      tabConfig = []
+    }
+    // Only add preview tab if it doesn't already exist
+    const hasPreviewTab = tabConfig.some(t => t.id === 'preview')
+    if (!hasPreviewTab && analysisData.rulesTree.length > 0) {
+      const previewTab = {
+        id: 'preview',
+        label: 'Preview',
+        content: (
+          <CSSPreview
+            rulesTree={analysisData.rulesTree}
+            declaredVariables={analysisData.variables?.declared || []}
+            usedVariables={analysisData.variables?.used || []}
+            variableOverrides={{}}
+            onApplyEdits={onApplyEdits}
+          />
+        ),
+        contentType: 'component',
+      }
+      // Insert preview tab right after output tab (always index 1)
+      tabConfig.splice(1, 0, previewTab)
+    }
+  }
+
+  // Add comprehensive JSON tab for CSS Toolkit (Phase 3+)
+  if (toolId === 'css-formatter' && analysisData) {
+    if (!tabConfig) {
+      tabConfig = []
+    }
+    // Only add JSON tab if it doesn't already exist
+    const hasJsonTab = tabConfig.some(t => t.id === 'toolkit-json')
+    if (!hasJsonTab) {
+      // Create consolidated analysis JSON
+      const consolidatedData = {
+        metadata: {
+          totalRules: analysisData.totalRules,
+          uniqueSelectorsCount: analysisData.uniqueSelectors?.length || 0,
+          uniquePropertiesCount: analysisData.uniqueProperties?.length || 0,
+          maxNestingDepth: analysisData.maxNestingDepth,
+        },
+        selectors: analysisData.uniqueSelectors || [],
+        properties: analysisData.uniqueProperties || [],
+        variables: analysisData.variables || [],
+        mediaQueries: analysisData.mediaQueries || [],
+        atRules: analysisData.atRules || [],
+        specificity: analysisData.specificity || [],
+        duplicateDeclarations: analysisData.duplicateDeclarations || [],
+        rulesTree: analysisData.rulesTree || [],
+      }
+
+      const jsonTab = {
+        id: 'toolkit-json',
+        label: 'JSON',
+        content: JSON.stringify(consolidatedData, null, 2),
+        contentType: 'json',
+        language: 'json',
+      }
+
+      // Add JSON tab at the end
+      tabConfig.push(jsonTab)
+    }
+  }
+
   // Auto-insert friendly tab if tabs only contain JSON
   let finalTabConfig = tabConfig
   if (tabConfig && tabConfig.length === 1 && tabConfig[0].contentType === 'json') {
@@ -401,7 +724,8 @@ export default function OutputTabs({
       }
 
       // Use CodeMirror for all code/JSON tabs
-      const showLineNumbers = language !== 'json'
+      // Disable line gutters for CSV converter exports (JS/TS/SQL)
+      const showLineNumbers = language !== 'json' && toolId !== 'csv-json-converter'
       return (
         <div className={styles.codeContentWithLineNumbers} style={{ height: '100%' }}>
           <div className={styles.codeContentWrapper} ref={codeContentRef} style={{ height: '100%' }}>

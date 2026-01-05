@@ -7,7 +7,7 @@ import Phase2Controls from './SVGOptimizer/Phase2Controls'
 // Lazy-load RegexToolkit - only needed when configuring regex patterns
 const RegexToolkit = dynamic(() => import('./RegexToolkit'), { ssr: false })
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange }) {
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
@@ -937,6 +937,74 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                           </div>
                         );
                       })}
+                      {tool.toolId === 'css-formatter' && (
+                        <div className={styles.field}>
+                          <label className={styles.fieldLabel}></label>
+                          <div className={styles.toggleContainer}>
+                            <label className={styles.toggleLabel}>
+                              <input
+                                type="checkbox"
+                                className={styles.toggleInput}
+                                checked={showAnalysisTab || false}
+                                onChange={(e) => onShowAnalysisTabChange && onShowAnalysisTabChange(e.target.checked)}
+                              />
+                              <span className={styles.toggleSlider}></span>
+                              <span>Analysis</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                      {tool.toolId === 'css-formatter' && (
+                        <div className={styles.field}>
+                          <label className={styles.fieldLabel}></label>
+                          <div className={styles.toggleContainer}>
+                            <label className={styles.toggleLabel}>
+                              <input
+                                type="checkbox"
+                                className={styles.toggleInput}
+                                checked={showRulesTab || false}
+                                onChange={(e) => onShowRulesTabChange && onShowRulesTabChange(e.target.checked)}
+                              />
+                              <span className={styles.toggleSlider}></span>
+                              <span>Rules</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {fieldsWithoutRow.length === 0 && tool.toolId === 'css-formatter' && (
+                    <div className={styles.fieldsContainer}>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}></label>
+                        <div className={styles.toggleContainer}>
+                          <label className={styles.toggleLabel}>
+                            <input
+                              type="checkbox"
+                              className={styles.toggleInput}
+                              checked={showAnalysisTab || false}
+                              onChange={(e) => onShowAnalysisTabChange && onShowAnalysisTabChange(e.target.checked)}
+                            />
+                            <span className={styles.toggleSlider}></span>
+                            <span>Analysis</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}></label>
+                        <div className={styles.toggleContainer}>
+                          <label className={styles.toggleLabel}>
+                            <input
+                              type="checkbox"
+                              className={styles.toggleInput}
+                              checked={showRulesTab || false}
+                              onChange={(e) => onShowRulesTabChange && onShowRulesTabChange(e.target.checked)}
+                            />
+                            <span className={styles.toggleSlider}></span>
+                            <span>Rules</span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>
@@ -974,6 +1042,40 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     </div>
                   )
                 })}
+                {tool.toolId === 'css-formatter' && (
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}></label>
+                    <div className={styles.toggleContainer}>
+                      <label className={styles.toggleLabel}>
+                        <input
+                          type="checkbox"
+                          className={styles.toggleInput}
+                          checked={showAnalysisTab || false}
+                          onChange={(e) => onShowAnalysisTabChange && onShowAnalysisTabChange(e.target.checked)}
+                        />
+                        <span className={styles.toggleSlider}></span>
+                        <span>Analysis</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+                {tool.toolId === 'css-formatter' && (
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}></label>
+                    <div className={styles.toggleContainer}>
+                      <label className={styles.toggleLabel}>
+                        <input
+                          type="checkbox"
+                          className={styles.toggleInput}
+                          checked={showRulesTab || false}
+                          onChange={(e) => onShowRulesTabChange && onShowRulesTabChange(e.target.checked)}
+                        />
+                        <span className={styles.toggleSlider}></span>
+                        <span>Rules</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })()}

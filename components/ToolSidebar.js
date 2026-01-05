@@ -58,6 +58,7 @@ const toolGroups = {
   'xml-formatter': 'Data Formats & Languages',
   'yaml-formatter': 'Data Formats & Languages',
   'csv-json-converter': 'Data Formats & Languages',
+  'css-formatter': 'Data Formats & Languages',
   'url-toolkit': 'Web & Networking',
   'http-header-parser': 'Web & Networking',
   'http-status-lookup': 'Web & Networking',
