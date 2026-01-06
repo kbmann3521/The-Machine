@@ -105,7 +105,8 @@ export default function CSSPreview({
         declaredVariables,
         variableOverrides,
         html,
-        disabledProperties
+        disabledProperties,
+        previewOverrides
       )
 
       // Store current HTML for fullscreen modal
@@ -227,7 +228,7 @@ export default function CSSPreview({
     } catch (error) {
       console.error('Error generating preview:', error)
     }
-  }, [rulesTree, declaredVariables, variableOverrides, viewportWidth, bgColor, forcedStates, disabledProperties, removedRules])
+  }, [rulesTree, declaredVariables, variableOverrides, viewportWidth, bgColor, forcedStates, disabledProperties, removedRules, previewOverrides])
 
   const handleForcedStateToggle = (state) => {
     setForcedStates(prev => {
