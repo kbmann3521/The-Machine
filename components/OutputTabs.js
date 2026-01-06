@@ -64,9 +64,8 @@ export default function OutputTabs({
       return null
     }
 
-    const renderAnalysisContent = () => {
-      return (
-        <div className={styles.analysisPanel}>
+    const analysisContent = (
+      <div className={styles.analysisPanel}>
           {/* Total Stats */}
           <div className={styles.analysisSection}>
             <h3 className={styles.analysisSectionTitle}>Overview</h3>
@@ -220,15 +219,14 @@ export default function OutputTabs({
               </div>
             </div>
           )}
-        </div>
-      )
-    }
+      </div>
+    )
 
     return {
       id: 'analysis',
       label: 'Analysis',
-      content: renderAnalysisContent,
-      contentType: 'component',
+      content: analysisContent,
+      contentType: 'analysis',
     }
   }
 
@@ -703,6 +701,11 @@ export default function OutputTabs({
           {content}
         </div>
       )
+    }
+
+    // Handle analysis content (no wrapper)
+    if (contentType === 'analysis') {
+      return content
     }
 
     // Handle JSON content

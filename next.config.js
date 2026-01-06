@@ -1,9 +1,15 @@
 /** @type {import('next').NextConfig} */
 
-// Bundle analyzer - run with: npm run analyze
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-})
+// Bundle analyzer - run with: npm run analyze (optional dependency)
+let withBundleAnalyzer = (config) => config
+try {
+  withBundleAnalyzer = require('@next/bundle-analyzer')({
+    enabled: process.env.ANALYZE === 'true',
+  })
+} catch (e) {
+  // @next/bundle-analyzer is optional, only needed for analysis
+  console.warn('Bundle analyzer not installed. Install with: npm install --save-dev @next/bundle-analyzer')
+}
 
 const nextConfig = {
   reactStrictMode: true,

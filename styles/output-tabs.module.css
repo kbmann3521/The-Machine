@@ -143,9 +143,9 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  flex: 0 1 auto;
+  flex: 1;
   padding: 16px;
-  height: 100%;
+  box-sizing: border-box;
 }
 
 .dataSection {
@@ -1021,28 +1021,8 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  padding: 16px;
   background-color: var(--color-background-primary, #fff);
-  overflow-y: auto;
-  flex: 1;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) rgba(0, 0, 0, 0.1);
-}
-
-.analysisPanel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.analysisPanel::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.analysisPanel::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-}
-
-.analysisPanel::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .analysisSection {
@@ -1183,24 +1163,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 300px;
-  overflow-y: auto;
   padding-right: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
-}
-
-.selectorsList::-webkit-scrollbar {
-  width: 4px;
-}
-
-.selectorsList::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.selectorsList::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
 }
 
 .selectorItem {
