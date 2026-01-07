@@ -86,6 +86,7 @@ export default function Home(props) {
   const [contentClassification, setContentClassification] = useState(() => classifyMarkdownHtmlInput(''))
   const [showAnalysisTab, setShowAnalysisTab] = useState(false)
   const [showRulesTab, setShowRulesTab] = useState(false)
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -842,8 +843,8 @@ export default function Home(props) {
 
           <main className={styles.mainContent}>
             <div className={styles.content}>
-          <div className={styles.toolContainer}>
-            <div className={styles.leftPanel}>
+          <div className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}>
+            <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
               <div className={styles.inputSection}>
                 <UniversalInput
                   onInputChange={handleInputChange}
@@ -860,6 +861,8 @@ export default function Home(props) {
                   lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
                   result={outputResult}
                   activeToolkitSection={activeToolkitSection}
+                  isPreviewFullscreen={isPreviewFullscreen}
+                  onTogglePreviewFullscreen={setIsPreviewFullscreen}
                 />
               </div>
 
@@ -996,6 +999,8 @@ export default function Home(props) {
                     onShowAnalysisTabChange={setShowAnalysisTab}
                     showRulesTab={showRulesTab}
                     onShowRulesTabChange={setShowRulesTab}
+                    isPreviewFullscreen={isPreviewFullscreen}
+                    onTogglePreviewFullscreen={setIsPreviewFullscreen}
                   />
                 )}
               </div>

@@ -25,6 +25,8 @@ export default function OutputTabs({
   onShowAnalysisTabChange = null,
   showRulesTab = false,
   onShowRulesTabChange = null,
+  isPreviewFullscreen = false,
+  onTogglePreviewFullscreen = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
@@ -494,6 +496,8 @@ export default function OutputTabs({
             usedVariables={analysisData.variables?.used || []}
             variableOverrides={{}}
             onApplyEdits={onApplyEdits}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={onTogglePreviewFullscreen}
           />
         ),
         contentType: 'component',

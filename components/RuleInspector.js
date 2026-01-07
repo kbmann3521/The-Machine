@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { PropertyEditorDispatcher, getPropertyEditorType } from './PropertyEditor'
 import { isRuleRedundant } from '../lib/tools/ruleImpactAnalysis'
 import { generateRefactorSuggestions } from '../lib/tools/refactorSuggestions'
+import { classifyProperty, getImpactBadgeInfo } from '../lib/propertyClassification'
 import styles from '../styles/rule-inspector.module.css'
 
 /**
@@ -82,32 +83,10 @@ export default function RuleInspector({
     return rule.selector
   }
 
-  const getPropertyTypeClass = (property) => {
-    // Safe properties that can be edited in Phase 6C
-    const EDITABLE_PROPERTIES = [
-      'color',
-      'background-color',
-      'background',
-      'padding',
-      'padding-top',
-      'padding-right',
-      'padding-bottom',
-      'padding-left',
-      'margin',
-      'margin-top',
-      'margin-right',
-      'margin-bottom',
-      'margin-left',
-      'font-size',
-      'font-weight',
-      'line-height',
-      'border-radius',
-      'opacity',
-      'text-align',
-      'border-color',
-    ]
-
-    return EDITABLE_PROPERTIES.includes(property) ? 'editable' : 'readonly'
+  const getPropertyImpactClass = (property) => {
+    // Return the impact classification for styling
+    const impact = classifyProperty(property)
+    return `impact-${impact}`
   }
 
   // Phase 7C: Render refactor suggestions for a selected rule (collapsed by default)
@@ -299,7 +278,8 @@ export default function RuleInspector({
                   {rule.declarations && rule.declarations.length > 0 ? (
                     <div className={styles.declarations}>
                       {rule.declarations.map((decl, declIdx) => {
-                        const propertyType = getPropertyTypeClass(decl.property)
+                        const impactClass = getPropertyImpactClass(decl.property)
+                        const impactInfo = getImpactBadgeInfo(decl.property)
                         const propKey = `${ruleKey}-${decl.property}`
                         const disabledKey = `${rule.ruleIndex}-${decl.property}`
                         const isPropertyDisabled = disabledProperties.has(disabledKey)
@@ -309,7 +289,7 @@ export default function RuleInspector({
                         return (
                           <div
                             key={declIdx}
-                            className={`${styles.declaration} ${styles[propertyType]} ${isPropertyDisabled ? styles.declarationDisabled : ''}`}
+                            className={`${styles.declaration} ${styles[impactClass]} ${isPropertyDisabled ? styles.declarationDisabled : ''}`}
                           >
                             {onTogglePropertyDisabled && (
                               <button
@@ -320,6 +300,9 @@ export default function RuleInspector({
                                 {isPropertyDisabled ? '✗' : '•'}
                               </button>
                             )}
+                            <span className={styles.impactBadge} title={impactInfo.description}>
+                              {impactInfo.emoji}
+                            </span>
                             <span className={styles.property}>{decl.property}</span>
                             <span className={styles.colon}>:</span>
 
@@ -351,17 +334,15 @@ export default function RuleInspector({
                             ) : (
                               <>
                                 <span className={styles.value}>{editedValue}</span>
-                                {propertyType === 'editable' && (
-                                  <button
-                                    className={styles.editButton}
-                                    title={`Edit ${decl.property}`}
-                                    onClick={() => {
-                                      setEditingProp({ propKey, ruleIndex: rule.ruleIndex })
-                                    }}
-                                  >
-                                    ✎
-                                  </button>
-                                )}
+                                <button
+                                  className={styles.editButton}
+                                  title={`Edit ${decl.property}`}
+                                  onClick={() => {
+                                    setEditingProp({ propKey, ruleIndex: rule.ruleIndex })
+                                  }}
+                                >
+                                  ✎
+                                </button>
                               </>
                             )}
                           </div>
@@ -381,7 +362,7 @@ export default function RuleInspector({
 
       <div className={styles.inspectorFooter}>
         <p className={styles.disclaimer}>
-          💡 Click on editable properties to modify them
+          💡 Click any property to edit. Impact badges: 🟢 Visual · 🟡 Layout · 🔵 Interactive · 🔴 Structural
         </p>
         {hasActiveOverrides && onApplyEdits && (
           <button
