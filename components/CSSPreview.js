@@ -26,9 +26,12 @@ export default function CSSPreview({
   onStateChange = null,
   variableOverrides = {},
   onApplyEdits = null,
+  isFullscreen = false,
+  onToggleFullscreen = null,
 }) {
   const { theme } = useTheme()
   const iframeRef = useRef(null)
+  const fullscreenIframeRef = useRef(null)
   const [viewportWidth, setViewportWidth] = useState(1024)
   const [bgColor, setBgColor] = useState('#ffffff')
   const [forcedStates, setForcedStates] = useState({
@@ -46,7 +49,7 @@ export default function CSSPreview({
   const [disabledProperties, setDisabledProperties] = useState(new Set()) // Phase 7D: Disabled properties for what-if simulation (format: "ruleIndex-property")
   const [removedRules, setRemovedRules] = useState(new Set()) // Phase 7C: Rules marked for removal (stores ruleIndex)
   const [appliedChanges, setAppliedChanges] = useState(null) // Phase 6(E): Track last applied changes for feedback (format: { count, summary })
-  const [isFullscreen, setIsFullscreen] = useState(false) // Fullscreen modal state
+
   const [bgColorPickerHovered, setBgColorPickerHovered] = useState(false) // Track color picker hover for scale effect
   const [currentPreviewHTML, setCurrentPreviewHTML] = useState('') // Track current preview HTML for fullscreen modal
 
@@ -74,13 +77,90 @@ export default function CSSPreview({
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        setIsFullscreen(false)
+        onToggleFullscreen?.(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isFullscreen])
+  }, [isFullscreen, onToggleFullscreen])
+
+  // Wire up click detection for fullscreen iframe
+  useEffect(() => {
+    if (!isFullscreen || !fullscreenIframeRef.current || !nodeMapping) return
+
+    let clickHandler = null
+
+    const setupFullscreenIframe = () => {
+      const iframe = fullscreenIframeRef.current
+      if (!iframe) return
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+      if (!iframeDoc) return
+
+      try {
+        // Remove previous click handler if it exists
+        if (clickHandler) {
+          iframeDoc.removeEventListener('click', clickHandler, true)
+        }
+
+        // Phase 6(A): Wire click detection for element inspector
+        clickHandler = (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+
+          const clickedElement = e.target
+
+          // Try to find the selector from data attributes (set by buildDomFromNodes)
+          let selector = clickedElement.getAttribute('data-selector')
+
+          // Fallback: derive from className if element has one
+          if (!selector && clickedElement.className) {
+            const classes = clickedElement.className.split(' ').filter(c => !c.startsWith('pseudo-'))
+            if (classes.length > 0) {
+              selector = '.' + classes.join('.')
+            }
+          }
+
+          // Fallback: use tag name
+          if (!selector) {
+            selector = clickedElement.tagName.toLowerCase()
+          }
+
+          if (selector && nodeMapping) {
+            // Get all rules affecting this selector
+            const rules = getAffectingRulesForSelector(selector, rulesTree)
+            setInspectedSelector(selector)
+            setAffectingRules(rules)
+          }
+        }
+
+        iframeDoc.addEventListener('click', clickHandler, true) // Use capture phase to intercept before other handlers
+      } catch (e) {
+        console.warn('Error setting up fullscreen iframe click detection:', e)
+      }
+    }
+
+    // Set up click detection when iframe content is loaded
+    setupFullscreenIframe()
+    if (fullscreenIframeRef.current) {
+      fullscreenIframeRef.current.onload = setupFullscreenIframe
+    }
+
+    // Cleanup
+    return () => {
+      if (fullscreenIframeRef.current && clickHandler) {
+        try {
+          const iframeDoc = fullscreenIframeRef.current.contentDocument || fullscreenIframeRef.current.contentWindow.document
+          if (iframeDoc) {
+            iframeDoc.removeEventListener('click', clickHandler, true)
+          }
+        } catch (e) {
+          console.warn('Error cleaning up fullscreen iframe click detection:', e)
+        }
+      }
+    }
+  }, [isFullscreen, nodeMapping, rulesTree])
 
   // Generate preview HTML on mount and when dependencies change
   useEffect(() => {
@@ -392,23 +472,61 @@ export default function CSSPreview({
   // Phase 7A Stage 4: Handle hover interactions for affected nodes
   // Highlights or removes highlights from matching elements in the preview
   const handleAffectedNodeHover = (selector, action) => {
-    if (!iframeRef.current) return
+    // Use fullscreen iframe if in fullscreen mode, otherwise use regular iframe
+    const iframeToUse = isFullscreen ? fullscreenIframeRef.current : iframeRef.current
+    if (!iframeToUse) return
 
-    const iframe = iframeRef.current
+    const iframe = iframeToUse
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
     if (!iframeDoc) return
 
     try {
-      const elements = iframeDoc.querySelectorAll(selector)
-      elements.forEach(el => {
-        if (action === 'highlight') {
-          el.classList.add('_preview-highlight')
-          setHighlightedSelector(selector)
-        } else if (action === 'remove') {
-          el.classList.remove('_preview-highlight')
-          setHighlightedSelector(null)
+      let elements = null
+
+      // Extract base selector from pseudo-classes/pseudo-elements
+      // Handle pseudo-element selectors (.header::before, .button::after, etc.)
+      // and pseudo-class selectors (.button:hover, .header:focus, etc.)
+      // Pseudo-elements and pseudo-classes aren't real DOM elements, so we highlight the base element instead
+      if (selector.includes(':')) {
+        // Find the first colon and extract everything before it
+        const colonIndex = selector.indexOf(':')
+        const baseSelector = selector.substring(0, colonIndex)
+        if (baseSelector && baseSelector.trim()) {
+          try {
+            elements = iframeDoc.querySelectorAll(baseSelector.trim())
+          } catch (selectorError) {
+            // Fallback: try to extract just the class/tag name
+            const classMatch = selector.match(/\.([a-zA-Z0-9_-]+)/)
+            if (classMatch) {
+              elements = iframeDoc.querySelectorAll('.' + classMatch[1])
+            } else {
+              const tagMatch = selector.match(/^([a-zA-Z]+)/)
+              if (tagMatch) {
+                elements = iframeDoc.querySelectorAll(tagMatch[1])
+              }
+            }
+          }
         }
-      })
+      } else {
+        // Regular selector without pseudo-classes/elements (.button, .header, etc.)
+        try {
+          elements = iframeDoc.querySelectorAll(selector)
+        } catch (selectorError) {
+          console.warn(`Invalid selector "${selector}":`, selectorError)
+        }
+      }
+
+      if (elements && elements.length > 0) {
+        elements.forEach(el => {
+          if (action === 'highlight') {
+            el.classList.add('_preview-highlight')
+            setHighlightedSelector(selector)
+          } else if (action === 'remove') {
+            el.classList.remove('_preview-highlight')
+            setHighlightedSelector(null)
+          }
+        })
+      }
     } catch (e) {
       console.warn(`Could not highlight selector ${selector}:`, e)
     }
@@ -566,7 +684,7 @@ export default function CSSPreview({
         </button>
         <button
           className={styles.controlsToggleBtn}
-          onClick={() => setIsFullscreen(true)}
+          onClick={() => onToggleFullscreen?.(true)}
           title="Expand preview to fullscreen"
           style={{ marginLeft: 'auto' }}
         >
@@ -702,7 +820,7 @@ export default function CSSPreview({
       </div>
       )}
 
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      <div className={styles.previewMainLayout}>
         <div className={styles.previewCanvas}>
           <div className={styles.previewDisclaimer}>
             ℹ️ Synthetic preview using generated elements. Actual HTML structure may differ.
@@ -738,13 +856,7 @@ export default function CSSPreview({
 
         {/* Phase 6(A): Rule Inspector Panel */}
         {inspectedSelector && affectingRules.length > 0 && (
-          <div style={{
-            width: '320px',
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 0,
-            backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
-          }}>
+          <div className={styles.inspectorPanel}>
             <RuleInspector
               selector={inspectedSelector}
               affectingRules={affectingRules}
@@ -815,7 +927,7 @@ export default function CSSPreview({
               CSS Preview — Fullscreen Mode
             </span>
             <button
-              onClick={() => setIsFullscreen(false)}
+              onClick={() => onToggleFullscreen?.(false)}
               title="Exit fullscreen"
               style={{
                 padding: '6px 10px',
@@ -846,21 +958,56 @@ export default function CSSPreview({
           </div>
 
           {/* Fullscreen Preview */}
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              minHeight: 0,
-              overflow: 'hidden',
-              backgroundColor: bgColor,
-            }}
-          >
-            <iframe
-              srcDoc={currentPreviewHTML}
-              sandbox="allow-same-origin"
-              style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
-              title="CSS Preview Fullscreen"
-            />
+          <div className={styles.fullscreenPreviewLayout}>
+            <div className={styles.fullscreenPreviewCanvas}>
+              <iframe
+                ref={fullscreenIframeRef}
+                srcDoc={currentPreviewHTML}
+                sandbox="allow-same-origin"
+                style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
+                title="CSS Preview Fullscreen"
+              />
+            </div>
+
+            {/* Fullscreen Inspector Panel */}
+            {inspectedSelector && affectingRules.length > 0 && (
+              <div className={styles.inspectorPanelFullscreen}>
+                <RuleInspector
+                  selector={inspectedSelector}
+                  affectingRules={affectingRules}
+                  onClose={() => {
+                    // Clear any active highlights before closing
+                    if (highlightedSelector && fullscreenIframeRef.current) {
+                      const iframe = fullscreenIframeRef.current
+                      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+                      if (iframeDoc) {
+                        try {
+                          const elements = iframeDoc.querySelectorAll(highlightedSelector)
+                          elements.forEach(el => {
+                            el.classList.remove('_preview-highlight')
+                          })
+                        } catch (e) {
+                          console.warn(`Could not clear highlight for ${highlightedSelector}:`, e)
+                        }
+                      }
+                    }
+                    setInspectedSelector(null)
+                    setAffectingRules([])
+                    setSelectedRuleImpact(null)
+                    setHighlightedSelector(null)
+                  }}
+                  onPropertyEdit={handlePropertyEdit}
+                  hasActiveOverrides={hasActiveOverrides}
+                  onApplyEdits={handleApplyEdits}
+                  onRuleSelect={handleComputeRuleImpact}
+                  selectedRuleImpact={selectedRuleImpact}
+                  onAffectedNodeHover={handleAffectedNodeHover}
+                  disabledProperties={disabledProperties}
+                  onTogglePropertyDisabled={handleTogglePropertyDisabled}
+                  onRemoveRule={handleRemoveRule}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

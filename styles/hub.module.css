@@ -307,6 +307,18 @@
   overflow: hidden;
 }
 
+.rightPanel.hidden {
+  display: none;
+}
+
+.toolContainer.fullscreenPreview {
+  grid-template-columns: 1fr;
+}
+
+.toolContainer.fullscreenPreview .leftPanel {
+  display: none;
+}
+
 .outputSection {
   flex: 1;
   width: 100%;

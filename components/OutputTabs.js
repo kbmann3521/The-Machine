@@ -25,6 +25,8 @@ export default function OutputTabs({
   onShowAnalysisTabChange = null,
   showRulesTab = false,
   onShowRulesTabChange = null,
+  isPreviewFullscreen = false,
+  onTogglePreviewFullscreen = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
@@ -494,6 +496,8 @@ export default function OutputTabs({
             usedVariables={analysisData.variables?.used || []}
             variableOverrides={{}}
             onApplyEdits={onApplyEdits}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={onTogglePreviewFullscreen}
           />
         ),
         contentType: 'component',
@@ -689,15 +693,19 @@ export default function OutputTabs({
 
     // Handle component/function content (e.g., friendlyView)
     if (contentType === 'component') {
+      // Use special styling for preview tab to enable proper scrolling
+      const isPreviewTab = activeTabConfig.id === 'preview' && toolId === 'css-formatter'
+      const contentClass = isPreviewTab ? styles.previewTabContent : styles.friendlyContent
+
       if (typeof content === 'function') {
         return (
-          <div className={styles.friendlyContent}>
+          <div className={contentClass}>
             {content({ onCopyCard: handleCopyCard, copiedCardId })}
           </div>
         )
       }
       return (
-        <div className={styles.friendlyContent}>
+        <div className={contentClass}>
           {content}
         </div>
       )
@@ -772,8 +780,10 @@ export default function OutputTabs({
 
     // Handle React components
     if (typeof content === 'function') {
+      const isPreviewTab = activeTabConfig.id === 'preview' && toolId === 'css-formatter'
+      const contentClass = isPreviewTab ? styles.previewTabContent : styles.friendlyContent
       return (
-        <div className={styles.friendlyContent}>
+        <div className={contentClass}>
           {content({ onCopyCard: handleCopyCard, copiedCardId })}
         </div>
       )
@@ -781,8 +791,10 @@ export default function OutputTabs({
 
     // Handle React elements
     if (React.isValidElement(content)) {
+      const isPreviewTab = activeTabConfig.id === 'preview' && toolId === 'css-formatter'
+      const contentClass = isPreviewTab ? styles.previewTabContent : styles.friendlyContent
       return (
-        <div className={styles.friendlyContent}>
+        <div className={contentClass}>
           {content}
         </div>
       )
