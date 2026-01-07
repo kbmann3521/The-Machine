@@ -53,10 +53,19 @@ export default function RuleInspector({
 
   const toggleRuleExpanded = (ruleKey, rule) => {
     const isExpanding = !expandedRules[ruleKey]
-    setExpandedRules(prev => ({
-      ...prev,
-      [ruleKey]: !prev[ruleKey],
-    }))
+
+    // When expanding, close all other rules (mutually exclusive accordions)
+    // When collapsing, just toggle the current one
+    if (isExpanding) {
+      setExpandedRules({
+        [ruleKey]: true,
+      })
+    } else {
+      setExpandedRules(prev => ({
+        ...prev,
+        [ruleKey]: false,
+      }))
+    }
 
     // Phase 7A: Compute impact when rule is expanded
     if (isExpanding && onRuleSelect) {

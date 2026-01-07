@@ -57,19 +57,25 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .rulesList::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .rulesList::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .rulesList::-webkit-scrollbar-thumb {
-  background: var(--color-text-secondary, #999);
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
+}
+
+.rulesList::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 .ruleItem {

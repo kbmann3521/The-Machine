@@ -472,23 +472,61 @@ export default function CSSPreview({
   // Phase 7A Stage 4: Handle hover interactions for affected nodes
   // Highlights or removes highlights from matching elements in the preview
   const handleAffectedNodeHover = (selector, action) => {
-    if (!iframeRef.current) return
+    // Use fullscreen iframe if in fullscreen mode, otherwise use regular iframe
+    const iframeToUse = isFullscreen ? fullscreenIframeRef.current : iframeRef.current
+    if (!iframeToUse) return
 
-    const iframe = iframeRef.current
+    const iframe = iframeToUse
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
     if (!iframeDoc) return
 
     try {
-      const elements = iframeDoc.querySelectorAll(selector)
-      elements.forEach(el => {
-        if (action === 'highlight') {
-          el.classList.add('_preview-highlight')
-          setHighlightedSelector(selector)
-        } else if (action === 'remove') {
-          el.classList.remove('_preview-highlight')
-          setHighlightedSelector(null)
+      let elements = null
+
+      // Extract base selector from pseudo-classes/pseudo-elements
+      // Handle pseudo-element selectors (.header::before, .button::after, etc.)
+      // and pseudo-class selectors (.button:hover, .header:focus, etc.)
+      // Pseudo-elements and pseudo-classes aren't real DOM elements, so we highlight the base element instead
+      if (selector.includes(':')) {
+        // Find the first colon and extract everything before it
+        const colonIndex = selector.indexOf(':')
+        const baseSelector = selector.substring(0, colonIndex)
+        if (baseSelector && baseSelector.trim()) {
+          try {
+            elements = iframeDoc.querySelectorAll(baseSelector.trim())
+          } catch (selectorError) {
+            // Fallback: try to extract just the class/tag name
+            const classMatch = selector.match(/\.([a-zA-Z0-9_-]+)/)
+            if (classMatch) {
+              elements = iframeDoc.querySelectorAll('.' + classMatch[1])
+            } else {
+              const tagMatch = selector.match(/^([a-zA-Z]+)/)
+              if (tagMatch) {
+                elements = iframeDoc.querySelectorAll(tagMatch[1])
+              }
+            }
+          }
         }
-      })
+      } else {
+        // Regular selector without pseudo-classes/elements (.button, .header, etc.)
+        try {
+          elements = iframeDoc.querySelectorAll(selector)
+        } catch (selectorError) {
+          console.warn(`Invalid selector "${selector}":`, selectorError)
+        }
+      }
+
+      if (elements && elements.length > 0) {
+        elements.forEach(el => {
+          if (action === 'highlight') {
+            el.classList.add('_preview-highlight')
+            setHighlightedSelector(selector)
+          } else if (action === 'remove') {
+            el.classList.remove('_preview-highlight')
+            setHighlightedSelector(null)
+          }
+        })
+      }
     } catch (e) {
       console.warn(`Could not highlight selector ${selector}:`, e)
     }
@@ -820,10 +858,14 @@ export default function CSSPreview({
         {inspectedSelector && affectingRules.length > 0 && (
           <div style={{
             width: '384px',
+            height: '100%',
+            maxHeight: '100%',
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
             backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
+            overflow: 'hidden',
+            flex: '0 0 384px',
           }}>
             <RuleInspector
               selector={inspectedSelector}
