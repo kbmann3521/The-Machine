@@ -1278,8 +1278,27 @@
   color: var(--color-text-secondary, #666);
 }
 
-/* Mobile */
+/* Tablet and below: Increase output container height */
+@media (max-width: 1024px) {
+  .outputTabsWrapper {
+    min-height: 500px;
+  }
+
+  .outputTabsContainer {
+    min-height: 500px;
+  }
+}
+
+/* Mobile: Increase output container height even more */
 @media (max-width: 480px) {
+  .outputTabsWrapper {
+    min-height: 600px;
+  }
+
+  .outputTabsContainer {
+    min-height: 600px;
+  }
+
   .tab {
     padding: 8px 10px;
     font-size: 10px;
@@ -1344,6 +1363,90 @@
   .mediaQueryMeta {
     font-size: 10px;
     gap: 8px;
+  }
+}
+
+/* Main Preview Layout */
+.previewMainLayout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: row;
+}
+
+/* Mobile: Stack inspector and preview vertically */
+@media (max-width: 480px) {
+  .previewMainLayout {
+    flex-direction: column;
+  }
+}
+
+/* Fullscreen Preview Layout */
+.fullscreenPreviewLayout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+  flex-direction: row;
+}
+
+.fullscreenPreviewCanvas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Mobile: Stack fullscreen layouts vertically */
+@media (max-width: 480px) {
+  .fullscreenPreviewLayout {
+    flex-direction: column;
+  }
+}
+
+/* Inspector Panel Styles */
+.inspectorPanel {
+  width: 384px;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  overflow: hidden;
+  flex: 0 0 384px;
+}
+
+.inspectorPanelFullscreen {
+  width: 384px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-left: 1px solid var(--color-border, #ddd);
+}
+
+/* Tablet: Reduce inspector width */
+@media (max-width: 1024px) {
+  .inspectorPanel {
+    width: 320px;
+    flex: 0 0 320px;
+  }
+
+  .inspectorPanelFullscreen {
+    width: 320px;
+  }
+}
+
+/* Mobile: Stack inspector vertically or use narrower width */
+@media (max-width: 480px) {
+  .inspectorPanel,
+  .inspectorPanelFullscreen {
+    width: 100%;
+    flex: 0 0 auto;
+    max-height: 50%;
+    border-left: none;
+    border-top: 1px solid var(--color-border, #ddd);
   }
 }
 

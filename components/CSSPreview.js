@@ -820,7 +820,7 @@ export default function CSSPreview({
       </div>
       )}
 
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      <div className={styles.previewMainLayout}>
         <div className={styles.previewCanvas}>
           <div className={styles.previewDisclaimer}>
             ℹ️ Synthetic preview using generated elements. Actual HTML structure may differ.
@@ -856,17 +856,7 @@ export default function CSSPreview({
 
         {/* Phase 6(A): Rule Inspector Panel */}
         {inspectedSelector && affectingRules.length > 0 && (
-          <div style={{
-            width: '384px',
-            height: '100%',
-            maxHeight: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 0,
-            backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
-            overflow: 'hidden',
-            flex: '0 0 384px',
-          }}>
+          <div className={styles.inspectorPanel}>
             <RuleInspector
               selector={inspectedSelector}
               affectingRules={affectingRules}
@@ -968,16 +958,8 @@ export default function CSSPreview({
           </div>
 
           {/* Fullscreen Preview */}
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              minHeight: 0,
-              overflow: 'hidden',
-              backgroundColor: bgColor,
-            }}
-          >
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <div className={styles.fullscreenPreviewLayout}>
+            <div className={styles.fullscreenPreviewCanvas}>
               <iframe
                 ref={fullscreenIframeRef}
                 srcDoc={currentPreviewHTML}
@@ -989,14 +971,7 @@ export default function CSSPreview({
 
             {/* Fullscreen Inspector Panel */}
             {inspectedSelector && affectingRules.length > 0 && (
-              <div style={{
-                width: '384px',
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 0,
-                backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
-                borderLeft: '1px solid var(--color-border, #ddd)',
-              }}>
+              <div className={styles.inspectorPanelFullscreen}>
                 <RuleInspector
                   selector={inspectedSelector}
                   affectingRules={affectingRules}
