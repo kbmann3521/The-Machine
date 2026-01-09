@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { generateSyntheticDom, buildDomFromNodes, getSyntheticNodeMapping, getAffectingRulesForSelector, togglePseudoStateOnAll } from '../lib/tools/syntheticDom'
 import { buildPreviewDocument } from '../lib/tools/previewCss'
 import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
+import { applyPropertyEditsToSourceText, applyMergeToSourceText } from '../lib/tools/mergeSelectors'
 import { useTheme } from '../lib/ThemeContext'
 import RuleInspector from './RuleInspector'
+import MergeSelectorConfirmation from './MergeSelectorConfirmation'
 import styles from '../styles/output-tabs.module.css'
 
 /**
@@ -28,6 +30,7 @@ export default function CSSPreview({
   onApplyEdits = null,
   isFullscreen = false,
   onToggleFullscreen = null,
+  sourceText = '',
 }) {
   const { theme } = useTheme()
   const iframeRef = useRef(null)
@@ -49,9 +52,12 @@ export default function CSSPreview({
   const [disabledProperties, setDisabledProperties] = useState(new Set()) // Phase 7D: Disabled properties for what-if simulation (format: "ruleIndex-property")
   const [removedRules, setRemovedRules] = useState(new Set()) // Phase 7C: Rules marked for removal (stores ruleIndex)
   const [appliedChanges, setAppliedChanges] = useState(null) // Phase 6(E): Track last applied changes for feedback (format: { count, summary })
+  const [addedProperties, setAddedProperties] = useState({}) // Phase 6(F): Track new properties (format: "ruleIndex::propertyName" => value)
+  const [lockedDisabledProperties, setLockedDisabledProperties] = useState(new Set()) // Phase 6(F): Lock disabled properties to prevent re-enabling (format: "ruleIndex-propertyName")
 
   const [bgColorPickerHovered, setBgColorPickerHovered] = useState(false) // Track color picker hover for scale effect
   const [currentPreviewHTML, setCurrentPreviewHTML] = useState('') // Track current preview HTML for fullscreen modal
+  const [mergeableGroupsForModal, setMergeableGroupsForModal] = useState(null) // Track mergeable groups for merge confirmation modal
 
   // Helper function to determine if a hex color is light or dark
   const isColorLight = (hex) => {
@@ -246,26 +252,21 @@ export default function CSSPreview({
 
         // Phase 6(D): Re-apply all staged overrides after iframe loads
         // This ensures edits persist across viewport changes or re-renders
-        // BUT: Skip overrides for disabled properties
-        Object.entries(previewOverrides).forEach(([selector, overrideProps]) => {
+        // Override keys are in format "ruleIndex::selector"
+        Object.entries(previewOverrides).forEach(([overrideKey, overrideProps]) => {
           try {
+            // Parse the override key to extract selector (ruleIndex is informational)
+            const [, ...selectorParts] = overrideKey.split('::')
+            const selector = selectorParts.join('::')
+
             const elements = iframeDoc.querySelectorAll(selector)
             elements.forEach(el => {
               Object.entries(overrideProps).forEach(([property, value]) => {
-                // Find the rule that this override applies to and check if it's disabled
-                const correspondingRule = rulesTree.find(r => r.selector === selector)
-                if (correspondingRule) {
-                  const disabledKey = `${correspondingRule.ruleIndex}-${property}`
-                  if (disabledProperties.has(disabledKey)) {
-                    // Skip this property since it's disabled
-                    return
-                  }
-                }
                 el.style.setProperty(property, value, 'important')
               })
             })
           } catch (e) {
-            console.warn(`Could not apply overrides to ${selector}:`, e)
+            console.warn(`Could not apply overrides to ${overrideKey}:`, e)
           }
         })
 
@@ -310,6 +311,16 @@ export default function CSSPreview({
     }
   }, [rulesTree, declaredVariables, variableOverrides, viewportWidth, bgColor, forcedStates, disabledProperties, removedRules, previewOverrides])
 
+  // Re-calculate affectingRules when rulesTree changes and inspector is showing a selector
+  // This ensures the inspector panel updates in real-time when CSS source is edited
+  useEffect(() => {
+    if (!inspectedSelector || !rulesTree.length) return
+
+    // Re-calculate rules affecting the currently inspected selector from the fresh rulesTree
+    const updatedRules = getAffectingRulesForSelector(inspectedSelector, rulesTree)
+    setAffectingRules(updatedRules)
+  }, [inspectedSelector, rulesTree])
+
   const handleForcedStateToggle = (state) => {
     setForcedStates(prev => {
       const newState = { ...prev, [state]: !prev[state] }
@@ -328,38 +339,80 @@ export default function CSSPreview({
       const iframe = iframeRef.current
       const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
       if (iframeDoc) {
-        // Find all elements with inline styles and remove !important styles
-        // (Simple approach: just set to empty, complex approach would track which props were overridden)
+        // Collect all properties that were overridden and clear them
+        const propertiesToClear = new Set()
+        Object.entries(previewOverrides).forEach(([overrideKey, overrideProps]) => {
+          Object.keys(overrideProps).forEach(property => {
+            propertiesToClear.add(property)
+          })
+        })
+
+        // Remove all overridden properties from all elements
         const allElements = iframeDoc.querySelectorAll('*')
         allElements.forEach(el => {
-          el.style.removeProperty('color')
-          el.style.removeProperty('background-color')
-          el.style.removeProperty('padding')
-          el.style.removeProperty('padding-top')
-          el.style.removeProperty('padding-right')
-          el.style.removeProperty('padding-bottom')
-          el.style.removeProperty('padding-left')
-          el.style.removeProperty('margin')
-          el.style.removeProperty('margin-top')
-          el.style.removeProperty('margin-right')
-          el.style.removeProperty('margin-bottom')
-          el.style.removeProperty('margin-left')
-          el.style.removeProperty('font-size')
-          el.style.removeProperty('font-weight')
-          el.style.removeProperty('line-height')
-          el.style.removeProperty('border-radius')
-          el.style.removeProperty('opacity')
-          el.style.removeProperty('text-align')
-          el.style.removeProperty('border-color')
+          propertiesToClear.forEach(property => {
+            el.style.removeProperty(property)
+          })
         })
       }
     }
   }
 
   // Check if there are any active overrides
-  const hasActiveOverrides = Object.keys(previewOverrides).length > 0
+  const hasActiveOverrides = Object.keys(previewOverrides).length > 0 || Object.keys(addedProperties).length > 0
+
+  // Helper function to check if a property is overridden by a later rule in the cascade
+  // If overridden, the property is not visible in the preview, so editing/disabling it does nothing
+  const isPropertyOverriddenByLaterRule = (ruleIndex, selector, property) => {
+    for (const rule of rulesTree) {
+      // Only check rules that come AFTER this one
+      if (rule.ruleIndex <= ruleIndex) continue
+
+      // Check if this later rule has the same selector and contains this property
+      if (rule.selector === selector && rule.declarations?.some(d => d.property === property)) {
+        return true
+      }
+
+      // For at-rules, recurse into children
+      if (rule.type === 'atrule' && rule.children?.length) {
+        const checkChildren = (children) => {
+          for (const child of children) {
+            if (child.ruleIndex > ruleIndex && child.selector === selector && child.declarations?.some(d => d.property === property)) {
+              return true
+            }
+            if (child.type === 'atrule' && child.children?.length && checkChildren(child.children)) {
+              return true
+            }
+          }
+          return false
+        }
+        if (checkChildren(rule.children)) return true
+      }
+    }
+    return false
+  }
+
+  // Phase 6(F): Callbacks for managing added properties and locked state
+  const handleAddPropertyChange = (updater) => {
+    setAddedProperties(prev => typeof updater === 'function' ? updater(prev) : updater)
+  }
+
+  const handleLockPropertyChange = (updater) => {
+    setLockedDisabledProperties(prev => typeof updater === 'function' ? updater(prev) : updater)
+  }
+
+  const handleReEnableProperty = (ruleIndex, propertyName) => {
+    // Auto-re-enable the original property by removing it from disabledProperties
+    const disabledKey = `${ruleIndex}-${propertyName}`
+    setDisabledProperties(prev => {
+      const next = new Set(prev)
+      next.delete(disabledKey)
+      return next
+    })
+  }
 
   // Phase 7A: Compute impact for a selected rule
+  // Also include added properties in the impact analysis
   const handleComputeRuleImpact = (rule) => {
     if (!iframeRef.current || !rulesTree) return
 
@@ -373,8 +426,49 @@ export default function CSSPreview({
         rule.selector,
         rule.declarations || [],
         iframeDoc,
-        rulesTree
+        rulesTree,
+        addedProperties
       )
+
+      // Enhance impact with added properties for this rule
+      if (impact && impact.affectedNodes && Object.keys(addedProperties).length > 0) {
+        impact.affectedNodes = impact.affectedNodes.map(node => ({
+          ...node,
+          properties: [
+            ...node.properties,
+            // Add properties that were added to this rule
+            ...Object.entries(addedProperties)
+              .filter(([key]) => {
+                const [addedRuleIndex] = key.split('::')
+                return parseInt(addedRuleIndex) === rule.ruleIndex
+              })
+              .map(([key, value]) => {
+                const [, propertyName] = key.split('::')
+                // Check if this added property is overridden by a later rule
+                const isOverriddenByLater = isPropertyOverriddenByLaterRule(rule.ruleIndex, rule.selector, propertyName)
+
+                // Find the overriding rule index
+                let overridingRuleIndex = undefined
+                if (isOverriddenByLater) {
+                  for (const r of rulesTree) {
+                    if (r.ruleIndex > rule.ruleIndex && r.selector === rule.selector && r.declarations?.some(d => d.property === propertyName)) {
+                      overridingRuleIndex = r.ruleIndex
+                      break
+                    }
+                  }
+                }
+
+                return {
+                  property: propertyName,
+                  effective: !isOverriddenByLater,
+                  value: value,
+                  overriddenBy: overridingRuleIndex,
+                }
+              })
+          ],
+        }))
+      }
+
       setSelectedRuleImpact(impact)
     } catch (e) {
       console.warn('Error computing rule impact:', e)
@@ -382,8 +476,13 @@ export default function CSSPreview({
   }
 
   // Phase 7D: Toggle property disabled state for what-if simulation
-  const handleTogglePropertyDisabled = (ruleIndex, property) => {
-    const disabledKey = `${ruleIndex}-${property}`
+  // Parameters:
+  //   ruleIndex: The rule's index
+  //   property: The property name
+  //   isAddedProperty: Boolean indicating if this is an added (new) property
+  const handleTogglePropertyDisabled = (ruleIndex, property, isAddedProperty = false) => {
+    // Use different key format for added vs. original properties
+    const disabledKey = isAddedProperty ? `${ruleIndex}::ADDED::${property}` : `${ruleIndex}-${property}`
 
     setDisabledProperties(prev => {
       const next = new Set(prev)
@@ -398,23 +497,29 @@ export default function CSSPreview({
     // Also remove any preview overrides for this property to avoid conflicting styles
     // Find the rule selector to identify which elements might be affected
     const affectedRule = rulesTree.find(r => r.ruleIndex === ruleIndex)
-    if (affectedRule && previewOverrides[affectedRule.selector]) {
-      setPreviewOverrides(prev => {
-        const next = { ...prev }
-        const selector = affectedRule.selector
-        if (next[selector] && next[selector][property]) {
-          // Remove this specific property override
-          const updatedProps = { ...next[selector] }
-          delete updatedProps[property]
-          if (Object.keys(updatedProps).length === 0) {
-            delete next[selector]
-          } else {
-            next[selector] = updatedProps
+    if (affectedRule) {
+      const overrideKey = `${ruleIndex}::${affectedRule.selector}`
+      if (previewOverrides[overrideKey]) {
+        setPreviewOverrides(prev => {
+          const next = { ...prev }
+          if (next[overrideKey] && next[overrideKey][property]) {
+            // Remove this specific property override
+            const updatedProps = { ...next[overrideKey] }
+            delete updatedProps[property]
+            if (Object.keys(updatedProps).length === 0) {
+              delete next[overrideKey]
+            } else {
+              next[overrideKey] = updatedProps
+            }
           }
-        }
-        return next
-      })
+          return next
+        })
+      }
     }
+
+    // Note: Do NOT remove from addedProperties when disabling an added property
+    // The property should remain in the list but be visually disabled
+    // This is just marking it as disabled in the disabledProperties set
   }
 
   // Phase 7C: Serialize rulesTree to CSS text
@@ -467,6 +572,28 @@ export default function CSSPreview({
         console.error('Error serializing CSS after rule removal:', e)
       }
     }
+  }
+
+  // Phase 7E: Handle merge selectors request - open confirmation modal
+  const handleMergeClick = (mergeableGroups) => {
+    setMergeableGroupsForModal(mergeableGroups)
+  }
+
+  // Phase 7E: Confirm and apply merge operation
+  const handleMergeConfirm = (mergedCSS) => {
+    if (onApplyEdits && mergedCSS) {
+      try {
+        onApplyEdits(mergedCSS)
+        setMergeableGroupsForModal(null) // Close the modal
+      } catch (e) {
+        console.error('Error applying merged CSS:', e)
+      }
+    }
+  }
+
+  // Phase 7E: Cancel merge operation
+  const handleMergeCancel = () => {
+    setMergeableGroupsForModal(null)
   }
 
   // Phase 7A Stage 4: Handle hover interactions for affected nodes
@@ -534,6 +661,7 @@ export default function CSSPreview({
 
   // Phase 6(E): Apply previewOverrides to rulesTree by mutating in place (NOT creating new rules)
   // This ensures we preserve cascade structure and don't create duplicate selectors
+  // Overrides are keyed by "ruleIndex::selector" to ensure edits are rule-specific
   // Returns { mutatedRules, changeSummary } for feedback
   const applyOverridesToRulesTree = (rulesToMutate, overrides) => {
     if (!rulesToMutate || !overrides || Object.keys(overrides).length === 0) {
@@ -544,17 +672,22 @@ export default function CSSPreview({
     const mutatedRules = JSON.parse(JSON.stringify(rulesToMutate))
     const changeSummary = [] // Track what was changed for feedback
 
-    // For each selector that was edited
-    Object.entries(overrides).forEach(([selector, editedProps]) => {
+    // For each override (keyed by "ruleIndex::selector")
+    Object.entries(overrides).forEach(([overrideKey, editedProps]) => {
       if (Object.keys(editedProps).length === 0) return
+
+      // Parse the override key to extract ruleIndex and selector
+      const [ruleIndexStr, ...selectorParts] = overrideKey.split('::')
+      const ruleIndex = parseInt(ruleIndexStr)
+      const selector = selectorParts.join('::') // Rejoin in case selector contains "::"
 
       const selectorChanges = { selector, properties: [] }
 
-      // Find all rules matching this selector (may be multiple due to media queries, etc.)
+      // Find the specific rule matching both ruleIndex and selector
       const findAndUpdateRule = (rules) => {
         rules.forEach(rule => {
-          // Update regular rules
-          if (rule.type === 'rule' && rule.selector === selector) {
+          // Update only the rule that matches both ruleIndex and selector
+          if (rule.type === 'rule' && rule.ruleIndex === ruleIndex && rule.selector === selector) {
             // For each edited property
             Object.entries(editedProps).forEach(([property, newValue]) => {
               // Find existing declaration
@@ -600,33 +733,84 @@ export default function CSSPreview({
     return { mutatedRules, changeSummary }
   }
 
-  // Phase 6(E): Handle applying staged edits to the source CSS
+  // Phase 6(E) + 6(F): Handle applying staged edits to the source CSS
   // Mutates the source CSS by updating declarations in their original rules (no duplication)
+  // Also includes added properties via surgical injection
   const handleApplyEdits = () => {
-    if (!hasActiveOverrides || !onApplyEdits) return
+    const hasEdits = hasActiveOverrides || Object.keys(addedProperties).length > 0
+    if (!hasEdits || !onApplyEdits) return
 
     try {
-      // Apply overrides to rulesTree by mutating in place
-      const { mutatedRules, changeSummary } = applyOverridesToRulesTree(rulesTree, previewOverrides)
+      // Step 1: Apply overrides to rulesTree by mutating in place
+      const { mutatedRules, changeSummary: overrideSummary } = applyOverridesToRulesTree(rulesTree, previewOverrides)
 
-      // Serialize the mutated tree back to CSS
-      const editedCSS = serializeRulesToCSS(mutatedRules)
+      // Step 2: Merge added properties into the mutated rules
+      const finalMutatedRules = JSON.parse(JSON.stringify(mutatedRules))
+      const addedPropertySummary = []
+
+      Object.entries(addedProperties).forEach(([key, value]) => {
+        const [ruleIndexStr, propertyName] = key.split('::')
+        const ruleIndex = parseInt(ruleIndexStr)
+
+        // Find the rule by ruleIndex
+        const findAndAddProperty = (rules) => {
+          for (const rule of rules) {
+            if (rule.type === 'rule' && rule.ruleIndex === ruleIndex) {
+              if (!rule.declarations) {
+                rule.declarations = []
+              }
+
+              // Check if this property already exists (from overrides)
+              const existingIdx = rule.declarations.findIndex(d => d.property === propertyName)
+              if (existingIdx === -1) {
+                // Add new property
+                rule.declarations.push({
+                  property: propertyName,
+                  value: value,
+                  loc: {
+                    startLine: rule.loc?.endLine || 0,
+                    endLine: rule.loc?.endLine || 0,
+                  },
+                })
+              }
+              // If it already exists, it was already handled by the override step
+              addedPropertySummary.push({ selector: rule.selector, property: propertyName, action: 'added' })
+              return true
+            }
+            // Recursively search in at-rules (media queries, etc.)
+            if (rule.children && Array.isArray(rule.children)) {
+              if (findAndAddProperty(rule.children)) return true
+            }
+          }
+          return false
+        }
+
+        findAndAddProperty(finalMutatedRules)
+      })
+
+      // Step 3: Serialize the final mutated tree back to CSS
+      const editedCSS = serializeRulesToCSS(finalMutatedRules)
 
       if (editedCSS.trim()) {
         onApplyEdits(editedCSS)
 
         // Track changes for feedback (show brief success message)
-        const totalChanges = changeSummary.reduce((sum, item) => sum + item.properties.length, 0)
+        const totalChanges = overrideSummary.reduce((sum, item) => sum + item.properties.length, 0) + addedPropertySummary.length
+        const summaryItems = [
+          ...overrideSummary.map(item => `${item.selector} → ${item.properties.length} property(ies)`),
+          ...addedPropertySummary.length > 0 ? [`${addedPropertySummary.length} new property(ies)`] : []
+        ]
         setAppliedChanges({
           count: totalChanges,
-          summary: changeSummary.map(item => `${item.selector} → ${item.properties.length} property(ies)`).join(', ')
+          summary: summaryItems.join(', ')
         })
 
         // Clear the feedback after 3 seconds
         setTimeout(() => setAppliedChanges(null), 3000)
 
-        // Clear overrides after applying
+        // Clear overrides and added properties after applying
         setPreviewOverrides({})
+        setAddedProperties({})
       }
     } catch (e) {
       console.error('Error applying staged edits:', e)
@@ -635,27 +819,63 @@ export default function CSSPreview({
 
   // Phase 6(D): Handle property edits with override tracking
   // Saves to previewOverrides state AND applies to iframe for real-time preview
-  const handlePropertyEdit = (selector, property, newValue) => {
-    // 1. Track the override in state (Phase 6D)
-    setPreviewOverrides(prev => {
-      const next = { ...prev }
-      if (!next[selector]) {
-        next[selector] = {}
-      }
+  // Parameters:
+  //   selector: CSS selector string
+  //   property: CSS property name
+  //   newValue: New property value
+  //   isAddedProperty: Boolean indicating if this is a newly added property
+  //   ruleIndex: Numeric index of the rule being edited (used for surgical injection)
+  const handlePropertyEdit = (selector, property, newValue, isAddedProperty = false, ruleIndex = null) => {
+    // Track in addedProperties state if it's a newly added property
+    if (isAddedProperty && ruleIndex !== null) {
+      const addedKey = `${ruleIndex}::${property}`
       if (newValue === null || newValue === undefined || newValue === '') {
-        // Delete override if empty
-        delete next[selector][property]
-        if (Object.keys(next[selector]).length === 0) {
-          delete next[selector]
-        }
+        // Delete if empty
+        setAddedProperties(prev => {
+          const next = { ...prev }
+          delete next[addedKey]
+          return next
+        })
       } else {
-        next[selector][property] = newValue
+        setAddedProperties(prev => ({
+          ...prev,
+          [addedKey]: newValue,
+        }))
       }
-      return next
-    })
+    }
 
-    // 2. Apply to iframe immediately for real-time preview
-    if (!iframeRef.current) return
+    // Check if property is overridden FIRST before adding to previewOverrides
+    // This prevents overridden properties from being applied to the preview at all
+    const isPropertyOverridden = isPropertyOverriddenByLaterRule(ruleIndex, selector, property)
+
+    // ALWAYS track in previewOverrides for real-time preview
+    // (applies to both original properties and newly added ones)
+    // Key format: "ruleIndex::selector" to ensure edits are rule-specific, not selector-wide
+    // BUT: Don't track properties that are overridden, since they have no visual effect
+    if (ruleIndex === null) return // Require ruleIndex for proper scoping
+
+    if (!isPropertyOverridden) {
+      const overrideKey = `${ruleIndex}::${selector}`
+      setPreviewOverrides(prev => {
+        const next = { ...prev }
+        if (!next[overrideKey]) {
+          next[overrideKey] = {}
+        }
+        if (newValue === null || newValue === undefined || newValue === '') {
+          // Delete override if empty
+          delete next[overrideKey][property]
+          if (Object.keys(next[overrideKey]).length === 0) {
+            delete next[overrideKey]
+          }
+        } else {
+          next[overrideKey][property] = newValue
+        }
+        return next
+      })
+    }
+
+    // Apply to iframe immediately for real-time preview
+    if (!iframeRef.current || isPropertyOverridden) return
 
     const iframe = iframeRef.current
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
@@ -890,6 +1110,14 @@ export default function CSSPreview({
               disabledProperties={disabledProperties}
               onTogglePropertyDisabled={handleTogglePropertyDisabled}
               onRemoveRule={handleRemoveRule}
+              onMergeClick={handleMergeClick}
+              rulesTree={rulesTree}
+              addedProperties={addedProperties}
+              onAddPropertyChange={handleAddPropertyChange}
+              lockedDisabledProperties={lockedDisabledProperties}
+              onLockPropertyChange={handleLockPropertyChange}
+              onReEnableProperty={handleReEnableProperty}
+              isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
             />
           </div>
         )}
@@ -1005,11 +1233,30 @@ export default function CSSPreview({
                   disabledProperties={disabledProperties}
                   onTogglePropertyDisabled={handleTogglePropertyDisabled}
                   onRemoveRule={handleRemoveRule}
+                  onMergeClick={handleMergeClick}
+                  rulesTree={rulesTree}
+                  addedProperties={addedProperties}
+                  onAddPropertyChange={handleAddPropertyChange}
+                  lockedDisabledProperties={lockedDisabledProperties}
+                  onLockPropertyChange={handleLockPropertyChange}
+                  onReEnableProperty={handleReEnableProperty}
+                  isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
                 />
               </div>
             )}
           </div>
         </div>
+      )}
+
+      {/* Phase 7E: Merge Selectors Confirmation Modal */}
+      {mergeableGroupsForModal && (
+        <MergeSelectorConfirmation
+          mergeableGroups={mergeableGroupsForModal}
+          rulesTree={rulesTree}
+          sourceText={sourceText}
+          onConfirm={handleMergeConfirm}
+          onCancel={handleMergeCancel}
+        />
       )}
     </div>
   )

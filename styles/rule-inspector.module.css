@@ -765,3 +765,616 @@
   background-color: #d32f2f;
   box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
 }
+
+/* Merge Selector Confirmation Styles (Phase 7E) */
+.mergeSummaryStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.mergeSummaryStat {
+  padding: 12px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.mergeSummaryStatLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mergeSummaryStatValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0066cc;
+}
+
+.mergeDetailsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.mergeDetailsTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.mergeDetailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-left: 2px solid #0066cc;
+  border-radius: 3px;
+}
+
+.mergeDetailSelector {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0066cc;
+}
+
+.mergeDetailChange {
+  font-size: 11px;
+  color: var(--color-text-primary, #000);
+}
+
+.mergeDetailDeclarations {
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  display: block;
+}
+
+.mergeDetailLines {
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  font-family: 'Courier New', monospace;
+}
+
+.mergePreviewToggle {
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  margin: 8px 0;
+}
+
+.mergePreviewToggle:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.mergePreviewContent {
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  margin: 8px 0;
+  height: 120px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.mergePreviewText {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0;
+}
+
+.confirmationMergeButton {
+  padding: 6px 16px;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirmationMergeButton:hover:not(:disabled) {
+  background-color: #388e3c;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.confirmationMergeButton:disabled {
+  background-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Merge Selector Modal - Selective Merging Styles */
+
+.mergeDetailsHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.mergeSelectAllButton {
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.mergeSelectAllButton:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.mergeSelectableItem {
+  padding: 8px 12px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.mergeSelectableItem:hover {
+  border-color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.03);
+}
+
+.mergeSelectableHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mergeCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: #0066cc;
+}
+
+.mergeDetailSelector {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0066cc;
+  flex: 1;
+}
+
+.mergeDetailChange {
+  font-size: 11px;
+  color: var(--color-text-secondary, #666);
+  flex-shrink: 0;
+  min-width: 50px;
+  text-align: right;
+}
+
+.mergeExpandButton {
+  padding: 2px 6px;
+  background-color: transparent;
+  border: none;
+  border-radius: 2px;
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mergeExpandButton:hover:not(:disabled) {
+  background-color: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
+}
+
+.mergeExpandButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--color-text-secondary, #999);
+}
+
+.mergeCodePreview {
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 102, 204, 0.2);
+  border-radius: 3px;
+  margin-left: 24px;
+}
+
+.mergeCodePreviewText {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0;
+}
+
+/* Add New Property Section */
+
+.addPropertySection {
+  padding: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 6px;
+}
+
+.addPropertyButton {
+  width: 100%;
+  padding: 6px 8px;
+  background-color: rgba(102, 187, 106, 0.08);
+  border: 1px dashed rgba(102, 187, 106, 0.4);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #66bb6a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+}
+
+.addPropertyButton:hover {
+  background-color: rgba(102, 187, 106, 0.15);
+  border-style: solid;
+  box-shadow: 0 1px 4px rgba(102, 187, 106, 0.2);
+}
+
+.addPropertyForm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background-color: rgba(102, 187, 106, 0.05);
+  border: 1px solid rgba(102, 187, 106, 0.2);
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.propertyInput {
+  flex: 0 1 100px;
+  padding: 4px 6px;
+  background-color: var(--color-background-primary, #fff);
+  border: 1px solid rgba(0, 102, 204, 0.3);
+  border-radius: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #d73a49;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.propertyInput::placeholder {
+  color: rgba(215, 58, 73, 0.5);
+}
+
+.propertyInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.valueInput {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  background-color: var(--color-background-primary, #fff);
+  border: 1px solid rgba(0, 102, 204, 0.3);
+  border-radius: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #0066cc;
+  transition: all 0.2s ease;
+}
+
+.valueInput::placeholder {
+  color: rgba(0, 102, 204, 0.5);
+}
+
+.valueInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.confirmAddButton {
+  background: none;
+  border: none;
+  color: #66bb6a;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.confirmAddButton:hover {
+  opacity: 1;
+  background-color: rgba(102, 187, 106, 0.15);
+}
+
+.confirmAddButton:active {
+  transform: scale(0.95);
+}
+
+.cancelAddButton {
+  background: none;
+  border: none;
+  color: #ff9800;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.cancelAddButton:hover {
+  opacity: 1;
+  background-color: rgba(255, 152, 0, 0.15);
+}
+
+.cancelAddButton:active {
+  transform: scale(0.95);
+}
+
+/* Added Properties (properties added via "+ Add Property" button) */
+
+.addedProperty {
+  background-color: rgba(102, 187, 106, 0.12) !important;
+  border: 1px solid rgba(102, 187, 106, 0.3) !important;
+  border-left-color: #66bb6a;
+}
+
+.addedProperty:hover {
+  background-color: rgba(102, 187, 106, 0.2) !important;
+  border-color: rgba(102, 187, 106, 0.5) !important;
+}
+
+.removeAddedPropertyButton {
+  background: none;
+  border: none;
+  color: #ff9800;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+.removeAddedPropertyButton:hover {
+  opacity: 1;
+  background-color: rgba(255, 152, 0, 0.15);
+}
+
+/* Overridden Property Modal Styles */
+
+.overriddenPropertyDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  background-color: rgba(255, 152, 0, 0.05);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
+.overriddenPropertySection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overriddenPropertyLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.overriddenPropertyValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.overriddenPropertySelector {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.overriddenPropertyLineNumber {
+  font-size: 10px;
+  color: var(--color-text-secondary, #999);
+  padding: 2px 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+  font-family: monospace;
+}
+
+.overriddenPropertyDecl {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--color-text-secondary, #666);
+  padding: 6px 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 3px;
+  margin-left: 8px;
+}
+
+.overriddenPropertyDeclValue {
+  color: #0066cc;
+  font-weight: 600;
+}
+
+.overriddenPropertyArrow {
+  text-align: center;
+  font-size: 16px;
+  color: #ff9800;
+  margin: 8px 0;
+}
+
+.solutionsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border-left: 3px solid #2196f3;
+  border-radius: 2px;
+  margin: 12px 0;
+}
+
+.solutionsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2196f3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.solutionItem {
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  background-color: rgba(33, 150, 243, 0.08);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 3px;
+}
+
+.solutionNumber {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #2196f3;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.solutionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.solutionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+}
+
+.solutionDescription {
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.4;
+}
+
+.inlineCode {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #d73a49;
+  font-weight: 600;
+}
+
+.solutionPros {
+  font-size: 10px;
+  color: #66bb6a;
+  margin-top: 4px;
+  padding: 4px 6px;
+  background-color: rgba(102, 187, 106, 0.08);
+  border-radius: 2px;
+}
+
+.solutionProLabel {
+  font-weight: 600;
+}
+
+.solutionCons {
+  font-size: 10px;
+  color: #ff9800;
+  margin-top: 3px;
+  padding: 4px 6px;
+  background-color: rgba(255, 152, 0, 0.08);
+  border-radius: 2px;
+}
+
+.solutionConLabel {
+  font-weight: 600;
+}

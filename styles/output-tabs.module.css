@@ -576,6 +576,45 @@
 }
 
 /* Rule Explorer Styles (Phase 3) */
+.rulesExplorerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.ruleExplorerToolbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-bottom: 1px solid var(--color-border, #ddd);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.mergeAllButton {
+  padding: 8px 12px;
+  background-color: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.mergeAllButton:hover {
+  background-color: #0066cc;
+  border-color: #0066cc;
+  color: white;
+}
+
 .rulesExplorer {
   display: flex;
   flex-direction: column;

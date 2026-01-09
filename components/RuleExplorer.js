@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
 import styles from '../styles/output-tabs.module.css'
 
 /**
@@ -7,14 +8,42 @@ import styles from '../styles/output-tabs.module.css'
  * Props:
  *   rules: CssRuleNode[] - Rules tree from Phase 2 analysis
  *   onSelect: (loc) => void - Callback when user clicks a rule (emits location for highlighting)
+ *   onMergeClick: (mergeableGroups) => void - Callback when user clicks merge button (Phase 7E)
  */
-export default function RuleExplorer({ rules = [], onSelect = null }) {
+export default function RuleExplorer({ rules = [], onSelect = null, onMergeClick = null }) {
   const [expandedNodes, setExpandedNodes] = useState({})
+
+  // Phase 7E: Find mergeable rule groups
+  const mergeableGroups = findAllMergeableGroups(rules)
+  const canMerge = mergeableGroups && mergeableGroups.length > 0
 
   if (!rules || rules.length === 0) {
     return (
       <div className={styles.rulesExplorerEmpty}>
         <p>No rules found. CSS may be empty or invalid.</p>
+      </div>
+    )
+  }
+
+  // Phase 7E: Render merge button if there are mergeable selectors
+  const renderMergeButton = () => {
+    if (!canMerge) return null
+
+    const totalRulesCanBeMerged = mergeableGroups.reduce((sum, g) => sum + (g.count - 1), 0)
+
+    return (
+      <div className={styles.ruleExplorerToolbar}>
+        <button
+          className={styles.mergeAllButton}
+          onClick={() => {
+            if (onMergeClick) {
+              onMergeClick(mergeableGroups)
+            }
+          }}
+          title={`Merge ${mergeableGroups.length} group(s) of duplicate selectors (${totalRulesCanBeMerged} rules will be removed)`}
+        >
+          🧩 Merge All ({mergeableGroups.length})
+        </button>
       </div>
     )
   }
@@ -144,12 +173,15 @@ export default function RuleExplorer({ rules = [], onSelect = null }) {
   }
 
   return (
-    <div className={styles.rulesExplorer}>
-      {rules.map((rule, idx) => (
-        <div key={`root-rule-${idx}`}>
-          {renderRule(rule, `root-${idx}`, 0)}
-        </div>
-      ))}
+    <div className={styles.rulesExplorerContainer}>
+      {renderMergeButton()}
+      <div className={styles.rulesExplorer}>
+        {rules.map((rule, idx) => (
+          <div key={`root-rule-${idx}`}>
+            {renderRule(rule, `root-${idx}`, 0)}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

@@ -137,6 +137,12 @@ export default function Home(props) {
     selectedToolRef.current = selectedTool
   }, [selectedTool])
 
+  // Auto-exit fullscreen when tool changes
+  useEffect(() => {
+    if (isPreviewFullscreen) {
+      setIsPreviewFullscreen(false)
+    }
+  }, [selectedTool])
 
   // Fast local classification using heuristics (no API call)
   // Only detects strong signals; backend handles nuanced detection
@@ -847,6 +853,7 @@ export default function Home(props) {
             <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
               <div className={styles.inputSection}>
                 <UniversalInput
+                  inputText={inputText}
                   onInputChange={handleInputChange}
                   onImageChange={handleImageChange}
                   onCompareTextChange={setChecksumCompareText}

@@ -3143,7 +3143,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} analysisData={displayResult.analysis} showCopyButton={true} onApplyEdits={handleApplyCSSStagedEdits} showAnalysisTab={showAnalysisTab} onShowAnalysisTabChange={onShowAnalysisTabChange} showRulesTab={showRulesTab} onShowRulesTabChange={onShowRulesTabChange} isPreviewFullscreen={isPreviewFullscreen} onTogglePreviewFullscreen={onTogglePreviewFullscreen} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} analysisData={displayResult.analysis} sourceText={inputText} showCopyButton={true} onApplyEdits={handleApplyCSSStagedEdits} showAnalysisTab={showAnalysisTab} onShowAnalysisTabChange={onShowAnalysisTabChange} showRulesTab={showRulesTab} onShowRulesTabChange={onShowRulesTabChange} isPreviewFullscreen={isPreviewFullscreen} onTogglePreviewFullscreen={onTogglePreviewFullscreen} />
   }
 
   const renderSqlFormatterOutput = () => {

@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic'
 import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/output-tabs.module.css'
 import RuleExplorer from './RuleExplorer'
+import MergeSelectorConfirmation from './MergeSelectorConfirmation'
 
 // Dynamically import CodeMirrorEditor to avoid SSR issues
 const CodeMirrorEditor = dynamic(() => import('./CodeMirrorEditor'), { ssr: false })
@@ -20,6 +21,7 @@ export default function OutputTabs({
   toolCategory = null,
   toolId = null,
   analysisData = null,
+  sourceText = null,
   onApplyEdits = null,
   showAnalysisTab = false,
   onShowAnalysisTabChange = null,
@@ -35,6 +37,7 @@ export default function OutputTabs({
   const [highlightedRange, setHighlightedRange] = useState(null)
   const [localShowAnalysisTab, setLocalShowAnalysisTab] = useState(showAnalysisTab)
   const [localShowRulesTab, setLocalShowRulesTab] = useState(showRulesTab)
+  const [mergeableGroups, setMergeableGroups] = useState(null) // Phase 7E: Track mergeable groups for confirmation
   const codeContentRef = useRef(null)
   const textContentRef = useRef(null)
   const prevToolIdRef = useRef(toolId)
@@ -464,6 +467,9 @@ export default function OutputTabs({
               // Auto-scroll to the Rules tab was clicked
               setUserSelectedTabId('rules')
             }}
+            onMergeClick={(groups) => {
+              setMergeableGroups(groups)
+            }}
           />
         ),
         contentType: 'component',
@@ -495,6 +501,7 @@ export default function OutputTabs({
             declaredVariables={analysisData.variables?.declared || []}
             usedVariables={analysisData.variables?.used || []}
             variableOverrides={{}}
+            sourceText={sourceText}
             onApplyEdits={onApplyEdits}
             isFullscreen={isPreviewFullscreen}
             onToggleFullscreen={onTogglePreviewFullscreen}
@@ -819,57 +826,75 @@ export default function OutputTabs({
   }
 
   return (
-    <div className={styles.outputTabsWrapper}>
-      <div className={styles.outputTabsContainer}>
-        <div className={styles.tabsHeader}>
-          <div className={styles.tabs}>
-            {finalTabConfig.map(tab => (
-              <button
-                key={tab.id}
-                className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
-                onClick={() => setUserSelectedTabId(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className={styles.tabActions}>
-            {activeTabConfig?.contentType === 'json' && (
-              <button
-                className={styles.minifyToggle}
-                onClick={() => setIsMinified(!isMinified)}
-                title={isMinified ? 'Expand JSON' : 'Minify JSON'}
-              >
-                {isMinified ? 'Expand' : 'Minify'}
-              </button>
-            )}
-
-            {showCopyButton && (
-              <button className="copy-action" onClick={handleCopy} title="Copy output">
-                {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
-              </button>
-            )}
-
-            {activeTabConfig?.actions && (
-              activeTabConfig.actions.map((action, idx) => (
+    <>
+      <div className={styles.outputTabsWrapper}>
+        <div className={styles.outputTabsContainer}>
+          <div className={styles.tabsHeader}>
+            <div className={styles.tabs}>
+              {finalTabConfig.map(tab => (
                 <button
-                  key={idx}
-                  className={action.className || 'copy-action'}
-                  onClick={() => action.onClick && action.onClick()}
-                  title={action.title}
+                  key={tab.id}
+                  className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
+                  onClick={() => setUserSelectedTabId(tab.id)}
                 >
-                  {action.label || action.icon}
+                  {tab.label}
                 </button>
-              ))
-            )}
-          </div>
-        </div>
+              ))}
+            </div>
 
-        <div className={`${styles.tabContent} ${styles.tabContentFull}`}>
-          {renderTabContent()}
+            <div className={styles.tabActions}>
+              {activeTabConfig?.contentType === 'json' && (
+                <button
+                  className={styles.minifyToggle}
+                  onClick={() => setIsMinified(!isMinified)}
+                  title={isMinified ? 'Expand JSON' : 'Minify JSON'}
+                >
+                  {isMinified ? 'Expand' : 'Minify'}
+                </button>
+              )}
+
+              {showCopyButton && (
+                <button className="copy-action" onClick={handleCopy} title="Copy output">
+                  {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
+                </button>
+              )}
+
+              {activeTabConfig?.actions && (
+                activeTabConfig.actions.map((action, idx) => (
+                  <button
+                    key={idx}
+                    className={action.className || 'copy-action'}
+                    onClick={() => action.onClick && action.onClick()}
+                    title={action.title}
+                  >
+                    {action.label || action.icon}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className={`${styles.tabContent} ${styles.tabContentFull}`}>
+            {renderTabContent()}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Phase 7E: Merge Selector Confirmation Modal */}
+      {mergeableGroups && analysisData?.rulesTree && (
+        <MergeSelectorConfirmation
+          mergeableGroups={mergeableGroups}
+          rulesTree={analysisData.rulesTree}
+          sourceText={sourceText}
+          onConfirm={(mergedCSS) => {
+            if (onApplyEdits) {
+              onApplyEdits(mergedCSS)
+            }
+            setMergeableGroups(null)
+          }}
+          onCancel={() => setMergeableGroups(null)}
+        />
+      )}
+    </>
   )
 }
