@@ -48,7 +48,7 @@ const getLanguageForTool = (toolId) => {
   }
 }
 
-export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }) {
+export default function UniversalInput({ inputText = '', onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }) {
   const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
 
   const getPlaceholder = () => {
@@ -61,7 +61,8 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     return "Type or paste content here..."
   }
 
-  const [inputText, setInputText] = useState('')
+  // Use inputText from props, with local state for immediate updates
+  const [localInputText, setLocalInputText] = useState(inputText)
   const [inputImage, setInputImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [charCount, setCharCount] = useState(0)
@@ -91,6 +92,11 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       localStorage.setItem('inputBoxHeight', inputHeight.toString())
     }
   }, [inputHeight, isResizing])
+
+  // Sync prop value with local state when parent updates inputText
+  useEffect(() => {
+    setLocalInputText(inputText)
+  }, [inputText])
 
   // Reset example index when tool changes
   useEffect(() => {
@@ -133,7 +139,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   }, [isResizing])
 
   const handleTextChange = (value) => {
-    setInputText(value)
+    setLocalInputText(value)
     setCharCount(value.length)
     const isPaste = isPasteRef.current
     isPasteRef.current = false // Reset after use
@@ -209,7 +215,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
 
     const example = getToolExample(selectedTool.toolId, configOptions, nextIndex)
     if (example) {
-      setInputText(example)
+      setLocalInputText(example)
       setCharCount(example.length)
       setExampleIndex(prev => ({
         ...prev,
@@ -222,7 +228,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   }
 
   const handleClearInput = () => {
-    setInputText('')
+    setLocalInputText('')
     setCharCount(0)
     if (onCompareTextChange) {
       onCompareTextChange('')
@@ -276,7 +282,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     const output = getOutputToUse()
     if (output) {
       const outputText = typeof output === 'string' ? output : JSON.stringify(output, null, 2)
-      setInputText(outputText)
+      setLocalInputText(outputText)
       setCharCount(outputText.length)
       onInputChange(outputText, null, null, false)
     }
@@ -383,7 +389,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
                         Load Example
                       </button>
                     )}
-                    {inputText && (
+                    {localInputText && (
                       <>
                         <button
                           className={styles.clearInputButton}
@@ -426,7 +432,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
               </div>
               <div className={styles.toolTextboxEditor}>
                 <CodeMirrorEditor
-                  value={inputText}
+                  value={localInputText}
                   onChange={handleTextChange}
                   language={getLanguageForTool(selectedTool?.toolId)}
                   placeholder={getPlaceholder()}
@@ -448,7 +454,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
         </div>
 
         <div className={styles.detectedToolsInsideInput}>
-          {inputText && predictedTools.length > 0 ? (
+          {localInputText && predictedTools.length > 0 ? (
             predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
               // Map similarity (0.6-1.0) to opacity (0.3-1.0) based on confidence
               // Lower bound (0.6 similarity) = 30% opacity, upper bound (1.0) = 100% opacity
@@ -466,7 +472,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
                 </button>
               )
             })
-          ) : !inputText ? (
+          ) : !localInputText ? (
             <div className={styles.placeholderText}>
               Detected tools will appear here
             </div>
