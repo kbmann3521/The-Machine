@@ -108,21 +108,19 @@ export default function CSSPreview({
         // Remove previous click handler if it exists
         if (clickHandler) {
           iframeDoc.removeEventListener('click', clickHandler, true)
+          iframeDoc.removeEventListener('touchend', clickHandler, true)
+          iframeDoc.removeEventListener('pointerdown', clickHandler, true)
         }
 
         // Phase 6(A): Wire click detection for element inspector
-        clickHandler = (e) => {
-          e.preventDefault()
-          e.stopPropagation()
-
-          const clickedElement = e.target
-
+        // Helper function to extract selector from element
+        const extractSelector = (element) => {
           // Try to find the selector from data attributes (set by buildDomFromNodes)
-          let selector = clickedElement.getAttribute('data-selector')
+          let selector = element.getAttribute('data-selector')
 
           // Fallback: derive from className if element has one
-          if (!selector && clickedElement.className) {
-            const classes = clickedElement.className.split(' ').filter(c => !c.startsWith('pseudo-'))
+          if (!selector && element.className) {
+            const classes = element.className.split(' ').filter(c => !c.startsWith('pseudo-'))
             if (classes.length > 0) {
               selector = '.' + classes.join('.')
             }
@@ -130,9 +128,15 @@ export default function CSSPreview({
 
           // Fallback: use tag name
           if (!selector) {
-            selector = clickedElement.tagName.toLowerCase()
+            selector = element.tagName.toLowerCase()
           }
 
+          return selector
+        }
+
+        // Helper function to handle element selection
+        const handleElementSelection = (element) => {
+          const selector = extractSelector(element)
           if (selector && nodeMapping) {
             // Get all rules affecting this selector
             const rules = getAffectingRulesForSelector(selector, rulesTree)
@@ -141,7 +145,16 @@ export default function CSSPreview({
           }
         }
 
+        clickHandler = (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          handleElementSelection(e.target)
+        }
+
+        // Add multiple event listeners for better mobile/desktop support
         iframeDoc.addEventListener('click', clickHandler, true) // Use capture phase to intercept before other handlers
+        iframeDoc.addEventListener('touchend', clickHandler, true) // Add touch support for mobile
+        iframeDoc.addEventListener('pointerdown', clickHandler, true) // Add pointer support for better touch/mouse handling
       } catch (e) {
         console.warn('Error setting up fullscreen iframe click detection:', e)
       }
@@ -160,6 +173,8 @@ export default function CSSPreview({
           const iframeDoc = fullscreenIframeRef.current.contentDocument || fullscreenIframeRef.current.contentWindow.document
           if (iframeDoc) {
             iframeDoc.removeEventListener('click', clickHandler, true)
+            iframeDoc.removeEventListener('touchend', clickHandler, true)
+            iframeDoc.removeEventListener('pointerdown', clickHandler, true)
           }
         } catch (e) {
           console.warn('Error cleaning up fullscreen iframe click detection:', e)
@@ -271,18 +286,14 @@ export default function CSSPreview({
         })
 
         // Phase 6(A): Wire click detection for element inspector
-        iframeDoc.addEventListener('click', (e) => {
-          e.preventDefault()
-          e.stopPropagation()
-
-          const clickedElement = e.target
-
+        // Helper function to extract selector from element
+        const extractSelector = (element) => {
           // Try to find the selector from data attributes (set by buildDomFromNodes)
-          let selector = clickedElement.getAttribute('data-selector')
+          let selector = element.getAttribute('data-selector')
 
           // Fallback: derive from className if element has one
-          if (!selector && clickedElement.className) {
-            const classes = clickedElement.className.split(' ').filter(c => !c.startsWith('pseudo-'))
+          if (!selector && element.className) {
+            const classes = element.className.split(' ').filter(c => !c.startsWith('pseudo-'))
             if (classes.length > 0) {
               selector = '.' + classes.join('.')
             }
@@ -290,16 +301,34 @@ export default function CSSPreview({
 
           // Fallback: use tag name
           if (!selector) {
-            selector = clickedElement.tagName.toLowerCase()
+            selector = element.tagName.toLowerCase()
           }
 
+          return selector
+        }
+
+        // Helper function to handle element selection
+        const handleElementSelection = (element) => {
+          const selector = extractSelector(element)
           if (selector && nodeMapping) {
             // Get all rules affecting this selector
             const rules = getAffectingRulesForSelector(selector, rulesTree)
             setInspectedSelector(selector)
             setAffectingRules(rules)
           }
-        }, true) // Use capture phase to intercept before other handlers
+        }
+
+        // Create unified handler for all interaction events
+        const interactionHandler = (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          handleElementSelection(e.target)
+        }
+
+        // Add multiple event listeners for better mobile/desktop support
+        iframeDoc.addEventListener('click', interactionHandler, true) // Desktop clicks
+        iframeDoc.addEventListener('touchend', interactionHandler, true) // Mobile touch
+        iframeDoc.addEventListener('pointerdown', interactionHandler, true) // Pointer events for hybrid devices
       }
 
       // Call setup immediately after writing to contentDocument
