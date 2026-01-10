@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import UniversalInput from '../components/UniversalInput'
+import InputTabs from '../components/InputTabs'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import NumericConfig from '../components/NumericConfig'
@@ -851,121 +852,101 @@ export default function Home(props) {
             <div className={styles.content}>
           <div className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}>
             <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
-              <div className={styles.inputSection}>
-                <UniversalInput
-                  inputText={inputText}
-                  onInputChange={handleInputChange}
-                  onImageChange={handleImageChange}
-                  onCompareTextChange={setChecksumCompareText}
-                  compareText={checksumCompareText}
-                  selectedTool={selectedTool}
-                  configOptions={configOptions}
-                  getToolExample={getToolExample}
-                  errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
-                  predictedTools={predictedTools}
-                  onSelectTool={handleSelectTool}
-                  validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
-                  lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
-                  result={outputResult}
-                  activeToolkitSection={activeToolkitSection}
-                  isPreviewFullscreen={isPreviewFullscreen}
-                  onTogglePreviewFullscreen={setIsPreviewFullscreen}
-                />
-              </div>
+              <InputTabs
+                selectedTool={selectedTool}
+                tabActions={
+                  selectedTool && (
+                    <button
+                      className={styles.descriptionToggle}
+                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                      aria-label="Toggle tool description"
+                      title="View tool description"
+                    >
+                      <FaCircleInfo className={styles.descriptionIcon} />
+                    </button>
+                  )
+                }
+                inputContent={
+                  <div className={styles.inputSection} style={{ overflow: 'hidden', height: '100%' }}>
+                    <UniversalInput
+                      inputText={inputText}
+                      onInputChange={handleInputChange}
+                      onImageChange={handleImageChange}
+                      onCompareTextChange={setChecksumCompareText}
+                      compareText={checksumCompareText}
+                      selectedTool={selectedTool}
+                      configOptions={configOptions}
+                      getToolExample={getToolExample}
+                      errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
+                      predictedTools={predictedTools}
+                      onSelectTool={handleSelectTool}
+                      validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
+                      lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
+                      result={outputResult}
+                      activeToolkitSection={activeToolkitSection}
+                      isPreviewFullscreen={isPreviewFullscreen}
+                      onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    />
+                  </div>
+                }
+                optionsContent={
+                  selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' ? (
+                    <div className={styles.configSection}>
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        result={outputResult}
+                        contentClassification={contentClassification}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                        delimiterTransformerConfig={delimiterTransformerConfig}
+                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                        onSetGeneratedText={handleInputChange}
+                        showAnalysisTab={showAnalysisTab}
+                        onShowAnalysisTabChange={setShowAnalysisTab}
+                        showRulesTab={showRulesTab}
+                        onShowRulesTabChange={setShowRulesTab}
+                      />
+                      {selectedTool?.toolId === 'math-evaluator' && (
+                        <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
+                      )}
+                    </div>
+                  ) : selectedTool?.toolId === 'ip-address-toolkit' ? (
+                    <div className={styles.configSection}>
+                      <div className={styles.ipToolkitTipsContainer}>
+                        <div className={styles.tipItem}>
+                          <span className={styles.tipLabel}>Single mode:</span>
+                          <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
+                        </div>
+                        <div className={styles.tipItem}>
+                          <span className={styles.tipLabel}>Bulk (2 items):</span>
+                          <span className={styles.tipText}>Side-by-side comparison</span>
+                        </div>
+                        <div className={styles.tipItem}>
+                          <span className={styles.tipLabel}>Bulk (3-7 items):</span>
+                          <span className={styles.tipText}>Aggregate analysis & insights</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null
+                }
+              />
 
               {!selectedTool && (
                 <div className={styles.infoCard}>
                   <ValuePropositionCard />
                 </div>
-              )}
-
-              {selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' && (
-                <>
-                  <div className={styles.toolHeader}>
-                    <div>
-                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
-                      {selectedTool.description && (
-                        <p className={styles.toolDescription}>{selectedTool.description}</p>
-                      )}
-                    </div>
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <FaCircleInfo className={styles.descriptionIcon} />
-                    </button>
-                  </div>
-
-                  <div className={styles.configSection}>
-                    <ToolConfigPanel
-                      tool={selectedTool}
-                      onConfigChange={handleConfigChange}
-                      loading={toolLoading}
-                      onRegenerate={handleRegenerate}
-                      currentConfig={configOptions}
-                      result={outputResult}
-                      contentClassification={contentClassification}
-                      activeToolkitSection={activeToolkitSection}
-                      onToolkitSectionChange={setActiveToolkitSection}
-                      findReplaceConfig={findReplaceConfig}
-                      onFindReplaceConfigChange={setFindReplaceConfig}
-                      diffConfig={diffConfig}
-                      onDiffConfigChange={setDiffConfig}
-                      sortLinesConfig={sortLinesConfig}
-                      onSortLinesConfigChange={setSortLinesConfig}
-                      removeExtrasConfig={removeExtrasConfig}
-                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                      delimiterTransformerConfig={delimiterTransformerConfig}
-                      onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
-                      onSetGeneratedText={handleInputChange}
-                      showAnalysisTab={showAnalysisTab}
-                      onShowAnalysisTabChange={setShowAnalysisTab}
-                      showRulesTab={showRulesTab}
-                      onShowRulesTabChange={setShowRulesTab}
-                    />
-                    {selectedTool?.toolId === 'math-evaluator' && (
-                      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
-                    )}
-                  </div>
-                </>
-              )}
-
-              {selectedTool?.toolId === 'ip-address-toolkit' && (
-                <>
-                  <div className={styles.toolHeader}>
-                    <div>
-                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
-                      {selectedTool.description && (
-                        <p className={styles.toolDescription}>{selectedTool.description}</p>
-                      )}
-                    </div>
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <FaCircleInfo className={styles.descriptionIcon} />
-                    </button>
-                  </div>
-
-                  <div className={styles.ipToolkitTipsContainer}>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Single mode:</span>
-                      <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
-                    </div>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Bulk (2 items):</span>
-                      <span className={styles.tipText}>Side-by-side comparison</span>
-                    </div>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Bulk (3-7 items):</span>
-                      <span className={styles.tipText}>Aggregate analysis & insights</span>
-                    </div>
-                  </div>
-                </>
               )}
             </div>
 
