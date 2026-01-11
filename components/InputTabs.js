@@ -1,34 +1,58 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styles from '../styles/output-tabs.module.css'
 
 /**
  * InputTabs Component
- * 
+ *
  * Provides tabbed interface for input area with INPUT and OPTIONS tabs
  * Follows the same pattern as OutputTabs for consistency
- * 
+ *
  * Props:
  *   inputContent: React element - the input editor component
  *   optionsContent: React element - the config options component
  *   selectedTool: tool object - used to determine which tabs to show
+ *   tabActions: React element - action buttons for the tab header
+ *   inputTabLabel: string - custom label for input tab (defaults to 'INPUT')
+ *   cssContent: React element - CSS editor content (for markdown-html-formatter)
+ *   onActiveTabChange: function(tabId) - callback when active tab changes
  */
 export default function InputTabs({
   inputContent = null,
   optionsContent = null,
   selectedTool = null,
   tabActions = null,
+  inputTabLabel = 'INPUT',
+  cssContent = null,
+  onActiveTabChange = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState('input')
+
+  // Notify parent when active tab changes
+  useEffect(() => {
+    if (onActiveTabChange) {
+      onActiveTabChange(userSelectedTabId)
+    }
+  }, [userSelectedTabId, onActiveTabChange])
 
   // Build tab configuration
   const tabConfig = [
     {
       id: 'input',
-      label: 'INPUT',
+      label: inputTabLabel,
       content: inputContent,
       contentType: 'component',
     },
   ]
+
+  // Add CSS tab if content is provided (for markdown-html-formatter)
+  if (cssContent) {
+    tabConfig.push({
+      id: 'css',
+      label: 'CSS',
+      content: cssContent,
+      contentType: 'component',
+    })
+  }
 
   // Only show OPTIONS tab if tool is selected (has config options)
   if (selectedTool && optionsContent) {

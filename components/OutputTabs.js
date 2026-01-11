@@ -432,8 +432,8 @@ export default function OutputTabs({
     }
   }
 
-  // Add Analysis tab for CSS Toolkit (Phase 2)
-  if (toolId === 'css-formatter' && analysisData && finalShowAnalysisTab) {
+  // Add Analysis tab for CSS Toolkit (Phase 2) and Markdown+HTML Toolkit in CSS mode
+  if ((toolId === 'css-formatter' || toolId === 'markdown-html-formatter') && analysisData && finalShowAnalysisTab) {
     if (!tabConfig) {
       tabConfig = []
     }
@@ -448,8 +448,8 @@ export default function OutputTabs({
     }
   }
 
-  // Add Rules tab for CSS Toolkit (Phase 3)
-  if (toolId === 'css-formatter' && analysisData && analysisData.rulesTree && finalShowRulesTab) {
+  // Add Rules tab for CSS Toolkit (Phase 3) and Markdown+HTML Toolkit in CSS mode
+  if ((toolId === 'css-formatter' || toolId === 'markdown-html-formatter') && analysisData && analysisData.rulesTree && finalShowRulesTab) {
     if (!tabConfig) {
       tabConfig = []
     }

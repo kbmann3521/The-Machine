@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import {
   mergeSelectedGroups,
   generateCodePreview,
-  applyMergeToSourceText
+  applyMergeToSourceText,
+  serializeRulesToCSS
 } from '../lib/tools/mergeSelectors'
 import styles from '../styles/rule-inspector.module.css'
 
@@ -42,9 +43,18 @@ export default function MergeSelectorConfirmation({
   const mergeResult = mergeSelectedGroups(rulesTree, selectedSelectors)
   const { summary, mergeInfo } = mergeResult
 
-  // Apply merge to source text to preserve formatting and comments
-  const mergedCSS = sourceText && mergeInfo
-    ? applyMergeToSourceText(sourceText, rulesTree, mergeInfo)
+  // Apply merge to source text
+  // If sourceText contains .pwt-markdown-preview prefix, regenerate from rulesTree to avoid scoping issues
+  let sourceToMerge = sourceText
+  if (sourceText && sourceText.includes('.pwt-markdown-preview')) {
+    // Regenerate unscoped CSS from rulesTree for accurate merging
+    sourceToMerge = rulesTree && rulesTree.length > 0
+      ? serializeRulesToCSS(rulesTree)
+      : sourceText
+  }
+
+  const mergedCSS = sourceToMerge && mergeInfo
+    ? applyMergeToSourceText(sourceToMerge, rulesTree, mergeInfo)
     : ''
 
   // Get the currently expanded selector's group for preview

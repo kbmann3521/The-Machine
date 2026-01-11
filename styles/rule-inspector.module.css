@@ -87,15 +87,32 @@
   transition: all 0.2s ease;
 }
 
-.ruleHeader {
+.ruleHeaderContainer {
+  display: flex;
+  align-items: center;
   width: 100%;
+  gap: 0;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.ruleHeaderContainer:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+}
+
+.ruleHeaderContainer.expanded {
+  background-color: rgba(0, 102, 204, 0.05);
+  border-bottom-color: var(--color-border, #ddd);
+}
+
+.ruleHeader {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
   background-color: transparent;
   border: none;
-  border-bottom: 1px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 12px;
@@ -105,12 +122,11 @@
 }
 
 .ruleHeader:hover {
-  background-color: rgba(0, 102, 204, 0.05);
+  background-color: transparent;
 }
 
 .ruleHeader.expanded {
-  border-bottom-color: var(--color-border, #ddd);
-  background-color: rgba(0, 102, 204, 0.05);
+  background-color: transparent;
 }
 
 .ruleChevron {
@@ -126,6 +142,34 @@
   font-family: 'Courier New', monospace;
   word-break: break-word;
   color: #0066cc;
+}
+
+.duplicateIndicator {
+  font-size: 11px;
+  padding: 2px 6px;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #7b1fa2;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.mergeButtonCompact {
+  background-color: transparent;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  color: #7b1fa2;
+  padding: 6px 8px;
+  margin-right: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mergeButtonCompact:hover {
+  border-color: #7b1fa2;
+  background-color: rgba(156, 39, 176, 0.15);
 }
 
 .specificity {

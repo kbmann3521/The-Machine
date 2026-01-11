@@ -1082,6 +1082,8 @@
   border-radius: 3px;
 }
 
+/* Highlight for affected elements during inspector hover - added as inline styles in component */
+
 .previewDisclaimer {
   padding: 8px 12px;
   background-color: rgba(0, 102, 204, 0.05);

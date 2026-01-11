@@ -88,6 +88,29 @@ export default function Home(props) {
   const [showAnalysisTab, setShowAnalysisTab] = useState(false)
   const [showRulesTab, setShowRulesTab] = useState(false)
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
+  const [markdownCustomCss, setMarkdownCustomCss] = useState('')
+  const [activeMarkdownInputTab, setActiveMarkdownInputTab] = useState('input')
+  const [markdownInputMode, setMarkdownInputMode] = useState('input') // 'input' or 'css' - tracks which input mode is active
+  const [cssConfigOptions, setCssConfigOptions] = useState({
+    mode: 'beautify',
+    indentSize: '2',
+    removeComments: true,
+    addAutoprefix: false,
+    browsers: 'last 2 versions',
+    showValidation: true,
+    showLinting: true,
+    showAnalysisTab: false,
+    showRulesTab: false,
+  })
+
+  // When active tab changes, track if it's a content mode (input/css) vs options
+  const handleMarkdownInputTabChange = (tabId) => {
+    setActiveMarkdownInputTab(tabId)
+    // Update the mode only if it's a content tab (input or css)
+    if (tabId === 'input' || tabId === 'css') {
+      setMarkdownInputMode(tabId)
+    }
+  }
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -854,6 +877,8 @@ export default function Home(props) {
             <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
               <InputTabs
                 selectedTool={selectedTool}
+                inputTabLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'HTML' : 'INPUT'}
+                onActiveTabChange={selectedTool?.toolId === 'markdown-html-formatter' ? handleMarkdownInputTabChange : null}
                 tabActions={
                   selectedTool && (
                     <button
@@ -866,6 +891,34 @@ export default function Home(props) {
                     </button>
                   )
                 }
+                cssContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
+                  <ToolOutputPanel
+                    result={outputResult}
+                    outputType={selectedTool?.outputType}
+                    loading={toolLoading}
+                    error={error}
+                    toolId={selectedTool?.toolId}
+                    activeToolkitSection={activeToolkitSection}
+                    configOptions={configOptions}
+                    onConfigChange={setConfigOptions}
+                    inputText={inputText}
+                    imagePreview={imagePreview}
+                    warnings={outputWarnings}
+                    onInputUpdate={(text) => handleInputChange(text, null, null, true)}
+                    showAnalysisTab={showAnalysisTab}
+                    onShowAnalysisTabChange={setShowAnalysisTab}
+                    showRulesTab={showRulesTab}
+                    onShowRulesTabChange={setShowRulesTab}
+                    isPreviewFullscreen={isPreviewFullscreen}
+                    onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    renderCssTabOnly={true}
+                    activeMarkdownInputTab={activeMarkdownInputTab}
+                    markdownCustomCss={markdownCustomCss}
+                    onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    cssConfigOptions={cssConfigOptions}
+                    onCssConfigChange={setCssConfigOptions}
+                  />
+                ) : null}
                 inputContent={
                   <div className={styles.inputSection} style={{ overflow: 'hidden', height: '100%' }}>
                     <UniversalInput
@@ -895,6 +948,7 @@ export default function Home(props) {
                       <ToolConfigPanel
                         tool={selectedTool}
                         onConfigChange={handleConfigChange}
+                        onCssConfigChange={setCssConfigOptions}
                         loading={toolLoading}
                         onRegenerate={handleRegenerate}
                         currentConfig={configOptions}
@@ -902,6 +956,8 @@ export default function Home(props) {
                         contentClassification={contentClassification}
                         activeToolkitSection={activeToolkitSection}
                         onToolkitSectionChange={setActiveToolkitSection}
+                        markdownInputMode={markdownInputMode}
+                        cssConfigOptions={cssConfigOptions}
                         findReplaceConfig={findReplaceConfig}
                         onFindReplaceConfigChange={setFindReplaceConfig}
                         diffConfig={diffConfig}
@@ -989,6 +1045,13 @@ export default function Home(props) {
                     onShowRulesTabChange={setShowRulesTab}
                     isPreviewFullscreen={isPreviewFullscreen}
                     onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    renderCssTabOnly={false}
+                    activeMarkdownInputTab={activeMarkdownInputTab}
+                    markdownInputMode={markdownInputMode}
+                    markdownCustomCss={markdownCustomCss}
+                    onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    cssConfigOptions={cssConfigOptions}
+                    onCssConfigChange={setCssConfigOptions}
                   />
                 )}
               </div>
