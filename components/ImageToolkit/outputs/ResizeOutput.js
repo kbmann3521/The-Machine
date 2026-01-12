@@ -34,43 +34,62 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
     }
 
     const img = new Image()
-    img.onload = () => {
-      setOriginalDimensions({
-        width: img.width,
-        height: img.height,
-      })
+    let dimensionTimeout = null
 
-      // Calculate and store aspect ratio
-      const ratio = img.width / img.height
-      setAspectRatio(ratio)
-
-      // Calculate original file size from base64
-      const sizeInBytes = Math.ceil((result.imageData.length * 3) / 4) - (result.imageData.endsWith('==') ? 2 : result.imageData.endsWith('=') ? 1 : 0)
-      setOriginalFileSize(sizeInBytes)
-
-      // Store original config for reset
-      if (configOptions) {
-        setOriginalConfig({
+    const handleDimensionLoad = () => {
+      clearTimeout(dimensionTimeout)
+      try {
+        setOriginalDimensions({
           width: img.width,
           height: img.height,
-          scalePercent: configOptions.scalePercent || 100,
-          quality: configOptions.quality || 80,
-          lockAspectRatio: configOptions.lockAspectRatio !== false,
         })
-      }
 
-      // Update config to use original dimensions as defaults AND include aspect ratio info
-      if (onConfigChange && configOptions) {
-        onConfigChange({
-          ...configOptions,
-          width: img.width,
-          height: img.height,
-          originalWidth: img.width,
-          originalHeight: img.height,
-          aspectRatio: ratio,
-        })
+        // Calculate and store aspect ratio
+        const ratio = img.width / img.height
+        setAspectRatio(ratio)
+
+        // Calculate original file size from base64
+        const sizeInBytes = Math.ceil((result.imageData.length * 3) / 4) - (result.imageData.endsWith('==') ? 2 : result.imageData.endsWith('=') ? 1 : 0)
+        setOriginalFileSize(sizeInBytes)
+
+        // Store original config for reset
+        if (configOptions) {
+          setOriginalConfig({
+            width: img.width,
+            height: img.height,
+            scalePercent: configOptions.scalePercent || 100,
+            quality: configOptions.quality || 80,
+            lockAspectRatio: configOptions.lockAspectRatio !== false,
+          })
+        }
+
+        // Update config to use original dimensions as defaults AND include aspect ratio info
+        if (onConfigChange && configOptions) {
+          onConfigChange({
+            ...configOptions,
+            width: img.width,
+            height: img.height,
+            originalWidth: img.width,
+            originalHeight: img.height,
+            aspectRatio: ratio,
+          })
+        }
+      } catch (err) {
+        console.error('Error processing image dimensions:', err)
       }
     }
+
+    img.onload = handleDimensionLoad
+    img.onerror = () => {
+      clearTimeout(dimensionTimeout)
+      console.error('Failed to load image for dimension detection')
+    }
+
+    // Mobile timeout for dimension detection
+    dimensionTimeout = setTimeout(() => {
+      console.warn('Image dimension detection timed out')
+    }, 5000)
+
     img.src = result.imageData
   }, [result.imageData])
 
@@ -159,47 +178,78 @@ export default function ResizeOutput({ result, configOptions, onConfigChange, on
   const performResize = () => {
     try {
       const img = new Image()
-      img.onload = () => {
-        const canvas = canvasRef.current || document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
+      let loadTimeout = null
 
-        // Calculate dimensions based on scale percentage
-        const scale = (result.scalePercent || 100) / 100
-        let newWidth = Math.round((result.width || 800) * scale)
-        let newHeight = Math.round((result.height || 600) * scale)
+      const handleImageLoad = () => {
+        try {
+          clearTimeout(loadTimeout)
+          const canvas = canvasRef.current || document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
 
-        // Ensure dimensions don't exceed original
-        if (newWidth > img.width) newWidth = img.width
-        if (newHeight > img.height) newHeight = img.height
+          if (!ctx) {
+            // Fallback: If canvas context fails, use original image data
+            setResizedImage(result.imageData)
+            setNewDimensions({
+              width: img.width,
+              height: img.height,
+              originalWidth: img.width,
+              originalHeight: img.height,
+            })
+            setError(null)
+            return
+          }
 
-        canvas.width = newWidth
-        canvas.height = newHeight
+          // Calculate dimensions based on scale percentage
+          const scale = (result.scalePercent || 100) / 100
+          let newWidth = Math.round((result.width || 800) * scale)
+          let newHeight = Math.round((result.height || 600) * scale)
 
-        ctx.drawImage(img, 0, 0, newWidth, newHeight)
+          // Ensure dimensions don't exceed original
+          if (newWidth > img.width) newWidth = img.width
+          if (newHeight > img.height) newHeight = img.height
 
-        const qualityRatio = (result.quality || 80) / 100
-        const resizedData = canvas.toDataURL('image/jpeg', qualityRatio)
+          canvas.width = newWidth
+          canvas.height = newHeight
 
-        setResizedImage(resizedData)
-        setNewDimensions({
-          width: newWidth,
-          height: newHeight,
-          originalWidth: img.width,
-          originalHeight: img.height,
-        })
+          ctx.drawImage(img, 0, 0, newWidth, newHeight)
 
-        // Estimate file size based on quality
-        const estimatedSize = Math.ceil((resizedData.length * 3) / 4) - (resizedData.endsWith('==') ? 2 : resizedData.endsWith('=') ? 1 : 0)
-        setEstimatedFileSize(estimatedSize)
-        setError(null)
+          const qualityRatio = (result.quality || 80) / 100
+          const resizedData = canvas.toDataURL('image/jpeg', qualityRatio)
+
+          setResizedImage(resizedData)
+          setNewDimensions({
+            width: newWidth,
+            height: newHeight,
+            originalWidth: img.width,
+            originalHeight: img.height,
+          })
+
+          // Estimate file size based on quality
+          const estimatedSize = Math.ceil((resizedData.length * 3) / 4) - (resizedData.endsWith('==') ? 2 : resizedData.endsWith('=') ? 1 : 0)
+          setEstimatedFileSize(estimatedSize)
+          setError(null)
+        } catch (err) {
+          console.error('Canvas error:', err)
+          // Fallback: Use original image if canvas fails
+          setResizedImage(result.imageData)
+          setError(null)
+        }
       }
 
+      img.onload = handleImageLoad
       img.onerror = () => {
-        setError('Failed to load image. Please check the image format.')
+        clearTimeout(loadTimeout)
+        setError('Failed to load image. Please check the image format or try uploading again.')
       }
+
+      // Mobile timeout: If image doesn't load in 5 seconds, show error
+      loadTimeout = setTimeout(() => {
+        setError('Image loading timed out. This may be a network issue on mobile. Try uploading again.')
+      }, 5000)
 
       img.src = result.imageData
     } catch (err) {
+      console.error('Resize error:', err)
       setError(`Resize error: ${err.message}`)
     }
   }
