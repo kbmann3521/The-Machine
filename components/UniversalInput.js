@@ -156,13 +156,62 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
       return
     }
 
+    // Log file details for debugging mobile issues
+    console.log('Image file selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified,
+    })
+
     const reader = new FileReader()
+    let readerTimeout = null
+
     reader.onload = (e) => {
-      setImagePreview(e.target.result)
-      setInputImage(file)
-      onImageChange(file, e.target.result)
+      clearTimeout(readerTimeout)
+      try {
+        const result = e.target.result
+        if (!result) {
+          console.error('FileReader result is empty')
+          alert('Failed to read image file. Please try again.')
+          return
+        }
+        console.log('Image file read successfully, size:', result.length)
+        setImagePreview(result)
+        setInputImage(file)
+        onImageChange(file, result)
+      } catch (err) {
+        console.error('Error processing image file:', err)
+        alert('Error processing image file: ' + err.message)
+      }
     }
-    reader.readAsDataURL(file)
+
+    reader.onerror = (err) => {
+      clearTimeout(readerTimeout)
+      console.error('FileReader error:', err)
+      alert('Failed to read image file. Please check permissions and try again.')
+    }
+
+    reader.onabort = () => {
+      clearTimeout(readerTimeout)
+      console.warn('FileReader aborted')
+      alert('File reading was cancelled.')
+    }
+
+    // Add timeout for FileReader (some mobile devices may hang)
+    readerTimeout = setTimeout(() => {
+      console.warn('FileReader timeout - image file took too long to read')
+      reader.abort()
+      alert('Image file reading timed out. File may be too large for mobile.')
+    }, 30000) // 30 second timeout
+
+    try {
+      reader.readAsDataURL(file)
+    } catch (err) {
+      clearTimeout(readerTimeout)
+      console.error('Error starting FileReader:', err)
+      alert('Unable to read file: ' + err.message)
+    }
   }
 
   const handleFileSelect = (e) => {
