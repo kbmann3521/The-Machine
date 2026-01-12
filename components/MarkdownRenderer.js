@@ -16,7 +16,73 @@ import styles from '../styles/markdown-renderer.module.css'
  * - Custom components for styling consistency
  * - Deterministic, AST-based rendering
  * - SVG, forms, scripts, and event handlers blocked by default
+ * - CSS is scoped to preview container only to prevent leaking into page UI
  */
+
+/**
+ * Scope CSS to only apply within the preview container
+ * Wraps all selectors with the preview class to prevent global style pollution
+ */
+function scopeCustomCss(css, previewClass) {
+  if (!css) return css
+
+  // Split CSS by closing braces to identify rules
+  const rules = []
+  let currentRule = ''
+  let braceCount = 0
+
+  for (let i = 0; i < css.length; i++) {
+    const char = css[i]
+    currentRule += char
+
+    if (char === '{') {
+      braceCount++
+    } else if (char === '}') {
+      braceCount--
+      if (braceCount === 0) {
+        rules.push(currentRule.trim())
+        currentRule = ''
+      }
+    }
+  }
+
+  // Add any remaining rule
+  if (currentRule.trim()) {
+    rules.push(currentRule.trim())
+  }
+
+  // Process each rule
+  const scopedRules = rules.map(rule => {
+    const match = rule.match(/^([^{]+)\{([\s\S]*)\}$/)
+    if (!match) return rule
+
+    const selectors = match[1]
+    const declarations = match[2]
+
+    // Split selectors and scope each one
+    const scopedSelectors = selectors
+      .split(',')
+      .map(selector => {
+        selector = selector.trim()
+        if (!selector) return ''
+
+        // Scope selector to preview container
+        // Don't double-wrap if already scoped
+        if (selector.startsWith(previewClass)) {
+          return selector
+        }
+
+        // Wrap selector with preview class
+        return `${previewClass} ${selector}`
+      })
+      .filter(Boolean)
+      .join(', ')
+
+    return scopedSelectors ? `${scopedSelectors} {${declarations}}` : ''
+  }).filter(Boolean)
+
+  return scopedRules.join('\n')
+}
 
 /**
  * Sanitization configuration for rehype-sanitize.
@@ -102,12 +168,15 @@ export default function MarkdownRenderer({ markdown, className = '', customCss =
     )
   }
 
+  // Scope CSS to preview container to prevent leaking into page UI
+  const scopedCss = scopeCustomCss(customCss, '.pwt-markdown-preview')
+
   return (
     <>
-      {customCss && (
-        <style>{customCss}</style>
+      {scopedCss && (
+        <style>{scopedCss}</style>
       )}
-      <div ref={rendererRef} className={`pwt-markdown-preview ${styles.renderer} ${className}`}>
+      <div ref={rendererRef} className={`pwt-markdown-preview ${styles.renderer} ${className}`} style={{ height: '100%' }}>
         <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}

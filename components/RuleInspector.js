@@ -1,11 +1,218 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { PropertyEditorDispatcher, getPropertyEditorType } from './PropertyEditor'
 import { isRuleRedundant } from '../lib/tools/ruleImpactAnalysis'
 import { generateRefactorSuggestions } from '../lib/tools/refactorSuggestions'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
 import { classifyProperty, getImpactBadgeInfo } from '../lib/propertyClassification'
 import OverriddenPropertyModal from './OverriddenPropertyModal'
+import { CSS_PROPERTIES, CSS_UNITS, CSS_COLORS } from './CSSEditorInput'
 import styles from '../styles/rule-inspector.module.css'
+
+/**
+ * Helper to extract unit portion from a value string
+ * For example: "10p" -> "p", "12em" -> "em", "100" -> ""
+ */
+function extractUnitPart(valueStr) {
+  if (!valueStr) return ''
+  return valueStr.replace(/^[\d.]+/, '').toLowerCase()
+}
+
+/**
+ * AutocompleteInput Component
+ * Provides a text input with dropdown suggestions and keyboard navigation
+ */
+function AutocompleteInput({
+  value,
+  onChange,
+  onKeyDown,
+  placeholder,
+  suggestions = [],
+  className,
+  autoFocus = false,
+  onSelectAndMove = null, // Called when user selects an item via Enter/Tab
+  isUnitInput = false, // Special handling for unit input (extract unit part from value)
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [filtered, setFiltered] = useState([])
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const inputRef = useRef(null)
+  const containerRef = useRef(null)
+  const justSelectedRef = useRef(false)
+
+  useEffect(() => {
+    if (value && value.length > 0) {
+      // If we just selected a suggestion, close the dropdown and don't reopen it
+      if (justSelectedRef.current) {
+        setIsOpen(false)
+        justSelectedRef.current = false
+        return
+      }
+
+      let searchTerm = value.toLowerCase()
+
+      // For unit input, extract just the unit part (after digits)
+      if (isUnitInput) {
+        searchTerm = extractUnitPart(value)
+      }
+
+      const filtered = suggestions.filter(s =>
+        s.toLowerCase().startsWith(searchTerm)
+      )
+      setFiltered(filtered)
+      setIsOpen(filtered.length > 0)
+      setSelectedIndex(0) // Auto-select first option
+    } else {
+      setIsOpen(false)
+      setSelectedIndex(-1)
+    }
+  }, [value, suggestions, isUnitInput])
+
+  const handleSelect = (suggestion) => {
+    let newValue = suggestion
+
+    // For unit input, we need to replace just the unit part
+    // For example: "10p" + select "px" -> "10px"
+    if (isUnitInput && value) {
+      const unitPart = extractUnitPart(value)
+      // Replace the unit part with the selected suggestion
+      const digitsPart = value.substring(0, value.length - unitPart.length)
+      newValue = digitsPart + suggestion
+    }
+
+    // Mark that we just selected, to prevent dropdown from reopening
+    justSelectedRef.current = true
+
+    // Update the input directly via the ref and parent onChange
+    onChange({ target: { value: newValue } })
+    setIsOpen(false)
+    setSelectedIndex(-1)
+
+    // Call the callback to move to next input or complete action
+    if (onSelectAndMove) {
+      setTimeout(() => {
+        onSelectAndMove()
+      }, 0)
+    } else {
+      // Refocus the input after selection if no callback
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 0)
+    }
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        flex: 1,
+        minWidth: 0,
+        width: '100%',
+      }}
+    >
+      <input
+        ref={inputRef}
+        type="text"
+        className={className}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onKeyDown={(e) => {
+          if (isOpen && filtered.length > 0) {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              setSelectedIndex(prev =>
+                prev < filtered.length - 1 ? prev + 1 : 0
+              )
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              setSelectedIndex(prev =>
+                prev > 0 ? prev - 1 : filtered.length - 1
+              )
+            } else if (e.key === 'Enter') {
+              e.preventDefault()
+              const selected = filtered[selectedIndex >= 0 ? selectedIndex : 0]
+              if (selected) {
+                handleSelect(selected)
+                onSelectAndMove?.('next')
+              }
+            } else if (e.key === 'Tab') {
+              e.preventDefault()
+              const selected = filtered[selectedIndex >= 0 ? selectedIndex : 0]
+              if (selected) {
+                handleSelect(selected)
+                onSelectAndMove?.('next')
+              }
+            } else if (e.key === 'Escape') {
+              setIsOpen(false)
+              setSelectedIndex(-1)
+              onKeyDown?.(e)
+            } else {
+              onKeyDown?.(e)
+            }
+          } else {
+            onKeyDown?.(e)
+          }
+        }}
+        onBlur={() => {
+          setIsOpen(false)
+          setSelectedIndex(-1)
+        }}
+        onFocus={() => {
+          if (value && value.length > 0) {
+            setIsOpen(filtered.length > 0)
+          }
+        }}
+        autoFocus={autoFocus}
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      />
+      {isOpen && filtered.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          width: 'max-content',
+          minWidth: '100%',
+          backgroundColor: 'var(--color-background-primary, #fff)',
+          border: '1px solid var(--color-border, #ddd)',
+          borderRadius: '4px',
+          maxHeight: '180px',
+          overflowY: 'auto',
+          zIndex: 10000,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+          marginTop: '2px',
+        }}>
+          {filtered.slice(0, 8).map((suggestion, idx) => (
+            <div
+              key={idx}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                handleSelect(suggestion)
+              }}
+              style={{
+                padding: '8px 10px',
+                cursor: 'pointer',
+                backgroundColor: idx === selectedIndex ? 'rgba(0, 102, 204, 0.2)' : 'transparent',
+                borderBottom: idx < filtered.length - 1 ? '1px solid var(--color-border, #eee)' : 'none',
+                fontSize: '12px',
+                transition: 'background-color 0.15s ease',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={() => setSelectedIndex(idx)}
+              onMouseLeave={() => {}}
+            >
+              {suggestion}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 /**
  * RuleInspector Component (Phase 6 + 7A)
@@ -28,6 +235,8 @@ import styles from '../styles/rule-inspector.module.css'
  *   onRemoveRule: (ruleIndex, selector, lineRange) => void (Phase 7C: remove fully overridden rule from source)
  *   onMergeClick: (mergeableGroups) => void (Phase 7E: callback when user clicks merge button)
  *   rulesTree: CssRuleNode[] (Phase 7E: full rules tree for detecting all mergeable selectors)
+ *   onHighlightSelector: (selector) => void (Phase 7F: highlight selector in preview)
+ *   highlightedSelector: string | null (Phase 7F: currently highlighted selector)
  */
 export default function RuleInspector({
   selector = null,
@@ -51,6 +260,8 @@ export default function RuleInspector({
   onLockPropertyChange = null,
   onReEnableProperty = null,
   isPropertyOverriddenByLaterRule = null,
+  onHighlightSelector = null,
+  highlightedSelector = null,
 }) {
   const [expandedRules, setExpandedRules] = useState({})
   const [selectedRuleKey, setSelectedRuleKey] = useState(null)
@@ -353,18 +564,9 @@ export default function RuleInspector({
     // Phase 7B: Detect redundant rules (CSS-only analysis)
     const redundancyInfo = isRuleRedundant(selectedRuleImpact)
 
-    if (affectedNodes.length === 0 && propertiesWithStatus.length === 0) {
-      return (
-        <div className={styles.impactInfo}>
-          <div className={styles.impactSection}>
-            <div className={styles.impactLabel}>Affects (Direct Matches):</div>
-            <div className={styles.impactDetail} style={{ color: 'var(--color-text-secondary, #999)' }}>
-              No direct matches in preview
-            </div>
-          </div>
-        </div>
-      )
-    }
+    // Phase 7F: Show highlight button when no direct matches (regardless of properties)
+    const shouldShowHighlight = affectedNodes.length === 0
+    const isHighlighted = highlightedSelector === selectedRule?.selector
 
     return (
       <div className={`${styles.impactInfo} ${redundancyInfo?.isRedundant ? styles.impactInfoRedundant : ''}`}>
@@ -374,9 +576,23 @@ export default function RuleInspector({
           </div>
         )}
 
-        {/* Show properties with cascade status */}
-        {propertiesWithStatus.length > 0 && (
+        {/* Show highlight button when no direct matches */}
+        {shouldShowHighlight && (
           <div className={styles.impactSection}>
+            <button
+              className={`${styles.highlightSelectorButton} ${isHighlighted ? styles.highlightSelectorButtonActive : ''}`}
+              onClick={() => onHighlightSelector?.(selectedRule.selector)}
+              title={isHighlighted ? 'Click to remove highlight' : 'Show the bounding box of this selector in the preview'}
+            >
+              {isHighlighted ? '✓ Highlighting: ' : '👁 Show Bounding Box'}
+              <code className={styles.highlightSelectorCode}>{selectedRule.selector}</code>
+            </button>
+          </div>
+        )}
+
+        {/* Show properties with cascade status (only if there are properties) */}
+        {propertiesWithStatus.length > 0 && (
+          <div className={`${styles.impactSection} ${shouldShowHighlight ? styles.impactSectionWithButton : ''}`}>
             <div className={styles.impactLabel}>Affects (Direct Matches):</div>
             <div className={styles.impactProperties}>
               {propertiesWithStatus.map((prop, idx) => (
@@ -537,7 +753,7 @@ export default function RuleInspector({
                                     : isPropertyDisabled ? `Enable ${decl.property}` : `Disable ${decl.property} (what-if simulation)`
                                 }
                               >
-                                {isPropertyDisabled ? '✗' : '•'}
+                                {!isPropertyDisabled ? '✓' : ''}
                               </button>
                             )}
                             <span className={styles.impactBadge} title={impactInfo.description}>
@@ -689,7 +905,7 @@ export default function RuleInspector({
                                     : isPropertyDisabled ? `Enable ${addedPropertyName}` : `Disable ${addedPropertyName} (what-if simulation)`
                                 }
                               >
-                                {isPropertyDisabled ? '✗' : '•'}
+                                {!isPropertyDisabled ? '✓' : ''}
                               </button>
                             )}
                             <span className={styles.impactBadge} title={impactInfo.description}>
@@ -798,40 +1014,76 @@ export default function RuleInspector({
                   <div className={styles.addPropertySection}>
                     {addingPropertyToRule === rule.ruleIndex ? (
                       <div className={styles.addPropertyForm}>
-                        <input
-                          type="text"
-                          className={styles.propertyInput}
-                          placeholder="property name"
-                          value={newPropertyName}
-                          onChange={(e) => setNewPropertyName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                        <div className={styles.inputFieldsContainer}>
+                          <AutocompleteInput
+                            className={styles.propertyInput}
+                            placeholder="property name"
+                            value={newPropertyName}
+                            onChange={(e) => setNewPropertyName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Escape') {
+                                setAddingPropertyToRule(null)
+                                setNewPropertyName('')
+                                setNewPropertyValue('')
+                              }
+                            }}
+                            onSelectAndMove={() => {
+                              setTimeout(() => {
+                                const valueInput = document.querySelector(`.${styles.valueInput}`)
+                                valueInput?.focus()
+                              }, 0)
+                            }}
+                            suggestions={CSS_PROPERTIES}
+                            autoFocus
+                          />
+                          <span className={styles.colon}>:</span>
+                          <AutocompleteInput
+                            className={styles.valueInput}
+                            placeholder="value"
+                            value={newPropertyValue}
+                            onChange={(e) => setNewPropertyValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Escape') {
+                                setAddingPropertyToRule(null)
+                                setNewPropertyName('')
+                                setNewPropertyValue('')
+                              }
+                            }}
+                            onSelectAndMove={() => {
                               handleAddNewProperty(rule)
-                            } else if (e.key === 'Escape') {
-                              setAddingPropertyToRule(null)
-                              setNewPropertyName('')
-                              setNewPropertyValue('')
+                            }}
+                            suggestions={
+                              newPropertyName.toLowerCase().includes('color')
+                                ? CSS_COLORS
+                                : CSS_UNITS
                             }
-                          }}
-                          autoFocus
-                        />
-                        <span className={styles.colon}>:</span>
-                        <input
-                          type="text"
-                          className={styles.valueInput}
-                          placeholder="value"
-                          value={newPropertyValue}
-                          onChange={(e) => setNewPropertyValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleAddNewProperty(rule)
-                            } else if (e.key === 'Escape') {
-                              setAddingPropertyToRule(null)
-                              setNewPropertyName('')
-                              setNewPropertyValue('')
-                            }
-                          }}
-                        />
+                            isUnitInput={!newPropertyName.toLowerCase().includes('color')}
+                          />
+                          {newPropertyName.toLowerCase().includes('color') && newPropertyValue && (
+                            <input
+                              type="color"
+                              value={
+                                newPropertyValue.startsWith('#')
+                                  ? newPropertyValue.length === 7 || newPropertyValue.length === 4
+                                    ? newPropertyValue
+                                    : '#000000'
+                                  : '#000000'
+                              }
+                              onChange={(e) => setNewPropertyValue(e.target.value)}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                maxWidth: '24px',
+                                padding: '0',
+                                border: '1px solid var(--color-border, #ddd)',
+                                borderRadius: '2px',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                              }}
+                              title="Pick a color"
+                            />
+                          )}
+                        </div>
                         <button
                           className={styles.confirmAddButton}
                           onClick={() => handleAddNewProperty(rule)}

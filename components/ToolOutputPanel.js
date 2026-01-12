@@ -2473,6 +2473,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 enableGfm={enableGfmFeatures}
                 isFullscreen={isPreviewFullscreen}
                 onToggleFullscreen={onTogglePreviewFullscreen}
+                onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
               />
             ),
             contentType: 'component',
@@ -2778,9 +2779,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             fontSize: '12px',
             color: 'var(--color-text-secondary)',
             lineHeight: '1.5',
-            marginBottom: '4px',
+            padding: '10px 12px',
+            backgroundColor: 'rgba(33, 150, 243, 0.08)',
+            border: '1px solid rgba(33, 150, 243, 0.2)',
+            borderRadius: '4px',
           }}>
-            <strong>Preview Styling:</strong> Edit CSS to customize how the markdown appears in the preview. Selectors like <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'var(--color-background-tertiary)', padding: '2px 4px', borderRadius: '2px' }}>h1</code>, <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'var(--color-background-tertiary)', padding: '2px 4px', borderRadius: '2px' }}>p</code>, etc. are automatically scoped to the preview.
+            Edit CSS to style the preview. Selectors like <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'rgba(33, 150, 243, 0.15)', padding: '2px 4px', borderRadius: '2px' }}>h1</code>, <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'rgba(33, 150, 243, 0.15)', padding: '2px 4px', borderRadius: '2px' }}>p</code>, etc. are auto-scoped.
           </div>
 
           <div style={{
@@ -2790,10 +2794,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             borderRadius: '4px',
             fontSize: '12px',
           }}>
-            <div style={{ marginBottom: '8px', fontWeight: '600', color: 'var(--color-text-primary)', fontSize: '11px' }}>
-              Suggested Selectors
-            </div>
-
             {(scannedSelectors.suggestions &&
               typeof scannedSelectors.suggestions === 'object' &&
               !Array.isArray(scannedSelectors.suggestions) &&
@@ -2802,21 +2802,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                scannedSelectors.suggestions.text?.length > 0 ||
                scannedSelectors.suggestions.code?.length > 0)
             ) ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {/* Structure Category */}
                 {scannedSelectors.suggestions.structure?.length > 0 && (
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{
-                      fontSize: '10px',
+                      fontSize: '9px',
                       fontWeight: '700',
                       textTransform: 'uppercase',
                       color: 'var(--color-text-secondary)',
-                      marginBottom: '6px',
                       letterSpacing: '0.5px',
+                      minWidth: '60px',
                     }}>
                       Structure
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {scannedSelectors.suggestions.structure.map((selector, idx) => {
                         const cleanedSelector = cleanSelector(selector)
                         return (
@@ -2825,12 +2825,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                           onClick={() => handleInsertSelector(cleanedSelector)}
                           title={`Click to insert "${cleanedSelector}" selector`}
                           style={{
-                            padding: '6px 10px',
+                            padding: '4px 6px',
                             backgroundColor: 'rgba(76, 175, 80, 0.2)',
                             color: '#4caf50',
                             border: '1px solid rgba(76, 175, 80, 0.5)',
                             borderRadius: '3px',
-                            fontSize: '11px',
+                            fontSize: '10px',
                             cursor: 'pointer',
                             fontFamily: 'monospace',
                             transition: 'all 0.2s',
@@ -2854,18 +2854,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
                 {/* Headings Category */}
                 {scannedSelectors.suggestions.headings?.length > 0 && (
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{
-                      fontSize: '10px',
+                      fontSize: '9px',
                       fontWeight: '700',
                       textTransform: 'uppercase',
                       color: 'var(--color-text-secondary)',
-                      marginBottom: '6px',
                       letterSpacing: '0.5px',
+                      minWidth: '60px',
                     }}>
                       Headings
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {scannedSelectors.suggestions.headings.map((selector, idx) => {
                         const cleanedSelector = cleanSelector(selector)
                         return (
@@ -2874,12 +2874,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                           onClick={() => handleInsertSelector(cleanedSelector)}
                           title={`Click to insert "${cleanedSelector}" selector`}
                           style={{
-                            padding: '6px 10px',
+                            padding: '4px 6px',
                             backgroundColor: 'rgba(33, 150, 243, 0.2)',
                             color: '#2196f3',
                             border: '1px solid rgba(33, 150, 243, 0.5)',
                             borderRadius: '3px',
-                            fontSize: '11px',
+                            fontSize: '10px',
                             cursor: 'pointer',
                             fontFamily: 'monospace',
                             transition: 'all 0.2s',
@@ -2903,18 +2903,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
                 {/* Text Category */}
                 {scannedSelectors.suggestions.text?.length > 0 && (
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{
-                      fontSize: '10px',
+                      fontSize: '9px',
                       fontWeight: '700',
                       textTransform: 'uppercase',
                       color: 'var(--color-text-secondary)',
-                      marginBottom: '6px',
                       letterSpacing: '0.5px',
+                      minWidth: '60px',
                     }}>
                       Text
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {scannedSelectors.suggestions.text.map((selector, idx) => {
                         const cleanedSelector = cleanSelector(selector)
                         return (
@@ -2923,12 +2923,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                           onClick={() => handleInsertSelector(cleanedSelector)}
                           title={`Click to insert "${cleanedSelector}" selector`}
                           style={{
-                            padding: '6px 10px',
+                            padding: '4px 6px',
                             backgroundColor: 'rgba(156, 39, 176, 0.2)',
                             color: '#9c27b0',
                             border: '1px solid rgba(156, 39, 176, 0.5)',
                             borderRadius: '3px',
-                            fontSize: '11px',
+                            fontSize: '10px',
                             cursor: 'pointer',
                             fontFamily: 'monospace',
                             transition: 'all 0.2s',
@@ -2952,18 +2952,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
                 {/* Code Category */}
                 {scannedSelectors.suggestions.code?.length > 0 && (
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{
-                      fontSize: '10px',
+                      fontSize: '9px',
                       fontWeight: '700',
                       textTransform: 'uppercase',
                       color: 'var(--color-text-secondary)',
-                      marginBottom: '6px',
                       letterSpacing: '0.5px',
+                      minWidth: '60px',
                     }}>
                       Code
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {scannedSelectors.suggestions.code.map((selector, idx) => {
                         const cleanedSelector = cleanSelector(selector)
                         return (
@@ -2972,12 +2972,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                           onClick={() => handleInsertSelector(cleanedSelector)}
                           title={`Click to insert "${cleanedSelector}" selector`}
                           style={{
-                            padding: '6px 10px',
+                            padding: '4px 6px',
                             backgroundColor: 'rgba(255, 152, 0, 0.2)',
                             color: '#ff9800',
                             border: '1px solid rgba(255, 152, 0, 0.5)',
                             borderRadius: '3px',
-                            fontSize: '11px',
+                            fontSize: '10px',
                             cursor: 'pointer',
                             fontFamily: 'monospace',
                             transition: 'all 0.2s',
@@ -3012,16 +3012,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               onChange={setMarkdownCustomCss}
               diagnostics={cssFormatterResult?.diagnostics || []}
             />
-          </div>
-          <div style={{
-            fontSize: '11px',
-            color: 'var(--color-text-secondary)',
-            lineHeight: '1.6',
-            padding: '8px',
-            backgroundColor: 'var(--color-background-secondary)',
-            borderRadius: '4px',
-          }}>
-            ℹ️ <strong>Target elements directly:</strong> Use simple selectors like <code style={{ fontFamily: 'monospace' }}>p</code>, <code style={{ fontFamily: 'monospace' }}>h1</code>, <code style={{ fontFamily: 'monospace' }}>a</code>, <code style={{ fontFamily: 'monospace' }}>code</code>, <code style={{ fontFamily: 'monospace' }}>pre</code>, or <code style={{ fontFamily: 'monospace' }}>ul</code>.
           </div>
         </div>
       )
@@ -3296,12 +3286,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                         fontWeight: '700',
                         textTransform: 'uppercase',
                         color: 'var(--color-text-secondary)',
-                        marginBottom: '6px',
-                        letterSpacing: '0.5px',
-                      }}>
-                        Structure
-                      </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        marginBottom: '4px',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Structure
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {scannedSelectors.suggestions.structure.map((selector, idx) => {
                           const cleanedSelector = cleanSelector(selector)
                           return (
@@ -3310,18 +3300,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                             onClick={() => handleInsertSelector(cleanedSelector)}
                             title={`Click to insert "${cleanedSelector}" selector`}
                             style={{
-                              padding: '6px 10px',
+                              padding: '4px 6px',
                               backgroundColor: 'rgba(76, 175, 80, 0.2)',
                               color: '#4caf50',
                               border: '1px solid rgba(76, 175, 80, 0.5)',
                               borderRadius: '3px',
-                              fontSize: '11px',
-                              cursor: 'pointer',
-                              fontFamily: 'monospace',
-                              transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.3)'
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.3)'
                               e.target.style.borderColor = 'rgba(76, 175, 80, 0.7)'
                             }}
                             onMouseLeave={(e) => {
@@ -3339,18 +3329,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
                   {/* Headings Category */}
                   {scannedSelectors.suggestions.headings?.length > 0 && (
-                    <div>
-                      <div style={{
-                        fontSize: '10px',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        color: 'var(--color-text-secondary)',
-                        marginBottom: '6px',
-                        letterSpacing: '0.5px',
-                      }}>
-                        Headings
-                      </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Headings
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {scannedSelectors.suggestions.headings.map((selector, idx) => {
                           const cleanedSelector = cleanSelector(selector)
                           return (
@@ -3359,18 +3349,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                             onClick={() => handleInsertSelector(cleanedSelector)}
                             title={`Click to insert "${cleanedSelector}" selector`}
                             style={{
-                              padding: '6px 10px',
+                              padding: '4px 6px',
                               backgroundColor: 'rgba(33, 150, 243, 0.2)',
                               color: '#2196f3',
                               border: '1px solid rgba(33, 150, 243, 0.5)',
                               borderRadius: '3px',
-                              fontSize: '11px',
-                              cursor: 'pointer',
-                              fontFamily: 'monospace',
-                              transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
                               e.target.style.borderColor = 'rgba(33, 150, 243, 0.7)'
                             }}
                             onMouseLeave={(e) => {
@@ -3388,18 +3378,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
                   {/* Text Category */}
                   {scannedSelectors.suggestions.text?.length > 0 && (
-                    <div>
-                      <div style={{
-                        fontSize: '10px',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        color: 'var(--color-text-secondary)',
-                        marginBottom: '6px',
-                        letterSpacing: '0.5px',
-                      }}>
-                        Text
-                      </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Text
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {scannedSelectors.suggestions.text.map((selector, idx) => {
                           const cleanedSelector = cleanSelector(selector)
                           return (
@@ -3408,18 +3398,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                             onClick={() => handleInsertSelector(cleanedSelector)}
                             title={`Click to insert "${cleanedSelector}" selector`}
                             style={{
-                              padding: '6px 10px',
+                              padding: '4px 6px',
                               backgroundColor: 'rgba(156, 39, 176, 0.2)',
                               color: '#9c27b0',
                               border: '1px solid rgba(156, 39, 176, 0.5)',
                               borderRadius: '3px',
-                              fontSize: '11px',
-                              cursor: 'pointer',
-                              fontFamily: 'monospace',
-                              transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.3)'
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.3)'
                               e.target.style.borderColor = 'rgba(156, 39, 176, 0.7)'
                             }}
                             onMouseLeave={(e) => {
@@ -3437,18 +3427,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
                   {/* Code Category */}
                   {scannedSelectors.suggestions.code?.length > 0 && (
-                    <div>
-                      <div style={{
-                        fontSize: '10px',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        color: 'var(--color-text-secondary)',
-                        marginBottom: '6px',
-                        letterSpacing: '0.5px',
-                      }}>
-                        Code
-                      </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Code
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {scannedSelectors.suggestions.code.map((selector, idx) => {
                           const cleanedSelector = cleanSelector(selector)
                           return (
@@ -3457,18 +3447,18 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                             onClick={() => handleInsertSelector(cleanedSelector)}
                             title={`Click to insert "${cleanedSelector}" selector`}
                             style={{
-                              padding: '6px 10px',
+                              padding: '4px 6px',
                               backgroundColor: 'rgba(255, 152, 0, 0.2)',
                               color: '#ff9800',
                               border: '1px solid rgba(255, 152, 0, 0.5)',
                               borderRadius: '3px',
-                              fontSize: '11px',
-                              cursor: 'pointer',
-                              fontFamily: 'monospace',
-                              transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.3)'
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.3)'
                               e.target.style.borderColor = 'rgba(255, 152, 0, 0.7)'
                             }}
                             onMouseLeave={(e) => {

@@ -484,36 +484,6 @@ export default function OutputTabs({
     }
   }
 
-  // Add Preview tab for CSS Toolkit (Phase 5)
-  if (toolId === 'css-formatter' && analysisData && analysisData.rulesTree) {
-    if (!tabConfig) {
-      tabConfig = []
-    }
-    // Only add preview tab if it doesn't already exist
-    const hasPreviewTab = tabConfig.some(t => t.id === 'preview')
-    if (!hasPreviewTab && analysisData.rulesTree.length > 0) {
-      const previewTab = {
-        id: 'preview',
-        label: 'Preview',
-        content: (
-          <CSSPreview
-            rulesTree={analysisData.rulesTree}
-            declaredVariables={analysisData.variables?.declared || []}
-            usedVariables={analysisData.variables?.used || []}
-            variableOverrides={{}}
-            sourceText={sourceText}
-            onApplyEdits={onApplyEdits}
-            isFullscreen={isPreviewFullscreen}
-            onToggleFullscreen={onTogglePreviewFullscreen}
-          />
-        ),
-        contentType: 'component',
-      }
-      // Insert preview tab right after output tab (always index 1)
-      tabConfig.splice(1, 0, previewTab)
-    }
-  }
-
   // Add comprehensive JSON tab for CSS Toolkit (Phase 3+)
   if (toolId === 'css-formatter' && analysisData) {
     if (!tabConfig) {

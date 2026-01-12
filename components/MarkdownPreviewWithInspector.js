@@ -89,9 +89,11 @@ export default function MarkdownPreviewWithInspector({
     active: false,
   })
   const [showControls, setShowControls] = useState(false)
+  const [showFullscreenSettings, setShowFullscreenSettings] = useState(false)
 
   // Inspector state
   const [showInspector, setShowInspector] = useState(false)
+  const [isClosingInspector, setIsClosingInspector] = useState(false)
   const [disabledProperties, setDisabledProperties] = useState(new Set())
   const [addedProperties, setAddedProperties] = useState({})
   const [lockedDisabledProperties, setLockedDisabledProperties] = useState(new Set())
@@ -99,10 +101,26 @@ export default function MarkdownPreviewWithInspector({
   const [selectedRuleImpact, setSelectedRuleImpact] = useState(null)
   const [mergeableGroupsForModal, setMergeableGroupsForModal] = useState(null)
   const [localRulesTree, setLocalRulesTree] = useState(null)
+  const [highlightedSelector, setHighlightedSelector] = useState(null)
+  const highlightStyleRef = useRef(null)
+  const closeInspectorTimeoutRef = useRef(null)
+  const [containerWidth, setContainerWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
 
   // Use local rules tree if available (after modifications), otherwise use prop
   // This ensures immediate UI updates when removing/adding properties
   const effectiveRulesTree = localRulesTree !== null ? localRulesTree : rulesTree
+
+  // Calculate responsive inspector panel width
+  const getInspectorPanelWidth = () => {
+    // On mobile (< 640px): full width
+    if (containerWidth < 640) return '100%'
+    // On tablet (640px - 1024px): 80%
+    if (containerWidth < 1024) return '80%'
+    // On desktop (1024px+): 65%
+    return '65%'
+  }
+
+  const inspectorPanelWidth = getInspectorPanelWidth()
 
   // Sync localRulesTree with prop when it changes (e.g., after formatter finishes)
   React.useEffect(() => {
@@ -153,6 +171,36 @@ export default function MarkdownPreviewWithInspector({
     onCssChange(newCss)
   }
 
+  // Handle closing inspector with animation
+  const handleCloseInspector = () => {
+    setIsClosingInspector(true)
+    if (closeInspectorTimeoutRef.current) {
+      clearTimeout(closeInspectorTimeoutRef.current)
+    }
+    closeInspectorTimeoutRef.current = setTimeout(() => {
+      setShowInspector(false)
+      setIsClosingInspector(false)
+    }, 300) // Match animation duration
+  }
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (closeInspectorTimeoutRef.current) {
+        clearTimeout(closeInspectorTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Track container width for responsive inspector panel sizing
+  React.useEffect(() => {
+    const handleResize = () => {
+      setContainerWidth(window.innerWidth)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // ESC to exit fullscreen
   React.useEffect(() => {
     if (!isFullscreen) return
@@ -180,7 +228,7 @@ export default function MarkdownPreviewWithInspector({
 
   // Handle property edits - apply changes to rules tree and update source
   const handlePropertyEdit = (selector, property, newValue, isAddedProperty = false, ruleIndex = null) => {
-    if (!ruleIndex) return
+    if (ruleIndex == null) return
 
     // Create a deep copy of effectiveRulesTree to mutate
     const mutatedRules = JSON.parse(JSON.stringify(effectiveRulesTree))
@@ -225,6 +273,8 @@ export default function MarkdownPreviewWithInspector({
   const handleTogglePropertyDisabled = (ruleIndex, property, isAddedProperty = false) => {
     const disabledKey = isAddedProperty ? `${ruleIndex}::ADDED::${property}` : `${ruleIndex}-${property}`
 
+    // Disabled properties are UI-only state for what-if simulation
+    // They should NOT modify the CSS source, only the preview rendering
     setDisabledProperties(prev => {
       const next = new Set(prev)
       if (next.has(disabledKey)) {
@@ -232,28 +282,6 @@ export default function MarkdownPreviewWithInspector({
       } else {
         next.add(disabledKey)
       }
-
-      // Create mutated rules with disabled properties filtered out
-      const mutatedRules = JSON.parse(JSON.stringify(effectiveRulesTree))
-
-      const filterDisabledProps = (rules) => {
-        rules.forEach(rule => {
-          if (rule.type === 'rule' && rule.declarations) {
-            // Filter out declarations that are in disabledProperties
-            rule.declarations = rule.declarations.filter(decl => {
-              const key = `${rule.ruleIndex}-${decl.property}`
-              return !next.has(key)
-            })
-          }
-          if (rule.children && rule.children.length > 0) {
-            filterDisabledProps(rule.children)
-          }
-        })
-      }
-
-      filterDisabledProps(mutatedRules)
-      applyChangesToSource(mutatedRules)
-
       return next
     })
   }
@@ -434,6 +462,66 @@ export default function MarkdownPreviewWithInspector({
     applyChangesToSource(mutatedRules)
   }
 
+  // Highlight or unhighlight a selector in the preview
+  const handleHighlightSelector = (selector) => {
+    const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
+    if (!containerRef?.current) return
+
+    // If already highlighted and clicking same selector, toggle it off
+    if (highlightedSelector === selector) {
+      // Remove the highlight style tag
+      if (highlightStyleRef.current && highlightStyleRef.current.parentNode) {
+        highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
+      }
+      highlightStyleRef.current = null
+      setHighlightedSelector(null)
+      return
+    }
+
+    // Remove previous highlight if any
+    if (highlightStyleRef.current && highlightStyleRef.current.parentNode) {
+      highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
+    }
+
+    // Find the preview element to determine which class to use for scoping
+    const previewElement = containerRef.current.querySelector('.pwt-html-preview') ||
+                          containerRef.current.querySelector('.pwt-markdown-preview')
+
+    if (!previewElement) return
+
+    // Determine the preview container class
+    const previewClass = previewElement.classList.contains('pwt-html-preview')
+      ? '.pwt-html-preview'
+      : '.pwt-markdown-preview'
+
+    // Scope the selector to only match elements within the preview container
+    // This prevents highlighting elements outside the preview area
+    const scopedSelector = `${previewClass} ${selector}`
+
+    // Create new highlight style
+    const highlightStyle = document.createElement('style')
+    highlightStyle.setAttribute('data-highlight', 'true')
+    highlightStyle.textContent = `
+      ${scopedSelector} {
+        outline: 3px dashed #ff00ff !important;
+        outline-offset: 2px;
+      }
+    `
+
+    previewElement.appendChild(highlightStyle)
+    highlightStyleRef.current = highlightStyle
+    setHighlightedSelector(selector)
+  }
+
+  // Clean up highlight on unmount
+  React.useEffect(() => {
+    return () => {
+      if (highlightStyleRef.current && highlightStyleRef.current.parentNode) {
+        highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
+      }
+    }
+  }, [])
+
   // Remove a property from a rule
   const handleRemoveProperty = (ruleIndex, selector, property) => {
     // Create mutated rules without this property
@@ -484,7 +572,7 @@ export default function MarkdownPreviewWithInspector({
         {effectiveRulesTree.length > 0 && (
           <button
             className={styles.controlsToggleBtn}
-            onClick={() => setShowInspector(!showInspector)}
+            onClick={() => showInspector ? handleCloseInspector() : setShowInspector(true)}
             style={{ backgroundColor: showInspector ? 'rgba(33, 150, 243, 0.2)' : 'transparent' }}
           >
             🔍 Inspector
@@ -559,15 +647,43 @@ export default function MarkdownPreviewWithInspector({
     )
   )
 
+  // Generate CSS with disabled properties filtered out for what-if preview
+  const getPreviewCss = () => {
+    if (!effectiveRulesTree || effectiveRulesTree.length === 0) return customCss
+
+    // Create a deep copy and filter out disabled properties
+    const rulesToSerialize = JSON.parse(JSON.stringify(effectiveRulesTree))
+
+    const filterDisabledProps = (rules) => {
+      rules.forEach(rule => {
+        if (rule.type === 'rule' && rule.declarations) {
+          rule.declarations = rule.declarations.filter(decl => {
+            const originalKey = `${rule.ruleIndex}-${decl.property}`
+            const addedKey = `${rule.ruleIndex}::ADDED::${decl.property}`
+            return !disabledProperties.has(originalKey) && !disabledProperties.has(addedKey)
+          })
+        }
+        if (rule.children && rule.children.length > 0) {
+          filterDisabledProps(rule.children)
+        }
+      })
+    }
+
+    filterDisabledProps(rulesToSerialize)
+    return serializeRulesToCSS(rulesToSerialize)
+  }
+
   const renderPreviewContent = () => {
     const previewClass = isHtml ? '.pwt-html-preview' : '.pwt-markdown-preview'
-    const transformedCss = transformCssForPreview(customCss, previewClass)
+    const previewCss = getPreviewCss()
+    const transformedCss = transformCssForPreview(previewCss, previewClass)
 
     return (
       <div
         ref={isFullscreen ? undefined : previewContainerRef}
         style={{
           width: `${viewportWidth}px`,
+          height: '100%',
           margin: '0 auto',
           minHeight: '300px',
           position: 'relative',
@@ -621,7 +737,7 @@ export default function MarkdownPreviewWithInspector({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'transparent',
+          backgroundColor: 'var(--color-background-primary, #fff)',
           zIndex: 9999,
           display: 'flex',
           flexDirection: 'column',
@@ -632,21 +748,144 @@ export default function MarkdownPreviewWithInspector({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '12px 16px',
+            padding: '8px 0',
             backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
-            borderBottom: '1px solid var(--color-border, #ddd)',
             flexShrink: 0,
+            height: '40px',
+            borderBottom: '1px solid var(--color-border, #ddd)',
           }}
         >
-          <span style={{ fontSize: '13px', fontWeight: '600' }}>
-            Preview — Fullscreen Mode
-          </span>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {allRules.length > 0 && (
+          <div style={{ position: 'relative', paddingLeft: '12px' }}>
+            <button
+              onClick={() => setShowFullscreenSettings(!showFullscreenSettings)}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                color: 'var(--color-text-primary, #000)',
+              }}
+            >
+              ⚙ Settings
+            </button>
+            {showFullscreenSettings && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '8px',
+                  backgroundColor: theme === 'dark' ? '#2a2a2a' : 'var(--color-background-primary, #fff)',
+                  border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
+                  borderRadius: '4px',
+                  padding: '12px',
+                  minWidth: '280px',
+                  boxShadow: theme === 'dark' ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.15)',
+                  zIndex: 1000,
+                }}
+              >
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                    Viewport Width: {viewportWidth}px
+                  </label>
+                  <input
+                    type="range"
+                    min="320"
+                    max="1920"
+                    step="50"
+                    value={viewportWidth}
+                    onChange={(e) => setViewportWidth(parseInt(e.target.value))}
+                    style={{ width: '100%', marginBottom: '8px' }}
+                  />
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {[320, 768, 1024].map(width => (
+                      <button
+                        key={width}
+                        onClick={() => setViewportWidth(width)}
+                        style={{
+                          flex: 1,
+                          padding: '4px 8px',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          borderRadius: '2px',
+                          border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                          backgroundColor: viewportWidth === width ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(0, 102, 204, 0.2)') : (theme === 'dark' ? 'transparent' : 'transparent'),
+                          color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                          fontWeight: '600',
+                        }}
+                      >
+                        {width === 320 ? 'Mobile' : width === 768 ? 'Tablet' : 'Desktop'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                    Force Pseudo-States:
+                  </label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {['hover', 'focus', 'active'].map(state => (
+                      <button
+                        key={state}
+                        onClick={() => setForcedStates(prev => ({ ...prev, [state]: !prev[state] }))}
+                        style={{
+                          flex: 1,
+                          padding: '4px 8px',
+                          fontSize: '10px',
+                          cursor: 'pointer',
+                          borderRadius: '2px',
+                          border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                          backgroundColor: forcedStates[state] ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(33, 150, 243, 0.2)') : 'transparent',
+                          color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                          fontWeight: '600',
+                        }}
+                      >
+                        :{state}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setViewportWidth(1024)
+                    setForcedStates({ hover: false, focus: false, active: false })
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '6px 10px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    borderRadius: '3px',
+                    border: 'none',
+                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                    color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                  }}
+                >
+                  Reset Preview
+                </button>
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', paddingRight: '12px' }}>
+            {effectiveRulesTree.length > 0 && (
               <button
-                className={styles.controlsToggleBtn}
-                onClick={() => setShowInspector(!showInspector)}
-                style={{ backgroundColor: showInspector ? 'rgba(33, 150, 243, 0.2)' : 'transparent' }}
+                onClick={() => showInspector ? handleCloseInspector() : setShowInspector(true)}
+                style={{
+                  padding: '6px 10px',
+                  backgroundColor: showInspector ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
+                  border: '1px solid var(--color-border, #ddd)',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  color: 'var(--color-text-primary, #000)',
+                }}
               >
                 🔍 Inspector
               </button>
@@ -676,11 +915,12 @@ export default function MarkdownPreviewWithInspector({
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'row',
+            position: 'relative',
           }}
         >
           <div
             style={{
-              flex: showInspector ? '1 1 35%' : '1 1 100%',
+              flex: 1,
               overflow: 'auto',
               display: 'flex',
               flexDirection: 'column',
@@ -688,50 +928,80 @@ export default function MarkdownPreviewWithInspector({
               padding: '20px',
               scrollbarWidth: 'thin',
               scrollbarColor: 'var(--scrollbar-thumb, #999) transparent',
+              minWidth: 0,
             }}
           >
             {renderPreviewContent()}
           </div>
 
-          {showInspector && allRules.length > 0 && (
-            <div
-              style={{
-                flex: '0 0 auto',
-                width: '400px',
-                maxWidth: '400px',
-                borderLeft: '1px solid var(--color-border, #ddd)',
-                display: 'flex',
-                flexDirection: 'column',
-                backgroundColor: 'var(--color-background-secondary, #f5f5f5)',
-                overflow: 'hidden',
-              }}
-            >
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border, #ddd)', fontWeight: '600', fontSize: '12px', flexShrink: 0 }}>
-                CSS Rules ({allRules.length})
+          {(showInspector || isClosingInspector) && allRules.length > 0 && (
+            <>
+              <style>{`
+                @keyframes slideInRight {
+                  from {
+                    right: ${containerWidth < 640 ? '-100%' : '-400px'};
+                    opacity: 0;
+                  }
+                  to {
+                    right: 0;
+                    opacity: 1;
+                  }
+                }
+                @keyframes slideOutRight {
+                  from {
+                    right: 0;
+                    opacity: 1;
+                  }
+                  to {
+                    right: ${containerWidth < 640 ? '-100%' : '-400px'};
+                    opacity: 0;
+                  }
+                }
+              `}</style>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  width: containerWidth < 640 ? '100%' : '400px',
+                  right: isClosingInspector ? (containerWidth < 640 ? '-100%' : '-400px') : 0,
+                  borderLeft: '1px solid var(--color-border, #ddd)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  backgroundColor: 'var(--color-background-secondary, #f5f5f5)',
+                  overflow: 'hidden',
+                  animation: isClosingInspector ? 'slideOutRight 0.3s ease-in forwards' : 'slideInRight 0.3s ease-out forwards',
+                }}
+              >
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border, #ddd)', fontWeight: '600', fontSize: '12px', flexShrink: 0 }}>
+                  CSS Rules ({allRules.length})
+                </div>
+                <div style={{ flex: 1, overflow: 'auto', scrollBehavior: 'smooth', scrollbarWidth: 'thin', scrollbarColor: 'var(--scrollbar-thumb, #999) transparent', minHeight: 0 }}>
+                  <RuleInspector
+                    selector="*"
+                    affectingRules={allRules}
+                    rulesTree={effectiveRulesTree}
+                    onClose={handleCloseInspector}
+                    onPropertyEdit={handlePropertyEdit}
+                    disabledProperties={disabledProperties}
+                    onTogglePropertyDisabled={handleTogglePropertyDisabled}
+                    addedProperties={addedProperties}
+                    onAddPropertyChange={handleAddPropertyChange}
+                    lockedDisabledProperties={lockedDisabledProperties}
+                    onLockPropertyChange={handleLockPropertyChange}
+                    onReEnableProperty={handleReEnableProperty}
+                    onRuleSelect={handleComputeRuleImpact}
+                    selectedRuleImpact={selectedRuleImpact}
+                    onRemoveRule={handleRemoveRule}
+                    onRemoveProperty={handleRemoveProperty}
+                    onMergeClick={handleMergeClick}
+                    isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
+                    onHighlightSelector={handleHighlightSelector}
+                    highlightedSelector={highlightedSelector}
+                  />
+                </div>
               </div>
-              <div style={{ flex: 1, overflow: 'auto' }}>
-                <RuleInspector
-                  selector="*"
-                  affectingRules={allRules}
-                  rulesTree={effectiveRulesTree}
-                  onClose={() => setShowInspector(false)}
-                  onPropertyEdit={handlePropertyEdit}
-                  disabledProperties={disabledProperties}
-                  onTogglePropertyDisabled={handleTogglePropertyDisabled}
-                  addedProperties={addedProperties}
-                  onAddPropertyChange={handleAddPropertyChange}
-                  lockedDisabledProperties={lockedDisabledProperties}
-                  onLockPropertyChange={handleLockPropertyChange}
-                  onReEnableProperty={handleReEnableProperty}
-                  onRuleSelect={handleComputeRuleImpact}
-                  selectedRuleImpact={selectedRuleImpact}
-                  onRemoveRule={handleRemoveRule}
-                  onRemoveProperty={handleRemoveProperty}
-                  onMergeClick={handleMergeClick}
-                  isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
-                />
-              </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -759,7 +1029,7 @@ export default function MarkdownPreviewWithInspector({
       {renderPreviewSettings()}
       {renderControls()}
 
-      <div style={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden', position: 'relative', minHeight: 0 }}>
         <div
           className={styles.previewCanvas}
           style={{
@@ -773,52 +1043,83 @@ export default function MarkdownPreviewWithInspector({
           {renderPreviewContent()}
         </div>
 
-        {showInspector && allRules.length > 0 && (
-          <div
-            className={styles.inspectorPanel}
-            style={{
-              flex: '0 0 65%',
-              borderLeft: '1px solid var(--color-border, #ddd)',
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: 'var(--color-background-secondary, #f5f5f5)',
-              overflow: 'hidden',
-            }}
-          >
+        {(showInspector || isClosingInspector) && allRules.length > 0 && (
+          <>
+            <style>{`
+              @keyframes slideInRight {
+                from {
+                  right: calc(-1 * ${inspectorPanelWidth});
+                  opacity: 0;
+                }
+                to {
+                  right: 0;
+                  opacity: 1;
+                }
+              }
+              @keyframes slideOutRight {
+                from {
+                  right: 0;
+                  opacity: 1;
+                }
+                to {
+                  right: calc(-1 * ${inspectorPanelWidth});
+                  opacity: 0;
+                }
+              }
+            `}</style>
             <div
+              className={styles.inspectorPanel}
               style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid var(--color-border, #ddd)',
-                fontWeight: '600',
-                fontSize: '12px',
-                flexShrink: 0,
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                right: isClosingInspector ? `calc(-1 * ${inspectorPanelWidth})` : 0,
+                width: inspectorPanelWidth,
+                borderLeft: '1px solid var(--color-border, #ddd)',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: 'var(--color-background-secondary, #f5f5f5)',
+                overflow: 'hidden',
+                animation: isClosingInspector ? 'slideOutRight 0.3s ease-in forwards' : 'slideInRight 0.3s ease-out forwards',
               }}
             >
-              CSS Rules ({allRules.length})
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: '1px solid var(--color-border, #ddd)',
+                  fontWeight: '600',
+                  fontSize: '12px',
+                  flexShrink: 0,
+                }}
+              >
+                CSS Rules ({allRules.length})
+              </div>
+              <div style={{ flex: 1, overflow: 'auto', scrollBehavior: 'smooth', scrollbarWidth: 'thin', scrollbarColor: 'var(--scrollbar-thumb, #999) transparent', minHeight: 0 }}>
+                <RuleInspector
+                  selector="*"
+                  affectingRules={allRules}
+                  rulesTree={effectiveRulesTree}
+                  onClose={handleCloseInspector}
+                  onPropertyEdit={handlePropertyEdit}
+                  disabledProperties={disabledProperties}
+                  onTogglePropertyDisabled={handleTogglePropertyDisabled}
+                  addedProperties={addedProperties}
+                  onAddPropertyChange={handleAddPropertyChange}
+                  lockedDisabledProperties={lockedDisabledProperties}
+                  onLockPropertyChange={handleLockPropertyChange}
+                  onReEnableProperty={handleReEnableProperty}
+                  onRuleSelect={handleComputeRuleImpact}
+                  selectedRuleImpact={selectedRuleImpact}
+                  onRemoveRule={handleRemoveRule}
+                  onRemoveProperty={handleRemoveProperty}
+                  onMergeClick={handleMergeClick}
+                  isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
+                  onHighlightSelector={handleHighlightSelector}
+                  highlightedSelector={highlightedSelector}
+                />
+              </div>
             </div>
-            <div style={{ flex: 1, overflow: 'auto' }}>
-              <RuleInspector
-                selector="*"
-                affectingRules={allRules}
-                rulesTree={effectiveRulesTree}
-                onClose={() => setShowInspector(false)}
-                onPropertyEdit={handlePropertyEdit}
-                disabledProperties={disabledProperties}
-                onTogglePropertyDisabled={handleTogglePropertyDisabled}
-                addedProperties={addedProperties}
-                onAddPropertyChange={handleAddPropertyChange}
-                lockedDisabledProperties={lockedDisabledProperties}
-                onLockPropertyChange={handleLockPropertyChange}
-                onReEnableProperty={handleReEnableProperty}
-                onRuleSelect={handleComputeRuleImpact}
-                selectedRuleImpact={selectedRuleImpact}
-                onRemoveRule={handleRemoveRule}
-                onRemoveProperty={handleRemoveProperty}
-                onMergeClick={handleMergeClick}
-                isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
-              />
-            </div>
-          </div>
+          </>
         )}
       </div>
 

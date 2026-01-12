@@ -3,10 +3,11 @@
 .inspectorPanel {
   display: flex;
   flex-direction: column;
-  height: 100%;
   background-color: var(--color-background-secondary, #f9f9f9);
   border-left: 1px solid var(--color-border, #ddd);
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .inspectorHeader {
@@ -55,7 +56,7 @@
 .rulesList {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible;
   padding: 8px;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
@@ -83,8 +84,9 @@
   background-color: var(--color-background-primary, #fff);
   border: 1px solid var(--color-border, #ddd);
   border-radius: 4px;
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .ruleHeaderContainer {
@@ -190,30 +192,39 @@
 }
 
 .propertyToggleBtn {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary, #999);
-  font-size: 11px;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 2px;
-  opacity: 0.6;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   min-width: 16px;
-  text-align: center;
+  padding: 0;
+  background-color: #0066cc;
+  border: 2px solid #0066cc;
+  border-radius: 3px;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .propertyToggleBtn:hover {
-  opacity: 1;
-  color: #ff9800;
-  background-color: rgba(255, 152, 0, 0.1);
+  background-color: #0052a3;
+  border-color: #0052a3;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.propertyToggleBtn:active {
+  transform: scale(0.9);
 }
 
 .propertyToggleBtn.propertyToggleBtnActive {
-  opacity: 1;
-  color: #ff9800;
-  font-weight: 600;
+  background-color: transparent;
+  border-color: #ccc;
+  color: #ccc;
 }
 
 .declarationDisabled {
@@ -302,6 +313,9 @@
 
 .colon {
   color: var(--color-text-secondary, #666);
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
 }
 
 .value {
@@ -388,6 +402,48 @@
   border-radius: 2px;
 }
 
+/* Highlight Selector Button */
+
+.highlightSelectorButton {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: rgba(156, 39, 176, 0.08);
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7b1fa2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.highlightSelectorButton:hover {
+  background-color: rgba(156, 39, 176, 0.15);
+  border-color: #7b1fa2;
+}
+
+.highlightSelectorButton.highlightSelectorButtonActive {
+  background-color: rgba(156, 39, 176, 0.25);
+  border-color: #7b1fa2;
+  box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
+}
+
+.highlightSelectorCode {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+  border-radius: 2px;
+  color: #7b1fa2;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
 .impactInfo.impactInfoRedundant {
   background-color: rgba(76, 175, 200, 0.08);
   border-left-color: #4cafca;
@@ -410,6 +466,10 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.impactSection.impactSectionWithButton {
+  margin-top: 12px;
 }
 
 .impactLabel {
@@ -1125,10 +1185,24 @@
   border-radius: 3px;
   font-family: 'Courier New', monospace;
   font-size: 11px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 36px;
+}
+
+.inputFieldsContainer {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
 }
 
 .propertyInput {
-  flex: 0 1 100px;
+  flex: 0 0 80px;
+  min-width: 0;
   padding: 4px 6px;
   background-color: var(--color-background-primary, #fff);
   border: 1px solid rgba(0, 102, 204, 0.3);
@@ -1138,6 +1212,8 @@
   color: #d73a49;
   font-weight: 600;
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  height: 100%;
 }
 
 .propertyInput::placeholder {
@@ -1151,8 +1227,8 @@
 }
 
 .valueInput {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 60px;
   padding: 4px 6px;
   background-color: var(--color-background-primary, #fff);
   border: 1px solid rgba(0, 102, 204, 0.3);
@@ -1161,6 +1237,9 @@
   font-size: 11px;
   color: #0066cc;
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 100%;
 }
 
 .valueInput::placeholder {

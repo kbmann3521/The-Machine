@@ -1,7 +1,7 @@
 .descriptionSidebar {
   position: fixed;
   right: -400px;
-  top: 60px;
+  top: 50px;
   bottom: 0;
   width: 400px;
   background-color: var(--color-background-secondary);
