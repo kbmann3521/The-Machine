@@ -58,6 +58,7 @@ export default function CSSPreview({
   const [bgColorPickerHovered, setBgColorPickerHovered] = useState(false) // Track color picker hover for scale effect
   const [currentPreviewHTML, setCurrentPreviewHTML] = useState('') // Track current preview HTML for fullscreen modal
   const [mergeableGroupsForModal, setMergeableGroupsForModal] = useState(null) // Track mergeable groups for merge confirmation modal
+  const [showFullscreenSettings, setShowFullscreenSettings] = useState(false) // Track if fullscreen settings dropdown is open
 
   // Helper function to determine if a hex color is light or dark
   const isColorLight = (hex) => {
@@ -1161,7 +1162,7 @@ export default function CSSPreview({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'transparent',
+            backgroundColor: 'var(--color-background-primary, #fff)',
             zIndex: 9999,
             display: 'flex',
             flexDirection: 'column',
@@ -1173,16 +1174,153 @@ export default function CSSPreview({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '12px 16px',
+              padding: '8px 16px',
               backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
-              borderBottom: '1px solid var(--color-border, #ddd)',
               flexShrink: 0,
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              height: '40px',
+              borderBottom: 'none',
             }}
           >
-            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-primary, #000)' }}>
-              CSS Preview — Fullscreen Mode
-            </span>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowFullscreenSettings(!showFullscreenSettings)}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  color: 'var(--color-text-primary, #000)',
+                }}
+              >
+                ⚙ Settings
+              </button>
+              {showFullscreenSettings && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    marginTop: '8px',
+                    backgroundColor: theme === 'dark' ? '#2a2a2a' : 'var(--color-background-primary, #fff)',
+                    border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
+                    borderRadius: '4px',
+                    padding: '12px',
+                    minWidth: '320px',
+                    boxShadow: theme === 'dark' ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.15)',
+                    zIndex: 1000,
+                  }}
+                >
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                      Viewport Width: {viewportWidth}px
+                    </label>
+                    <input
+                      type="range"
+                      min="320"
+                      max="1920"
+                      step="50"
+                      value={viewportWidth}
+                      onChange={(e) => setViewportWidth(parseInt(e.target.value))}
+                      style={{ width: '100%', marginBottom: '8px' }}
+                    />
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {[320, 768, 1024].map(width => (
+                        <button
+                          key={width}
+                          onClick={() => setViewportWidth(width)}
+                          style={{
+                            flex: 1,
+                            padding: '4px 8px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            borderRadius: '2px',
+                            border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                            backgroundColor: viewportWidth === width ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(0, 102, 204, 0.2)') : 'transparent',
+                            color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                            fontWeight: '600',
+                          }}
+                        >
+                          {width === 320 ? 'Mobile' : width === 768 ? 'Tablet' : 'Desktop'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                      Background Color:
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <input
+                        type="color"
+                        value={bgColor}
+                        onChange={(e) => setBgColor(e.target.value)}
+                        style={{ width: '40px', height: '28px', padding: '2px', borderRadius: '2px', border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`, cursor: 'pointer' }}
+                      />
+                      <input
+                        type="text"
+                        value={bgColor}
+                        onChange={(e) => setBgColor(e.target.value)}
+                        style={{ flex: 1, padding: '4px 6px', fontSize: '11px', borderRadius: '2px', border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`, backgroundColor: theme === 'dark' ? '#3a3a3a' : '#fff', color: theme === 'dark' ? '#fff' : '#000' }}
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                      Force Pseudo-States:
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {['hover', 'focus', 'active'].map(state => (
+                        <button
+                          key={state}
+                          onClick={() => setForcedStates(prev => ({ ...prev, [state]: !prev[state] }))}
+                          style={{
+                            flex: 1,
+                            padding: '4px 8px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            borderRadius: '2px',
+                            border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                            backgroundColor: forcedStates[state] ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(33, 150, 243, 0.2)') : 'transparent',
+                            color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                            fontWeight: '600',
+                          }}
+                        >
+                          :{state}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setViewportWidth(1024)
+                      setBgColor('#ffffff')
+                      setForcedStates({ hover: false, focus: false, active: false })
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      borderRadius: '3px',
+                      border: 'none',
+                      backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                      color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                    }}
+                  >
+                    Reset Preview
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => onToggleFullscreen?.(false)}
               title="Exit fullscreen"

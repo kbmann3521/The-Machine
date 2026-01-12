@@ -355,13 +355,6 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
             ref={inputFieldRef}
             style={{ height: inputHeight + 'px' }}
           >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="image/*"
-              className={styles.fileInput}
-            />
             <div className={styles.toolTextbox}>
               <div className={styles.toolTextboxHeader}>
                 <div className={styles.headerContent}>
@@ -378,6 +371,13 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
                     </svg>
                     <span className={styles.buttonText}>Upload Image</span>
                   </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    accept="image/*"
+                    className={styles.fileInput}
+                  />
                   <div className={styles.headerButtonGroup}>
                     {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
                       <button
@@ -445,11 +445,6 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
                 />
               </div>
             </div>
-            <div
-              className={styles.resizeHandle}
-              onMouseDown={handleResizeStart}
-              title="Drag to resize input box"
-            />
           </div>
         </div>
 

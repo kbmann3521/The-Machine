@@ -14,6 +14,7 @@ import { sql } from '@codemirror/lang-sql'
 import { yaml } from '@codemirror/lang-yaml'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
+import { autocompletion } from '@codemirror/autocomplete'
 import { useTheme } from '../lib/ThemeContext'
 import { createFormatterLinter, createLintTheme } from '../lib/codemirrorLinting'
 
@@ -53,6 +54,11 @@ const syntaxDark = HighlightStyle.define([
   { tag: tags.variableName, color: '#7dcfff' },         // Variable names (bright cyan)
 ])
 
+// Note: We rely on CodeMirror 6's built-in language completions
+// which come automatically with @codemirror/lang-html and @codemirror/lang-markdown
+// These are maintained by the CodeMirror team and include ALL valid tags, attributes, and syntax
+// No need to manually maintain lists!
+
 /**
  * ============================================================================
  * LOCKED-IN: CodeMirror 6 Color Customization Pattern
@@ -84,8 +90,7 @@ const syntaxDark = HighlightStyle.define([
  */
 
 // Create theme extension based on current CSS variables and editor type
-// Input editors: uses standard background
-// Output editors: uses darker background in dark mode
+// In dark mode: both input and output editors use darker background to match preview
 function createDynamicTheme(editorType = 'input', isDarkMode = false) {
   const root = document.documentElement
   const vars = {
@@ -96,9 +101,9 @@ function createDynamicTheme(editorType = 'input', isDarkMode = false) {
     border: getComputedStyle(root).getPropertyValue('--color-border').trim(),
   }
 
-  // Output editors get a darker background in dark mode
-  const editorBackground = (editorType === 'output' && isDarkMode)
-    ? '#1a1a1a'  // Darker background for output in dark mode
+  // In dark mode, all editors get darker background to match output preview
+  const editorBackground = isDarkMode
+    ? '#1a1a1a'  // Darker background in dark mode for both input and output
     : vars.backgroundSecondary
 
   return EditorView.theme({
@@ -130,9 +135,9 @@ function createDynamicTheme(editorType = 'input', isDarkMode = false) {
       backgroundColor: 'rgba(128, 128, 128, 0.7)',
     },
     '.cm-gutters': {
-      backgroundColor: vars.backgroundTertiary,
+      backgroundColor: 'transparent',
       color: vars.textSecondary,
-      borderRight: `1px solid ${vars.border}`,
+      border: 'none',
     },
     '.cm-lineNumbers': {
       minWidth: '20px !important',
@@ -145,7 +150,7 @@ function createDynamicTheme(editorType = 'input', isDarkMode = false) {
     },
     '.cm-activeLineGutter': {
       color: vars.textPrimary,
-      backgroundColor: vars.backgroundTertiary,
+      backgroundColor: 'transparent',
     },
     '.cm-selectionBackground': {
       backgroundColor: 'rgba(0, 102, 204, 0.2)',
@@ -340,8 +345,12 @@ export default function CodeMirrorEditor({
         ])
       ]),
 
-      // Language-specific syntax highlighting (parser)
+      // Language-specific syntax highlighting & autocomplete (built-in)
+      // HTML and Markdown language extensions include their own completions
       getLanguageExtension(language),
+
+      // Enable autocompletion (uses language-specific completions automatically)
+      ...(editorType === 'input' && (language === 'html' || language === 'markdown') ? [autocompletion()] : []),
 
       // Syntax highlighting (token colors)
       syntaxCompartmentRef.current.of(highlightingEnabled ? syntaxHighlighting(createSyntaxTheme(isDarkMode)) : []),

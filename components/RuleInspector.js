@@ -1,11 +1,218 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { PropertyEditorDispatcher, getPropertyEditorType } from './PropertyEditor'
 import { isRuleRedundant } from '../lib/tools/ruleImpactAnalysis'
 import { generateRefactorSuggestions } from '../lib/tools/refactorSuggestions'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
 import { classifyProperty, getImpactBadgeInfo } from '../lib/propertyClassification'
 import OverriddenPropertyModal from './OverriddenPropertyModal'
+import { CSS_PROPERTIES, CSS_UNITS, CSS_COLORS } from './CSSEditorInput'
 import styles from '../styles/rule-inspector.module.css'
+
+/**
+ * Helper to extract unit portion from a value string
+ * For example: "10p" -> "p", "12em" -> "em", "100" -> ""
+ */
+function extractUnitPart(valueStr) {
+  if (!valueStr) return ''
+  return valueStr.replace(/^[\d.]+/, '').toLowerCase()
+}
+
+/**
+ * AutocompleteInput Component
+ * Provides a text input with dropdown suggestions and keyboard navigation
+ */
+function AutocompleteInput({
+  value,
+  onChange,
+  onKeyDown,
+  placeholder,
+  suggestions = [],
+  className,
+  autoFocus = false,
+  onSelectAndMove = null, // Called when user selects an item via Enter/Tab
+  isUnitInput = false, // Special handling for unit input (extract unit part from value)
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [filtered, setFiltered] = useState([])
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const inputRef = useRef(null)
+  const containerRef = useRef(null)
+  const justSelectedRef = useRef(false)
+
+  useEffect(() => {
+    if (value && value.length > 0) {
+      // If we just selected a suggestion, close the dropdown and don't reopen it
+      if (justSelectedRef.current) {
+        setIsOpen(false)
+        justSelectedRef.current = false
+        return
+      }
+
+      let searchTerm = value.toLowerCase()
+
+      // For unit input, extract just the unit part (after digits)
+      if (isUnitInput) {
+        searchTerm = extractUnitPart(value)
+      }
+
+      const filtered = suggestions.filter(s =>
+        s.toLowerCase().startsWith(searchTerm)
+      )
+      setFiltered(filtered)
+      setIsOpen(filtered.length > 0)
+      setSelectedIndex(0) // Auto-select first option
+    } else {
+      setIsOpen(false)
+      setSelectedIndex(-1)
+    }
+  }, [value, suggestions, isUnitInput])
+
+  const handleSelect = (suggestion) => {
+    let newValue = suggestion
+
+    // For unit input, we need to replace just the unit part
+    // For example: "10p" + select "px" -> "10px"
+    if (isUnitInput && value) {
+      const unitPart = extractUnitPart(value)
+      // Replace the unit part with the selected suggestion
+      const digitsPart = value.substring(0, value.length - unitPart.length)
+      newValue = digitsPart + suggestion
+    }
+
+    // Mark that we just selected, to prevent dropdown from reopening
+    justSelectedRef.current = true
+
+    // Update the input directly via the ref and parent onChange
+    onChange({ target: { value: newValue } })
+    setIsOpen(false)
+    setSelectedIndex(-1)
+
+    // Call the callback to move to next input or complete action
+    if (onSelectAndMove) {
+      setTimeout(() => {
+        onSelectAndMove()
+      }, 0)
+    } else {
+      // Refocus the input after selection if no callback
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 0)
+    }
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        flex: 1,
+        minWidth: 0,
+        width: '100%',
+      }}
+    >
+      <input
+        ref={inputRef}
+        type="text"
+        className={className}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onKeyDown={(e) => {
+          if (isOpen && filtered.length > 0) {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              setSelectedIndex(prev =>
+                prev < filtered.length - 1 ? prev + 1 : 0
+              )
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              setSelectedIndex(prev =>
+                prev > 0 ? prev - 1 : filtered.length - 1
+              )
+            } else if (e.key === 'Enter') {
+              e.preventDefault()
+              const selected = filtered[selectedIndex >= 0 ? selectedIndex : 0]
+              if (selected) {
+                handleSelect(selected)
+                onSelectAndMove?.('next')
+              }
+            } else if (e.key === 'Tab') {
+              e.preventDefault()
+              const selected = filtered[selectedIndex >= 0 ? selectedIndex : 0]
+              if (selected) {
+                handleSelect(selected)
+                onSelectAndMove?.('next')
+              }
+            } else if (e.key === 'Escape') {
+              setIsOpen(false)
+              setSelectedIndex(-1)
+              onKeyDown?.(e)
+            } else {
+              onKeyDown?.(e)
+            }
+          } else {
+            onKeyDown?.(e)
+          }
+        }}
+        onBlur={() => {
+          setIsOpen(false)
+          setSelectedIndex(-1)
+        }}
+        onFocus={() => {
+          if (value && value.length > 0) {
+            setIsOpen(filtered.length > 0)
+          }
+        }}
+        autoFocus={autoFocus}
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      />
+      {isOpen && filtered.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          width: 'max-content',
+          minWidth: '100%',
+          backgroundColor: 'var(--color-background-primary, #fff)',
+          border: '1px solid var(--color-border, #ddd)',
+          borderRadius: '4px',
+          maxHeight: '180px',
+          overflowY: 'auto',
+          zIndex: 10000,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+          marginTop: '2px',
+        }}>
+          {filtered.slice(0, 8).map((suggestion, idx) => (
+            <div
+              key={idx}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                handleSelect(suggestion)
+              }}
+              style={{
+                padding: '8px 10px',
+                cursor: 'pointer',
+                backgroundColor: idx === selectedIndex ? 'rgba(0, 102, 204, 0.2)' : 'transparent',
+                borderBottom: idx < filtered.length - 1 ? '1px solid var(--color-border, #eee)' : 'none',
+                fontSize: '12px',
+                transition: 'background-color 0.15s ease',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={() => setSelectedIndex(idx)}
+              onMouseLeave={() => {}}
+            >
+              {suggestion}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 /**
  * RuleInspector Component (Phase 6 + 7A)
@@ -28,6 +235,8 @@ import styles from '../styles/rule-inspector.module.css'
  *   onRemoveRule: (ruleIndex, selector, lineRange) => void (Phase 7C: remove fully overridden rule from source)
  *   onMergeClick: (mergeableGroups) => void (Phase 7E: callback when user clicks merge button)
  *   rulesTree: CssRuleNode[] (Phase 7E: full rules tree for detecting all mergeable selectors)
+ *   onHighlightSelector: (selector) => void (Phase 7F: highlight selector in preview)
+ *   highlightedSelector: string | null (Phase 7F: currently highlighted selector)
  */
 export default function RuleInspector({
   selector = null,
@@ -43,6 +252,7 @@ export default function RuleInspector({
   disabledProperties = new Set(),
   onTogglePropertyDisabled = null,
   onRemoveRule = null,
+  onRemoveProperty = null,
   onMergeClick = null,
   addedProperties = {},
   onAddPropertyChange = null,
@@ -50,6 +260,8 @@ export default function RuleInspector({
   onLockPropertyChange = null,
   onReEnableProperty = null,
   isPropertyOverriddenByLaterRule = null,
+  onHighlightSelector = null,
+  highlightedSelector = null,
 }) {
   const [expandedRules, setExpandedRules] = useState({})
   const [selectedRuleKey, setSelectedRuleKey] = useState(null)
@@ -65,6 +277,17 @@ export default function RuleInspector({
 
   // Phase 7E: Find mergeable groups at top level (from full rulesTree, not just affectingRules)
   const mergeableGroups = findAllMergeableGroups(rulesTree)
+
+  // Helper to check if a rule is a duplicate
+  const isDuplicateSelector = (ruleSelector) => {
+    return mergeableGroups.some(g => g.selector === ruleSelector && g.count > 1)
+  }
+
+  // Helper to get the count of duplicates for a selector
+  const getDuplicateCount = (ruleSelector) => {
+    const group = mergeableGroups.find(g => g.selector === ruleSelector)
+    return group ? group.count : 0
+  }
 
   // Helper function to find the overriding rule for a given property in a rule
   // This checks both actual cascade overrides AND properties locked due to duplicates in later rules
@@ -113,21 +336,6 @@ export default function RuleInspector({
     }
   }, [affectingRules, selectedRuleKey])
 
-  // Auto-recompute impact when added/disabled/edited properties change
-  // This ensures impact analysis updates dynamically without closing/reopening the inspector
-  useEffect(() => {
-    if (!selectedRule || !onRuleSelect) return
-
-    // Always recompute impact when addedProperties, disabledProperties, or editValues change
-    // and a rule is selected, because the impact panel needs to show the updated state
-    // Use a small timeout to ensure state updates are fully processed
-    // This prevents race conditions where state might not be fully synced
-    const timeoutId = setTimeout(() => {
-      onRuleSelect(selectedRule)
-    }, 0)
-
-    return () => clearTimeout(timeoutId)
-  }, [addedProperties, disabledProperties, editValues, selectedRule, onRuleSelect])
 
   if (!selector || !affectingRules.length) {
     return null
@@ -174,6 +382,27 @@ export default function RuleInspector({
     return rule.selector
   }
 
+  // Handle removing a property from a rule
+  const handleRemoveProperty = (ruleIndex, property, isAddedProperty = false) => {
+    // If it's an added property, remove it from addedProperties state
+    if (isAddedProperty) {
+      const key = `${ruleIndex}::${property}`
+      if (onAddPropertyChange) {
+        onAddPropertyChange(prev => {
+          const next = { ...prev }
+          delete next[key]
+          return next
+        })
+      }
+    } else {
+      // If it's an original property, remove it from the CSS rules tree
+      const rule = affectingRules.find(r => r.ruleIndex === ruleIndex)
+      if (rule && onRemoveProperty) {
+        onRemoveProperty(ruleIndex, rule.selector, property)
+      }
+    }
+  }
+
   const getPropertyImpactClass = (property) => {
     // Return the impact classification for styling
     const impact = classifyProperty(property)
@@ -202,41 +431,6 @@ export default function RuleInspector({
         ...prev,
         [addedPropertyKey]: propertyValue,
       }))
-    }
-
-    // Auto-disable and LOCK any existing property with the same name in this rule
-    // This mimics DevTools behavior where adding a property disables and locks the original
-    if (existingProperty && onTogglePropertyDisabled && onLockPropertyChange) {
-      const disabledKey = `${rule.ruleIndex}-${propertyName}`
-      // Only disable if not already disabled
-      if (!disabledProperties?.has(disabledKey)) {
-        onTogglePropertyDisabled(rule.ruleIndex, propertyName)
-      }
-      // Lock it so it can't be re-enabled while the duplicate exists
-      onLockPropertyChange(prev => {
-        const next = new Set(prev)
-        next.add(disabledKey)
-        return next
-      })
-    }
-
-    // Also auto-lock any earlier declared properties with the same name and selector
-    // When adding a property to a later rule, it overrides earlier rules, so lock them
-    if (onLockPropertyChange) {
-      onLockPropertyChange(prev => {
-        const next = new Set(prev)
-        // Find all earlier rules with the same selector and lock matching properties
-        affectingRules.forEach(r => {
-          if (r.ruleIndex < rule.ruleIndex && r.selector === rule.selector) {
-            const earlierPropertyExists = r.declarations?.some(d => d.property === propertyName)
-            if (earlierPropertyExists) {
-              const earlierDisabledKey = `${r.ruleIndex}-${propertyName}`
-              next.add(earlierDisabledKey)
-            }
-          }
-        })
-        return next
-      })
     }
 
     // Call the onPropertyEdit callback to add this as a staged edit
@@ -327,36 +521,95 @@ export default function RuleInspector({
 
   // Phase 7A: Render impact information for a selected rule
   const renderImpactInfo = () => {
-    if (!selectedRuleImpact) return null
+    if (!selectedRule) return null
 
-    const { affectedNodes = [] } = selectedRuleImpact
+    // Build properties list with cascade status
+    const propertiesWithStatus = []
+
+    // Add original declarations
+    if (selectedRule.declarations && selectedRule.declarations.length > 0) {
+      selectedRule.declarations.forEach(decl => {
+        const isOverridden = isPropertyOverriddenByLaterRule?.(selectedRule.ruleIndex, selectedRule.selector, decl.property)
+        propertiesWithStatus.push({
+          property: decl.property,
+          effective: !isOverridden,
+          value: decl.value,
+          isOriginal: true,
+        })
+      })
+    }
+
+    // Add added properties (but skip if already in original declarations)
+    Object.entries(addedProperties).forEach(([key, value]) => {
+      const [addedRuleIndex, propertyName] = key.split('::')
+      if (parseInt(addedRuleIndex) === selectedRule.ruleIndex) {
+        // Skip if this property already exists in original declarations
+        // (it will be rendered above as a regular property)
+        if (selectedRule.declarations?.some(d => d.property === propertyName)) {
+          return
+        }
+
+        const isOverridden = isPropertyOverriddenByLaterRule?.(selectedRule.ruleIndex, selectedRule.selector, propertyName)
+        propertiesWithStatus.push({
+          property: propertyName,
+          effective: !isOverridden,
+          value: value,
+          isAdded: true,
+        })
+      }
+    })
+
+    const { affectedNodes = [] } = selectedRuleImpact || {}
 
     // Phase 7B: Detect redundant rules (CSS-only analysis)
     const redundancyInfo = isRuleRedundant(selectedRuleImpact)
 
-    if (affectedNodes.length === 0) {
-      return (
-        <div className={styles.impactInfo}>
-          <div className={styles.impactSection}>
-            <div className={styles.impactLabel}>Affects (Direct Matches):</div>
-            <div className={styles.impactDetail} style={{ color: 'var(--color-text-secondary, #999)' }}>
-              No direct matches in preview
-            </div>
-          </div>
-        </div>
-      )
-    }
+    // Phase 7F: Show highlight button when no direct matches (regardless of properties)
+    const shouldShowHighlight = affectedNodes.length === 0
+    const isHighlighted = highlightedSelector === selectedRule?.selector
 
     return (
-      <div className={`${styles.impactInfo} ${redundancyInfo.isRedundant ? styles.impactInfoRedundant : ''}`}>
-        {redundancyInfo.isRedundant && (
+      <div className={`${styles.impactInfo} ${redundancyInfo?.isRedundant ? styles.impactInfoRedundant : ''}`}>
+        {redundancyInfo?.isRedundant && (
           <div className={styles.redundancyIndicator}>
             🔄 <strong>Fully Overridden</strong> — {redundancyInfo.reason}
           </div>
         )}
+
+        {/* Show highlight button when no direct matches */}
+        {shouldShowHighlight && (
+          <div className={styles.impactSection}>
+            <button
+              className={`${styles.highlightSelectorButton} ${isHighlighted ? styles.highlightSelectorButtonActive : ''}`}
+              onClick={() => onHighlightSelector?.(selectedRule.selector)}
+              title={isHighlighted ? 'Click to remove highlight' : 'Show the bounding box of this selector in the preview'}
+            >
+              {isHighlighted ? '✓ Highlighting: ' : '👁 Show Bounding Box'}
+              <code className={styles.highlightSelectorCode}>{selectedRule.selector}</code>
+            </button>
+          </div>
+        )}
+
+        {/* Show properties with cascade status (only if there are properties) */}
+        {propertiesWithStatus.length > 0 && (
+          <div className={`${styles.impactSection} ${shouldShowHighlight ? styles.impactSectionWithButton : ''}`}>
+            <div className={styles.impactLabel}>Affects (Direct Matches):</div>
+            <div className={styles.impactProperties}>
+              {propertiesWithStatus.map((prop, idx) => (
+                <div key={idx} className={styles.impactProperty}>
+                  <span className={styles.impactPropName}>{prop.property}</span>
+                  <span className={prop.effective ? styles.impactEffective : styles.impactInert}>
+                    {prop.effective ? '(effective)' : '(overridden)'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Show affected nodes if available */}
         {affectedNodes.map((node, idx) => (
           <div key={idx} className={styles.impactSection}>
-            <div className={styles.impactLabel}>Affects (Direct Matches):</div>
             <div
               className={styles.impactElement}
               onMouseEnter={() => {
@@ -371,21 +624,6 @@ export default function RuleInspector({
               }}
             >
               ✔ {node.element}
-            </div>
-            <div className={styles.impactProperties}>
-              {node.properties.map((prop, pIdx) => (
-                <div key={pIdx} className={styles.impactProperty}>
-                  <span className={styles.impactPropName}>{prop.property}</span>
-                  <span className={prop.effective ? styles.impactEffective : styles.impactInert}>
-                    {prop.effective ? '(effective)' : '(overridden)'}
-                  </span>
-                  {prop.overriddenBy !== undefined && (
-                    <span className={styles.impactOverriddenBy}>
-                      → rule {prop.overriddenBy}
-                    </span>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
         ))}
@@ -418,26 +656,45 @@ export default function RuleInspector({
 
           return (
             <div key={ruleKey} className={styles.ruleItem}>
-              <button
-                className={`${styles.ruleHeader} ${isExpanded ? styles.expanded : ''}`}
-                onClick={() => toggleRuleExpanded(ruleKey, rule)}
-                title={`Click to ${isExpanded ? 'collapse' : 'expand'}`}
-              >
-                <span className={styles.ruleChevron}>
-                  {isExpanded ? '▼' : '▶'}
-                </span>
-                <span className={styles.ruleLabel}>
-                  {getRuleTypeLabel(rule)}
-                </span>
-                <span className={styles.specificity}>
-                  {getSpecificityLabel(rule.specificity)}
-                </span>
-                {rule.loc && (
-                  <span className={styles.lineNumber}>
-                    Line {rule.loc.startLine}
+              <div className={`${styles.ruleHeaderContainer} ${isExpanded ? styles.expanded : ''}`}>
+                <button
+                  className={`${styles.ruleHeader} ${isExpanded ? styles.expanded : ''}`}
+                  onClick={() => toggleRuleExpanded(ruleKey, rule)}
+                  title={`Click to ${isExpanded ? 'collapse' : 'expand'}`}
+                >
+                  <span className={styles.ruleChevron}>
+                    {isExpanded ? '▼' : '▶'}
                   </span>
+                  <span className={styles.ruleLabel}>
+                    {getRuleTypeLabel(rule)}
+                  </span>
+                  {isDuplicateSelector(rule.selector) && (
+                    <span className={styles.duplicateIndicator} title="This selector is defined multiple times and can be merged">
+                      🧩 ×{getDuplicateCount(rule.selector)}
+                    </span>
+                  )}
+                  <span className={styles.specificity}>
+                    {getSpecificityLabel(rule.specificity)}
+                  </span>
+                  {rule.loc && (
+                    <span className={styles.lineNumber}>
+                      Line {rule.loc.startLine}
+                    </span>
+                  )}
+                </button>
+                {isDuplicateSelector(rule.selector) && onMergeClick && (
+                  <button
+                    className={styles.mergeButtonCompact}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onMergeClick(mergeableGroups)
+                    }}
+                    title="Merge all duplicate selectors"
+                  >
+                    ⎚
+                  </button>
                 )}
-              </button>
+              </div>
 
               {isExpanded && (
                 <>
@@ -466,35 +723,68 @@ export default function RuleInspector({
                         const isPropertyDisabled = disabledProperties.has(disabledKey)
                         const isEditing = editingProp?.propKey === propKey
                         const editedValue = editValues[propKey] !== undefined ? editValues[propKey] : decl.value
-
                         const isOverridden = isPropertyOverriddenByLaterRule?.(rule.ruleIndex, rule.selector, decl.property)
 
                         return (
                           <div
                             key={declIdx}
-                            className={`${styles.declaration} ${styles[impactClass]} ${isPropertyDisabled ? styles.declarationDisabled : ''}`}
+                            className={`${styles.declaration} ${styles[impactClass]}`}
                           >
                             {onTogglePropertyDisabled && (
                               <button
                                 className={`${styles.propertyToggleBtn} ${isPropertyDisabled ? styles.propertyToggleBtnActive : ''}`}
-                                onClick={() => onTogglePropertyDisabled(rule.ruleIndex, decl.property)}
-                                disabled={lockedDisabledProperties.has(`${rule.ruleIndex}-${decl.property}`) || isOverridden}
+                                onClick={() => {
+                                  if (isOverridden) {
+                                    setOverriddenPropertyInfo({
+                                      property: decl.property,
+                                      ruleIndex: rule.ruleIndex,
+                                      selector: rule.selector,
+                                    })
+                                  } else {
+                                    onTogglePropertyDisabled(rule.ruleIndex, decl.property)
+                                  }
+                                }}
+                                disabled={lockedDisabledProperties.has(`${rule.ruleIndex}-${decl.property}`)}
                                 title={
                                   isOverridden
-                                    ? `Overridden by later rule (no effect)`
+                                    ? `Click to see why ${decl.property} is overridden`
                                     : lockedDisabledProperties.has(`${rule.ruleIndex}-${decl.property}`)
                                     ? `Locked (disabled because a duplicate was added)`
                                     : isPropertyDisabled ? `Enable ${decl.property}` : `Disable ${decl.property} (what-if simulation)`
                                 }
                               >
-                                {isPropertyDisabled ? '✗' : '•'}
+                                {!isPropertyDisabled ? '✓' : ''}
                               </button>
                             )}
                             <span className={styles.impactBadge} title={impactInfo.description}>
                               {impactInfo.emoji}
                             </span>
-                            <span className={styles.property}>{decl.property}</span>
-                            <span className={styles.colon}>:</span>
+
+                            {!isEditing && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  flex: 1,
+                                  cursor: 'pointer',
+                                  minWidth: 0,
+                                }}
+                                onClick={() => {
+                                  if (isOverridden) {
+                                    setOverriddenPropertyInfo({
+                                      property: decl.property,
+                                      ruleIndex: rule.ruleIndex,
+                                      selector: rule.selector,
+                                    })
+                                  }
+                                }}
+                              >
+                                <span className={styles.property}>{decl.property}</span>
+                                <span className={styles.colon}>:</span>
+                                <span className={styles.value}>{editedValue}</span>
+                              </div>
+                            )}
 
                             {isEditing ? (
                               <div className={styles.editorContainer}>
@@ -523,8 +813,7 @@ export default function RuleInspector({
                               </div>
                             ) : (
                               <>
-                                <span className={styles.value}>{editedValue}</span>
-                                {isOverridden || lockedDisabledProperties.has(`${rule.ruleIndex}-${decl.property}`) ? (
+                                {isOverridden ? (
                                   <button
                                     className={styles.editButton}
                                     title={`Click to see why ${decl.property} is overridden`}
@@ -549,6 +838,17 @@ export default function RuleInspector({
                                     ✎
                                   </button>
                                 )}
+                                {onRemoveProperty && (
+                                  <button
+                                    className={styles.removeAddedPropertyButton}
+                                    title={`Remove ${decl.property}`}
+                                    onClick={() => {
+                                      handleRemoveProperty(rule.ruleIndex, decl.property, false)
+                                    }}
+                                  >
+                                    ✕
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>
@@ -561,6 +861,12 @@ export default function RuleInspector({
 
                         // Only show added properties for this rule (matched by ruleIndex)
                         if (parseInt(addedRuleIndex) !== rule.ruleIndex) return null
+
+                        // Skip if this property already exists in the original declarations
+                        // (it will be rendered above as a regular declaration, not as an added property)
+                        if (rule.declarations?.some(d => d.property === addedPropertyName)) {
+                          return null
+                        }
 
                         const propKey = `${ruleKey}-${addedPropertyName}`
                         const isEditing = editingProp?.propKey === propKey
@@ -576,27 +882,61 @@ export default function RuleInspector({
                         return (
                           <div
                             key={key}
-                            className={`${styles.declaration} ${styles[impactClass]} ${styles.addedProperty} ${isPropertyDisabled ? styles.declarationDisabled : ''}`}
+                            className={`${styles.declaration} ${styles[impactClass]} ${styles.addedProperty}`}
                           >
                             {onTogglePropertyDisabled && (
                               <button
                                 className={`${styles.propertyToggleBtn} ${isPropertyDisabled ? styles.propertyToggleBtnActive : ''}`}
-                                onClick={() => onTogglePropertyDisabled(rule.ruleIndex, addedPropertyName, true)}
-                                disabled={isOverridden}
+                                onClick={() => {
+                                  if (isOverridden) {
+                                    setOverriddenPropertyInfo({
+                                      property: addedPropertyName,
+                                      ruleIndex: rule.ruleIndex,
+                                      selector: rule.selector,
+                                    })
+                                  } else {
+                                    onTogglePropertyDisabled(rule.ruleIndex, addedPropertyName, true)
+                                  }
+                                }}
+                                disabled={false}
                                 title={
                                   isOverridden
-                                    ? `Overridden by later rule (no effect)`
+                                    ? `Click to see why ${addedPropertyName} is overridden`
                                     : isPropertyDisabled ? `Enable ${addedPropertyName}` : `Disable ${addedPropertyName} (what-if simulation)`
                                 }
                               >
-                                {isPropertyDisabled ? '✗' : '•'}
+                                {!isPropertyDisabled ? '✓' : ''}
                               </button>
                             )}
                             <span className={styles.impactBadge} title={impactInfo.description}>
                               {impactInfo.emoji}
                             </span>
-                            <span className={styles.property}>{addedPropertyName}</span>
-                            <span className={styles.colon}>:</span>
+
+                            {!isEditing && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  flex: 1,
+                                  cursor: 'pointer',
+                                  minWidth: 0,
+                                }}
+                                onClick={() => {
+                                  if (isOverridden) {
+                                    setOverriddenPropertyInfo({
+                                      property: addedPropertyName,
+                                      ruleIndex: rule.ruleIndex,
+                                      selector: rule.selector,
+                                    })
+                                  }
+                                }}
+                              >
+                                <span className={styles.property}>{addedPropertyName}</span>
+                                <span className={styles.colon}>:</span>
+                                <span className={styles.value}>{editedValue}</span>
+                              </div>
+                            )}
 
                             {isEditing ? (
                               <div className={styles.editorContainer}>
@@ -625,10 +965,10 @@ export default function RuleInspector({
                               </div>
                             ) : (
                               <>
-                                <span className={styles.value}>{editedValue}</span>
                                 {isOverridden ? (
                                   <button
                                     className={styles.editButton}
+                                    title={`Click to see why ${addedPropertyName} is overridden`}
                                     onClick={() => {
                                       setOverriddenPropertyInfo({
                                         property: addedPropertyName,
@@ -636,7 +976,6 @@ export default function RuleInspector({
                                         selector: rule.selector,
                                       })
                                     }}
-                                    title={`Click to see why ${addedPropertyName} is overridden`}
                                   >
                                     ⓘ
                                   </button>
@@ -655,39 +994,7 @@ export default function RuleInspector({
                                   className={styles.removeAddedPropertyButton}
                                   title={`Remove ${addedPropertyName}`}
                                   onClick={() => {
-                                    if (onAddPropertyChange) {
-                                      onAddPropertyChange(prev => {
-                                        const next = { ...prev }
-                                        delete next[key]
-                                        return next
-                                      })
-                                    }
-                                    // When removing an added property, unlock all properties with the same name and selector
-                                    // (both in earlier rules and in the current rule if it has an original)
-                                    if (onLockPropertyChange) {
-                                      onLockPropertyChange(prev => {
-                                        const next = new Set(prev)
-                                        // Find all earlier rules with the same selector and unlock matching properties
-                                        affectingRules.forEach(r => {
-                                          if (r.ruleIndex < rule.ruleIndex && r.selector === rule.selector) {
-                                            const earlierPropertyExists = r.declarations?.some(d => d.property === addedPropertyName)
-                                            if (earlierPropertyExists) {
-                                              const earlierDisabledKey = `${r.ruleIndex}-${addedPropertyName}`
-                                              next.delete(earlierDisabledKey)
-                                            }
-                                          }
-                                        })
-                                        // Also unlock the property in the current rule if it exists
-                                        const disabledKey = `${rule.ruleIndex}-${addedPropertyName}`
-                                        next.delete(disabledKey)
-                                        return next
-                                      })
-                                    }
-                                    // Auto-re-enable the original property in the current rule if it exists
-                                    const originalExists = rule.declarations?.some(d => d.property === addedPropertyName)
-                                    if (originalExists && onReEnableProperty) {
-                                      onReEnableProperty(rule.ruleIndex, addedPropertyName)
-                                    }
+                                    handleRemoveProperty(rule.ruleIndex, addedPropertyName, true)
                                   }}
                                 >
                                   ✕
@@ -707,40 +1014,76 @@ export default function RuleInspector({
                   <div className={styles.addPropertySection}>
                     {addingPropertyToRule === rule.ruleIndex ? (
                       <div className={styles.addPropertyForm}>
-                        <input
-                          type="text"
-                          className={styles.propertyInput}
-                          placeholder="property name"
-                          value={newPropertyName}
-                          onChange={(e) => setNewPropertyName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                        <div className={styles.inputFieldsContainer}>
+                          <AutocompleteInput
+                            className={styles.propertyInput}
+                            placeholder="property name"
+                            value={newPropertyName}
+                            onChange={(e) => setNewPropertyName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Escape') {
+                                setAddingPropertyToRule(null)
+                                setNewPropertyName('')
+                                setNewPropertyValue('')
+                              }
+                            }}
+                            onSelectAndMove={() => {
+                              setTimeout(() => {
+                                const valueInput = document.querySelector(`.${styles.valueInput}`)
+                                valueInput?.focus()
+                              }, 0)
+                            }}
+                            suggestions={CSS_PROPERTIES}
+                            autoFocus
+                          />
+                          <span className={styles.colon}>:</span>
+                          <AutocompleteInput
+                            className={styles.valueInput}
+                            placeholder="value"
+                            value={newPropertyValue}
+                            onChange={(e) => setNewPropertyValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Escape') {
+                                setAddingPropertyToRule(null)
+                                setNewPropertyName('')
+                                setNewPropertyValue('')
+                              }
+                            }}
+                            onSelectAndMove={() => {
                               handleAddNewProperty(rule)
-                            } else if (e.key === 'Escape') {
-                              setAddingPropertyToRule(null)
-                              setNewPropertyName('')
-                              setNewPropertyValue('')
+                            }}
+                            suggestions={
+                              newPropertyName.toLowerCase().includes('color')
+                                ? CSS_COLORS
+                                : CSS_UNITS
                             }
-                          }}
-                          autoFocus
-                        />
-                        <span className={styles.colon}>:</span>
-                        <input
-                          type="text"
-                          className={styles.valueInput}
-                          placeholder="value"
-                          value={newPropertyValue}
-                          onChange={(e) => setNewPropertyValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleAddNewProperty(rule)
-                            } else if (e.key === 'Escape') {
-                              setAddingPropertyToRule(null)
-                              setNewPropertyName('')
-                              setNewPropertyValue('')
-                            }
-                          }}
-                        />
+                            isUnitInput={!newPropertyName.toLowerCase().includes('color')}
+                          />
+                          {newPropertyName.toLowerCase().includes('color') && newPropertyValue && (
+                            <input
+                              type="color"
+                              value={
+                                newPropertyValue.startsWith('#')
+                                  ? newPropertyValue.length === 7 || newPropertyValue.length === 4
+                                    ? newPropertyValue
+                                    : '#000000'
+                                  : '#000000'
+                              }
+                              onChange={(e) => setNewPropertyValue(e.target.value)}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                maxWidth: '24px',
+                                padding: '0',
+                                border: '1px solid var(--color-border, #ddd)',
+                                borderRadius: '2px',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                              }}
+                              title="Pick a color"
+                            />
+                          )}
+                        </div>
                         <button
                           className={styles.confirmAddButton}
                           onClick={() => handleAddNewProperty(rule)}

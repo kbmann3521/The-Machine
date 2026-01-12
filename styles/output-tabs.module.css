@@ -38,7 +38,7 @@
 }
 
 .tab {
-  height: 53px;
+  height: 40px;
   padding: 0 16px;
   border: none;
   background-color: transparent;
@@ -73,7 +73,7 @@
   padding: 0 12px;
   border-left: 1px solid var(--color-border, #ddd);
   flex-shrink: 0;
-  height: 53px;
+  height: 40px;
 }
 
 .minifyToggle {
@@ -146,6 +146,41 @@
   flex: 1;
   padding: 16px;
   box-sizing: border-box;
+}
+
+.inputTabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.inputTabContent.optionsTabContent {
+  padding: 16px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.inputTabContent.optionsTabContent::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.inputTabContent.optionsTabContent::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.inputTabContent.optionsTabContent::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.inputTabContent.optionsTabContent::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .previewTabContent {
@@ -532,12 +567,14 @@
 /* Tablet and smaller screens */
 @media (max-width: 900px) {
   .tab {
-    padding: 10px 12px;
+    height: 35px;
+    padding: 8px 12px;
     font-size: 11px;
   }
 
   .tabActions {
-    padding: 8px 10px;
+    height: 35px;
+    padding: 6px 10px;
     gap: 6px;
   }
 
@@ -820,6 +857,7 @@
   border-bottom: 1px solid var(--color-border, #ddd);
   flex-shrink: 0;
   gap: 8px;
+  height: 40px;
 }
 
 .controlsToggleBtn {
@@ -1046,6 +1084,8 @@
   background: var(--color-text-secondary, #999);
   border-radius: 3px;
 }
+
+/* Highlight for affected elements during inspector hover - added as inline styles in component */
 
 .previewDisclaimer {
   padding: 8px 12px;
@@ -1445,15 +1485,10 @@
 
 /* Inspector Panel Styles */
 .inspectorPanel {
-  width: 384px;
-  height: 100%;
-  max-height: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 0;
   background-color: var(--color-background-secondary, #f9f9f9);
   overflow: hidden;
-  flex: 0 0 384px;
 }
 
 .inspectorPanelFullscreen {

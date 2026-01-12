@@ -432,8 +432,8 @@ export default function OutputTabs({
     }
   }
 
-  // Add Analysis tab for CSS Toolkit (Phase 2)
-  if (toolId === 'css-formatter' && analysisData && finalShowAnalysisTab) {
+  // Add Analysis tab for CSS Toolkit (Phase 2) and Markdown+HTML Toolkit in CSS mode
+  if ((toolId === 'css-formatter' || toolId === 'markdown-html-formatter') && analysisData && finalShowAnalysisTab) {
     if (!tabConfig) {
       tabConfig = []
     }
@@ -448,8 +448,8 @@ export default function OutputTabs({
     }
   }
 
-  // Add Rules tab for CSS Toolkit (Phase 3)
-  if (toolId === 'css-formatter' && analysisData && analysisData.rulesTree && finalShowRulesTab) {
+  // Add Rules tab for CSS Toolkit (Phase 3) and Markdown+HTML Toolkit in CSS mode
+  if ((toolId === 'css-formatter' || toolId === 'markdown-html-formatter') && analysisData && analysisData.rulesTree && finalShowRulesTab) {
     if (!tabConfig) {
       tabConfig = []
     }
@@ -481,36 +481,6 @@ export default function OutputTabs({
       } else {
         tabConfig.splice(1, 0, rulesTab)
       }
-    }
-  }
-
-  // Add Preview tab for CSS Toolkit (Phase 5)
-  if (toolId === 'css-formatter' && analysisData && analysisData.rulesTree) {
-    if (!tabConfig) {
-      tabConfig = []
-    }
-    // Only add preview tab if it doesn't already exist
-    const hasPreviewTab = tabConfig.some(t => t.id === 'preview')
-    if (!hasPreviewTab && analysisData.rulesTree.length > 0) {
-      const previewTab = {
-        id: 'preview',
-        label: 'Preview',
-        content: (
-          <CSSPreview
-            rulesTree={analysisData.rulesTree}
-            declaredVariables={analysisData.variables?.declared || []}
-            usedVariables={analysisData.variables?.used || []}
-            variableOverrides={{}}
-            sourceText={sourceText}
-            onApplyEdits={onApplyEdits}
-            isFullscreen={isPreviewFullscreen}
-            onToggleFullscreen={onTogglePreviewFullscreen}
-          />
-        ),
-        contentType: 'component',
-      }
-      // Insert preview tab right after output tab (always index 1)
-      tabConfig.splice(1, 0, previewTab)
     }
   }
 

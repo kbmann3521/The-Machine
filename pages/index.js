@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import UniversalInput from '../components/UniversalInput'
+import InputTabs from '../components/InputTabs'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import NumericConfig from '../components/NumericConfig'
@@ -87,6 +88,29 @@ export default function Home(props) {
   const [showAnalysisTab, setShowAnalysisTab] = useState(false)
   const [showRulesTab, setShowRulesTab] = useState(false)
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
+  const [markdownCustomCss, setMarkdownCustomCss] = useState('')
+  const [activeMarkdownInputTab, setActiveMarkdownInputTab] = useState('input')
+  const [markdownInputMode, setMarkdownInputMode] = useState('input') // 'input' or 'css' - tracks which input mode is active
+  const [cssConfigOptions, setCssConfigOptions] = useState({
+    mode: 'beautify',
+    indentSize: '2',
+    removeComments: true,
+    addAutoprefix: false,
+    browsers: 'last 2 versions',
+    showValidation: true,
+    showLinting: true,
+    showAnalysisTab: false,
+    showRulesTab: false,
+  })
+
+  // When active tab changes, track if it's a content mode (input/css) vs options
+  const handleMarkdownInputTabChange = (tabId) => {
+    setActiveMarkdownInputTab(tabId)
+    // Update the mode only if it's a content tab (input or css)
+    if (tabId === 'input' || tabId === 'css') {
+      setMarkdownInputMode(tabId)
+    }
+  }
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -851,121 +875,134 @@ export default function Home(props) {
             <div className={styles.content}>
           <div className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}>
             <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
-              <div className={styles.inputSection}>
-                <UniversalInput
-                  inputText={inputText}
-                  onInputChange={handleInputChange}
-                  onImageChange={handleImageChange}
-                  onCompareTextChange={setChecksumCompareText}
-                  compareText={checksumCompareText}
-                  selectedTool={selectedTool}
-                  configOptions={configOptions}
-                  getToolExample={getToolExample}
-                  errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
-                  predictedTools={predictedTools}
-                  onSelectTool={handleSelectTool}
-                  validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
-                  lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
-                  result={outputResult}
-                  activeToolkitSection={activeToolkitSection}
-                  isPreviewFullscreen={isPreviewFullscreen}
-                  onTogglePreviewFullscreen={setIsPreviewFullscreen}
-                />
-              </div>
+              <InputTabs
+                selectedTool={selectedTool}
+                inputTabLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'HTML' : 'INPUT'}
+                onActiveTabChange={selectedTool?.toolId === 'markdown-html-formatter' ? handleMarkdownInputTabChange : null}
+                tabActions={
+                  selectedTool && (
+                    <button
+                      className={styles.descriptionToggle}
+                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+                      aria-label="Toggle tool description"
+                      title="View tool description"
+                    >
+                      <FaCircleInfo className={styles.descriptionIcon} />
+                    </button>
+                  )
+                }
+                cssContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
+                  <ToolOutputPanel
+                    result={outputResult}
+                    outputType={selectedTool?.outputType}
+                    loading={toolLoading}
+                    error={error}
+                    toolId={selectedTool?.toolId}
+                    activeToolkitSection={activeToolkitSection}
+                    configOptions={configOptions}
+                    onConfigChange={setConfigOptions}
+                    inputText={inputText}
+                    imagePreview={imagePreview}
+                    warnings={outputWarnings}
+                    onInputUpdate={(text) => handleInputChange(text, null, null, true)}
+                    showAnalysisTab={showAnalysisTab}
+                    onShowAnalysisTabChange={setShowAnalysisTab}
+                    showRulesTab={showRulesTab}
+                    onShowRulesTabChange={setShowRulesTab}
+                    isPreviewFullscreen={isPreviewFullscreen}
+                    onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    renderCssTabOnly={true}
+                    activeMarkdownInputTab={activeMarkdownInputTab}
+                    markdownCustomCss={markdownCustomCss}
+                    onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    cssConfigOptions={cssConfigOptions}
+                    onCssConfigChange={setCssConfigOptions}
+                  />
+                ) : null}
+                inputContent={
+                  <div className={styles.inputSection} style={{ overflow: 'hidden', height: '100%' }}>
+                    <UniversalInput
+                      inputText={inputText}
+                      onInputChange={handleInputChange}
+                      onImageChange={handleImageChange}
+                      onCompareTextChange={setChecksumCompareText}
+                      compareText={checksumCompareText}
+                      selectedTool={selectedTool}
+                      configOptions={configOptions}
+                      getToolExample={getToolExample}
+                      errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
+                      predictedTools={predictedTools}
+                      onSelectTool={handleSelectTool}
+                      validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
+                      lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
+                      result={outputResult}
+                      activeToolkitSection={activeToolkitSection}
+                      isPreviewFullscreen={isPreviewFullscreen}
+                      onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    />
+                  </div>
+                }
+                optionsContent={
+                  selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' ? (
+                    <div className={styles.configSection}>
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        onCssConfigChange={setCssConfigOptions}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        result={outputResult}
+                        contentClassification={contentClassification}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        markdownInputMode={markdownInputMode}
+                        cssConfigOptions={cssConfigOptions}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                        delimiterTransformerConfig={delimiterTransformerConfig}
+                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                        onSetGeneratedText={handleInputChange}
+                        showAnalysisTab={showAnalysisTab}
+                        onShowAnalysisTabChange={setShowAnalysisTab}
+                        showRulesTab={showRulesTab}
+                        onShowRulesTabChange={setShowRulesTab}
+                      />
+                      {selectedTool?.toolId === 'math-evaluator' && (
+                        <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
+                      )}
+                    </div>
+                  ) : selectedTool?.toolId === 'ip-address-toolkit' ? (
+                    <div className={styles.configSection}>
+                      <div className={styles.ipToolkitTipsContainer}>
+                        <div className={styles.tipItem}>
+                          <span className={styles.tipLabel}>Single mode:</span>
+                          <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
+                        </div>
+                        <div className={styles.tipItem}>
+                          <span className={styles.tipLabel}>Bulk (2 items):</span>
+                          <span className={styles.tipText}>Side-by-side comparison</span>
+                        </div>
+                        <div className={styles.tipItem}>
+                          <span className={styles.tipLabel}>Bulk (3-7 items):</span>
+                          <span className={styles.tipText}>Aggregate analysis & insights</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null
+                }
+              />
 
               {!selectedTool && (
                 <div className={styles.infoCard}>
                   <ValuePropositionCard />
                 </div>
-              )}
-
-              {selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' && (
-                <>
-                  <div className={styles.toolHeader}>
-                    <div>
-                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
-                      {selectedTool.description && (
-                        <p className={styles.toolDescription}>{selectedTool.description}</p>
-                      )}
-                    </div>
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <FaCircleInfo className={styles.descriptionIcon} />
-                    </button>
-                  </div>
-
-                  <div className={styles.configSection}>
-                    <ToolConfigPanel
-                      tool={selectedTool}
-                      onConfigChange={handleConfigChange}
-                      loading={toolLoading}
-                      onRegenerate={handleRegenerate}
-                      currentConfig={configOptions}
-                      result={outputResult}
-                      contentClassification={contentClassification}
-                      activeToolkitSection={activeToolkitSection}
-                      onToolkitSectionChange={setActiveToolkitSection}
-                      findReplaceConfig={findReplaceConfig}
-                      onFindReplaceConfigChange={setFindReplaceConfig}
-                      diffConfig={diffConfig}
-                      onDiffConfigChange={setDiffConfig}
-                      sortLinesConfig={sortLinesConfig}
-                      onSortLinesConfigChange={setSortLinesConfig}
-                      removeExtrasConfig={removeExtrasConfig}
-                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                      delimiterTransformerConfig={delimiterTransformerConfig}
-                      onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
-                      onSetGeneratedText={handleInputChange}
-                      showAnalysisTab={showAnalysisTab}
-                      onShowAnalysisTabChange={setShowAnalysisTab}
-                      showRulesTab={showRulesTab}
-                      onShowRulesTabChange={setShowRulesTab}
-                    />
-                    {selectedTool?.toolId === 'math-evaluator' && (
-                      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
-                    )}
-                  </div>
-                </>
-              )}
-
-              {selectedTool?.toolId === 'ip-address-toolkit' && (
-                <>
-                  <div className={styles.toolHeader}>
-                    <div>
-                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
-                      {selectedTool.description && (
-                        <p className={styles.toolDescription}>{selectedTool.description}</p>
-                      )}
-                    </div>
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <FaCircleInfo className={styles.descriptionIcon} />
-                    </button>
-                  </div>
-
-                  <div className={styles.ipToolkitTipsContainer}>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Single mode:</span>
-                      <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
-                    </div>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Bulk (2 items):</span>
-                      <span className={styles.tipText}>Side-by-side comparison</span>
-                    </div>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Bulk (3-7 items):</span>
-                      <span className={styles.tipText}>Aggregate analysis & insights</span>
-                    </div>
-                  </div>
-                </>
               )}
             </div>
 
@@ -1008,6 +1045,13 @@ export default function Home(props) {
                     onShowRulesTabChange={setShowRulesTab}
                     isPreviewFullscreen={isPreviewFullscreen}
                     onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    renderCssTabOnly={false}
+                    activeMarkdownInputTab={activeMarkdownInputTab}
+                    markdownInputMode={markdownInputMode}
+                    markdownCustomCss={markdownCustomCss}
+                    onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    cssConfigOptions={cssConfigOptions}
+                    onCssConfigChange={setCssConfigOptions}
                   />
                 )}
               </div>

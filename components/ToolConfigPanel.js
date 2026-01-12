@@ -7,7 +7,7 @@ import Phase2Controls from './SVGOptimizer/Phase2Controls'
 // Lazy-load RegexToolkit - only needed when configuring regex patterns
 const RegexToolkit = dynamic(() => import('./RegexToolkit'), { ssr: false })
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, markdownInputMode = 'input', cssConfigOptions = {}, onCssConfigChange = null }) {
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
@@ -15,16 +15,31 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   const [localJoinSeparator, setLocalJoinSeparator] = useState(delimiterTransformerConfig?.joinSeparator ?? ' ')
 
   useEffect(() => {
-    if (tool?.configSchema) {
-      const initialConfig = {}
-      tool.configSchema.forEach(field => {
-        initialConfig[field.id] = field.default || ''
+    if (!tool?.configSchema) return
+
+    const initialConfig = {}
+
+    // Use the base schema (HTML/MD options for markdown formatter)
+    const effectiveSchema = tool.configSchema
+
+    // Initialize with all defaults from effective schema
+    effectiveSchema.forEach(field => {
+      initialConfig[field.id] = field.default !== undefined ? field.default : ''
+    })
+
+    // Build the final config by merging with currentConfig
+    let mergedConfig = { ...initialConfig }
+
+    if (currentConfig && typeof currentConfig === 'object') {
+      Object.entries(currentConfig).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          mergedConfig[key] = value
+        }
       })
-      // Merge with currentConfig (which includes suggestedConfig from API)
-      const mergedConfig = { ...initialConfig, ...currentConfig }
-      setConfig(mergedConfig)
     }
-  }, [tool?.toolId, currentConfig])
+
+    setConfig(mergedConfig)
+  }, [tool?.toolId, currentConfig, tool?.configSchema])
 
   useEffect(() => {
     if (tool?.toolId !== 'markdown-html-formatter') {
@@ -99,6 +114,73 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
   const isGeneratorTool = tool && noInputRequiredTools.includes(tool.toolId)
   const classificationMode = contentClassification?.mode || 'markdown'
+
+  // Helper function to render CSS schema fields for markdown formatter
+  const renderCssField = field => {
+    const value = cssConfigOptions[field.id]
+    const isMinify = cssConfigOptions.mode === 'minify'
+
+    const cssFormatterDisabledFields = [
+      'indentSize',
+      'showLinting',
+    ]
+
+    const isFieldDisabled = isMinify && cssFormatterDisabledFields.includes(field.id)
+
+    switch (field.type) {
+      case 'text':
+        return (
+          <input
+            key={field.id}
+            type="text"
+            className={styles.input}
+            value={value || ''}
+            onChange={e => onCssConfigChange?.({ ...cssConfigOptions, [field.id]: e.target.value })}
+            placeholder={field.placeholder || ''}
+            disabled={isFieldDisabled}
+          />
+        )
+
+      case 'select':
+        return (
+          <select
+            key={field.id}
+            className={styles.select}
+            value={value || field.default || ''}
+            onChange={e => onCssConfigChange?.({ ...cssConfigOptions, [field.id]: e.target.value })}
+            disabled={isFieldDisabled}
+          >
+            {!field.hideEmptyOption && <option value="">Select an option</option>}
+            {field.options?.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        )
+
+      case 'toggle':
+        return (
+          <div key={field.id} className={styles.toggleContainer} title={field.tooltip}>
+            <label className={styles.toggleLabel}>
+              <input
+                type="checkbox"
+                checked={value || false}
+                onChange={e => onCssConfigChange?.({ ...cssConfigOptions, [field.id]: e.target.checked })}
+                className={styles.toggleInput}
+                disabled={isFieldDisabled}
+              />
+              <span className={styles.toggleSlider}></span>
+              <span>{field.label}</span>
+            </label>
+            {field.tooltip && <span className={styles.tooltipIcon} title={field.tooltip}>ℹ️</span>}
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
 
   const renderField = field => {
     const value = config[field.id]
@@ -876,7 +958,21 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             const rows = {}
             const fieldsWithoutRow = []
 
-            tool.configSchema.forEach(field => {
+            // Always show the base schema for markdown formatter (HTML/MD options)
+            const configSchema = tool.configSchema
+
+            // Define CSS schema for markdown formatter (Analysis/Rules toggles handled separately below)
+            const cssSchema = tool.toolId === 'markdown-html-formatter' ? [
+              { id: 'mode', label: 'Mode', type: 'select', options: [{ value: 'beautify', label: 'Beautify' }, { value: 'minify', label: 'Minify' }], default: 'beautify' },
+              { id: 'indentSize', label: 'Indent Size', type: 'select', options: [{ value: '2', label: '2 spaces' }, { value: '4', label: '4 spaces' }, { value: 'tab', label: 'Tab' }], default: '2', visibleWhen: { field: 'mode', value: 'beautify' } },
+              { id: 'removeComments', label: 'Remove Comments', type: 'toggle', default: false },
+              { id: 'addAutoprefix', label: 'Autoprefix (vendor prefixes)', type: 'toggle', default: false },
+              { id: 'browsers', label: 'Browserslist Query', type: 'text', placeholder: 'e.g., last 2 versions, >1%, defaults', default: 'last 2 versions', visibleWhen: { field: 'addAutoprefix', value: true } },
+              { id: 'showValidation', label: 'Show Validation', type: 'toggle', default: true },
+              { id: 'showLinting', label: 'Show Linting', type: 'toggle', default: true },
+            ] : []
+
+            configSchema.forEach(field => {
               // Check visibility
               if (field.visibleWhen) {
                 const { field: conditionField, value: conditionValue } = field.visibleWhen
@@ -1012,9 +1108,129 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             }
 
             // Fallback: render all fields in a single grid (original behavior)
+            // For markdown-html-formatter, render both HTML/MD and CSS options side by side
+            if (tool.toolId === 'markdown-html-formatter' && cssSchema.length > 0) {
+              return (
+                <div>
+                  {/* HTML/Markdown Options Section */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <div style={{
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '12px',
+                      paddingBottom: '8px',
+                      borderBottom: '1px solid var(--color-border)',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Markdown/HTML Options
+                    </div>
+                    <div className={styles.fieldsContainer}>
+                      {configSchema.map(field => {
+                        // Check visibility
+                        if (field.visibleWhen) {
+                          const { field: conditionField, value: conditionValue } = field.visibleWhen
+                          if (config[conditionField] !== conditionValue) {
+                            return null
+                          }
+                        }
+
+                        const renderedField = renderField(field)
+                        if (!renderedField) {
+                          return null
+                        }
+
+                        return (
+                          <div key={field.id} className={styles.field}>
+                            <label className={styles.fieldLabel} htmlFor={field.id}>
+                              {field.label}
+                            </label>
+                            {renderedField}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* CSS Options Section */}
+                  <div>
+                    <div style={{
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      marginBottom: '12px',
+                      paddingBottom: '8px',
+                      borderBottom: '1px solid var(--color-border)',
+                      letterSpacing: '0.5px',
+                    }}>
+                      CSS Styling Options
+                    </div>
+                    <div className={styles.fieldsContainer}>
+                      {cssSchema.map(field => {
+                        // Check visibility
+                        if (field.visibleWhen) {
+                          const { field: conditionField, value: conditionValue } = field.visibleWhen
+                          if (cssConfigOptions[conditionField] !== conditionValue) {
+                            return null
+                          }
+                        }
+
+                        const renderedField = renderCssField(field)
+                        if (!renderedField) {
+                          return null
+                        }
+
+                        return (
+                          <div key={`css-${field.id}`} className={styles.field}>
+                            <label className={styles.fieldLabel} htmlFor={`css-${field.id}`}>
+                              {field.label}
+                            </label>
+                            {renderedField}
+                          </div>
+                        )
+                      })}
+                      {/* Analysis/Rules toggles for CSS */}
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}></label>
+                        <div className={styles.toggleContainer}>
+                          <label className={styles.toggleLabel}>
+                            <input
+                              type="checkbox"
+                              className={styles.toggleInput}
+                              checked={cssConfigOptions?.showAnalysisTab || false}
+                              onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showAnalysisTab: e.target.checked })}
+                            />
+                            <span className={styles.toggleSlider}></span>
+                            <span>Show Analysis Tab</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}></label>
+                        <div className={styles.toggleContainer}>
+                          <label className={styles.toggleLabel}>
+                            <input
+                              type="checkbox"
+                              className={styles.toggleInput}
+                              checked={cssConfigOptions?.showRulesTab || false}
+                              onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showRulesTab: e.target.checked })}
+                            />
+                            <span className={styles.toggleSlider}></span>
+                            <span>Show Rules Tab</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+
             return (
               <div className={styles.fieldsContainer}>
-                {tool.configSchema.map(field => {
+                {configSchema.map(field => {
                   // Skip fields handled by RegexToolkit for regex-tester
                   if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                     return null;
