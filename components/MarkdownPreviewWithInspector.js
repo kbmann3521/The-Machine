@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react'
 import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
+import { generateSyntheticDom } from '../lib/tools/syntheticDom'
 import { useTheme } from '../lib/ThemeContext'
 import RuleInspector from './RuleInspector'
 import MergeSelectorConfirmation from './MergeSelectorConfirmation'
@@ -437,6 +438,168 @@ export default function MarkdownPreviewWithInspector({
     setMergeableGroupsForModal(null)
   }
 
+  // Extract available selectors from the actual rendered preview HTML/MD
+  // Groups them by type (STRUCTURE, HEADINGS, TEXT, CODE) like the CSS tab does
+  const getAvailableSelectors = () => {
+    const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
+    if (!containerRef?.current) return []
+
+    const previewElement = containerRef.current.querySelector('.pwt-html-preview') ||
+                           containerRef.current.querySelector('.pwt-markdown-preview')
+    if (!previewElement) return []
+
+    // Collect all selectors from the preview
+    const selectors = {
+      structure: new Set(),
+      headings: new Set(),
+      text: new Set(),
+      code: new Set(),
+      other: new Set(),
+    }
+
+    const traverse = (element) => {
+      const tagName = element.tagName?.toLowerCase()
+
+      // Categorize by element type
+      if (tagName === 'body' || tagName === 'html') {
+        selectors.structure.add(tagName)
+      } else if (tagName && tagName.match(/^h[1-6]$/)) {
+        selectors.headings.add(tagName)
+      } else if (['p', 'strong', 'em', 'b', 'i', 'a', 'span', 'u', 'ul', 'ol', 'li'].includes(tagName)) {
+        selectors.text.add(tagName)
+      } else if (['pre', 'code'].includes(tagName)) {
+        selectors.code.add(tagName)
+      }
+
+      // Add class selectors with category heuristics
+      if (element.classList && element.classList.length > 0) {
+        Array.from(element.classList).forEach(className => {
+          if (className && !className.startsWith('pwt-') && !className.includes('__')) {
+            const selector = `.${className}`
+
+            if (className.includes('code') || className.includes('pre')) {
+              selectors.code.add(selector)
+            } else if (className.includes('heading') || className.includes('title') || className.includes('h')) {
+              selectors.headings.add(selector)
+            } else if (className.includes('text') || className.includes('paragraph')) {
+              selectors.text.add(selector)
+            } else {
+              selectors.structure.add(selector)
+            }
+          }
+        })
+      }
+
+      // Add ID selectors
+      if (element.id && !element.id.startsWith('pwt-')) {
+        selectors.other.add(`#${element.id}`)
+      }
+
+      // Recurse
+      for (const child of element.children) {
+        traverse(child)
+      }
+    }
+
+    traverse(previewElement)
+
+    // Remove selectors that are already in rulesTree
+    const existingSelectors = new Set()
+    const collectSelectors = (rules) => {
+      for (const rule of rules) {
+        if (rule.type === 'rule' && rule.selector) {
+          existingSelectors.add(rule.selector)
+        }
+        if (rule.children && rule.children.length > 0) {
+          collectSelectors(rule.children)
+        }
+      }
+    }
+    collectSelectors(effectiveRulesTree)
+
+    // Build grouped output
+    const grouped = []
+
+    if (selectors.structure.size > 0) {
+      grouped.push({
+        category: 'STRUCTURE',
+        selectors: Array.from(selectors.structure).sort(),
+      })
+    }
+
+    if (selectors.headings.size > 0) {
+      grouped.push({
+        category: 'HEADINGS',
+        selectors: Array.from(selectors.headings).sort(),
+      })
+    }
+
+    if (selectors.text.size > 0) {
+      grouped.push({
+        category: 'TEXT',
+        selectors: Array.from(selectors.text).sort(),
+      })
+    }
+
+    if (selectors.code.size > 0) {
+      grouped.push({
+        category: 'CODE',
+        selectors: Array.from(selectors.code).sort(),
+      })
+    }
+
+    if (selectors.other.size > 0) {
+      grouped.push({
+        category: 'OTHER',
+        selectors: Array.from(selectors.other).sort(),
+      })
+    }
+
+    // Filter out already-defined selectors
+    return grouped
+      .map(group => ({
+        ...group,
+        selectors: group.selectors.filter(s => !existingSelectors.has(s)),
+      }))
+      .filter(group => group.selectors.length > 0)
+  }
+
+  // Handle adding a new selector/rule
+  const handleAddNewSelector = (selector) => {
+    if (!selector) return
+
+    // Create a new rule with the highest ruleIndex + 1
+    let maxRuleIndex = -1
+    const collectMaxIndex = (rules) => {
+      for (const rule of rules) {
+        if (rule.ruleIndex !== undefined && rule.ruleIndex > maxRuleIndex) {
+          maxRuleIndex = rule.ruleIndex
+        }
+        if (rule.children && rule.children.length > 0) {
+          collectMaxIndex(rule.children)
+        }
+      }
+    }
+    collectMaxIndex(effectiveRulesTree)
+
+    const newRule = {
+      type: 'rule',
+      ruleIndex: maxRuleIndex + 1,
+      selector: selector,
+      declarations: [],
+      loc: {
+        startLine: effectiveRulesTree.length + 1,
+        endLine: effectiveRulesTree.length + 1,
+      },
+      specificity: 0,
+    }
+
+    // Add the new rule to the rulesTree
+    const mutatedRules = [...effectiveRulesTree, newRule]
+    setLocalRulesTree(mutatedRules)
+    applyChangesToSource(mutatedRules)
+  }
+
   // Remove a rule from the stylesheet
   const handleRemoveRule = (ruleIndex, selector, lineRange) => {
     // Create mutated rules without this rule
@@ -684,7 +847,7 @@ export default function MarkdownPreviewWithInspector({
         style={{
           width: `${viewportWidth}px`,
           height: '100%',
-          margin: '0 auto',
+          marginRight: 'auto',
           minHeight: '300px',
           position: 'relative',
         }}
@@ -974,39 +1137,41 @@ export default function MarkdownPreviewWithInspector({
                 }}
               >
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border, #ddd)', fontWeight: '600', fontSize: '12px', flexShrink: 0 }}>
-                  CSS Rules ({allRules.length})
-                </div>
-                <div style={{ flex: 1, overflow: 'auto', scrollBehavior: 'smooth', scrollbarWidth: 'thin', scrollbarColor: 'var(--scrollbar-thumb, #999) transparent', minHeight: 0 }}>
-                  <RuleInspector
-                    selector="*"
-                    affectingRules={allRules}
-                    rulesTree={effectiveRulesTree}
-                    onClose={handleCloseInspector}
-                    onPropertyEdit={handlePropertyEdit}
-                    disabledProperties={disabledProperties}
-                    onTogglePropertyDisabled={handleTogglePropertyDisabled}
-                    addedProperties={addedProperties}
-                    onAddPropertyChange={handleAddPropertyChange}
-                    lockedDisabledProperties={lockedDisabledProperties}
-                    onLockPropertyChange={handleLockPropertyChange}
-                    onReEnableProperty={handleReEnableProperty}
-                    onRuleSelect={handleComputeRuleImpact}
-                    selectedRuleImpact={selectedRuleImpact}
-                    onRemoveRule={handleRemoveRule}
-                    onRemoveProperty={handleRemoveProperty}
-                    onMergeClick={handleMergeClick}
-                    isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
-                    onHighlightSelector={handleHighlightSelector}
-                    highlightedSelector={highlightedSelector}
-                  />
-                </div>
+                CSS Rules ({allRules.length})
               </div>
-            </>
-          )}
-        </div>
+              <div style={{ flex: 1, overflow: 'auto', scrollBehavior: 'smooth', scrollbarWidth: 'thin', scrollbarColor: 'var(--scrollbar-thumb, #999) transparent', minHeight: 0 }}>
+                <RuleInspector
+                  selector="*"
+                  affectingRules={allRules}
+                  rulesTree={effectiveRulesTree}
+                  onClose={handleCloseInspector}
+                  onPropertyEdit={handlePropertyEdit}
+                  disabledProperties={disabledProperties}
+                  onTogglePropertyDisabled={handleTogglePropertyDisabled}
+                  addedProperties={addedProperties}
+                  onAddPropertyChange={handleAddPropertyChange}
+                  lockedDisabledProperties={lockedDisabledProperties}
+                  onLockPropertyChange={handleLockPropertyChange}
+                  onReEnableProperty={handleReEnableProperty}
+                  onRuleSelect={handleComputeRuleImpact}
+                  selectedRuleImpact={selectedRuleImpact}
+                  onRemoveRule={handleRemoveRule}
+                  onRemoveProperty={handleRemoveProperty}
+                  onMergeClick={handleMergeClick}
+                  isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
+                  onHighlightSelector={handleHighlightSelector}
+                  highlightedSelector={highlightedSelector}
+                  availableSelectors={getAvailableSelectors()}
+                  onAddNewSelector={handleAddNewSelector}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
-        {/* Merge Selectors Confirmation Modal */}
-        {mergeableGroupsForModal && (
+      {/* Merge Selectors Confirmation Modal */}
+      {mergeableGroupsForModal && (
           <MergeSelectorConfirmation
             mergeableGroups={mergeableGroupsForModal}
             rulesTree={effectiveRulesTree}
@@ -1116,6 +1281,8 @@ export default function MarkdownPreviewWithInspector({
                   isPropertyOverriddenByLaterRule={isPropertyOverriddenByLaterRule}
                   onHighlightSelector={handleHighlightSelector}
                   highlightedSelector={highlightedSelector}
+                  availableSelectors={getAvailableSelectors()}
+                  onAddNewSelector={handleAddNewSelector}
                 />
               </div>
             </div>

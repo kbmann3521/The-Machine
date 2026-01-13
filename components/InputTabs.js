@@ -14,6 +14,7 @@ import styles from '../styles/output-tabs.module.css'
  *   tabActions: React element - action buttons for the tab header
  *   inputTabLabel: string - custom label for input tab (defaults to 'INPUT')
  *   cssContent: React element - CSS editor content (for markdown-html-formatter)
+ *   infoContent: React element - info/about content shown when no tool is selected
  *   onActiveTabChange: function(tabId) - callback when active tab changes
  */
 export default function InputTabs({
@@ -23,6 +24,7 @@ export default function InputTabs({
   tabActions = null,
   inputTabLabel = 'INPUT',
   cssContent = null,
+  infoContent = null,
   onActiveTabChange = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState('input')
@@ -64,6 +66,16 @@ export default function InputTabs({
     })
   }
 
+  // Show ABOUT tab with info content when no tool is selected
+  if (!selectedTool && infoContent) {
+    tabConfig.push({
+      id: 'about',
+      label: 'ABOUT',
+      content: infoContent,
+      contentType: 'component',
+    })
+  }
+
   // Determine which tab to show
   let currentActiveTab = null
 
@@ -84,10 +96,10 @@ export default function InputTabs({
 
     // Render component content
     if (content) {
-      // Use different styling for options tab which has form controls
+      // Use different styling for options/about tabs which have form controls
       // inputTabContent has no padding to fill the container seamlessly
-      // optionsTabContent has padding and scroll
-      const contentClass = id === 'options'
+      // optionsTabContent/aboutTabContent has padding and scroll
+      const contentClass = (id === 'options' || id === 'about')
         ? `${styles.inputTabContent} ${styles.optionsTabContent}`
         : styles.inputTabContent
       return <div className={contentClass}>{content}</div>

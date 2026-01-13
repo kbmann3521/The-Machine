@@ -120,6 +120,7 @@ export default function Home(props) {
   const currentInputRef = useRef('')
   const abortControllerRef = useRef(null)
   const abortTimeoutRef = useRef(null)
+  const previousSidebarStateRef = useRef(null) // Track sidebar state when entering fullscreen
 
   // Cleanup function for pending timers and requests
   const cleanupPendingRequests = useCallback(() => {
@@ -167,6 +168,21 @@ export default function Home(props) {
       setIsPreviewFullscreen(false)
     }
   }, [selectedTool])
+
+  // Auto-collapse sidebar when entering fullscreen, auto-expand when exiting
+  useEffect(() => {
+    if (isPreviewFullscreen) {
+      // Entering fullscreen: save current state and collapse
+      previousSidebarStateRef.current = sidebarOpen
+      if (sidebarOpen) {
+        setSidebarOpen(false)
+      }
+    } else if (previousSidebarStateRef.current !== null) {
+      // Exiting fullscreen: restore previous state
+      setSidebarOpen(previousSidebarStateRef.current)
+      previousSidebarStateRef.current = null
+    }
+  }, [isPreviewFullscreen])
 
   // Fast local classification using heuristics (no API call)
   // Only detects strong signals; backend handles nuanced detection
@@ -312,32 +328,47 @@ export default function Home(props) {
 
   const handleSelectTool = useCallback(
     (tool) => {
-      // Only reset output if tool is actually changing
-      const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
+      // Check if clicking the same tool that's already selected
+      const isAlreadySelected = selectedToolRef.current?.toolId === tool?.toolId
 
-      setSelectedTool(tool)
-      setOutputWarnings([]) // Clear warnings when tool changes
-      selectedToolRef.current = tool  // Update ref for next comparison
-
-      // Initialize config for the selected tool (always, not just on change)
-      const initialConfig = {}
-      if (tool?.configSchema) {
-        tool.configSchema.forEach(field => {
-          initialConfig[field.id] = field.default || ''
-        })
-      }
-      setConfigOptions(initialConfig)
-
-      // Update URL with selected tool
-      if (tool?.toolId) {
-        router.push({ query: { tool: tool.toolId } }, undefined, { shallow: true })
-      }
-
-      // Only reset output when switching to a different tool
-      if (toolChanged) {
+      if (isAlreadySelected) {
+        // Deselect the tool
+        setSelectedTool(null)
+        setOutputWarnings([])
+        selectedToolRef.current = null
         setOutputResult(null)
         setError(null)
         setToolLoading(false)
+        router.push('/', undefined, { shallow: true })
+      } else {
+        // Select the new tool
+        // Only reset output if tool is actually changing
+        const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
+
+        setSelectedTool(tool)
+        setOutputWarnings([]) // Clear warnings when tool changes
+        selectedToolRef.current = tool  // Update ref for next comparison
+
+        // Initialize config for the selected tool (always, not just on change)
+        const initialConfig = {}
+        if (tool?.configSchema) {
+          tool.configSchema.forEach(field => {
+            initialConfig[field.id] = field.default || ''
+          })
+        }
+        setConfigOptions(initialConfig)
+
+        // Update URL with selected tool
+        if (tool?.toolId) {
+          router.push({ query: { tool: tool.toolId } }, undefined, { shallow: true })
+        }
+
+        // Only reset output when switching to a different tool
+        if (toolChanged) {
+          setOutputResult(null)
+          setError(null)
+          setToolLoading(false)
+        }
       }
     },
     [router]
@@ -368,6 +399,11 @@ export default function Home(props) {
   const handleInputChange = useCallback((text, image, preview, isLoadExample) => {
     const isAddition = text.length > previousInputLength
     const isEmpty = !text || text.trim() === ''
+    const hasImage = preview !== null && preview !== undefined
+
+    if (hasImage) {
+      console.log('Image detected in input change:', { text: text.substring(0, 50), hasImage: true, isEmpty, isAddition, isLoadExample })
+    }
 
     const nextClassification = classifyMarkdownHtmlInput(text)
     setContentClassification(nextClassification)
@@ -395,9 +431,9 @@ export default function Home(props) {
     }
 
     // Only run prediction if text was ADDED, not when deleting
-    // Exception: Always run prediction when loading an example or pasting content
+    // Exception: Always run prediction when loading an example, pasting content, or uploading an image
     // The fourth parameter can be either isPaste or isLoadExample flag
-    if (!isAddition && !isLoadExample) {
+    if (!isAddition && !isLoadExample && !hasImage) {
       setLoading(false)
       return
     }
@@ -481,13 +517,15 @@ export default function Home(props) {
             const predictUrl = `${baseUrl}/api/tools/predict`
 
             try {
+              const predictPayload = {
+                inputText: text,
+                inputImage: preview ? 'image' : null,
+              }
+              console.log('Sending prediction request with payload:', predictPayload)
               response = await fetch(predictUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  inputText: text,
-                  inputImage: preview ? 'image' : null,
-                }),
+                body: JSON.stringify(predictPayload),
                 signal: controller.signal,
                 credentials: 'same-origin',
               })
@@ -552,6 +590,8 @@ export default function Home(props) {
             return
           }
 
+          console.log('Prediction response received with tools:', data.predictedTools.slice(0, 5).map(t => ({ toolId: t.toolId, similarity: t.similarity })))
+
           // Map tools with metadata
           let toolsWithMetadata = data.predictedTools.map(tool => {
             const localToolData = TOOLS[tool.toolId] || {}
@@ -563,6 +603,7 @@ export default function Home(props) {
 
           // Filter out tools with show_in_recommendations = false
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
+          console.log('After filtering, showing tools:', toolsWithMetadata.slice(0, 5).map(t => ({ toolId: t.toolId, name: t.name, similarity: t.similarity })))
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
           // Catch any unexpected errors
@@ -879,6 +920,7 @@ export default function Home(props) {
                 selectedTool={selectedTool}
                 inputTabLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'HTML' : 'INPUT'}
                 onActiveTabChange={selectedTool?.toolId === 'markdown-html-formatter' ? handleMarkdownInputTabChange : null}
+                infoContent={!selectedTool && <ValuePropositionCard />}
                 tabActions={
                   selectedTool && (
                     <button
@@ -923,6 +965,8 @@ export default function Home(props) {
                   <div className={styles.inputSection} style={{ overflow: 'hidden', height: '100%' }}>
                     <UniversalInput
                       inputText={inputText}
+                      inputImage={inputImage}
+                      imagePreview={imagePreview}
                       onInputChange={handleInputChange}
                       onImageChange={handleImageChange}
                       onCompareTextChange={setChecksumCompareText}
@@ -998,12 +1042,6 @@ export default function Home(props) {
                   ) : null
                 }
               />
-
-              {!selectedTool && (
-                <div className={styles.infoCard}>
-                  <ValuePropositionCard />
-                </div>
-              )}
             </div>
 
             <div className={styles.rightPanel}>

@@ -48,7 +48,7 @@ const getLanguageForTool = (toolId) => {
   }
 }
 
-export default function UniversalInput({ inputText = '', onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }) {
+export default function UniversalInput({ inputText = '', inputImage = null, imagePreview = null, onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }) {
   const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
 
   const getPlaceholder = () => {
@@ -63,19 +63,23 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
 
   // Use inputText from props, with local state for immediate updates
   const [localInputText, setLocalInputText] = useState(inputText)
-  const [inputImage, setInputImage] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
+  const [localInputImage, setLocalInputImage] = useState(inputImage)
+  const [localImagePreview, setLocalImagePreview] = useState(imagePreview)
   const [charCount, setCharCount] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
   const [exampleIndex, setExampleIndex] = useState({})
   const [selectedCaseType, setSelectedCaseType] = useState('lowercase')
+  const [imageError, setImageError] = useState(null)
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
   const startYRef = useRef(0)
   const startHeightRef = useRef(0)
   const isPasteRef = useRef(false)
+
+  // Maximum file size: 5MB
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
 
   // Load saved height from localStorage on mount (client-side only)
   useEffect(() => {
@@ -97,6 +101,16 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
   useEffect(() => {
     setLocalInputText(inputText)
   }, [inputText])
+
+  // Sync prop value with local state when parent updates imagePreview
+  useEffect(() => {
+    setLocalImagePreview(imagePreview)
+  }, [imagePreview])
+
+  // Sync prop value with local state when parent updates inputImage
+  useEffect(() => {
+    setLocalInputImage(inputImage)
+  }, [inputImage])
 
   // Reset example index when tool changes
   useEffect(() => {
@@ -151,8 +165,19 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
   }
 
   const handleImageFile = (file) => {
+    // Clear any previous errors
+    setImageError(null)
+
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file')
+      setImageError('Please select a valid image file (JPG, PNG, GIF, WebP, etc.)')
+      return
+    }
+
+    // Check file size
+    if (file.size > MAX_IMAGE_SIZE) {
+      const sizeMB = (MAX_IMAGE_SIZE / (1024 * 1024)).toFixed(0)
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
+      setImageError(`Image file is too large (${fileSizeMB}MB). Maximum allowed size is ${sizeMB}MB.`)
       return
     }
 
@@ -173,36 +198,40 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
         const result = e.target.result
         if (!result) {
           console.error('FileReader result is empty')
-          alert('Failed to read image file. Please try again.')
+          setImageError('Failed to read image file. Please try again.')
           return
         }
         console.log('Image file read successfully, size:', result.length)
-        setImagePreview(result)
-        setInputImage(file)
+        setLocalImagePreview(result)
+        setLocalInputImage(file)
+        setImageError(null) // Clear error on success
         onImageChange(file, result)
+        // Also trigger input change to run prediction for image toolkit detection
+        console.log('Calling onInputChange for image prediction:', { text: localInputText, hasFile: !!file, hasPreview: !!result })
+        onInputChange(localInputText, file, result, false)
       } catch (err) {
         console.error('Error processing image file:', err)
-        alert('Error processing image file: ' + err.message)
+        setImageError('Error processing image file: ' + err.message)
       }
     }
 
     reader.onerror = (err) => {
       clearTimeout(readerTimeout)
       console.error('FileReader error:', err)
-      alert('Failed to read image file. Please check permissions and try again.')
+      setImageError('Failed to read image file. Please check file permissions and try again.')
     }
 
     reader.onabort = () => {
       clearTimeout(readerTimeout)
       console.warn('FileReader aborted')
-      alert('File reading was cancelled.')
+      setImageError('File reading was cancelled.')
     }
 
     // Add timeout for FileReader (some mobile devices may hang)
     readerTimeout = setTimeout(() => {
       console.warn('FileReader timeout - image file took too long to read')
       reader.abort()
-      alert('Image file reading timed out. File may be too large for mobile.')
+      setImageError('Image loading timed out. File may be too large. Please try with a smaller image.')
     }, 30000) // 30 second timeout
 
     try {
@@ -240,8 +269,9 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
   }
 
   const removeImage = () => {
-    setImagePreview(null)
-    setInputImage(null)
+    setLocalImagePreview(null)
+    setLocalInputImage(null)
+    setImageError(null)
     onImageChange(null, null)
   }
 
@@ -282,8 +312,9 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
     if (onCompareTextChange) {
       onCompareTextChange('')
     }
-    setInputImage(null)
-    setImagePreview(null)
+    setLocalInputImage(null)
+    setLocalImagePreview(null)
+    setImageError(null)
     onInputChange('', null, null, false)
   }
 
@@ -397,7 +428,7 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
       <div className={styles.inputWrapper}>
         <div className={styles.inputFieldContainer}>
           <div
-            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''} ${isResizing ? styles.resizing : ''}`}
+            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${localImagePreview ? styles.hasImage : ''} ${isResizing ? styles.resizing : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -480,25 +511,49 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
                 </div>
               </div>
               <div className={styles.toolTextboxEditor}>
-                <CodeMirrorEditor
-                  value={localInputText}
-                  onChange={handleTextChange}
-                  language={getLanguageForTool(selectedTool?.toolId)}
-                  placeholder={getPlaceholder()}
-                  showLineNumbers={shouldShowLineNumbers}
-                  editorType="input"
-                  highlightingEnabled={isScriptingLanguageTool(selectedTool?.toolId)}
-                  diagnostics={result?.diagnostics || []}
-                  formatMode={result?.optionsApplied?.mode || 'beautify'}
-                  enableLinting={true}
-                />
+                {imageError && (
+                  <div className={styles.imageErrorMessage}>
+                    <span className={styles.errorIcon}>⚠️</span>
+                    <span className={styles.errorText}>{imageError}</span>
+                  </div>
+                )}
+                {localImagePreview ? (
+                  <div className={styles.centeredImageContainer}>
+                    <img
+                      src={localImagePreview}
+                      alt="uploaded-image"
+                      className={styles.centeredImage}
+                    />
+                    <button
+                      className={styles.removeImageOverlay}
+                      onClick={removeImage}
+                      title="Remove image"
+                      type="button"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <CodeMirrorEditor
+                    value={localInputText}
+                    onChange={handleTextChange}
+                    language={getLanguageForTool(selectedTool?.toolId)}
+                    placeholder={getPlaceholder()}
+                    showLineNumbers={shouldShowLineNumbers}
+                    editorType="input"
+                    highlightingEnabled={isScriptingLanguageTool(selectedTool?.toolId)}
+                    diagnostics={result?.diagnostics || []}
+                    formatMode={result?.optionsApplied?.mode || 'beautify'}
+                    enableLinting={true}
+                  />
+                )}
               </div>
             </div>
           </div>
         </div>
 
         <div className={styles.detectedToolsInsideInput}>
-          {localInputText && predictedTools.length > 0 ? (
+          {(localInputText || localImagePreview) && predictedTools.length > 0 ? (
             predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
               // Map similarity (0.6-1.0) to opacity (0.3-1.0) based on confidence
               // Lower bound (0.6 similarity) = 30% opacity, upper bound (1.0) = 100% opacity
@@ -516,33 +571,12 @@ export default function UniversalInput({ inputText = '', onInputChange, onImageC
                 </button>
               )
             })
-          ) : !localInputText ? (
+          ) : !localInputText && !localImagePreview ? (
             <div className={styles.placeholderText}>
               Detected tools will appear here
             </div>
           ) : null}
         </div>
-
-        {imagePreview && (
-          <div className={styles.imagePreview}>
-            <div className={styles.previewHeader}>
-              <span className={styles.previewLabel}>Image attached</span>
-              <button
-                className={styles.removeButton}
-                onClick={removeImage}
-                title="Remove image"
-                type="button"
-              >
-                ✕
-              </button>
-            </div>
-            <img
-              src={imagePreview}
-              alt="preview"
-              className={styles.previewImage}
-            />
-          </div>
-        )}
 
         {selectedTool?.toolId === 'checksum-calculator' && configOptions.compareMode && (
           <div className={styles.compareInputWrapper}>
