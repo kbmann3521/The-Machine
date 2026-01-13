@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 import { PropertyEditorDispatcher, getPropertyEditorType } from './PropertyEditor'
 import { isRuleRedundant } from '../lib/tools/ruleImpactAnalysis'
 import { generateRefactorSuggestions } from '../lib/tools/refactorSuggestions'
@@ -262,6 +263,8 @@ export default function RuleInspector({
   isPropertyOverriddenByLaterRule = null,
   onHighlightSelector = null,
   highlightedSelector = null,
+  availableSelectors = [],
+  onAddNewSelector = null,
 }) {
   const [expandedRules, setExpandedRules] = useState({})
   const [selectedRuleKey, setSelectedRuleKey] = useState(null)
@@ -274,6 +277,10 @@ export default function RuleInspector({
   const [newPropertyName, setNewPropertyName] = useState('') // Track the new property name being entered
   const [newPropertyValue, setNewPropertyValue] = useState('') // Track the new property value being entered
   const [overriddenPropertyInfo, setOverriddenPropertyInfo] = useState(null) // Track which overridden property is being viewed (null or { property, ruleIndex, selector })
+  const [selectedNewSelector, setSelectedNewSelector] = useState('') // Track the selected selector for adding new rule
+  const [showSelectorDropdown, setShowSelectorDropdown] = useState(false) // Track dropdown visibility
+  const [hoveredSelector, setHoveredSelector] = useState(null) // Track which selector is hovered in dropdown
+  const selectorDropdownButtonRef = useRef(null) // Ref to the dropdown button for position calculation
 
   // Phase 7E: Find mergeable groups at top level (from full rulesTree, not just affectingRules)
   const mergeableGroups = findAllMergeableGroups(rulesTree)
@@ -336,6 +343,19 @@ export default function RuleInspector({
     }
   }, [affectingRules, selectedRuleKey])
 
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    if (!showSelectorDropdown) return
+
+    const handleClickOutside = (e) => {
+      if (selectorDropdownButtonRef.current && !selectorDropdownButtonRef.current.contains(e.target)) {
+        setShowSelectorDropdown(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showSelectorDropdown])
 
   if (!selector || !affectingRules.length) {
     return null
@@ -649,6 +669,218 @@ export default function RuleInspector({
         )}
       </div>
 
+      {/* Add New Selector Section */}
+      {availableSelectors && availableSelectors.length > 0 && onAddNewSelector && (
+        <div style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid var(--color-border, #ddd)',
+          backgroundColor: 'var(--color-background-primary, #fff)',
+          display: 'flex',
+          gap: '8px',
+          alignItems: 'center',
+          fontSize: '12px',
+          position: 'relative',
+          zIndex: 1000,
+          overflow: 'visible',
+          minHeight: '40px',
+        }}>
+          <label style={{
+            fontWeight: '600',
+            fontSize: '11px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            color: 'var(--color-text-secondary, #666)',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}>
+            Add:
+          </label>
+
+          {/* Custom Dropdown - Use full width container */}
+          <div style={{ position: 'relative', flex: 1, minWidth: '120px' }}>
+            <button
+              ref={selectorDropdownButtonRef}
+              onClick={() => setShowSelectorDropdown(!showSelectorDropdown)}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                border: `1px solid ${showSelectorDropdown ? '#0066cc' : 'var(--color-border, #ddd)'}`,
+                borderRadius: '4px',
+                fontSize: '12px',
+                backgroundColor: 'var(--color-background-primary, #fff)',
+                color: selectedNewSelector ? 'var(--color-text-primary, #000)' : 'var(--color-text-secondary, #666)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                textAlign: 'left',
+                transition: 'all 0.2s ease',
+                boxShadow: showSelectorDropdown ? '0 0 0 3px rgba(0, 102, 204, 0.1)' : 'none',
+              }}
+              title="Click to open selector dropdown"
+            >
+              {selectedNewSelector || 'Select selector...'}
+            </button>
+
+            {/* Dropdown Menu - Rendered via Portal to avoid overflow clipping */}
+            {showSelectorDropdown && typeof window !== 'undefined' && ReactDOM.createPortal(
+              <div
+                className={styles.selectorDropdown}
+                style={{
+                  position: 'fixed',
+                  top: selectorDropdownButtonRef.current ?
+                    (selectorDropdownButtonRef.current.getBoundingClientRect().bottom + 4) : 0,
+                  left: selectorDropdownButtonRef.current ?
+                    selectorDropdownButtonRef.current.getBoundingClientRect().left : 0,
+                  width: selectorDropdownButtonRef.current ?
+                    selectorDropdownButtonRef.current.getBoundingClientRect().width : 'auto',
+                  minWidth: '200px',
+                  backgroundColor: 'var(--color-background-primary, #fff)',
+                  border: '1px solid var(--color-border, #ddd)',
+                  borderRadius: '4px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  zIndex: 100000,
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'var(--scrollbar-thumb, #ccc) transparent',
+                  pointerEvents: 'auto',
+                  willChange: 'transform',
+                }}
+              >
+                {Array.isArray(availableSelectors) && availableSelectors.map((item) => {
+                  // Check if it's a grouped item (has category and selectors properties)
+                  if (item.category && Array.isArray(item.selectors)) {
+                    return (
+                      <div key={item.category}>
+                        <div style={{
+                          padding: '8px 12px',
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          color: 'var(--color-text-secondary, #666)',
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          borderBottom: '1px solid var(--color-border, #eee)',
+                        }}>
+                          {item.category}
+                        </div>
+                        {item.selectors.map((sel) => (
+                          <div
+                            key={sel}
+                            onClick={() => {
+                              setSelectedNewSelector(sel)
+                              setShowSelectorDropdown(false)
+                              // Remove highlight when dropdown closes
+                              if (onHighlightSelector && hoveredSelector === sel) {
+                                onHighlightSelector(sel)
+                                setHoveredSelector(null)
+                              }
+                            }}
+                            onMouseEnter={() => {
+                              setHoveredSelector(sel)
+                              if (onHighlightSelector) {
+                                onHighlightSelector(sel)
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              setHoveredSelector(null)
+                              if (onHighlightSelector) {
+                                onHighlightSelector(sel)
+                              }
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              backgroundColor: hoveredSelector === sel ? 'rgba(0, 102, 204, 0.1)' : 'transparent',
+                              color: selectedNewSelector === sel ? '#0066cc' : 'var(--color-text-primary, #000)',
+                              fontWeight: selectedNewSelector === sel ? '600' : '400',
+                              transition: 'all 0.15s ease',
+                              borderLeft: selectedNewSelector === sel ? '3px solid #0066cc' : '3px solid transparent',
+                              paddingLeft: selectedNewSelector === sel ? '9px' : '12px',
+                            }}
+                          >
+                            {sel}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  } else {
+                    // Fallback for flat array
+                    return (
+                      <div
+                        key={item}
+                        onClick={() => {
+                          setSelectedNewSelector(item)
+                          setShowSelectorDropdown(false)
+                          // Remove highlight when dropdown closes
+                          if (onHighlightSelector && hoveredSelector === item) {
+                            onHighlightSelector(item)
+                            setHoveredSelector(null)
+                          }
+                        }}
+                        onMouseEnter={() => {
+                          setHoveredSelector(item)
+                          if (onHighlightSelector) {
+                            onHighlightSelector(item)
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredSelector(null)
+                          if (onHighlightSelector) {
+                            onHighlightSelector(item)
+                          }
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          backgroundColor: hoveredSelector === item ? 'rgba(0, 102, 204, 0.1)' : 'transparent',
+                          color: selectedNewSelector === item ? '#0066cc' : 'var(--color-text-primary, #000)',
+                          fontWeight: selectedNewSelector === item ? '600' : '400',
+                          transition: 'all 0.15s ease',
+                          borderLeft: selectedNewSelector === item ? '3px solid #0066cc' : '3px solid transparent',
+                          paddingLeft: selectedNewSelector === item ? '9px' : '12px',
+                        }}
+                      >
+                        {item}
+                      </div>
+                    )
+                  }
+                })}
+              </div>,
+              document.body
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              if (selectedNewSelector) {
+                onAddNewSelector(selectedNewSelector)
+                setSelectedNewSelector('')
+              }
+            }}
+            disabled={!selectedNewSelector}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: selectedNewSelector ? '#0066cc' : 'rgba(0, 102, 204, 0.3)',
+              color: selectedNewSelector ? 'white' : 'rgba(0, 102, 204, 0.6)',
+              border: `1px solid ${selectedNewSelector ? '#0066cc' : 'rgba(0, 102, 204, 0.3)'}`,
+              borderRadius: '4px',
+              cursor: selectedNewSelector ? 'pointer' : 'not-allowed',
+              fontSize: '11px',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              transition: 'all 0.2s ease',
+              flexShrink: 0,
+            }}
+            title={selectedNewSelector ? 'Add this selector to the CSS' : 'Select a selector first'}
+          >
+            ✓ Add
+          </button>
+        </div>
+      )}
+
       <div className={styles.rulesList}>
         {affectingRules.map((rule, idx) => {
           const ruleKey = `${rule.ruleIndex}-${rule.type}`
@@ -660,6 +892,18 @@ export default function RuleInspector({
                 <button
                   className={`${styles.ruleHeader} ${isExpanded ? styles.expanded : ''}`}
                   onClick={() => toggleRuleExpanded(ruleKey, rule)}
+                  onMouseEnter={() => {
+                    // Show bounding box for this selector on hover
+                    if (onHighlightSelector && highlightedSelector !== rule.selector) {
+                      onHighlightSelector(rule.selector)
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    // Remove bounding box when leaving
+                    if (onHighlightSelector && highlightedSelector === rule.selector) {
+                      onHighlightSelector(rule.selector)
+                    }
+                  }}
                   title={`Click to ${isExpanded ? 'collapse' : 'expand'}`}
                 >
                   <span className={styles.ruleChevron}>

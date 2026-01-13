@@ -158,7 +158,8 @@
   box-sizing: border-box;
 }
 
-.inputTabContent.optionsTabContent {
+.inputTabContent.optionsTabContent,
+.inputTabContent.aboutTabContent {
   padding: 16px;
   overflow-y: auto;
   scrollbar-width: thin;

@@ -1498,6 +1498,25 @@
   border-radius: 2px;
 }
 
+/* Selector Dropdown Scrollbar Styling */
+
+.selectorDropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.selectorDropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.selectorDropdown::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #ccc);
+  border-radius: 3px;
+}
+
+.selectorDropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #999);
+}
+
 .solutionConLabel {
   font-weight: 600;
 }
