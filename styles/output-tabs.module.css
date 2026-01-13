@@ -884,6 +884,16 @@
   color: white;
 }
 
+.fullscreenBtnDesktopOnly {
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  .fullscreenBtnDesktopOnly {
+    display: none;
+  }
+}
+
 .previewControls {
   display: flex;
   flex-direction: column;

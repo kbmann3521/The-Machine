@@ -169,13 +169,17 @@ export default function Home(props) {
     }
   }, [selectedTool])
 
-  // Auto-collapse sidebar when entering fullscreen, auto-expand when exiting
+  // Auto-collapse sidebar when entering fullscreen on desktop only, auto-expand when exiting
   useEffect(() => {
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768
+
     if (isPreviewFullscreen) {
-      // Entering fullscreen: save current state and collapse
-      previousSidebarStateRef.current = sidebarOpen
-      if (sidebarOpen) {
-        setSidebarOpen(false)
+      // Entering fullscreen on desktop: save current state and collapse
+      if (isDesktop) {
+        previousSidebarStateRef.current = sidebarOpen
+        if (sidebarOpen) {
+          setSidebarOpen(false)
+        }
       }
     } else if (previousSidebarStateRef.current !== null) {
       // Exiting fullscreen: restore previous state

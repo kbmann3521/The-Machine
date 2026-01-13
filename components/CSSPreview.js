@@ -933,7 +933,7 @@ export default function CSSPreview({
           {showControls ? '▼ Preview Settings' : '▶ Preview Settings'}
         </button>
         <button
-          className={styles.controlsToggleBtn}
+          className={`${styles.controlsToggleBtn} ${styles.fullscreenBtnDesktopOnly}`}
           onClick={() => onToggleFullscreen?.(true)}
           title="Expand preview to fullscreen"
           style={{ marginLeft: 'auto' }}

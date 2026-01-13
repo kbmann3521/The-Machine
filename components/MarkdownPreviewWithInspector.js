@@ -742,7 +742,7 @@ export default function MarkdownPreviewWithInspector({
           </button>
         )}
         <button
-          className={styles.controlsToggleBtn}
+          className={`${styles.controlsToggleBtn} ${styles.fullscreenBtnDesktopOnly}`}
           onClick={() => onToggleFullscreen?.(true)}
         >
           ⛶ Fullscreen
