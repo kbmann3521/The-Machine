@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback } from 'react'
 import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
 import { generateSyntheticDom } from '../lib/tools/syntheticDom'
+import { scopeCss } from '../lib/tools/cssScoper'
 import { useTheme } from '../lib/ThemeContext'
 import RuleInspector from './RuleInspector'
 import MergeSelectorConfirmation from './MergeSelectorConfirmation'
@@ -27,12 +28,59 @@ import styles from '../styles/output-tabs.module.css'
  *   onCssChange: (newCss: string) => void (called when inspector makes changes)
  */
 
-function transformCssForPreview(css, previewClass) {
-  if (!css) return css
-  return css.replace(/\bbody\b/g, previewClass)
+// Note: CSS scoping is now handled by scopeCss() during serialization
+
+// Transform CSS to simulate forced pseudo-states
+// Finds rules with :hover, :focus, :active and creates duplicates
+// by prepending a parent attribute selector (data-force-*) that sits outside preview
+function transformCssForForcedStates(css, previewClass, forcedStates) {
+  if (!css || Object.values(forcedStates).every(v => !v)) return css
+
+  let result = css
+  const duplicates = []
+
+  // Simple regex-based approach: find any rule containing :hover/:focus/:active
+  const ruleRegex = /([^{}]+)\s*\{\s*([^{}]*)\}/g
+  let match
+
+  // Collect rules to avoid modifying while iterating
+  const rulesToAdd = []
+
+  while ((match = ruleRegex.exec(css)) !== null) {
+    const selector = match[1].trim()
+    const block = match[2].trim()
+
+    // Skip empty selectors or blocks
+    if (!selector || !block) continue
+
+    // Check if this selector has pseudo-states
+    if (forcedStates.hover && selector.includes(':hover')) {
+      // Remove :hover and prepend [data-force-hover] parent selector
+      const forcedSelector = selector.replace(/:hover/g, '').trim()
+      rulesToAdd.push(`[data-force-hover="true"] ${forcedSelector} { ${block} }`)
+    }
+
+    if (forcedStates.focus && selector.includes(':focus')) {
+      const forcedSelector = selector.replace(/:focus/g, '').trim()
+      rulesToAdd.push(`[data-force-focus="true"] ${forcedSelector} { ${block} }`)
+    }
+
+    if (forcedStates.active && selector.includes(':active')) {
+      const forcedSelector = selector.replace(/:active/g, '').trim()
+      rulesToAdd.push(`[data-force-active="true"] ${forcedSelector} { ${block} }`)
+    }
+  }
+
+  // Append all duplicates to the CSS
+  if (rulesToAdd.length > 0) {
+    result += '\n/* Forced pseudo-state rules */\n'
+    result += rulesToAdd.join('\n')
+  }
+
+  return result
 }
 
-// Serialize rulesTree back to CSS text
+// Serialize rulesTree back to CSS text (used only for inspector "what-if" previews with disabled properties)
 function serializeRulesToCSS(rulesToSerialize) {
   if (!rulesToSerialize || rulesToSerialize.length === 0) return ''
 
@@ -444,8 +492,7 @@ export default function MarkdownPreviewWithInspector({
     const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
     if (!containerRef?.current) return []
 
-    const previewElement = containerRef.current.querySelector('.pwt-html-preview') ||
-                           containerRef.current.querySelector('.pwt-markdown-preview')
+    const previewElement = containerRef.current.querySelector('.pwt-preview')
     if (!previewElement) return []
 
     // Collect all selectors from the preview
@@ -457,42 +504,77 @@ export default function MarkdownPreviewWithInspector({
       other: new Set(),
     }
 
+    // Helper to verify a selector actually matches elements in the DOM
+    const selectorHasMatches = (selector) => {
+      try {
+        const matches = previewElement.querySelectorAll(selector)
+        return matches.length > 0
+      } catch {
+        return false
+      }
+    }
+
     const traverse = (element) => {
       const tagName = element.tagName?.toLowerCase()
 
-      // Categorize by element type
-      if (tagName === 'body' || tagName === 'html') {
-        selectors.structure.add(tagName)
-      } else if (tagName && tagName.match(/^h[1-6]$/)) {
+      // NEVER process body or html tags
+      if (tagName === 'body' || tagName === 'html' || tagName === 'style' || tagName === 'script') {
+        return
+      }
+
+      // Categorize commonly styled tags
+      if (tagName && tagName.match(/^h[1-6]$/)) {
         selectors.headings.add(tagName)
-      } else if (['p', 'strong', 'em', 'b', 'i', 'a', 'span', 'u', 'ul', 'ol', 'li'].includes(tagName)) {
+      } else if (['p', 'strong', 'em', 'b', 'i', 'a', 'span', 'u', 'ul', 'ol', 'li', 'button', 'input', 'label', 'form', 'textarea', 'select', 'option', 'fieldset'].includes(tagName)) {
         selectors.text.add(tagName)
       } else if (['pre', 'code'].includes(tagName)) {
         selectors.code.add(tagName)
+      } else if (['div', 'section', 'article', 'main', 'nav', 'aside', 'header', 'footer', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'hr'].includes(tagName)) {
+        selectors.structure.add(tagName)
       }
 
-      // Add class selectors with category heuristics
+      // Add class selectors with strict filtering
       if (element.classList && element.classList.length > 0) {
         Array.from(element.classList).forEach(className => {
-          if (className && !className.startsWith('pwt-') && !className.includes('__')) {
-            const selector = `.${className}`
+          if (!className) return
 
-            if (className.includes('code') || className.includes('pre')) {
-              selectors.code.add(selector)
-            } else if (className.includes('heading') || className.includes('title') || className.includes('h')) {
-              selectors.headings.add(selector)
-            } else if (className.includes('text') || className.includes('paragraph')) {
-              selectors.text.add(selector)
-            } else {
-              selectors.structure.add(selector)
-            }
+          const selector = `.${className}`
+
+          // Skip any language-* classes (internal syntax highlighting)
+          if (className.startsWith('language-')) return
+
+          // Skip internal framework classes (except pwt-preview which users can style)
+          if (className.startsWith('pwt-') && className !== 'pwt-preview') return
+          if (className.includes('__')) return
+
+          // Skip CSS module classes (has underscore convention like "__abc123")
+          if (className.match(/__[a-zA-Z0-9]+$/)) return
+
+          // Skip common framework-generated classes
+          if (className.match(/^react-|^ng-|^vue-|^_next|^__/i)) return
+
+          // Skip if selector doesn't match any elements
+          if (!selectorHasMatches(selector)) return
+
+          // Categorize
+          if (className.includes('code') || className.includes('pre')) {
+            selectors.code.add(selector)
+          } else if (className.includes('heading') || className.includes('title') || className.includes('h[0-6]')) {
+            selectors.headings.add(selector)
+          } else if (className.includes('text') || className.includes('paragraph') || className.includes('body')) {
+            selectors.text.add(selector)
+          } else {
+            selectors.structure.add(selector)
           }
         })
       }
 
-      // Add ID selectors
+      // Add ID selectors (skip internal ones)
       if (element.id && !element.id.startsWith('pwt-')) {
-        selectors.other.add(`#${element.id}`)
+        const idSelector = `#${element.id}`
+        if (selectorHasMatches(idSelector)) {
+          selectors.other.add(idSelector)
+        }
       }
 
       // Recurse
@@ -501,9 +583,18 @@ export default function MarkdownPreviewWithInspector({
       }
     }
 
-    traverse(previewElement)
+    // Traverse only children of preview element
+    if (previewElement && previewElement.children) {
+      for (const child of previewElement.children) {
+        traverse(child)
+      }
+    }
 
-    // Remove selectors that are already in rulesTree
+    // Always add the preview container selector - users always want to be able to style it
+    // All renderers now have the universal .pwt-preview class
+    selectors.structure.add('.pwt-preview')
+
+    // Get existing selectors from rules tree
     const existingSelectors = new Set()
     const collectSelectors = (rules) => {
       for (const rule of rules) {
@@ -555,13 +646,19 @@ export default function MarkdownPreviewWithInspector({
       })
     }
 
-    // Filter out already-defined selectors
-    return grouped
+    // Filter: remove existing rules but allow preview container selector
+    const finalResult = grouped
       .map(group => ({
         ...group,
-        selectors: group.selectors.filter(s => !existingSelectors.has(s)),
+        selectors: group.selectors.filter(s => {
+          // Skip if already in rules
+          if (existingSelectors.has(s)) return false
+          return true
+        }),
       }))
       .filter(group => group.selectors.length > 0)
+
+    return finalResult
   }
 
   // Handle adding a new selector/rule
@@ -646,20 +743,16 @@ export default function MarkdownPreviewWithInspector({
       highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
     }
 
-    // Find the preview element to determine which class to use for scoping
-    const previewElement = containerRef.current.querySelector('.pwt-html-preview') ||
-                          containerRef.current.querySelector('.pwt-markdown-preview')
+    // Find the preview element
+    const previewElement = containerRef.current.querySelector('.pwt-preview')
 
     if (!previewElement) return
 
-    // Determine the preview container class
-    const previewClass = previewElement.classList.contains('pwt-html-preview')
-      ? '.pwt-html-preview'
-      : '.pwt-markdown-preview'
-
     // Scope the selector to only match elements within the preview container
-    // This prevents highlighting elements outside the preview area
-    const scopedSelector = `${previewClass} ${selector}`
+    // If selector is .pwt-preview itself, don't double-scope it
+    const scopedSelector = selector === '.pwt-preview'
+      ? selector
+      : `.pwt-preview ${selector}`
 
     // Create new highlight style
     const highlightStyle = document.createElement('style')
@@ -812,38 +905,33 @@ export default function MarkdownPreviewWithInspector({
 
   // Generate CSS with disabled properties filtered out for what-if preview
   const getPreviewCss = () => {
-    if (!effectiveRulesTree || effectiveRulesTree.length === 0) return customCss
+    // Use the universal preview class for scoping (works for both HTML and Markdown)
+    const previewClass = '.pwt-preview'
 
-    // Create a deep copy and filter out disabled properties
-    const rulesToSerialize = JSON.parse(JSON.stringify(effectiveRulesTree))
+    // Always use original customCss and scope it
+    // The rulesTree is only for the inspector, not for the preview rendering
+    let css = customCss ? scopeCss(customCss, previewClass) : ''
 
-    const filterDisabledProps = (rules) => {
-      rules.forEach(rule => {
-        if (rule.type === 'rule' && rule.declarations) {
-          rule.declarations = rule.declarations.filter(decl => {
-            const originalKey = `${rule.ruleIndex}-${decl.property}`
-            const addedKey = `${rule.ruleIndex}::ADDED::${decl.property}`
-            return !disabledProperties.has(originalKey) && !disabledProperties.has(addedKey)
-          })
-        }
-        if (rule.children && rule.children.length > 0) {
-          filterDisabledProps(rule.children)
-        }
-      })
-    }
+    // Transform CSS to duplicate :hover/:focus/:active rules with attribute selectors
+    // This allows user's existing :hover styles to work with forced states
+    css = transformCssForForcedStates(css, previewClass, forcedStates)
 
-    filterDisabledProps(rulesToSerialize)
-    return serializeRulesToCSS(rulesToSerialize)
+    return css
   }
 
   const renderPreviewContent = () => {
-    const previewClass = isHtml ? '.pwt-html-preview' : '.pwt-markdown-preview'
     const previewCss = getPreviewCss()
-    const transformedCss = transformCssForPreview(previewCss, previewClass)
+
+    // Build data attributes object for forced pseudo-states
+    const dataAttrs = {}
+    if (forcedStates.hover) dataAttrs['data-force-hover'] = 'true'
+    if (forcedStates.focus) dataAttrs['data-force-focus'] = 'true'
+    if (forcedStates.active) dataAttrs['data-force-active'] = 'true'
 
     return (
       <div
         ref={isFullscreen ? undefined : previewContainerRef}
+        {...dataAttrs}
         style={{
           width: `${viewportWidth}px`,
           height: '100%',
@@ -855,12 +943,12 @@ export default function MarkdownPreviewWithInspector({
         {isHtml ? (
           <HTMLRenderer
             html={content}
-            customCss={transformedCss}
+            customCss={previewCss}
           />
         ) : (
           <MarkdownRenderer
             markdown={content}
-            customCss={transformedCss}
+            customCss={previewCss}
             allowHtml={allowHtml}
             enableGfm={enableGfm}
           />

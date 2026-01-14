@@ -15,71 +15,6 @@ import styles from '../styles/markdown-renderer.module.css'
  */
 
 /**
- * Scope CSS to only apply within the preview container
- * Wraps all selectors with the preview class to prevent global style pollution
- */
-function scopeCustomCss(css, previewClass) {
-  if (!css) return css
-
-  // Split CSS by closing braces to identify rules
-  const rules = []
-  let currentRule = ''
-  let braceCount = 0
-
-  for (let i = 0; i < css.length; i++) {
-    const char = css[i]
-    currentRule += char
-
-    if (char === '{') {
-      braceCount++
-    } else if (char === '}') {
-      braceCount--
-      if (braceCount === 0) {
-        rules.push(currentRule.trim())
-        currentRule = ''
-      }
-    }
-  }
-
-  // Add any remaining rule
-  if (currentRule.trim()) {
-    rules.push(currentRule.trim())
-  }
-
-  // Process each rule
-  const scopedRules = rules.map(rule => {
-    const match = rule.match(/^([^{]+)\{([\s\S]*)\}$/)
-    if (!match) return rule
-
-    const selectors = match[1]
-    const declarations = match[2]
-
-    // Split selectors and scope each one
-    const scopedSelectors = selectors
-      .split(',')
-      .map(selector => {
-        selector = selector.trim()
-        if (!selector) return ''
-
-        // Scope selector to preview container
-        // Don't double-wrap if already scoped
-        if (selector.startsWith(previewClass)) {
-          return selector
-        }
-
-        // Wrap selector with preview class
-        return `${previewClass} ${selector}`
-      })
-      .filter(Boolean)
-      .join(', ')
-
-    return scopedSelectors ? `${scopedSelectors} {${declarations}}` : ''
-  }).filter(Boolean)
-
-  return scopedRules.join('\n')
-}
-
-/**
  * Sanitization configuration using DOMPurify
  * Strict default policy to block high-risk vectors
  */
@@ -91,17 +26,21 @@ const SANITIZATION_CONFIG = {
     'pre', 'code', 'blockquote',
     'a', 'strong', 'em', 'del',
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
-    'hr', 'br'
+    'hr', 'br',
+    'button', 'input', 'form', 'label', 'textarea', 'select', 'option', 'fieldset', 'legend'
   ],
   ALLOWED_ATTR: [
     'href', 'title',
-    'class', 'id'
+    'class', 'id',
+    'type', 'name', 'value', 'placeholder', 'checked', 'disabled', 'readonly',
+    'rows', 'cols', 'multiple', 'required', 'min', 'max', 'step', 'size',
+    'for', 'aria-label', 'aria-labelledby', 'aria-describedby'
   ],
   FORBID_TAGS: [
-    'script', 'iframe', 'object', 'embed', 'form', 'svg', 'math'
+    'script', 'iframe', 'object', 'embed', 'svg', 'math'
   ],
   FORBID_ATTR: [
-    'style', 'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout'
+    'style', 'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout', 'onchange', 'oninput'
   ],
   KEEP_CONTENT: true
 }
@@ -134,20 +73,18 @@ export default function HTMLRenderer({ html, className = '', customCss = '' }) {
     )
   }
 
-  // Scope CSS to preview container to prevent leaking into page UI
-  const scopedCss = scopeCustomCss(customCss, '.pwt-html-preview')
-
   return (
-    <>
-      {scopedCss && (
-        <style>{scopedCss}</style>
-      )}
+    <div style={{ height: '100%' }}>
       <div
         ref={rendererRef}
-        className={`pwt-html-preview pwt-markdown-preview ${styles.renderer} ${className}`}
+        className={`pwt-preview pwt-html-preview pwt-markdown-preview ${styles.renderer} ${className}`}
         style={{ height: '100%' }}
-        dangerouslySetInnerHTML={{ __html: processedHtml }}
-      />
-    </>
+      >
+        {customCss && (
+          <style dangerouslySetInnerHTML={{ __html: customCss }} />
+        )}
+        <div dangerouslySetInnerHTML={{ __html: processedHtml }} />
+      </div>
+    </div>
   )
 }

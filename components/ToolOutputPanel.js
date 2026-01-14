@@ -2457,7 +2457,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       if (!cssFormatterResult) {
         // If no CSS formatter result yet, show rendered preview (if HTML/Markdown exists)
         if (displayResult && displayResult.formatted) {
-          const scopedCss = markdownCustomCss ? scopeCss(markdownCustomCss) : ''
+          // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
           const isHtml = shouldRenderMarkdownFormatterAsHtml(displayResult)
 
           cssOutputTabs.push({
@@ -2467,7 +2467,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <MarkdownPreviewWithInspector
                 isHtml={isHtml}
                 content={displayResult.formatted}
-                customCss={scopedCss}
+                customCss={markdownCustomCss}
                 rulesTree={[]}
                 allowHtml={enableHtmlPreview}
                 enableGfm={enableGfmFeatures}
@@ -2496,7 +2496,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
         // Add primary output tab FIRST - show rendered preview of HTML/Markdown with CSS applied
         if (displayResult && displayResult.formatted) {
-          const scopedCss = markdownCustomCss ? scopeCss(markdownCustomCss) : ''
+          // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
           const isHtml = shouldRenderMarkdownFormatterAsHtml(displayResult)
 
           cssOutputTabs.push({
@@ -2506,7 +2506,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <MarkdownPreviewWithInspector
                 isHtml={isHtml}
                 content={displayResult.formatted}
-                customCss={scopedCss}
+                customCss={markdownCustomCss}
                 rulesTree={cssFormatterResult?.analysis?.rulesTree || []}
                 allowHtml={enableHtmlPreview}
                 enableGfm={enableGfmFeatures}
@@ -3030,8 +3030,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Rendered tab - shows the formatted content rendered as HTML (this will be OUTPUT tab - first)
     let renderTab = null
     if (displayResult.formatted && displayResult.isWellFormed !== false) {
-      // Automatically scope CSS to .pwt-markdown-preview container
-      const scopedCss = markdownCustomCss ? scopeCss(markdownCustomCss) : ''
+      // Automatically scope CSS to .pwt-preview container (universal for both HTML and Markdown)
+      const scopedCss = markdownCustomCss ? scopeCss(markdownCustomCss, '.pwt-preview') : ''
 
       renderTab = {
         id: 'output',
