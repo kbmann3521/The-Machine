@@ -763,7 +763,8 @@ export default function RuleInspector({
                         }}>
                           {item.category}
                         </div>
-                        {item.selectors.map((sel) => (
+                        {item.selectors
+                          .map((sel) => (
                           <div
                             key={sel}
                             onClick={() => {
