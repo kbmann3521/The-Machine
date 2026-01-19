@@ -9,38 +9,77 @@ import styles from '../styles/markdown-renderer.module.css'
  * - DOMPurify sanitizes before rendering
  * - Uses dangerouslySetInnerHTML for direct HTML injection
  * - Selector detection works on the rendered output
- * - SVG, forms, scripts, and event handlers blocked by default
+ * - Supports rich HTML5 features: SVG, forms, details/summary, images, etc.
+ * - Blocks scripts, iframes, and malicious event handlers
  * - All links automatically get target="_blank" and rel="noopener noreferrer"
  * - CSS is scoped to preview container only to prevent leaking into page UI
  */
 
 /**
  * Sanitization configuration using DOMPurify
- * Strict default policy to block high-risk vectors
+ * Balanced policy: allows rich HTML/CSS content while blocking high-risk vectors
  */
 const SANITIZATION_CONFIG = {
   ALLOWED_TAGS: [
+    // Text content
     'p', 'div', 'span',
+    // Headings
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    // Lists
     'ul', 'ol', 'li',
+    // Code blocks
     'pre', 'code', 'blockquote',
-    'a', 'strong', 'em', 'del',
-    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    // Links & text formatting
+    'a', 'strong', 'em', 'del', 'ins', 'mark', 'small', 'sub', 'sup',
+    // Tables
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
+    // Separators
     'hr', 'br',
-    'button', 'input', 'form', 'label', 'textarea', 'select', 'option', 'fieldset', 'legend'
+    // Images
+    'img', 'figure', 'figcaption',
+    // Forms
+    'button', 'input', 'form', 'label', 'textarea', 'select', 'option', 'optgroup', 'fieldset', 'legend',
+    // Interactive elements
+    'details', 'summary',
+    // Semantic HTML5
+    'section', 'article', 'nav', 'header', 'footer', 'aside', 'main',
+    // SVG support
+    'svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse',
+    'g', 'text', 'tspan', 'defs', 'use', 'symbol', 'marker', 'linearGradient',
+    'radialGradient', 'stop', 'clipPath', 'mask', 'image', 'foreignObject',
+    'style', 'title', 'desc'
   ],
   ALLOWED_ATTR: [
-    'href', 'title',
-    'class', 'id',
+    // Global attributes
+    'id', 'class', 'title', 'data-*', 'style',
+    // Link attributes
+    'href', 'target', 'rel',
+    // Image attributes
+    'src', 'alt', 'srcset', 'sizes', 'width', 'height', 'loading', 'decoding',
+    // Form attributes
     'type', 'name', 'value', 'placeholder', 'checked', 'disabled', 'readonly',
     'rows', 'cols', 'multiple', 'required', 'min', 'max', 'step', 'size',
-    'for', 'aria-label', 'aria-labelledby', 'aria-describedby'
+    'for', 'accept', 'autocomplete', 'autofocus', 'pattern', 'default', 'formaction',
+    // ARIA attributes for accessibility
+    'aria-label', 'aria-labelledby', 'aria-describedby', 'aria-expanded',
+    'aria-hidden', 'aria-pressed', 'aria-selected', 'role',
+    // Details/Summary
+    'open',
+    // SVG attributes
+    'd', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
+    'points', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke',
+    'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'opacity',
+    'transform', 'fill-opacity', 'stroke-opacity', 'clip-path',
+    'href', 'xlink:href', 'xmlns', 'xmlns:xlink',
+    'offset', 'stop-color', 'stop-opacity',
+    'font-size', 'font-family', 'text-anchor', 'font-weight',
   ],
   FORBID_TAGS: [
-    'script', 'iframe', 'object', 'embed', 'svg', 'math'
+    'script', 'iframe', 'object', 'embed', 'math'
   ],
   FORBID_ATTR: [
-    'style', 'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout', 'onchange', 'oninput'
+    'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout', 'onchange',
+    'oninput', 'onkeydown', 'onkeyup', 'onsubmit', 'onfocus', 'onblur'
   ],
   KEEP_CONTENT: true
 }

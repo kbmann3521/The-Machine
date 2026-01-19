@@ -10,8 +10,10 @@ import MarkdownRenderer from './MarkdownRenderer'
 import HTMLRenderer from './HTMLRenderer'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
-import { scanSelectorsFromHTML } from '../lib/tools/selectorScanner'
+import { scanSelectorsFromHTML, extractSelectorsFromCSS } from '../lib/tools/selectorScanner'
 import { scopeCss } from '../lib/tools/cssScoper'
+import { extractCssFromHtml } from '../lib/tools/cssExtractor'
+import { extractAndParseCssFromHtml, parseCssToRulesTree } from '../lib/tools/cssParser'
 import { cssFormatter } from '../lib/tools/cssFormatter'
 import { marked } from 'marked'
 import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
@@ -157,6 +159,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     onInputUpdate(editedCSS)
   }
 
+  // Handle editing embedded CSS in HTML - update the <style> block content
+  const handleEmbeddedCssChange = (newEmbeddedCss) => {
+    if (!onInputUpdate || !inputText) return
+
+    // Replace the first <style> block content with the new CSS
+    // This assumes all embedded CSS is in one block (simplified for now)
+    const updatedHtml = inputText.replace(
+      /<style[^>]*>([\s\S]*?)<\/style>/i,
+      `<style>\n${newEmbeddedCss}\n</style>`
+    )
+
+    onInputUpdate(updatedHtml)
+  }
+
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
     if (!errors || errors.length === 0) return null
 
@@ -274,7 +290,31 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     if (htmlForSelectors) {
-      setScannedSelectors(scanSelectorsFromHTML(htmlForSelectors))
+      // Scan HTML for tag and class selectors
+      const htmlSelectors = scanSelectorsFromHTML(htmlForSelectors)
+
+      // Also extract and scan CSS from embedded <style> tags
+      const embeddedCss = extractCssFromHtml(htmlForSelectors)
+      const cssSelectors = embeddedCss ? extractSelectorsFromCSS(embeddedCss) : { tags: [], classes: [], suggestions: { structure: [], headings: [], text: [], code: [] } }
+
+      // Merge HTML and CSS selectors
+      const mergedTags = Array.from(new Set([...htmlSelectors.tags, ...cssSelectors.tags])).sort()
+      const mergedClasses = Array.from(new Set([...htmlSelectors.classes, ...cssSelectors.classes])).sort()
+
+      // Regenerate suggestions from merged selectors
+      const { structure, headings, text, code } = htmlSelectors.suggestions
+      const mergedSuggestions = {
+        structure: Array.from(new Set([...structure, ...(cssSelectors.suggestions.structure || [])])).sort(),
+        headings: Array.from(new Set([...headings, ...(cssSelectors.suggestions.headings || [])])).sort(),
+        text: Array.from(new Set([...text, ...(cssSelectors.suggestions.text || [])])).sort(),
+        code: Array.from(new Set([...code, ...(cssSelectors.suggestions.code || [])])).sort(),
+      }
+
+      setScannedSelectors({
+        tags: mergedTags,
+        classes: mergedClasses,
+        suggestions: mergedSuggestions,
+      })
     } else {
       setScannedSelectors(emptySelectorState)
     }
@@ -2460,6 +2500,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
           const isHtml = shouldRenderMarkdownFormatterAsHtml(displayResult)
 
+          // Extract embedded CSS from HTML (marked with origin: 'html')
+          const embeddedRules = isHtml
+            ? extractAndParseCssFromHtml(displayResult.formatted)
+            : []
+
+          // Parse customCss with origin: 'css' for tracking
+          const customCssRules = markdownCustomCss && markdownCustomCss.trim()
+            ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
+            : []
+
+          // Offset CSS tab rules' ruleIndex by embedded rules count
+          // This ensures globally unique ruleIndex across all sources
+          const customCssRulesWithOffset = customCssRules.map(rule => ({
+            ...rule,
+            ruleIndex: rule.ruleIndex + embeddedRules.length
+          }))
+
+          // Merge: embedded rules first, then customCss rules
+          const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
+
           cssOutputTabs.push({
             id: 'output',
             label: 'OUTPUT',
@@ -2468,12 +2528,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 isHtml={isHtml}
                 content={displayResult.formatted}
                 customCss={markdownCustomCss}
-                rulesTree={[]}
+                rulesTree={mergedRulesForDisplay}
                 allowHtml={enableHtmlPreview}
                 enableGfm={enableGfmFeatures}
                 isFullscreen={isPreviewFullscreen}
                 onToggleFullscreen={onTogglePreviewFullscreen}
                 onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+                onHtmlChange={handleEmbeddedCssChange}
               />
             ),
             contentType: 'component',
@@ -2499,6 +2560,30 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
           const isHtml = shouldRenderMarkdownFormatterAsHtml(displayResult)
 
+          // Extract embedded CSS from HTML (marked with origin: 'html')
+          const embeddedRules = isHtml
+            ? extractAndParseCssFromHtml(displayResult.formatted)
+            : []
+
+          // Get CSS rules from formatter with origin: 'css'
+          // Note: formatter rules already have origin info, but ensure css-tab containerId
+          const cssFormatterRules = (cssFormatterResult?.analysis?.rulesTree || []).map(rule => ({
+            ...rule,
+            origin: rule.origin || { source: 'css', containerId: 'css-tab' }
+          }))
+
+          // Offset CSS formatter rules' ruleIndex by embedded rules count
+          // This ensures globally unique ruleIndex across all sources
+          const cssFormatterRulesWithOffset = cssFormatterRules.map(rule => ({
+            ...rule,
+            ruleIndex: rule.ruleIndex + embeddedRules.length
+          }))
+
+          // Merge: embedded rules first, then CSS rules
+          const mergedRulesForDisplay = [...embeddedRules, ...cssFormatterRulesWithOffset]
+
+          console.log('[ToolOutputPanel CSS with formatter] isHtml:', isHtml, 'embedded:', embeddedRules.length, 'formatter:', cssFormatterRules.length, 'merged:', mergedRulesForDisplay.length)
+
           cssOutputTabs.push({
             id: 'output',
             label: 'OUTPUT',
@@ -2507,12 +2592,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 isHtml={isHtml}
                 content={displayResult.formatted}
                 customCss={markdownCustomCss}
-                rulesTree={cssFormatterResult?.analysis?.rulesTree || []}
+                rulesTree={mergedRulesForDisplay}
                 allowHtml={enableHtmlPreview}
                 enableGfm={enableGfmFeatures}
                 isFullscreen={isPreviewFullscreen}
                 onToggleFullscreen={onTogglePreviewFullscreen}
                 onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+                onHtmlChange={handleEmbeddedCssChange}
               />
             ),
             contentType: 'component',
@@ -3030,23 +3116,45 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Rendered tab - shows the formatted content rendered as HTML (this will be OUTPUT tab - first)
     let renderTab = null
     if (displayResult.formatted && displayResult.isWellFormed !== false) {
-      // Automatically scope CSS to .pwt-preview container (universal for both HTML and Markdown)
-      const scopedCss = markdownCustomCss ? scopeCss(markdownCustomCss, '.pwt-preview') : ''
+      // Use MarkdownPreviewWithInspector for all modes to ensure consistent CSS extraction and application
+      // This component handles both HTML mode (extracts <style> tags) and Markdown mode
+      // Extract embedded CSS from HTML (marked with origin: 'html')
+      const embeddedRules = isHtml
+        ? extractAndParseCssFromHtml(displayResult.formatted)
+        : []
+
+      // Parse customCss with origin: 'css'
+      const customCssRules = markdownCustomCss && markdownCustomCss.trim()
+        ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
+        : []
+
+      // Offset CSS tab rules' ruleIndex by embedded rules count
+      // This ensures globally unique ruleIndex across all sources
+      // IMPORTANT: Must apply this offset regardless of which tab is active
+      // to maintain stable cascade detection (render layer, not editor layer)
+      const customCssRulesWithOffset = customCssRules.map(rule => ({
+        ...rule,
+        ruleIndex: rule.ruleIndex + embeddedRules.length
+      }))
+
+      // Merge: embedded rules first, then customCss rules
+      const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
 
       renderTab = {
         id: 'output',
         label: 'OUTPUT',
-        content: isHtml ? (
-          <HTMLRenderer
-            html={displayResult.formatted}
-            customCss={scopedCss}
-          />
-        ) : (
-          <MarkdownRenderer
-            markdown={displayResult.formatted}
-            customCss={scopedCss}
+        content: (
+          <MarkdownPreviewWithInspector
+            isHtml={isHtml}
+            content={displayResult.formatted}
+            customCss={markdownCustomCss}
+            rulesTree={mergedRulesForDisplay}
             allowHtml={enableHtmlPreview}
             enableGfm={enableGfmFeatures}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={onTogglePreviewFullscreen}
+            onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+            onHtmlChange={handleEmbeddedCssChange}
           />
         ),
         contentType: 'component',

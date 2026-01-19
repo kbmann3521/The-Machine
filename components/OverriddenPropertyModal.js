@@ -2,6 +2,21 @@ import React from 'react'
 import styles from '../styles/rule-inspector.module.css'
 
 /**
+ * Helper to get origin label for a rule
+ */
+function getOriginLabel(rule) {
+  if (!rule?.origin) return 'CSS'
+  const source = rule.origin.source
+
+  if (source === 'html') {
+    return 'HTML <style>'
+  } else if (source === 'css') {
+    return 'CSS tab'
+  }
+  return 'CSS'
+}
+
+/**
  * OverriddenPropertyModal Component
  *
  * Shows information about an overridden property and suggests solutions:
@@ -37,6 +52,9 @@ export default function OverriddenPropertyModal({
   // Find if this rule and the overriding rule have the same selector (mergeable)
   const isMergeable = mergeableGroups && mergeableGroups.some(group => group.selector === selector)
 
+  // Find the overridden rule to get its origin info
+  const overriddenRule = affectingRules.find(r => r.ruleIndex === ruleIndex)
+
   return (
     <div className={styles.confirmationOverlay} onClick={onClose}>
       <div className={styles.confirmationModal} onClick={(e) => e.stopPropagation()}>
@@ -59,9 +77,14 @@ export default function OverriddenPropertyModal({
               <div className={styles.overriddenPropertyLabel}>Current Rule (Overridden):</div>
               <div className={styles.overriddenPropertyValue}>
                 <code className={styles.overriddenPropertySelector}>{selector}</code>
+                {overriddenRule?.origin && (
+                  <span className={styles.overriddenPropertyOrigin} title={`Origin: ${getOriginLabel(overriddenRule)}`}>
+                    {getOriginLabel(overriddenRule)}
+                  </span>
+                )}
                 {overridingRule.loc && (
                   <span className={styles.overriddenPropertyLineNumber}>
-                    Line {overridingRule.loc.startLine}
+                    Line {ruleIndex !== undefined ? ruleIndex : '?'}
                   </span>
                 )}
               </div>
@@ -71,11 +94,16 @@ export default function OverriddenPropertyModal({
             </div>
 
             {/* Effective Property Info */}
-            <div className={styles.overriddenPropertyArrow}>↓</div>
+            <div className={styles.overriddenPropertyArrow}>↓ cascade ↓</div>
             <div className={styles.overriddenPropertySection}>
               <div className={styles.overriddenPropertyLabel}>Effective Rule (Overriding):</div>
               <div className={styles.overriddenPropertyValue}>
                 <code className={styles.overriddenPropertySelector}>{overridingRule.selector}</code>
+                {overridingRule?.origin && (
+                  <span className={styles.overriddenPropertyOrigin} title={`Origin: ${getOriginLabel(overridingRule)}`}>
+                    {getOriginLabel(overridingRule)}
+                  </span>
+                )}
                 {overridingRule.loc && (
                   <span className={styles.overriddenPropertyLineNumber}>
                     Line {overridingRule.loc.startLine}

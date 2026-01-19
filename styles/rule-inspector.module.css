@@ -146,6 +146,15 @@
   color: #0066cc;
 }
 
+.ruleOrigin {
+  font-size: 12px;
+  margin-left: 6px;
+  flex-shrink: 0;
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+}
+
 .duplicateIndicator {
   font-size: 11px;
   padding: 2px 6px;
@@ -174,22 +183,7 @@
   background-color: rgba(156, 39, 176, 0.15);
 }
 
-.specificity {
-  font-size: 11px;
-  color: var(--color-text-secondary, #666);
-  padding: 2px 6px;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 2px;
-  font-family: monospace;
-}
 
-.lineNumber {
-  font-size: 10px;
-  color: var(--color-text-secondary, #999);
-  padding: 2px 6px;
-  border-radius: 2px;
-  background-color: rgba(0, 0, 0, 0.05);
-}
 
 .propertyToggleBtn {
   display: inline-flex;
@@ -324,6 +318,18 @@
   word-break: break-word;
   min-width: 0;
   overflow: hidden;
+}
+
+.cascadeStatus {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-secondary, #666);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .semicolon {
@@ -1330,6 +1336,27 @@
   background-color: rgba(255, 152, 0, 0.15);
 }
 
+/* Overridden Properties (properties overridden by later rules) */
+
+.propertyOverridden {
+  opacity: 0.65;
+  background-color: rgba(156, 39, 176, 0.06) !important;
+  border-left-color: #9c27b0 !important;
+}
+
+.propertyOverridden:hover {
+  opacity: 0.8;
+  background-color: rgba(156, 39, 176, 0.12) !important;
+}
+
+.propertyOverridden .property {
+  color: #9c27b0;
+  text-decoration: line-through;
+  text-decoration-color: #9c27b0;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
 /* Overridden Property Modal Styles */
 
 .overriddenPropertyDetails {
@@ -1396,6 +1423,17 @@
 .overriddenPropertyDeclValue {
   color: #0066cc;
   font-weight: 600;
+}
+
+.overriddenPropertyOrigin {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  padding: 2px 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+  margin-left: 4px;
+  white-space: nowrap;
 }
 
 .overriddenPropertyArrow {
