@@ -3,6 +3,8 @@ import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
 import { generateSyntheticDom } from '../lib/tools/syntheticDom'
 import { scopeCss } from '../lib/tools/cssScoper'
+import { extractCssFromHtml, removeStyleTagsFromHtml } from '../lib/tools/cssExtractor'
+import { extractSelectorsFromCSS } from '../lib/tools/selectorScanner'
 import { useTheme } from '../lib/ThemeContext'
 import RuleInspector from './RuleInspector'
 import MergeSelectorConfirmation from './MergeSelectorConfirmation'
@@ -81,38 +83,65 @@ function transformCssForForcedStates(css, previewClass, forcedStates) {
 }
 
 // Serialize rulesTree back to CSS text (used only for inspector "what-if" previews with disabled properties)
-function serializeRulesToCSS(rulesToSerialize) {
-  if (!rulesToSerialize || rulesToSerialize.length === 0) return ''
-
-  const cssLines = []
-
-  const processRule = (rule, indent = '') => {
-    if (rule.type === 'rule') {
-      cssLines.push(`${indent}${rule.selector} {`)
-      if (rule.declarations && rule.declarations.length > 0) {
-        rule.declarations.forEach(decl => {
-          cssLines.push(`${indent}  ${decl.property}: ${decl.value};`)
-        })
-      }
-      cssLines.push(`${indent}}`)
-    } else if (rule.type === 'atrule') {
-      const params = rule.atRule?.params || ''
-      cssLines.push(`${indent}@${rule.atRule?.name || ''} ${params} {`)
-      if (rule.children && rule.children.length > 0) {
-        rule.children.forEach(child => {
-          processRule(child, indent + '  ')
-        })
-      }
-      cssLines.push(`${indent}}`)
-    }
+/**
+ * Serialize rules back to CSS, grouped by origin
+ * @returns { html: string, css: string } - Separate CSS for each origin
+ */
+function serializeRulesByOrigin(rulesToSerialize) {
+  if (!rulesToSerialize || rulesToSerialize.length === 0) {
+    return { html: '', css: '' }
   }
 
+  // Separate rules by origin
+  const rulesByOrigin = { html: [], css: [] }
+
   rulesToSerialize.forEach(rule => {
-    processRule(rule)
-    cssLines.push('')
+    const source = rule.origin?.source || 'css'
+    if (source === 'html') {
+      rulesByOrigin.html.push(rule)
+    } else {
+      rulesByOrigin.css.push(rule)
+    }
   })
 
-  return cssLines.join('\n').trim()
+  const processRulesToCSS = (rules) => {
+    if (rules.length === 0) return ''
+
+    const cssLines = []
+
+    const processRule = (rule, indent = '') => {
+      if (rule.type === 'rule') {
+        cssLines.push(`${indent}${rule.selector} {`)
+        if (rule.declarations && rule.declarations.length > 0) {
+          rule.declarations.forEach(decl => {
+            cssLines.push(`${indent}  ${decl.property}: ${decl.value};`)
+          })
+        }
+        cssLines.push(`${indent}}`)
+      } else if (rule.type === 'atrule') {
+        const params = rule.atRule?.params || ''
+        cssLines.push(`${indent}@${rule.atRule?.name || ''} ${params} {`)
+        if (rule.children && rule.children.length > 0) {
+          rule.children.forEach(child => {
+            processRule(child, indent + '  ')
+          })
+        }
+        cssLines.push(`${indent}}`)
+      }
+    }
+
+    rules.forEach(rule => {
+      processRule(rule)
+      cssLines.push('')
+    })
+
+    return cssLines.join('\n').trim()
+  }
+
+  return {
+    html: processRulesToCSS(rulesByOrigin.html),
+    css: processRulesToCSS(rulesByOrigin.css),
+  }
 }
 
 export default function MarkdownPreviewWithInspector({
@@ -125,6 +154,8 @@ export default function MarkdownPreviewWithInspector({
   isFullscreen = false,
   onToggleFullscreen = null,
   onCssChange = null,
+  onHtmlChange = null, // Called when editing embedded HTML CSS
+  onSourceChange = null, // Called with { source: 'html'|'css', newContent }
 }) {
   const { theme } = useTheme()
   const previewContainerRef = useRef(null)
@@ -213,11 +244,25 @@ export default function MarkdownPreviewWithInspector({
     })
   }, [effectiveRulesTree])
 
-  // When properties change, serialize and call onCssChange
+  // When properties change, serialize by origin and call appropriate callbacks
   const applyChangesToSource = (updatedRules) => {
-    if (!onCssChange) return
-    const newCss = serializeRulesToCSS(updatedRules)
-    onCssChange(newCss)
+    const { html, css } = serializeRulesByOrigin(updatedRules)
+
+    // Update CSS tab if CSS rules changed
+    if (css && onCssChange) {
+      onCssChange(css)
+    }
+
+    // Update HTML if embedded CSS rules changed
+    if (html && onHtmlChange) {
+      onHtmlChange(html)
+    }
+
+    // Fallback: if generic source change callback provided
+    if (onSourceChange) {
+      if (html) onSourceChange({ source: 'html', newContent: html })
+      if (css) onSourceChange({ source: 'css', newContent: css })
+    }
   }
 
   // Handle closing inspector with animation
@@ -487,6 +532,7 @@ export default function MarkdownPreviewWithInspector({
   }
 
   // Extract available selectors from the actual rendered preview HTML/MD
+  // Also extracts selectors from embedded CSS in HTML <style> tags
   // Groups them by type (STRUCTURE, HEADINGS, TEXT, CODE) like the CSS tab does
   const getAvailableSelectors = () => {
     const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
@@ -502,6 +548,42 @@ export default function MarkdownPreviewWithInspector({
       text: new Set(),
       code: new Set(),
       other: new Set(),
+    }
+
+    // If HTML mode, extract selectors from embedded CSS first
+    if (isHtml && content) {
+      const embeddedCss = extractCssFromHtml(content)
+      if (embeddedCss) {
+        const cssSelectors = extractSelectorsFromCSS(embeddedCss)
+
+        // Merge embedded CSS selectors into our collections
+        if (cssSelectors.suggestions) {
+          // Add structure selectors
+          if (cssSelectors.suggestions.structure) {
+            cssSelectors.suggestions.structure.forEach(sel => {
+              selectors.structure.add(sel)
+            })
+          }
+          // Add heading selectors
+          if (cssSelectors.suggestions.headings) {
+            cssSelectors.suggestions.headings.forEach(sel => {
+              selectors.headings.add(sel)
+            })
+          }
+          // Add text selectors
+          if (cssSelectors.suggestions.text) {
+            cssSelectors.suggestions.text.forEach(sel => {
+              selectors.text.add(sel)
+            })
+          }
+          // Add code selectors
+          if (cssSelectors.suggestions.code) {
+            cssSelectors.suggestions.code.forEach(sel => {
+              selectors.code.add(sel)
+            })
+          }
+        }
+      }
     }
 
     // Helper to verify a selector actually matches elements in the DOM
@@ -908,9 +990,108 @@ export default function MarkdownPreviewWithInspector({
     // Use the universal preview class for scoping (works for both HTML and Markdown)
     const previewClass = '.pwt-preview'
 
-    // Always use original customCss and scope it
-    // The rulesTree is only for the inspector, not for the preview rendering
-    let css = customCss ? scopeCss(customCss, previewClass) : ''
+    // Build filtered rules tree by removing disabled properties
+    const getFilteredRulesTree = (rules) => {
+      if (!rules || rules.length === 0) return []
+
+      return rules.map(rule => {
+        if (rule.type === 'rule') {
+          // Filter out disabled properties
+          const filteredDeclarations = (rule.declarations || []).filter(decl => {
+            const disabledKey = `${rule.ruleIndex}-${decl.property}`
+            return !disabledProperties.has(disabledKey)
+          })
+
+          // Also add back any added properties that aren't disabled
+          const enhancedDeclarations = [...filteredDeclarations]
+          Object.entries(addedProperties).forEach(([key, value]) => {
+            // Key format: "ruleIndex::ADDED::propertyName"
+            const parts = key.split('::')
+            if (parts.length >= 3) {
+              const addedRuleIndex = parseInt(parts[0])
+              // propertyName is everything after "::ADDED::" (in case property name has ::)
+              const propertyName = parts.slice(2).join('::')
+
+              if (addedRuleIndex === rule.ruleIndex) {
+                // Check if this added property is disabled
+                const disabledKey = `${rule.ruleIndex}::ADDED::${propertyName}`
+                if (!disabledProperties.has(disabledKey)) {
+                  enhancedDeclarations.push({ property: propertyName, value, loc: {} })
+                }
+              }
+            }
+          })
+
+          return {
+            ...rule,
+            declarations: enhancedDeclarations,
+          }
+        } else if (rule.type === 'atrule' && rule.children) {
+          // Recursively filter children of at-rules
+          return {
+            ...rule,
+            children: getFilteredRulesTree(rule.children),
+          }
+        }
+        return rule
+      }).filter(rule => {
+        // Remove rules with no declarations (after filtering)
+        if (rule.type === 'rule' && (!rule.declarations || rule.declarations.length === 0)) {
+          return false
+        }
+        return true
+      })
+    }
+
+    // Serialize filtered rules back to CSS text
+    const serializeRulesToCss = (rules) => {
+      if (!rules || rules.length === 0) return ''
+
+      const cssLines = []
+
+      const processRule = (rule, indent = '') => {
+        if (rule.type === 'rule') {
+          cssLines.push(`${indent}${rule.selector} {`)
+          if (rule.declarations && rule.declarations.length > 0) {
+            rule.declarations.forEach(decl => {
+              cssLines.push(`${indent}  ${decl.property}: ${decl.value};`)
+            })
+          }
+          cssLines.push(`${indent}}`)
+        } else if (rule.type === 'atrule') {
+          const params = rule.atRule?.params || ''
+          cssLines.push(`${indent}@${rule.atRule?.name || ''} ${params} {`)
+          if (rule.children && rule.children.length > 0) {
+            rule.children.forEach(child => {
+              processRule(child, indent + '  ')
+            })
+          }
+          cssLines.push(`${indent}}`)
+        }
+      }
+
+      rules.forEach(rule => {
+        processRule(rule)
+        cssLines.push('')
+      })
+
+      return cssLines.join('\n').trim()
+    }
+
+    let css = ''
+
+    // Filter the rules tree to remove disabled properties
+    const filteredRulesTree = getFilteredRulesTree(effectiveRulesTree)
+
+    // Serialize the filtered rules back to CSS
+    if (filteredRulesTree.length > 0) {
+      css = serializeRulesToCss(filteredRulesTree)
+    }
+
+    // Scope the merged CSS
+    if (css) {
+      css = scopeCss(css, previewClass)
+    }
 
     // Transform CSS to duplicate :hover/:focus/:active rules with attribute selectors
     // This allows user's existing :hover styles to work with forced states
@@ -928,6 +1109,9 @@ export default function MarkdownPreviewWithInspector({
     if (forcedStates.focus) dataAttrs['data-force-focus'] = 'true'
     if (forcedStates.active) dataAttrs['data-force-active'] = 'true'
 
+    // For HTML mode, remove <style> tags from content (CSS is extracted and merged above)
+    const contentToRender = isHtml ? removeStyleTagsFromHtml(content) : content
+
     return (
       <div
         ref={isFullscreen ? undefined : previewContainerRef}
@@ -942,7 +1126,7 @@ export default function MarkdownPreviewWithInspector({
       >
         {isHtml ? (
           <HTMLRenderer
-            html={content}
+            html={contentToRender}
             customCss={previewCss}
           />
         ) : (

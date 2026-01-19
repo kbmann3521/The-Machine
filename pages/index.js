@@ -121,6 +121,9 @@ export default function Home(props) {
   const abortControllerRef = useRef(null)
   const abortTimeoutRef = useRef(null)
   const previousSidebarStateRef = useRef(null) // Track sidebar state when entering fullscreen
+  const [dividerLeftRatio, setDividerLeftRatio] = useState(50) // Track left panel width as percentage
+  const isDraggingRef = useRef(false)
+  const dividerContainerRef = useRef(null)
 
   // Cleanup function for pending timers and requests
   const cleanupPendingRequests = useCallback(() => {
@@ -150,6 +153,36 @@ export default function Home(props) {
       }
     }
   }, [])
+
+  // Handle divider drag move
+  const handleDividerMouseMove = useCallback((e) => {
+    if (!dividerContainerRef.current) return
+
+    const container = dividerContainerRef.current
+    const containerRect = container.getBoundingClientRect()
+    const newLeftRatio = ((e.clientX - containerRect.left) / containerRect.width) * 100
+
+    // Constrain the ratio to reasonable bounds (15% to 85%)
+    const constrainedRatio = Math.max(15, Math.min(85, newLeftRatio))
+    setDividerLeftRatio(constrainedRatio)
+  }, [])
+
+  // Handle divider drag end
+  const handleDividerMouseUp = useCallback(() => {
+    document.body.style.userSelect = ''
+    document.body.style.cursor = ''
+    document.removeEventListener('mousemove', handleDividerMouseMove)
+    document.removeEventListener('mouseup', handleDividerMouseUp)
+  }, [handleDividerMouseMove])
+
+  // Handle divider drag start
+  const handleDividerMouseDown = useCallback(() => {
+    isDraggingRef.current = true
+    document.body.style.userSelect = 'none'
+    document.body.style.cursor = 'col-resize'
+    document.addEventListener('mousemove', handleDividerMouseMove)
+    document.addEventListener('mouseup', handleDividerMouseUp)
+  }, [handleDividerMouseMove, handleDividerMouseUp])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -918,7 +951,13 @@ export default function Home(props) {
 
           <main className={styles.mainContent}>
             <div className={styles.content}>
-          <div className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}>
+          <div
+            className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}
+            ref={dividerContainerRef}
+            style={!isPreviewFullscreen ? {
+              gridTemplateColumns: `${dividerLeftRatio}% auto 1fr`
+            } : undefined}
+          >
             <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
               <InputTabs
                 selectedTool={selectedTool}
@@ -1047,6 +1086,12 @@ export default function Home(props) {
                 }
               />
             </div>
+
+            <div
+              className={styles.divider}
+              onMouseDown={handleDividerMouseDown}
+              title="Drag to resize panels"
+            />
 
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>

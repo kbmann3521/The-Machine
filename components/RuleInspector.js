@@ -19,6 +19,32 @@ function extractUnitPart(valueStr) {
 }
 
 /**
+ * Helper to get origin label for a rule
+ * Returns formatted string like "HTML <style>" or "CSS tab"
+ */
+function getOriginLabel(rule) {
+  if (!rule?.origin) return 'CSS'
+  const source = rule.origin.source
+
+  if (source === 'html') {
+    return 'HTML <style>'
+  } else if (source === 'css') {
+    return 'CSS tab'
+  }
+  return 'CSS'
+}
+
+/**
+ * Helper to get cascade status label
+ * Returns "(effective)" or "(overridden)" with origin info
+ */
+function getCascadeStatusLabel(rule, isOverridden) {
+  const origin = getOriginLabel(rule)
+  const status = isOverridden ? 'overridden' : 'effective'
+  return `${origin} • ${status}`
+}
+
+/**
  * AutocompleteInput Component
  * Provides a text input with dropdown suggestions and keyboard navigation
  */
@@ -325,13 +351,16 @@ export default function RuleInspector({
     if (!selectedRuleKey || !affectingRules.length) return
 
     // Find the currently selected rule in the updated affectingRules array
-    // The selectedRuleKey format is "{ruleIndex}-{type}"
-    const [ruleIndexStr, ruleType] = selectedRuleKey.split('-')
+    // The selectedRuleKey format is "{ruleIndex}::{type}::{origin}"
+    const [ruleIndexStr, ruleType, origin] = selectedRuleKey.split('::')
     const ruleIndex = parseInt(ruleIndexStr)
 
-    // Search for the matching rule by ruleIndex and type
+    // Search for the matching rule by ruleIndex, type, and origin
     const updatedRule = affectingRules.find(
-      rule => rule.ruleIndex === ruleIndex && rule.type === ruleType
+      rule => {
+        const ruleOrigin = rule.origin?.source || 'css'
+        return rule.ruleIndex === ruleIndex && rule.type === ruleType && ruleOrigin === origin
+      }
     )
 
     // If found, update the selectedRule state with the fresh rule data
@@ -386,10 +415,23 @@ export default function RuleInspector({
   }
 
   const getSpecificityLabel = (score) => {
-    // CSS specificity is typically (a, b, c) where:
-    // a = ID selectors, b = class selectors, c = element selectors
-    // For simplicity, we show the total score
-    return `(${score})`
+    // CSS specificity breakdown: (IDs × 100) + (classes × 10) + (elements × 1)
+    // Reverse-engineer the components from the score
+    if (score === 0) return '(universal)'
+
+    const idCount = Math.floor(score / 100)
+    const classCount = Math.floor((score % 100) / 10)
+    const elementCount = score % 10
+
+    const parts = []
+    if (idCount > 0) parts.push(`${idCount} ID${idCount !== 1 ? 's' : ''}`)
+    if (classCount > 0) parts.push(`${classCount} class${classCount !== 1 ? 'es' : ''}`)
+    if (elementCount > 0) parts.push(`${elementCount} element${elementCount !== 1 ? 's' : ''}`)
+
+    // If no parts (shouldn't happen), show the score
+    if (parts.length === 0) return `(${score})`
+
+    return `(${parts.join(' + ')})`
   }
 
   const getRuleTypeLabel = (rule) => {
@@ -884,7 +926,9 @@ export default function RuleInspector({
 
       <div className={styles.rulesList}>
         {affectingRules.map((rule, idx) => {
-          const ruleKey = `${rule.ruleIndex}-${rule.type}`
+          // Include origin in ruleKey to distinguish rules with same selector from different sources
+          const origin = rule.origin?.source || 'css'
+          const ruleKey = `${rule.ruleIndex}::${rule.type}::${origin}`
           const isExpanded = expandedRules[ruleKey]
 
           return (
@@ -905,7 +949,7 @@ export default function RuleInspector({
                       onHighlightSelector(rule.selector)
                     }
                   }}
-                  title={`Click to ${isExpanded ? 'collapse' : 'expand'}`}
+                  title={`Specificity: ${getSpecificityLabel(rule.specificity)}${rule.loc ? ` • Line ${rule.loc.startLine}` : ''}`}
                 >
                   <span className={styles.ruleChevron}>
                     {isExpanded ? '▼' : '▶'}
@@ -913,17 +957,12 @@ export default function RuleInspector({
                   <span className={styles.ruleLabel}>
                     {getRuleTypeLabel(rule)}
                   </span>
+                  <span className={styles.ruleOrigin} title={`Origin: ${getOriginLabel(rule)}`}>
+                    {rule.origin?.source === 'html' ? '📄' : '✏️'}
+                  </span>
                   {isDuplicateSelector(rule.selector) && (
                     <span className={styles.duplicateIndicator} title="This selector is defined multiple times and can be merged">
                       🧩 ×{getDuplicateCount(rule.selector)}
-                    </span>
-                  )}
-                  <span className={styles.specificity}>
-                    {getSpecificityLabel(rule.specificity)}
-                  </span>
-                  {rule.loc && (
-                    <span className={styles.lineNumber}>
-                      Line {rule.loc.startLine}
                     </span>
                   )}
                 </button>
@@ -973,7 +1012,7 @@ export default function RuleInspector({
                         return (
                           <div
                             key={declIdx}
-                            className={`${styles.declaration} ${styles[impactClass]}`}
+                            className={`${styles.declaration} ${styles[impactClass]} ${isOverridden ? styles.propertyOverridden : ''}`}
                           >
                             {onTogglePropertyDisabled && (
                               <button
@@ -1127,7 +1166,7 @@ export default function RuleInspector({
                         return (
                           <div
                             key={key}
-                            className={`${styles.declaration} ${styles[impactClass]} ${styles.addedProperty}`}
+                            className={`${styles.declaration} ${styles[impactClass]} ${styles.addedProperty} ${isOverridden ? styles.propertyOverridden : ''}`}
                           >
                             {onTogglePropertyDisabled && (
                               <button
