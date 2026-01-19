@@ -124,6 +124,7 @@ export default function Home(props) {
   const [dividerLeftRatio, setDividerLeftRatio] = useState(50) // Track left panel width as percentage
   const isDraggingRef = useRef(false)
   const dividerContainerRef = useRef(null)
+  const [isDesktop, setIsDesktop] = useState(true)
 
   // Cleanup function for pending timers and requests
   const cleanupPendingRequests = useCallback(() => {
@@ -183,6 +184,19 @@ export default function Home(props) {
     document.addEventListener('mousemove', handleDividerMouseMove)
     document.addEventListener('mouseup', handleDividerMouseUp)
   }, [handleDividerMouseMove, handleDividerMouseUp])
+
+  // Track desktop/mobile breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth > 1024)
+    }
+
+    // Set initial value
+    handleResize()
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -954,7 +968,7 @@ export default function Home(props) {
           <div
             className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}
             ref={dividerContainerRef}
-            style={!isPreviewFullscreen ? {
+            style={!isPreviewFullscreen && isDesktop ? {
               gridTemplateColumns: `${dividerLeftRatio}% auto 1fr`
             } : undefined}
           >
