@@ -958,7 +958,7 @@ export default function RuleInspector({
                     {getRuleTypeLabel(rule)}
                   </span>
                   <span className={styles.ruleOrigin} title={`Origin: ${getOriginLabel(rule)}`}>
-                    {rule.origin?.source === 'html' ? '📄' : '✏️'}
+                    {getOriginLabel(rule)}
                   </span>
                   {isDuplicateSelector(rule.selector) && (
                     <span className={styles.duplicateIndicator} title="This selector is defined multiple times and can be merged">

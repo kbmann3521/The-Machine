@@ -173,6 +173,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     onInputUpdate(updatedHtml)
   }
 
+  const handleSourceChange = ({ source, newContent }) => {
+    if (!onInputUpdate) return
+    onInputUpdate(newContent)
+  }
+
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
     if (!errors || errors.length === 0) return null
 
@@ -2535,6 +2540,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 onToggleFullscreen={onTogglePreviewFullscreen}
                 onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
                 onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
               />
             ),
             contentType: 'component',
@@ -2599,6 +2605,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 onToggleFullscreen={onTogglePreviewFullscreen}
                 onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
                 onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
               />
             ),
             contentType: 'component',
@@ -3155,6 +3162,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             onToggleFullscreen={onTogglePreviewFullscreen}
             onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
             onHtmlChange={handleEmbeddedCssChange}
+            onSourceChange={handleSourceChange}
           />
         ),
         contentType: 'component',

@@ -1108,12 +1108,12 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             }
 
             // Fallback: render all fields in a single grid (original behavior)
-            // For markdown-html-formatter, render both HTML/MD and CSS options side by side
+            // For markdown-html-formatter, render ONLY the options for the active tab mode
             if (tool.toolId === 'markdown-html-formatter' && cssSchema.length > 0) {
-              return (
-                <div>
-                  {/* HTML/Markdown Options Section */}
-                  <div style={{ marginBottom: '24px' }}>
+              // Only show HTML/Markdown options when INPUT tab is active
+              if (markdownInputMode === 'input') {
+                return (
+                  <div>
                     <div style={{
                       fontSize: '12px',
                       fontWeight: '700',
@@ -1152,8 +1152,12 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                       })}
                     </div>
                   </div>
+                )
+              }
 
-                  {/* CSS Options Section */}
+              // Only show CSS options when CSS tab is active
+              if (markdownInputMode === 'css') {
+                return (
                   <div>
                     <div style={{
                       fontSize: '12px',
@@ -1224,8 +1228,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                       </div>
                     </div>
                   </div>
-                </div>
-              )
+                )
+              }
             }
 
             return (

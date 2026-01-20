@@ -169,7 +169,20 @@ export default function MarkdownPreviewWithInspector({
     active: false,
   })
   const [showControls, setShowControls] = useState(false)
+  const [isClosingControls, setIsClosingControls] = useState(false)
   const [showFullscreenSettings, setShowFullscreenSettings] = useState(false)
+  const [isClosingFullscreenSettings, setIsClosingFullscreenSettings] = useState(false)
+  const [showFullscreenInputPanel, setShowFullscreenInputPanel] = useState(false)
+  const [isClosingInputPanel, setIsClosingInputPanel] = useState(false)
+  const [inputPanelDividerRatio, setInputPanelDividerRatio] = useState(50) // 50/50 split
+  const [inputPanelContent, setInputPanelContent] = useState(content)
+  const [inputPanelCss, setInputPanelCss] = useState(customCss)
+  const [inputPanelWidth, setInputPanelWidth] = useState(480) // Width in pixels
+  const inputPanelDividerRef = useRef(null)
+  const isDraggingInputDividerRef = useRef(false)
+  const isDraggingInputPanelEdgeRef = useRef(false)
+  const inputPanelEdgeRef = useRef(null)
+  const inputPanelEdgeHandleRef = useRef(null)
 
   // Inspector state
   const [showInspector, setShowInspector] = useState(false)
@@ -184,6 +197,8 @@ export default function MarkdownPreviewWithInspector({
   const [highlightedSelector, setHighlightedSelector] = useState(null)
   const highlightStyleRef = useRef(null)
   const closeInspectorTimeoutRef = useRef(null)
+  const closeInputPanelTimeoutRef = useRef(null)
+  const wasInspectorOpenWhenEnteringFullscreenRef = useRef(false)
   const [containerWidth, setContainerWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
 
   // Use local rules tree if available (after modifications), otherwise use prop
@@ -277,14 +292,130 @@ export default function MarkdownPreviewWithInspector({
     }, 300) // Match animation duration
   }
 
+  const handleCloseInputPanel = () => {
+    setIsClosingInputPanel(true)
+    if (closeInputPanelTimeoutRef.current) {
+      clearTimeout(closeInputPanelTimeoutRef.current)
+    }
+    closeInputPanelTimeoutRef.current = setTimeout(() => {
+      setShowFullscreenInputPanel(false)
+      setIsClosingInputPanel(false)
+    }, 300) // Match animation duration
+  }
+
+  const handleInputPanelDividerMouseDown = () => {
+    isDraggingInputDividerRef.current = true
+  }
+
+  const handleInputPanelEdgeMouseDown = () => {
+    isDraggingInputPanelEdgeRef.current = true
+  }
+
+  React.useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDraggingInputDividerRef.current || !inputPanelDividerRef.current) return
+
+      const container = inputPanelDividerRef.current.parentElement
+      if (!container) return
+
+      const containerHeight = container.clientHeight
+      const relativeY = e.clientY - container.getBoundingClientRect().top
+      const newRatio = Math.max(20, Math.min(80, (relativeY / containerHeight) * 100))
+      setInputPanelDividerRatio(newRatio)
+    }
+
+    const handleMouseUp = () => {
+      isDraggingInputDividerRef.current = false
+      // Re-enable text selection
+      document.body.style.userSelect = 'auto'
+      // Reset divider style
+      if (inputPanelDividerRef.current) {
+        inputPanelDividerRef.current.style.backgroundColor = 'var(--color-border, #ddd)'
+      }
+    }
+
+    const handleMouseDown = (e) => {
+      if (isDraggingInputDividerRef.current) {
+        // Disable text selection while dragging
+        document.body.style.userSelect = 'none'
+      }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('mousedown', handleMouseDown)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mousedown', handleMouseDown)
+      // Clean up in case component unmounts while dragging
+      document.body.style.userSelect = 'auto'
+    }
+  }, [])
+
+  React.useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDraggingInputPanelEdgeRef.current || !inputPanelEdgeRef.current) return
+
+      const fullscreenContainer = inputPanelEdgeRef.current.parentElement
+      if (!fullscreenContainer) return
+
+      const containerWidth = fullscreenContainer.clientWidth
+      const relativeX = containerWidth - (e.clientX - fullscreenContainer.getBoundingClientRect().left)
+      const newWidth = Math.max(200, Math.min(800, relativeX))
+      setInputPanelWidth(newWidth)
+    }
+
+    const handleMouseUp = () => {
+      isDraggingInputPanelEdgeRef.current = false
+      // Re-enable text selection
+      document.body.style.userSelect = 'auto'
+      // Reset edge handle style
+      if (inputPanelEdgeHandleRef.current) {
+        inputPanelEdgeHandleRef.current.style.backgroundColor = 'transparent'
+      }
+    }
+
+    const handleMouseDown = (e) => {
+      if (isDraggingInputPanelEdgeRef.current) {
+        // Disable text selection while dragging
+        document.body.style.userSelect = 'none'
+      }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('mousedown', handleMouseDown)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mousedown', handleMouseDown)
+      // Clean up in case component unmounts while dragging
+      document.body.style.userSelect = 'auto'
+    }
+  }, [])
+
   // Cleanup timeout on unmount
   React.useEffect(() => {
     return () => {
       if (closeInspectorTimeoutRef.current) {
         clearTimeout(closeInspectorTimeoutRef.current)
       }
+      if (closeInputPanelTimeoutRef.current) {
+        clearTimeout(closeInputPanelTimeoutRef.current)
+      }
     }
   }, [])
+
+  // Sync local input panel content with parent content prop (for external updates only)
+  React.useEffect(() => {
+    setInputPanelContent(content)
+  }, [content])
+
+  // Sync local input panel CSS with parent customCss prop (for external updates only)
+  React.useEffect(() => {
+    setInputPanelCss(customCss)
+  }, [customCss])
 
   // Track container width for responsive inspector panel sizing
   React.useEffect(() => {
@@ -294,6 +425,23 @@ export default function MarkdownPreviewWithInspector({
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Track inspector state continuously in non-fullscreen mode
+  React.useEffect(() => {
+    if (!isFullscreen) {
+      wasInspectorOpenWhenEnteringFullscreenRef.current = showInspector
+    }
+  }, [showInspector, isFullscreen])
+
+  // When entering fullscreen, open edit code panel only if inspector was not open
+  React.useEffect(() => {
+    if (isFullscreen) {
+      // Only open Edit Code panel if Inspector was NOT open when entering fullscreen
+      if (!wasInspectorOpenWhenEnteringFullscreenRef.current) {
+        setShowFullscreenInputPanel(true)
+      }
+    }
+  }, [isFullscreen])
 
   // ESC to exit fullscreen
   React.useEffect(() => {
@@ -308,6 +456,38 @@ export default function MarkdownPreviewWithInspector({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isFullscreen, onToggleFullscreen])
+
+  // Close controls dropdown when clicking outside
+  React.useEffect(() => {
+    if (!showControls) return
+
+    const handleClickOutside = (e) => {
+      // Don't close if clicking on the settings button or inside the dropdown
+      if (e.target.closest('[data-preview-settings]')) return
+      setIsClosingControls(true)
+      setTimeout(() => {
+        setShowControls(false)
+        setIsClosingControls(false)
+      }, 150)
+    }
+
+    window.addEventListener('mousedown', handleClickOutside)
+    return () => window.removeEventListener('mousedown', handleClickOutside)
+  }, [showControls])
+
+  // Close fullscreen settings dropdown when clicking outside
+  React.useEffect(() => {
+    if (!showFullscreenSettings) return
+
+    const handleClickOutside = (e) => {
+      // Don't close if clicking on the settings button or inside the dropdown
+      if (e.target.closest('[data-fullscreen-settings]')) return
+      handleCloseFullscreenSettings()
+    }
+
+    window.addEventListener('mousedown', handleClickOutside)
+    return () => window.removeEventListener('mousedown', handleClickOutside)
+  }, [showFullscreenSettings])
 
   // Helper: check if property is overridden by later rule
   const isPropertyOverriddenByLaterRule = (ruleIndex, selector, property) => {
@@ -898,14 +1078,165 @@ export default function MarkdownPreviewWithInspector({
     }
   }
 
+  const handleCloseControls = () => {
+    setIsClosingControls(true)
+    const timeoutId = setTimeout(() => {
+      setShowControls(false)
+      setIsClosingControls(false)
+    }, 150) // Match animation duration
+    return timeoutId
+  }
+
+  const handleCloseFullscreenSettings = () => {
+    setIsClosingFullscreenSettings(true)
+    setTimeout(() => {
+      setShowFullscreenSettings(false)
+      setIsClosingFullscreenSettings(false)
+    }, 150) // Match animation duration
+  }
+
   const renderPreviewSettings = () => (
     <div className={styles.previewControlsHeader}>
-      <button
-        className={styles.controlsToggleBtn}
-        onClick={() => setShowControls(!showControls)}
-      >
-        {showControls ? '▼ Preview Settings' : '▶ Preview Settings'}
-      </button>
+      <div style={{ position: 'relative' }} data-preview-settings>
+        <button
+          className={styles.controlsToggleBtn}
+          onClick={() => {
+            if (showControls) {
+              handleCloseControls()
+            } else {
+              setShowControls(true)
+            }
+          }}
+        >
+          ⚙ Settings
+        </button>
+        {(showControls || isClosingControls) && (
+          <>
+            <style>{`
+              @keyframes fadeInControls {
+                from {
+                  opacity: 0;
+                }
+                to {
+                  opacity: 1;
+                }
+              }
+              @keyframes fadeOutControls {
+                from {
+                  opacity: 1;
+                }
+                to {
+                  opacity: 0;
+                }
+              }
+            `}</style>
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                marginTop: '8px',
+                backgroundColor: theme === 'dark' ? '#2a2a2a' : 'var(--color-background-primary, #fff)',
+                border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
+                borderRadius: '4px',
+                padding: '12px',
+                minWidth: '280px',
+                boxShadow: theme === 'dark' ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.15)',
+                zIndex: 1000,
+                animation: isClosingControls ? 'fadeOutControls 0.15s ease-in forwards' : 'fadeInControls 0.15s ease-out forwards',
+              }}
+            >
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                  Viewport Width: {viewportWidth}px
+                </label>
+                <input
+                  type="range"
+                  min="320"
+                  max="1920"
+                  step="50"
+                  value={viewportWidth}
+                  onChange={(e) => setViewportWidth(parseInt(e.target.value))}
+                  style={{ width: '100%', marginBottom: '8px' }}
+                />
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {[320, 768, 1024].map(width => (
+                    <button
+                      key={width}
+                      onClick={() => setViewportWidth(width)}
+                      style={{
+                        flex: 1,
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        borderRadius: '2px',
+                        border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                        backgroundColor: viewportWidth === width ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(0, 102, 204, 0.2)') : (theme === 'dark' ? 'transparent' : 'transparent'),
+                        color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                        fontWeight: '600',
+                      }}
+                    >
+                      {width === 320 ? 'Mobile' : width === 768 ? 'Tablet' : 'Desktop'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                  Force Pseudo-States:
+                </label>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {['hover', 'focus', 'active'].map(state => (
+                    <button
+                      key={state}
+                      onClick={() => setForcedStates(prev => ({ ...prev, [state]: !prev[state] }))}
+                      style={{
+                        flex: 1,
+                        padding: '4px 8px',
+                        fontSize: '10px',
+                        cursor: 'pointer',
+                        borderRadius: '2px',
+                        border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                        backgroundColor: forcedStates[state] ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(33, 150, 243, 0.2)') : 'transparent',
+                        color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                        fontWeight: '600',
+                      }}
+                    >
+                      :{state}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setViewportWidth(1024)
+                  setForcedStates({ hover: false, focus: false, active: false })
+                  setIsClosingControls(true)
+                  setTimeout(() => {
+                    setShowControls(false)
+                    setIsClosingControls(false)
+                  }, 150)
+                }}
+                style={{
+                  width: '100%',
+                  padding: '6px 10px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  borderRadius: '3px',
+                  border: 'none',
+                  backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                  color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                }}
+              >
+                Reset Preview
+              </button>
+            </div>
+          </>
+        )}
+      </div>
       <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
         {effectiveRulesTree.length > 0 && (
           <button
@@ -913,7 +1244,7 @@ export default function MarkdownPreviewWithInspector({
             onClick={() => showInspector ? handleCloseInspector() : setShowInspector(true)}
             style={{ backgroundColor: showInspector ? 'rgba(33, 150, 243, 0.2)' : 'transparent' }}
           >
-            🔍 Inspector
+            Inspector
           </button>
         )}
         <button
@@ -1190,9 +1521,15 @@ export default function MarkdownPreviewWithInspector({
             borderBottom: '1px solid var(--color-border, #ddd)',
           }}
         >
-          <div style={{ position: 'relative', paddingLeft: '12px' }}>
+          <div style={{ position: 'relative', paddingLeft: '12px' }} data-fullscreen-settings>
             <button
-              onClick={() => setShowFullscreenSettings(!showFullscreenSettings)}
+              onClick={() => {
+                if (showFullscreenSettings) {
+                  handleCloseFullscreenSettings()
+                } else {
+                  setShowFullscreenSettings(true)
+                }
+              }}
               style={{
                 padding: '6px 12px',
                 backgroundColor: 'transparent',
@@ -1206,111 +1543,154 @@ export default function MarkdownPreviewWithInspector({
             >
               ⚙ Settings
             </button>
-            {showFullscreenSettings && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  marginTop: '8px',
-                  backgroundColor: theme === 'dark' ? '#2a2a2a' : 'var(--color-background-primary, #fff)',
-                  border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
-                  borderRadius: '4px',
-                  padding: '12px',
-                  minWidth: '280px',
-                  boxShadow: theme === 'dark' ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.15)',
-                  zIndex: 1000,
-                }}
-              >
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
-                    Viewport Width: {viewportWidth}px
-                  </label>
-                  <input
-                    type="range"
-                    min="320"
-                    max="1920"
-                    step="50"
-                    value={viewportWidth}
-                    onChange={(e) => setViewportWidth(parseInt(e.target.value))}
-                    style={{ width: '100%', marginBottom: '8px' }}
-                  />
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {[320, 768, 1024].map(width => (
-                      <button
-                        key={width}
-                        onClick={() => setViewportWidth(width)}
-                        style={{
-                          flex: 1,
-                          padding: '4px 8px',
-                          fontSize: '11px',
-                          cursor: 'pointer',
-                          borderRadius: '2px',
-                          border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
-                          backgroundColor: viewportWidth === width ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(0, 102, 204, 0.2)') : (theme === 'dark' ? 'transparent' : 'transparent'),
-                          color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
-                          fontWeight: '600',
-                        }}
-                      >
-                        {width === 320 ? 'Mobile' : width === 768 ? 'Tablet' : 'Desktop'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
-                    Force Pseudo-States:
-                  </label>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {['hover', 'focus', 'active'].map(state => (
-                      <button
-                        key={state}
-                        onClick={() => setForcedStates(prev => ({ ...prev, [state]: !prev[state] }))}
-                        style={{
-                          flex: 1,
-                          padding: '4px 8px',
-                          fontSize: '10px',
-                          cursor: 'pointer',
-                          borderRadius: '2px',
-                          border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
-                          backgroundColor: forcedStates[state] ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(33, 150, 243, 0.2)') : 'transparent',
-                          color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
-                          fontWeight: '600',
-                        }}
-                      >
-                        :{state}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setViewportWidth(1024)
-                    setForcedStates({ hover: false, focus: false, active: false })
-                  }}
+            {(showFullscreenSettings || isClosingFullscreenSettings) && (
+              <>
+                <style>{`
+                  @keyframes fadeInSettings {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                  }
+                  @keyframes fadeOutSettings {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                  }
+                `}</style>
+                <div
                   style={{
-                    width: '100%',
-                    padding: '6px 10px',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    borderRadius: '3px',
-                    border: 'none',
-                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                    color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    marginTop: '8px',
+                    backgroundColor: theme === 'dark' ? '#2a2a2a' : 'var(--color-background-primary, #fff)',
+                    border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
+                    borderRadius: '4px',
+                    padding: '12px',
+                    minWidth: '280px',
+                    boxShadow: theme === 'dark' ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.15)',
+                    zIndex: 1000,
+                    animation: isClosingFullscreenSettings ? 'fadeOutSettings 0.15s ease-in forwards' : 'fadeInSettings 0.15s ease-out forwards',
                   }}
                 >
-                  Reset Preview
-                </button>
-              </div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                      Viewport Width: {viewportWidth}px
+                    </label>
+                    <input
+                      type="range"
+                      min="320"
+                      max="1920"
+                      step="50"
+                      value={viewportWidth}
+                      onChange={(e) => setViewportWidth(parseInt(e.target.value))}
+                      style={{ width: '100%', marginBottom: '8px' }}
+                    />
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {[320, 768, 1024].map(width => (
+                        <button
+                          key={width}
+                          onClick={() => setViewportWidth(width)}
+                          style={{
+                            flex: 1,
+                            padding: '4px 8px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            borderRadius: '2px',
+                            border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                            backgroundColor: viewportWidth === width ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(0, 102, 204, 0.2)') : (theme === 'dark' ? 'transparent' : 'transparent'),
+                            color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                            fontWeight: '600',
+                          }}
+                        >
+                          {width === 320 ? 'Mobile' : width === 768 ? 'Tablet' : 'Desktop'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: '600', color: theme === 'dark' ? '#aaa' : 'var(--color-text-secondary, #666)', display: 'block', marginBottom: '6px' }}>
+                      Force Pseudo-States:
+                    </label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {['hover', 'focus', 'active'].map(state => (
+                        <button
+                          key={state}
+                          onClick={() => setForcedStates(prev => ({ ...prev, [state]: !prev[state] }))}
+                          style={{
+                            flex: 1,
+                            padding: '4px 8px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            borderRadius: '2px',
+                            border: `1px solid ${theme === 'dark' ? '#555' : 'var(--color-border, #ddd)'}`,
+                            backgroundColor: forcedStates[state] ? (theme === 'dark' ? 'rgba(33, 150, 243, 0.4)' : 'rgba(33, 150, 243, 0.2)') : 'transparent',
+                            color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                            fontWeight: '600',
+                          }}
+                        >
+                          :{state}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setViewportWidth(1024)
+                      setForcedStates({ hover: false, focus: false, active: false })
+                      handleCloseFullscreenSettings()
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      borderRadius: '3px',
+                      border: 'none',
+                      backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                      color: theme === 'dark' ? '#fff' : 'var(--color-text-primary, #000)',
+                    }}
+                  >
+                    Reset Preview
+                  </button>
+                </div>
+              </>
             )}
           </div>
           <div style={{ display: 'flex', gap: '8px', paddingRight: '12px' }}>
+            <button
+              onClick={() => {
+                if (showFullscreenInputPanel) {
+                  handleCloseInputPanel()
+                } else {
+                  setShowFullscreenInputPanel(true)
+                  if (showInspector) handleCloseInspector()
+                }
+              }}
+              style={{
+                padding: '6px 10px',
+                backgroundColor: showFullscreenInputPanel ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
+                border: '1px solid var(--color-border, #ddd)',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                color: 'var(--color-text-primary, #000)',
+              }}
+            >
+              Edit Code
+            </button>
             {effectiveRulesTree.length > 0 && (
               <button
-                onClick={() => showInspector ? handleCloseInspector() : setShowInspector(true)}
+                onClick={() => {
+                  if (showInspector) {
+                    handleCloseInspector()
+                  } else {
+                    setShowInspector(true)
+                    if (showFullscreenInputPanel) handleCloseInputPanel()
+                  }
+                }}
                 style={{
                   padding: '6px 10px',
                   backgroundColor: showInspector ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
@@ -1322,7 +1702,7 @@ export default function MarkdownPreviewWithInspector({
                   color: 'var(--color-text-primary, #000)',
                 }}
               >
-                🔍 Inspector
+                Inspector
               </button>
             )}
             <button
@@ -1440,6 +1820,176 @@ export default function MarkdownPreviewWithInspector({
             </div>
           </>
         )}
+
+        {/* Fullscreen Input Panel */}
+        {(showFullscreenInputPanel || isClosingInputPanel) && (
+          <>
+            <style>{`
+              @keyframes slideInRightInput {
+                from {
+                  right: ${containerWidth < 640 ? '-100%' : `-${inputPanelWidth}px`};
+                  opacity: 0;
+                }
+                to {
+                  right: 0;
+                  opacity: 1;
+                }
+              }
+              @keyframes slideOutRightInput {
+                from {
+                  right: 0;
+                  opacity: 1;
+                }
+                to {
+                  right: ${containerWidth < 640 ? '-100%' : `-${inputPanelWidth}px`};
+                  opacity: 0;
+                }
+              }
+              .input-panel-textarea::-webkit-scrollbar {
+                width: 6px;
+              }
+              .input-panel-textarea::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .input-panel-textarea::-webkit-scrollbar-thumb {
+                background-color: var(--scrollbar-thumb, #ccc);
+                border-radius: 3px;
+              }
+              .input-panel-textarea::-webkit-scrollbar-thumb:hover {
+                background-color: var(--scrollbar-thumb-hover, #999);
+              }
+            `}</style>
+            <div
+              ref={inputPanelEdgeRef}
+              style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                width: containerWidth < 640 ? '100%' : `${inputPanelWidth}px`,
+                right: isClosingInputPanel ? (containerWidth < 640 ? '-100%' : `-${inputPanelWidth}px`) : 0,
+                borderLeft: '1px solid var(--color-border, #ddd)',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: 'var(--color-background-secondary, #f5f5f5)',
+                overflow: 'hidden',
+                animation: isClosingInputPanel ? 'slideOutRightInput 0.3s ease-in forwards' : 'slideInRightInput 0.3s ease-out forwards',
+                zIndex: 100,
+              }}
+            >
+              {/* Left Edge Draggable Handle */}
+              {containerWidth >= 640 && (
+                <div
+                  ref={inputPanelEdgeHandleRef}
+                  onMouseDown={handleInputPanelEdgeMouseDown}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '6px',
+                    cursor: 'col-resize',
+                    backgroundColor: 'transparent',
+                    zIndex: 10,
+                    transition: 'background-color 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isDraggingInputPanelEdgeRef.current) {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }
+                  }}
+                />
+              )}
+              {/* HTML/MD Input Section */}
+              <div style={{ flex: `${inputPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderBottom: '1px solid var(--color-border, #ddd)' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
+                  HTML / Markdown
+                </div>
+                <textarea
+                  className="input-panel-textarea"
+                  value={inputPanelContent}
+                  onChange={(e) => {
+                    setInputPanelContent(e.target.value)
+                    onSourceChange?.({ source: isHtml ? 'html' : 'markdown', newContent: e.target.value })
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    border: 'none',
+                    borderRadius: '0',
+                    fontFamily: '"Monaco", "Courier New", monospace',
+                    fontSize: '11px',
+                    lineHeight: '1.5',
+                    backgroundColor: 'var(--color-background-primary, #fff)',
+                    color: 'var(--color-text-primary, #000)',
+                    resize: 'none',
+                    overflow: 'auto',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'var(--scrollbar-thumb, #ccc) transparent',
+                  }}
+                />
+              </div>
+
+              {/* Draggable Divider */}
+              <div
+                ref={inputPanelDividerRef}
+                onMouseDown={handleInputPanelDividerMouseDown}
+                style={{
+                  height: '6px',
+                  backgroundColor: 'var(--color-border, #ddd)',
+                  cursor: 'row-resize',
+                  flexShrink: 0,
+                  transition: isDraggingInputDividerRef.current ? 'none' : 'background-color 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  if (!isDraggingInputDividerRef.current) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-border, #ddd)'
+                  }
+                }}
+              >
+                <div style={{ width: '24px', height: '3px', backgroundColor: 'rgba(33, 150, 243, 0.5)', borderRadius: '1px' }} />
+              </div>
+
+              {/* CSS Input Section */}
+              <div style={{ flex: `${100 - inputPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
+                  CSS
+                </div>
+                <textarea
+                  className="input-panel-textarea"
+                  value={inputPanelCss}
+                  onChange={(e) => {
+                    setInputPanelCss(e.target.value)
+                    onCssChange?.(e.target.value)
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    border: 'none',
+                    borderRadius: '0',
+                    fontFamily: '"Monaco", "Courier New", monospace',
+                    fontSize: '11px',
+                    lineHeight: '1.5',
+                    backgroundColor: 'var(--color-background-primary, #fff)',
+                    color: 'var(--color-text-primary, #000)',
+                    resize: 'none',
+                    overflow: 'auto',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'var(--scrollbar-thumb, #ccc) transparent',
+                  }}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Merge Selectors Confirmation Modal */}
@@ -1464,7 +2014,6 @@ export default function MarkdownPreviewWithInspector({
   return (
     <div className={styles.previewContainer}>
       {renderPreviewSettings()}
-      {renderControls()}
 
       <div style={{ display: 'flex', flexDirection: 'row', flex: 1, overflow: 'hidden', position: 'relative', minHeight: 0 }}>
         <div
