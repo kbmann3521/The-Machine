@@ -178,6 +178,7 @@ export default function MarkdownPreviewWithInspector({
   const [inputPanelContent, setInputPanelContent] = useState(content)
   const [inputPanelCss, setInputPanelCss] = useState(customCss)
   const [inputPanelWidth, setInputPanelWidth] = useState(480) // Width in pixels
+  const [isClosingFullscreen, setIsClosingFullscreen] = useState(false)
   const inputPanelDividerRef = useRef(null)
   const isDraggingInputDividerRef = useRef(false)
   const isDraggingInputPanelEdgeRef = useRef(false)
@@ -193,6 +194,7 @@ export default function MarkdownPreviewWithInspector({
   const [selectedRule, setSelectedRule] = useState(null)
   const [selectedRuleImpact, setSelectedRuleImpact] = useState(null)
   const [mergeableGroupsForModal, setMergeableGroupsForModal] = useState(null)
+  const [triggeringSelector, setTriggeringSelector] = useState(null)
   const [localRulesTree, setLocalRulesTree] = useState(null)
   const [highlightedSelector, setHighlightedSelector] = useState(null)
   const highlightStyleRef = useRef(null)
@@ -208,10 +210,10 @@ export default function MarkdownPreviewWithInspector({
   const getInspectorPanelWidth = () => {
     // On mobile (< 640px): full width
     if (containerWidth < 640) return '100%'
-    // On tablet (640px - 1024px): 80%
-    if (containerWidth < 1024) return '80%'
-    // On desktop (1024px+): 65%
-    return '65%'
+    // On tablet (640px - 1024px): 70%
+    if (containerWidth < 1024) return '70%'
+    // On desktop (1024px+): 50%
+    return '50%'
   }
 
   const inspectorPanelWidth = getInspectorPanelWidth()
@@ -272,8 +274,11 @@ export default function MarkdownPreviewWithInspector({
       onHtmlChange(html)
     }
 
-    // Fallback: if generic source change callback provided
-    if (onSourceChange) {
+    // Fallback: if generic source change callback provided (only if specific handlers weren't used)
+    // If we used onCssChange or onHtmlChange, don't also send onSourceChange
+    // to avoid duplicate updates or conflicting data
+    const hasSpecificHandlers = (css && onCssChange) || (html && onHtmlChange)
+    if (onSourceChange && !hasSpecificHandlers) {
       if (html) onSourceChange({ source: 'html', newContent: html })
       if (css) onSourceChange({ source: 'css', newContent: css })
     }
@@ -425,13 +430,22 @@ export default function MarkdownPreviewWithInspector({
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // Handle fullscreen exit animation
+  const handleExitFullscreen = () => {
+    setIsClosingFullscreen(true)
+    setTimeout(() => {
+      onToggleFullscreen?.(false)
+      setIsClosingFullscreen(false)
+    }, 300) // Match animation duration
+  }
+
   // ESC to exit fullscreen
   React.useEffect(() => {
     if (!isFullscreen) return
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        onToggleFullscreen?.(false)
+        handleExitFullscreen()
       }
     }
 
@@ -674,8 +688,9 @@ export default function MarkdownPreviewWithInspector({
   }, [selectedRule, addedProperties, disabledProperties])
 
   // Handle merge selectors request
-  const handleMergeClick = (mergeableGroups) => {
+  const handleMergeClick = (mergeableGroups, triggeringSelector = null) => {
     setMergeableGroupsForModal(mergeableGroups)
+    setTriggeringSelector(triggeringSelector)
   }
 
   // Confirm and apply merge
@@ -685,12 +700,14 @@ export default function MarkdownPreviewWithInspector({
       // Reset local rules tree so it syncs with the updated prop from formatter
       setLocalRulesTree(null)
       setMergeableGroupsForModal(null)
+      setTriggeringSelector(null)
     }
   }
 
   // Cancel merge
   const handleMergeCancel = () => {
     setMergeableGroupsForModal(null)
+    setTriggeringSelector(null)
   }
 
   // Extract available selectors from the actual rendered preview HTML/MD
@@ -1484,49 +1501,64 @@ export default function MarkdownPreviewWithInspector({
   // Fullscreen layout
   if (isFullscreen) {
     return (
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'var(--color-background-primary, #fff)',
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
+      <>
+        <style>{`
+          @keyframes fadeInFullscreen {
+            from {
+              opacity: 0;
+              transform: scale(0.98);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          @keyframes fadeOutFullscreen {
+            from {
+              opacity: 1;
+              transform: scale(1);
+            }
+            to {
+              opacity: 0;
+              transform: scale(0.98);
+            }
+          }
+        `}</style>
         <div
           style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'var(--color-background-primary, #fff)',
+            zIndex: 9999,
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '8px 0',
-            backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
-            flexShrink: 0,
-            height: '40px',
-            borderBottom: '1px solid var(--color-border, #ddd)',
+            flexDirection: 'column',
+            animation: isClosingFullscreen ? 'fadeOutFullscreen 0.3s ease-out forwards' : 'fadeInFullscreen 0.3s ease-out forwards',
           }}
         >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 0',
+              backgroundColor: 'var(--color-background-secondary, #f9f9f9)',
+              flexShrink: 0,
+              height: '40px',
+              borderBottom: '1px solid var(--color-border, #ddd)',
+            }}
+          >
           <div style={{ position: 'relative', paddingLeft: '12px' }} data-fullscreen-settings>
             <button
+              className={styles.controlsToggleBtn}
               onClick={() => {
                 if (showFullscreenSettings) {
                   handleCloseFullscreenSettings()
                 } else {
                   setShowFullscreenSettings(true)
                 }
-              }}
-              style={{
-                padding: '6px 12px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                color: 'var(--color-text-primary, #000)',
               }}
             >
               ⚙ Settings
@@ -1648,6 +1680,7 @@ export default function MarkdownPreviewWithInspector({
           </div>
           <div style={{ display: 'flex', gap: '8px', paddingRight: '12px' }}>
             <button
+              className={styles.controlsToggleBtn}
               onClick={() => {
                 if (showFullscreenInputPanel) {
                   handleCloseInputPanel()
@@ -1657,20 +1690,14 @@ export default function MarkdownPreviewWithInspector({
                 }
               }}
               style={{
-                padding: '6px 10px',
                 backgroundColor: showFullscreenInputPanel ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
-                border: '1px solid var(--color-border, #ddd)',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                color: 'var(--color-text-primary, #000)',
               }}
             >
               Edit Code
             </button>
             {effectiveRulesTree.length > 0 && (
               <button
+                className={styles.controlsToggleBtn}
                 onClick={() => {
                   if (showInspector) {
                     handleCloseInspector()
@@ -1680,31 +1707,15 @@ export default function MarkdownPreviewWithInspector({
                   }
                 }}
                 style={{
-                  padding: '6px 10px',
                   backgroundColor: showInspector ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
-                  border: '1px solid var(--color-border, #ddd)',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  color: 'var(--color-text-primary, #000)',
                 }}
               >
                 Inspector
               </button>
             )}
             <button
-              onClick={() => onToggleFullscreen?.(false)}
-              style={{
-                padding: '6px 10px',
-                backgroundColor: 'transparent',
-                border: '1px solid var(--color-border, #ddd)',
-                borderRadius: '4px',
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                color: 'var(--color-text-primary, #000)',
-              }}
+              className={styles.controlsToggleBtn}
+              onClick={handleExitFullscreen}
             >
               ✕ Exit (ESC)
             </button>
@@ -1986,6 +1997,7 @@ export default function MarkdownPreviewWithInspector({
             mergeableGroups={mergeableGroupsForModal}
             rulesTree={effectiveRulesTree}
             sourceText={customCss}
+            triggeringSelector={triggeringSelector}
             onConfirm={(mergedCss) => {
               // The merged CSS has unscoped selectors from rulesTree
               // Parent (ToolOutputPanel) will handle any scoping as needed
@@ -1994,7 +2006,8 @@ export default function MarkdownPreviewWithInspector({
             onCancel={handleMergeCancel}
           />
         )}
-      </div>
+        </div>
+      </>
     )
   }
 
@@ -2105,6 +2118,7 @@ export default function MarkdownPreviewWithInspector({
           mergeableGroups={mergeableGroupsForModal}
           rulesTree={effectiveRulesTree}
           sourceText={customCss}
+          triggeringSelector={triggeringSelector}
           onConfirm={(mergedCss) => {
             // The merged CSS has unscoped selectors from rulesTree
             // Parent (ToolOutputPanel) will handle any scoping as needed

@@ -646,8 +646,7 @@ export default function RuleInspector({
               onClick={() => onHighlightSelector?.(selectedRule.selector)}
               title={isHighlighted ? 'Click to remove highlight' : 'Show the bounding box of this selector in the preview'}
             >
-              {isHighlighted ? '✓ Highlighting: ' : '👁 Show Bounding Box'}
-              <code className={styles.highlightSelectorCode}>{selectedRule.selector}</code>
+              {isHighlighted ? '✓ Highlighting' : '👁 Show Bounding Box'}
             </button>
           </div>
         )}
@@ -951,31 +950,30 @@ export default function RuleInspector({
                   }}
                   title={`Specificity: ${getSpecificityLabel(rule.specificity)}${rule.loc ? ` • Line ${rule.loc.startLine}` : ''}`}
                 >
-                  <span className={styles.ruleChevron}>
-                    {isExpanded ? '▼' : '▶'}
-                  </span>
-                  <span className={styles.ruleLabel}>
-                    {getRuleTypeLabel(rule)}
-                  </span>
-                  <span className={styles.ruleOrigin} title={`Origin: ${getOriginLabel(rule)}`}>
-                    {getOriginLabel(rule)}
-                  </span>
-                  {isDuplicateSelector(rule.selector) && (
-                    <span className={styles.duplicateIndicator} title="This selector is defined multiple times and can be merged">
-                      🧩 ×{getDuplicateCount(rule.selector)}
+                  <div className={styles.ruleHeaderTop}>
+                    <span className={styles.ruleChevron}>
+                      {isExpanded ? '▼' : '▶'}
                     </span>
-                  )}
+                    <span className={styles.ruleLabel}>
+                      {getRuleTypeLabel(rule)}
+                    </span>
+                  </div>
+                  <div className={styles.ruleHeaderBottom}>
+                    <span className={styles.ruleOrigin} title={`Origin: ${getOriginLabel(rule)}`}>
+                      {getOriginLabel(rule)}
+                    </span>
+                  </div>
                 </button>
                 {isDuplicateSelector(rule.selector) && onMergeClick && (
                   <button
-                    className={styles.mergeButtonCompact}
+                    className={styles.duplicateIndicatorButton}
                     onClick={(e) => {
                       e.stopPropagation()
-                      onMergeClick(mergeableGroups)
+                      onMergeClick(mergeableGroups, rule.selector)
                     }}
                     title="Merge all duplicate selectors"
                   >
-                    ⎚
+                    🧩 ×{getDuplicateCount(rule.selector)}
                   </button>
                 )}
               </div>
@@ -1048,11 +1046,12 @@ export default function RuleInspector({
                               <div
                                 style={{
                                   display: 'flex',
-                                  alignItems: 'center',
+                                  alignItems: 'flex-start',
                                   gap: '4px',
                                   flex: 1,
                                   cursor: 'pointer',
                                   minWidth: 0,
+                                  flexWrap: 'wrap',
                                 }}
                                 onClick={() => {
                                   if (isOverridden) {
@@ -1200,11 +1199,12 @@ export default function RuleInspector({
                               <div
                                 style={{
                                   display: 'flex',
-                                  alignItems: 'center',
+                                  alignItems: 'flex-start',
                                   gap: '4px',
                                   flex: 1,
                                   cursor: 'pointer',
                                   minWidth: 0,
+                                  flexWrap: 'wrap',
                                 }}
                                 onClick={() => {
                                   if (isOverridden) {

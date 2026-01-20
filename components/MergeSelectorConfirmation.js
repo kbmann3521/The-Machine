@@ -17,6 +17,7 @@ import styles from '../styles/rule-inspector.module.css'
  *   mergeableGroups: array of mergeable rule groups
  *   rulesTree: current rules tree
  *   sourceText: original CSS source text (to preserve formatting/comments)
+ *   triggeringSelector: the selector from which the merge button was clicked (only this will be pre-checked)
  *   onConfirm: (newCSSText) => void - callback when user confirms the merge
  *   onCancel: () => void - callback when user cancels
  */
@@ -24,13 +25,17 @@ export default function MergeSelectorConfirmation({
   mergeableGroups = [],
   rulesTree = [],
   sourceText = '',
+  triggeringSelector = null,
   onConfirm = null,
   onCancel = null,
 }) {
-  // Initialize selectedSelectors - all are checked by default
-  const [selectedSelectors, setSelectedSelectors] = useState(
-    new Set(mergeableGroups.map(g => g.selector))
-  )
+  // Initialize selectedSelectors - only the triggering selector is checked by default
+  const [selectedSelectors, setSelectedSelectors] = useState(() => {
+    if (triggeringSelector) {
+      return new Set([triggeringSelector])
+    }
+    return new Set(mergeableGroups.map(g => g.selector))
+  })
   const [expandedSelector, setExpandedSelector] = useState(
     mergeableGroups.length > 0 ? mergeableGroups[0].selector : null
   )
