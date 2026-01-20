@@ -198,7 +198,6 @@ export default function MarkdownPreviewWithInspector({
   const highlightStyleRef = useRef(null)
   const closeInspectorTimeoutRef = useRef(null)
   const closeInputPanelTimeoutRef = useRef(null)
-  const wasInspectorOpenWhenEnteringFullscreenRef = useRef(false)
   const [containerWidth, setContainerWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
 
   // Use local rules tree if available (after modifications), otherwise use prop
@@ -425,23 +424,6 @@ export default function MarkdownPreviewWithInspector({
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-
-  // Track inspector state continuously in non-fullscreen mode
-  React.useEffect(() => {
-    if (!isFullscreen) {
-      wasInspectorOpenWhenEnteringFullscreenRef.current = showInspector
-    }
-  }, [showInspector, isFullscreen])
-
-  // When entering fullscreen, open edit code panel only if inspector was not open
-  React.useEffect(() => {
-    if (isFullscreen) {
-      // Only open Edit Code panel if Inspector was NOT open when entering fullscreen
-      if (!wasInspectorOpenWhenEnteringFullscreenRef.current) {
-        setShowFullscreenInputPanel(true)
-      }
-    }
-  }, [isFullscreen])
 
   // ESC to exit fullscreen
   React.useEffect(() => {
@@ -1249,7 +1231,13 @@ export default function MarkdownPreviewWithInspector({
         )}
         <button
           className={`${styles.controlsToggleBtn} ${styles.fullscreenBtnDesktopOnly}`}
-          onClick={() => onToggleFullscreen?.(true)}
+          onClick={() => {
+            // If Inspector is NOT open, prepare to open Edit Code panel when entering fullscreen
+            if (!showInspector) {
+              setShowFullscreenInputPanel(true)
+            }
+            onToggleFullscreen?.(true)
+          }}
         >
           ⛶ Fullscreen
         </button>

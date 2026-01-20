@@ -175,7 +175,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   const handleSourceChange = ({ source, newContent }) => {
     if (!onInputUpdate) return
-    onInputUpdate(newContent)
+    // Only update the main input for HTML/Markdown changes, not CSS changes
+    // CSS changes are handled via onCssChange callback
+    if (source === 'html' || source === 'markdown') {
+      onInputUpdate(newContent)
+    }
   }
 
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
