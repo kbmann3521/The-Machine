@@ -3,8 +3,10 @@ import {
   mergeSelectedGroups,
   generateCodePreview,
   applyMergeToSourceText,
-  serializeRulesToCSS
+  serializeRulesToCSS,
+  serializeMergedRulesByOrigin,
 } from '../lib/tools/mergeSelectors'
+import DirectionChoiceModal from './DirectionChoiceModal'
 import styles from '../styles/rule-inspector.module.css'
 
 /**
@@ -15,16 +17,16 @@ import styles from '../styles/rule-inspector.module.css'
  *
  * Props:
  *   mergeableGroups: array of mergeable rule groups
- *   rulesTree: current rules tree
+ *   rulesTree: current rules tree (contains rules from both HTML and CSS sources)
  *   sourceText: original CSS source text (to preserve formatting/comments)
  *   triggeringSelector: the selector from which the merge button was clicked (only this will be pre-checked)
- *   onConfirm: (newCSSText) => void - callback when user confirms the merge
+ *   onConfirm: (mergeResult) => void - callback when user confirms the merge
+ *              where mergeResult = { mergedCSS, mergedHTML } with rules serialized by origin
  *   onCancel: () => void - callback when user cancels
  */
 export default function MergeSelectorConfirmation({
   mergeableGroups = [],
   rulesTree = [],
-  sourceText = '',
   triggeringSelector = null,
   onConfirm = null,
   onCancel = null,
@@ -40,27 +42,23 @@ export default function MergeSelectorConfirmation({
     mergeableGroups.length > 0 ? mergeableGroups[0].selector : null
   )
 
+  // State for direction choice modal
+  const [showDirectionModal, setShowDirectionModal] = useState(false)
+  const [directionModalData, setDirectionModalData] = useState(null)
+
   if (!mergeableGroups || mergeableGroups.length === 0) {
     return null
   }
 
   // Generate the merge result based on selected selectors
   const mergeResult = mergeSelectedGroups(rulesTree, selectedSelectors)
-  const { summary, mergeInfo } = mergeResult
+  const { summary, mutatedRulesTree } = mergeResult
 
-  // Apply merge to source text
-  // If sourceText contains .pwt-markdown-preview prefix, regenerate from rulesTree to avoid scoping issues
-  let sourceToMerge = sourceText
-  if (sourceText && sourceText.includes('.pwt-markdown-preview')) {
-    // Regenerate unscoped CSS from rulesTree for accurate merging
-    sourceToMerge = rulesTree && rulesTree.length > 0
-      ? serializeRulesToCSS(rulesTree)
-      : sourceText
-  }
-
-  const mergedCSS = sourceToMerge && mergeInfo
-    ? applyMergeToSourceText(sourceToMerge, rulesTree, mergeInfo)
-    : ''
+  // Serialize the merged rulesTree back to CSS by origin
+  // This gives us separate CSS for HTML (<style>) and CSS (tab) sources
+  const mergedByOrigin = serializeMergedRulesByOrigin(mutatedRulesTree)
+  const mergedCSS = mergedByOrigin.css
+  const mergedHTML = mergedByOrigin.html
 
   // Get the currently expanded selector's group for preview
   const expandedGroup = mergeableGroups.find(g => g.selector === expandedSelector)
@@ -87,10 +85,59 @@ export default function MergeSelectorConfirmation({
     }
   }
 
+  // Check if any selected group has cross-tab duplicates
+  const selectedGroups = mergeableGroups.filter(g => selectedSelectors.has(g.selector))
+  const groupsWithCrossTabDuplicates = selectedGroups.filter(group => {
+    const htmlRules = group.rules.filter(r => r.origin?.source === 'html')
+    const cssRules = group.rules.filter(r => r.origin?.source === 'css' || !r.origin?.source)
+    const hasHtmlRules = htmlRules.length > 0
+    const hasCssRules = cssRules.length > 0
+    return hasHtmlRules && hasCssRules // Cross-tab duplicate
+  })
+
+  const hasCrossTabDuplicates = groupsWithCrossTabDuplicates.length > 0
+
   const handleConfirm = () => {
-    if (onConfirm && selectedSelectors.size > 0) {
-      onConfirm(mergedCSS)
+    if (!onConfirm || selectedSelectors.size === 0) return
+
+    // If there are cross-tab duplicates, show direction choice modal
+    if (hasCrossTabDuplicates) {
+      // Get info about the first cross-tab duplicate for the modal
+      const firstCrossTabbedGroup = groupsWithCrossTabDuplicates[0]
+      const htmlCount = firstCrossTabbedGroup.rules.filter(r => r.origin?.source === 'html').length
+      const cssCount = firstCrossTabbedGroup.rules.filter(r => r.origin?.source === 'css' || !r.origin?.source).length
+
+      setDirectionModalData({
+        selector: firstCrossTabbedGroup.selector,
+        htmlCount,
+        cssCount,
+      })
+      setShowDirectionModal(true)
+      return
     }
+
+    // No cross-tab duplicates - apply merge with default direction (CSS)
+    applyMergeWithDirection('css')
+  }
+
+  const applyMergeWithDirection = (direction) => {
+    // Re-compute merge with the specified direction
+    const mergeResultWithDirection = mergeSelectedGroups(rulesTree, selectedSelectors, direction)
+    const mergedByOriginWithDir = serializeMergedRulesByOrigin(mergeResultWithDirection.mutatedRulesTree)
+
+    if (onConfirm) {
+      onConfirm({
+        mergedCSS: mergedByOriginWithDir.css,
+        mergedHTML: mergedByOriginWithDir.html,
+      })
+    }
+
+    setShowDirectionModal(false)
+    setDirectionModalData(null)
+  }
+
+  const handleDirectionChoice = (direction) => {
+    applyMergeWithDirection(direction)
   }
 
   const isAnySelected = selectedSelectors.size > 0
@@ -212,6 +259,20 @@ export default function MergeSelectorConfirmation({
           </button>
         </div>
       </div>
+
+      {/* Direction Choice Modal - shown when cross-tab duplicates exist */}
+      {showDirectionModal && directionModalData && (
+        <DirectionChoiceModal
+          selector={directionModalData.selector}
+          htmlCount={directionModalData.htmlCount}
+          cssCount={directionModalData.cssCount}
+          onSelectDirection={handleDirectionChoice}
+          onCancel={() => {
+            setShowDirectionModal(false)
+            setDirectionModalData(null)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -694,14 +694,31 @@ export default function MarkdownPreviewWithInspector({
   }
 
   // Confirm and apply merge
-  const handleMergeConfirm = (mergedCSS) => {
-    if (mergedCSS && onCssChange) {
+  const handleMergeConfirm = (mergeResult) => {
+    // Handle new format { mergedCSS, mergedHTML } or legacy format (string)
+    const mergedCSS = typeof mergeResult === 'string' ? mergeResult : mergeResult?.mergedCSS
+    const mergedHTML = typeof mergeResult === 'string' ? null : mergeResult?.mergedHTML
+
+    // CRITICAL FIX: mergedCSS and mergedHTML can be empty strings!
+    // Empty string means "update to nothing" (remove all rules from that origin)
+    // We must check !== undefined, not just truthiness
+
+    if (mergedCSS !== undefined && onCssChange) {
+      console.log(`[handleMergeConfirm] Updating CSS source with ${mergedCSS.length} chars`)
       onCssChange(mergedCSS)
-      // Reset local rules tree so it syncs with the updated prop from formatter
-      setLocalRulesTree(null)
-      setMergeableGroupsForModal(null)
-      setTriggeringSelector(null)
     }
+
+    // If merged HTML is defined (even if empty string), update the HTML source
+    // Empty string means "remove all HTML-origin rules" (critical for cross-tab merges!)
+    if (mergedHTML !== undefined && onHtmlChange) {
+      console.log(`[handleMergeConfirm] Updating HTML source with ${mergedHTML.length} chars`)
+      onHtmlChange(mergedHTML)
+    }
+
+    // Reset local rules tree so it syncs with the updated prop from formatter
+    setLocalRulesTree(null)
+    setMergeableGroupsForModal(null)
+    setTriggeringSelector(null)
   }
 
   // Cancel merge
@@ -1993,19 +2010,18 @@ export default function MarkdownPreviewWithInspector({
 
       {/* Merge Selectors Confirmation Modal */}
       {mergeableGroupsForModal && (
-          <MergeSelectorConfirmation
-            mergeableGroups={mergeableGroupsForModal}
-            rulesTree={effectiveRulesTree}
-            sourceText={customCss}
-            triggeringSelector={triggeringSelector}
-            onConfirm={(mergedCss) => {
-              // The merged CSS has unscoped selectors from rulesTree
-              // Parent (ToolOutputPanel) will handle any scoping as needed
-              handleMergeConfirm(mergedCss)
-            }}
-            onCancel={handleMergeCancel}
-          />
-        )}
+        <MergeSelectorConfirmation
+          mergeableGroups={mergeableGroupsForModal}
+          rulesTree={effectiveRulesTree}
+          triggeringSelector={triggeringSelector}
+          onConfirm={(mergeResult) => {
+            // mergeResult = { mergedCSS, mergedHTML }
+            // Both are optional depending on which sources had duplicates
+            handleMergeConfirm(mergeResult)
+          }}
+          onCancel={handleMergeCancel}
+        />
+      )}
         </div>
       </>
     )
@@ -2117,12 +2133,11 @@ export default function MarkdownPreviewWithInspector({
         <MergeSelectorConfirmation
           mergeableGroups={mergeableGroupsForModal}
           rulesTree={effectiveRulesTree}
-          sourceText={customCss}
           triggeringSelector={triggeringSelector}
-          onConfirm={(mergedCss) => {
-            // The merged CSS has unscoped selectors from rulesTree
-            // Parent (ToolOutputPanel) will handle any scoping as needed
-            handleMergeConfirm(mergedCss)
+          onConfirm={(mergeResult) => {
+            // mergeResult = { mergedCSS, mergedHTML }
+            // Both are optional depending on which sources had duplicates
+            handleMergeConfirm(mergeResult)
           }}
           onCancel={handleMergeCancel}
         />
