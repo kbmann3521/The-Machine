@@ -10,6 +10,7 @@ import RuleInspector from './RuleInspector'
 import MergeSelectorConfirmation from './MergeSelectorConfirmation'
 import HTMLRenderer from './HTMLRenderer'
 import MarkdownRenderer from './MarkdownRenderer'
+import CodeMirrorEditor from './CodeMirrorEditor'
 import styles from '../styles/output-tabs.module.css'
 
 /**
@@ -156,6 +157,8 @@ export default function MarkdownPreviewWithInspector({
   onCssChange = null,
   onHtmlChange = null, // Called when editing embedded HTML CSS
   onSourceChange = null, // Called with { source: 'html'|'css', newContent }
+  allowScripts = false, // Allow JavaScript execution in HTML (Web Playground only)
+  allowIframes = false, // Allow iframes in HTML (Web Playground only)
 }) {
   const { theme } = useTheme()
   const previewContainerRef = useRef(null)
@@ -1481,6 +1484,8 @@ export default function MarkdownPreviewWithInspector({
           <HTMLRenderer
             html={contentToRender}
             customCss={previewCss}
+            allowScripts={allowScripts}
+            allowIframes={allowIframes}
           />
         ) : (
           <MarkdownRenderer
@@ -1923,29 +1928,26 @@ export default function MarkdownPreviewWithInspector({
                 <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
                   HTML / Markdown
                 </div>
-                <textarea
-                  className="input-panel-textarea"
-                  value={inputPanelContent}
-                  onChange={(e) => {
-                    setInputPanelContent(e.target.value)
-                    onSourceChange?.({ source: isHtml ? 'html' : 'markdown', newContent: e.target.value })
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    border: 'none',
-                    borderRadius: '0',
-                    fontFamily: '"Monaco", "Courier New", monospace',
-                    fontSize: '11px',
-                    lineHeight: '1.5',
-                    backgroundColor: 'var(--color-background-primary, #fff)',
-                    color: 'var(--color-text-primary, #000)',
-                    resize: 'none',
-                    overflow: 'auto',
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'var(--scrollbar-thumb, #ccc) transparent',
-                  }}
-                />
+                <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+                  <CodeMirrorEditor
+                    value={inputPanelContent}
+                    onChange={(newValue) => {
+                      setInputPanelContent(newValue)
+                      onSourceChange?.({ source: isHtml ? 'html' : 'markdown', newContent: newValue })
+                    }}
+                    language={isHtml ? 'html' : 'markdown'}
+                    showLineNumbers={true}
+                    editorType="input"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      fontSize: '11px',
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Draggable Divider */}
@@ -1979,29 +1981,26 @@ export default function MarkdownPreviewWithInspector({
                 <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
                   CSS
                 </div>
-                <textarea
-                  className="input-panel-textarea"
-                  value={inputPanelCss}
-                  onChange={(e) => {
-                    setInputPanelCss(e.target.value)
-                    onCssChange?.(e.target.value)
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    border: 'none',
-                    borderRadius: '0',
-                    fontFamily: '"Monaco", "Courier New", monospace',
-                    fontSize: '11px',
-                    lineHeight: '1.5',
-                    backgroundColor: 'var(--color-background-primary, #fff)',
-                    color: 'var(--color-text-primary, #000)',
-                    resize: 'none',
-                    overflow: 'auto',
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'var(--scrollbar-thumb, #ccc) transparent',
-                  }}
-                />
+                <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+                  <CodeMirrorEditor
+                    value={inputPanelCss}
+                    onChange={(newValue) => {
+                      setInputPanelCss(newValue)
+                      onCssChange?.(newValue)
+                    }}
+                    language="css"
+                    showLineNumbers={true}
+                    editorType="input"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      fontSize: '11px',
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </>

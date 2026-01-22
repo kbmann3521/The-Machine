@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import DOMPurify from 'dompurify'
 import styles from '../styles/markdown-renderer.module.css'
 
@@ -16,10 +16,10 @@ import styles from '../styles/markdown-renderer.module.css'
  */
 
 /**
- * Sanitization configuration using DOMPurify
+ * Base sanitization configuration using DOMPurify
  * Balanced policy: allows rich HTML/CSS content while blocking high-risk vectors
  */
-const SANITIZATION_CONFIG = {
+const BASE_SANITIZATION_CONFIG = {
   ALLOWED_TAGS: [
     // Text content
     'p', 'div', 'span',
@@ -65,6 +65,8 @@ const SANITIZATION_CONFIG = {
     'aria-hidden', 'aria-pressed', 'aria-selected', 'role',
     // Details/Summary
     'open',
+    // iFrame attributes
+    'sandbox', 'allow', 'allowfullscreen', 'frameborder', 'scrolling', 'srcdoc',
     // SVG attributes
     'd', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
     'points', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke',
@@ -74,18 +76,46 @@ const SANITIZATION_CONFIG = {
     'offset', 'stop-color', 'stop-opacity',
     'font-size', 'font-family', 'text-anchor', 'font-weight',
   ],
-  FORBID_TAGS: [
-    'script', 'iframe', 'object', 'embed', 'math'
-  ],
-  FORBID_ATTR: [
-    'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout', 'onchange',
-    'oninput', 'onkeydown', 'onkeyup', 'onsubmit', 'onfocus', 'onblur'
-  ],
   KEEP_CONTENT: true
 }
 
-export default function HTMLRenderer({ html, className = '', customCss = '' }) {
+/**
+ * Creates a sanitization config based on whether scripts and iframes are allowed
+ */
+function getSanitizationConfig(allowScripts = false, allowIframes = false) {
+  const forbiddenTags = ['object', 'embed', 'math']
+
+  // Add script and iframe to forbidden list based on flags
+  if (!allowScripts) forbiddenTags.push('script')
+  if (!allowIframes) forbiddenTags.push('iframe')
+
+  const config = {
+    ...BASE_SANITIZATION_CONFIG,
+    FORBID_TAGS: forbiddenTags,
+    FORBID_ATTR: allowScripts
+      ? []  // Allow all attributes (including event handlers) when scripts are enabled
+      : [  // Default: block event handlers
+        'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout', 'onchange',
+        'oninput', 'onkeydown', 'onkeyup', 'onsubmit', 'onfocus', 'onblur'
+      ],
+  }
+
+  // When scripts are allowed, add 'script' to ALLOWED_TAGS
+  if (allowScripts && !config.ALLOWED_TAGS.includes('script')) {
+    config.ALLOWED_TAGS = [...config.ALLOWED_TAGS, 'script']
+  }
+
+  // When iframes are allowed, add 'iframe' to ALLOWED_TAGS
+  if (allowIframes && !config.ALLOWED_TAGS.includes('iframe')) {
+    config.ALLOWED_TAGS = [...config.ALLOWED_TAGS, 'iframe']
+  }
+
+  return config
+}
+
+export default function HTMLRenderer({ html, className = '', customCss = '', allowScripts = false, allowIframes = false }) {
   const rendererRef = useRef(null)
+  const containerRef = useRef(null)
 
   if (!html || typeof html !== 'string') {
     return (
@@ -95,11 +125,123 @@ export default function HTMLRenderer({ html, className = '', customCss = '' }) {
     )
   }
 
-  // Sanitize the HTML before rendering
-  const sanitizedHtml = DOMPurify.sanitize(html, SANITIZATION_CONFIG)
+  // Get appropriate sanitization config based on allowScripts and allowIframes flags
+  const sanitizationConfig = getSanitizationConfig(allowScripts, allowIframes)
+
+  // Special handling: Extract iframes with srcdoc before sanitization
+  // DOMPurify may strip srcdoc attributes, so we need to preserve them
+  const iframeMap = new Map()
+  let htmlWithoutIframes = html
+  let iframeCounter = 0
+
+  if (allowIframes) {
+    // Find all iframes with srcdoc attributes by manually parsing
+    // Search for srcdoc=", find its closing quote, then extract the iframe tag
+    let searchPos = 0
+    const srcdocStartRegex = /\bsrcdoc\s*=\s*(["'])/g
+
+    while (true) {
+      srcdocStartRegex.lastIndex = searchPos
+      const match = srcdocStartRegex.exec(html)
+      if (!match) break
+
+      const quoteChar = match[1] // The quote character used (either " or ')
+      const contentStart = match.index + match[0].length
+
+      // Find the closing quote of the same type
+      let contentEnd = contentStart
+      let found = false
+      while (contentEnd < html.length) {
+        if (html[contentEnd] === quoteChar && html[contentEnd - 1] !== '\\') {
+          found = true
+          break
+        }
+        contentEnd++
+      }
+
+      if (!found) {
+        searchPos = match.index + 1
+        continue // Unclosed quote
+      }
+
+      const srcdocContent = html.substring(contentStart, contentEnd)
+
+      // Find the start of the iframe tag by searching backwards from srcdoc position
+      let iframeStart = match.index - 1
+      while (iframeStart >= 0 && html[iframeStart] !== '<') {
+        iframeStart--
+      }
+
+      if (iframeStart < 0 || !html.substring(iframeStart, iframeStart + 7).toLowerCase().startsWith('<iframe')) {
+        searchPos = match.index + 1
+        continue // Not part of an iframe
+      }
+
+      // Find the end of the iframe tag (next > after the srcdoc closing quote)
+      let iframeEnd = contentEnd + 1
+      let depth = 0
+      while (iframeEnd < html.length) {
+        if (html[iframeEnd] === '"' || html[iframeEnd] === "'") {
+          // Skip quoted strings
+          const quoteType = html[iframeEnd]
+          iframeEnd++
+          while (iframeEnd < html.length && html[iframeEnd] !== quoteType) {
+            if (html[iframeEnd] === '\\') iframeEnd++ // Skip escaped chars
+            iframeEnd++
+          }
+          iframeEnd++
+        } else if (html[iframeEnd] === '>') {
+          break
+        } else {
+          iframeEnd++
+        }
+      }
+
+      if (iframeEnd >= html.length) {
+        searchPos = match.index + 1
+        continue // No closing >
+      }
+
+      const fullTag = html.substring(iframeStart, iframeEnd + 1)
+      const placeholder = `<div data-iframe-placeholder="${iframeCounter}" style="display:none;"></div>`
+
+      iframeMap.set(iframeCounter, {
+        srcdocContent: srcdocContent,
+        fullTag: fullTag
+      })
+
+      // Replace iframe with placeholder
+      htmlWithoutIframes = htmlWithoutIframes.replace(fullTag, placeholder)
+      searchPos = iframeEnd + 1
+      iframeCounter++
+    }
+  }
+
+  // Sanitize the HTML (iframes are now replaced with placeholders)
+  const sanitizedHtml = DOMPurify.sanitize(htmlWithoutIframes, sanitizationConfig)
+
+  // Restore iframes with their original srcdoc content
+  let processedHtml = sanitizedHtml
+
+  iframeMap.forEach((iframeData, index) => {
+    const placeholder = `<div data-iframe-placeholder="${index}" style="display:none;"></div>`
+
+    // Use Base64 encoding to avoid any escaping issues with special characters
+    // This ensures the full srcdoc content is preserved exactly as-is
+    let encoded = ''
+    try {
+      encoded = btoa(unescape(encodeURIComponent(iframeData.srcdocContent)))
+    } catch (e) {
+      console.error('Error encoding iframe srcdoc:', e)
+      encoded = ''
+    }
+
+    const restoredIframe = `<iframe data-srcdoc-b64="${encoded}" sandbox="allow-scripts allow-popups allow-modals"></iframe>`
+    processedHtml = processedHtml.replace(placeholder, restoredIframe)
+  })
 
   // Post-process to add safe attributes to links
-  const processedHtml = sanitizedHtml.replace(
+  processedHtml = processedHtml.replace(
     /<a\s+(?![^>]*target=)/gi,
     '<a target="_blank" rel="noopener noreferrer" '
   )
@@ -112,6 +254,60 @@ export default function HTMLRenderer({ html, className = '', customCss = '' }) {
     )
   }
 
+  // Handle iframes: set srcdoc content from Base64-encoded data attribute
+  // This approach bypasses DOMPurify's attribute filtering by encoding the content
+  useEffect(() => {
+    if (!allowIframes || !containerRef.current) return
+
+    const iframes = containerRef.current.querySelectorAll('iframe[data-srcdoc-b64]')
+
+    iframes.forEach((iframe) => {
+      const encoded = iframe.getAttribute('data-srcdoc-b64')
+
+      if (encoded) {
+        try {
+          // Decode Base64 back to original HTML
+          const decoded = decodeURIComponent(escape(atob(encoded)))
+
+          // Set the actual srcdoc property
+          iframe.srcdoc = decoded
+
+          // Remove the temporary data attribute
+          iframe.removeAttribute('data-srcdoc-b64')
+        } catch (error) {
+          console.error('Error decoding/setting iframe srcdoc:', error)
+        }
+      }
+    })
+  }, [processedHtml, allowIframes])
+
+  // Handle script execution after HTML is injected
+  useEffect(() => {
+    if (!allowScripts || !containerRef.current) return
+
+    // Find all script tags that haven't been executed yet
+    const scripts = containerRef.current.querySelectorAll('script:not([data-executed])')
+
+    scripts.forEach(script => {
+      // Mark this script as executed to avoid re-executing on subsequent renders
+      script.setAttribute('data-executed', 'true')
+
+      // If the script has a src attribute, we can't easily execute it from here
+      // For now, we'll handle inline scripts only
+      if (!script.src && script.textContent) {
+        try {
+          // Execute the script with access to document and window context
+          // Using eval in a way that has access to the global scope
+          ;(function() {
+            eval(script.textContent)
+          }).call(window)
+        } catch (error) {
+          console.error('Error executing script:', error)
+        }
+      }
+    })
+  }, [processedHtml, allowScripts])
+
   return (
     <div style={{ height: '100%' }}>
       <div
@@ -122,7 +318,7 @@ export default function HTMLRenderer({ html, className = '', customCss = '' }) {
         {customCss && (
           <style dangerouslySetInnerHTML={{ __html: customCss }} />
         )}
-        <div dangerouslySetInnerHTML={{ __html: processedHtml }} />
+        <div ref={containerRef} dangerouslySetInnerHTML={{ __html: processedHtml }} />
       </div>
     </div>
   )
