@@ -2507,9 +2507,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // If no CSS formatter result yet, show rendered preview (if HTML/Markdown exists)
         if (displayResult && displayResult.formatted) {
           // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
-          // For markdown-html-formatter, determine if we're in HTML tab mode (not CSS tab)
-          // This ensures the editor uses HTML syntax highlighting in the input tab
-          const isHtml = markdownInputMode !== 'css'
+          // Use the actual content classification from formatter result
+          // This ensures markdown renders as markdown even if pasted in HTML tab
+          const isHtml = displayResult.contentMode === 'html'
 
           // Extract embedded CSS from HTML (marked with origin: 'html')
           const embeddedRules = isHtml
@@ -2572,9 +2572,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // Add primary output tab FIRST - show rendered preview of HTML/Markdown with CSS applied
         if (displayResult && displayResult.formatted) {
           // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
-          // For markdown-html-formatter, determine if we're in HTML tab mode (not CSS tab)
-          // This ensures the editor uses HTML syntax highlighting in the input tab
-          const isHtml = markdownInputMode !== 'css'
+          // Use the actual content classification from formatter result
+          // This ensures markdown renders as markdown even if pasted in HTML tab
+          const isHtml = displayResult.contentMode === 'html'
 
           // Extract embedded CSS from HTML (marked with origin: 'html')
           const embeddedRules = isHtml
@@ -2597,8 +2597,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
           // Merge: embedded rules first, then CSS rules
           const mergedRulesForDisplay = [...embeddedRules, ...cssFormatterRulesWithOffset]
-
-          console.log('[ToolOutputPanel CSS with formatter] isHtml:', isHtml, 'embedded:', embeddedRules.length, 'formatter:', cssFormatterRules.length, 'merged:', mergedRulesForDisplay.length)
 
           cssOutputTabs.push({
             id: 'output',
@@ -3128,10 +3126,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const tabs = []
 
     // Detect if the formatted output is HTML or Markdown using formatter metadata
-    // For markdown-html-formatter, use the input mode to determine if we're in HTML tab
-    // This ensures the editor uses HTML syntax highlighting
+    // For markdown-html-formatter, use the actual content classification from the formatter
+    // This ensures markdown renders as markdown even if pasted in the HTML tab
     const isHtml = isMarkdownFormatter
-      ? markdownInputMode !== 'css'
+      ? displayResult.contentMode === 'html'
       : isHtmlContent(displayResult.formatted)
 
     // Rendered tab - shows the formatted content rendered as HTML (this will be OUTPUT tab - first)
