@@ -1044,7 +1044,14 @@ export default function Home(props) {
                   </div>
                 }
                 optionsContent={
-                  selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' ? (
+                  selectedTool?.toolId === 'markdown-html-formatter' ? (
+                    <div className={styles.configSection} style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary, #666)' }}>
+                      <p style={{ margin: '0', fontSize: '13px', fontStyle: 'italic' }}>
+                        Options for this tool are available in the tab headers.<br />
+                        Look for the ⚙ icon next to each tab name.
+                      </p>
+                    </div>
+                  ) : selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' ? (
                     <div className={styles.configSection}>
                       <ToolConfigPanel
                         tool={selectedTool}
@@ -1098,6 +1105,74 @@ export default function Home(props) {
                     </div>
                   ) : null
                 }
+                tabOptionsMap={selectedTool?.toolId === 'markdown-html-formatter' ? {
+                  input: (
+                    <div className={styles.configSection}>
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        onCssConfigChange={setCssConfigOptions}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        result={outputResult}
+                        contentClassification={contentClassification}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        markdownInputMode={'input'}
+                        cssConfigOptions={cssConfigOptions}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                        delimiterTransformerConfig={delimiterTransformerConfig}
+                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                        onSetGeneratedText={handleInputChange}
+                        showAnalysisTab={showAnalysisTab}
+                        onShowAnalysisTabChange={setShowAnalysisTab}
+                        showRulesTab={showRulesTab}
+                        onShowRulesTabChange={setShowRulesTab}
+                      />
+                    </div>
+                  ),
+                  css: (
+                    <div className={styles.configSection}>
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        onCssConfigChange={setCssConfigOptions}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        result={outputResult}
+                        contentClassification={contentClassification}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        markdownInputMode={'css'}
+                        cssConfigOptions={cssConfigOptions}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                        delimiterTransformerConfig={delimiterTransformerConfig}
+                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                        onSetGeneratedText={handleInputChange}
+                        showAnalysisTab={showAnalysisTab}
+                        onShowAnalysisTabChange={setShowAnalysisTab}
+                        showRulesTab={showRulesTab}
+                        onShowRulesTabChange={setShowRulesTab}
+                      />
+                    </div>
+                  ),
+                } : {}}
               />
             </div>
 

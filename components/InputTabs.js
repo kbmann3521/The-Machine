@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import styles from '../styles/output-tabs.module.css'
 
 /**
  * InputTabs Component
  *
- * Provides tabbed interface for input area with INPUT and OPTIONS tabs
+ * Provides tabbed interface for input area with INPUT, CSS, and OPTIONS tabs
+ * Tab-specific options can be shown in dropdown panels next to active tab headers
  * Follows the same pattern as OutputTabs for consistency
  *
  * Props:
@@ -16,6 +17,8 @@ import styles from '../styles/output-tabs.module.css'
  *   cssContent: React element - CSS editor content (for markdown-html-formatter)
  *   infoContent: React element - info/about content shown when no tool is selected
  *   onActiveTabChange: function(tabId) - callback when active tab changes
+ *   tabOptionsMap: object - map of tab IDs to their option content/controls
+ *     { input: <element>, css: <element>, options: <element> }
  */
 export default function InputTabs({
   inputContent = null,
@@ -26,8 +29,11 @@ export default function InputTabs({
   cssContent = null,
   infoContent = null,
   onActiveTabChange = null,
+  tabOptionsMap = {},
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState('input')
+  const [openOptionsDropdown, setOpenOptionsDropdown] = useState(null)
+  const optionsDropdownRef = useRef(null)
 
   // Notify parent when active tab changes
   useEffect(() => {
@@ -89,6 +95,20 @@ export default function InputTabs({
 
   const activeTabConfig = tabConfig.find(t => t.id === currentActiveTab)
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!openOptionsDropdown) return
+
+    const handleClickOutside = (e) => {
+      if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(e.target)) {
+        setOpenOptionsDropdown(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [openOptionsDropdown])
+
   const renderTabContent = () => {
     if (!activeTabConfig) return null
 
@@ -108,6 +128,9 @@ export default function InputTabs({
     return null
   }
 
+  // Check if current active tab has options
+  const hasTabOptions = tabOptionsMap && tabOptionsMap[currentActiveTab]
+
   return (
     <div className={styles.outputTabsWrapper}>
       <div className={styles.outputTabsContainer}>
@@ -123,8 +146,30 @@ export default function InputTabs({
               </button>
             ))}
           </div>
-          <div className={styles.tabActions}>
-            {tabActions}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {/* Settings gear icon - only visible for active tab if it has options */}
+            {hasTabOptions && (
+              <div style={{ position: 'relative' }} ref={optionsDropdownRef}>
+                <button
+                  className={styles.tabSettingsButton}
+                  onClick={() => setOpenOptionsDropdown(openOptionsDropdown === currentActiveTab ? null : currentActiveTab)}
+                  title={`Options for ${activeTabConfig?.label || 'this tab'}`}
+                  aria-label={`Options for ${activeTabConfig?.label || 'this tab'}`}
+                >
+                  <span className={styles.settingsIcon}>⚙</span>
+                </button>
+
+                {/* Options dropdown panel */}
+                {openOptionsDropdown === currentActiveTab && (
+                  <div className={styles.tabOptionsDropdown}>
+                    {tabOptionsMap[currentActiveTab]}
+                  </div>
+                )}
+              </div>
+            )}
+            <div className={styles.tabActions}>
+              {tabActions}
+            </div>
           </div>
         </div>
 

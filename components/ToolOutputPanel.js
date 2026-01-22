@@ -173,6 +173,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     onInputUpdate(updatedHtml)
   }
 
+  const handleSourceChange = ({ source, newContent }) => {
+    if (!onInputUpdate) return
+    // Only update the main input for HTML/Markdown changes, not CSS changes
+    // CSS changes are handled via onCssChange callback
+    if (source === 'html' || source === 'markdown') {
+      onInputUpdate(newContent)
+    }
+  }
+
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
     if (!errors || errors.length === 0) return null
 
@@ -2498,7 +2507,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // If no CSS formatter result yet, show rendered preview (if HTML/Markdown exists)
         if (displayResult && displayResult.formatted) {
           // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
-          const isHtml = shouldRenderMarkdownFormatterAsHtml(displayResult)
+          // For markdown-html-formatter, determine if we're in HTML tab mode (not CSS tab)
+          // This ensures the editor uses HTML syntax highlighting in the input tab
+          const isHtml = markdownInputMode !== 'css'
 
           // Extract embedded CSS from HTML (marked with origin: 'html')
           const embeddedRules = isHtml
@@ -2535,6 +2546,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 onToggleFullscreen={onTogglePreviewFullscreen}
                 onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
                 onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
+                allowScripts={true}
+                allowIframes={true}
               />
             ),
             contentType: 'component',
@@ -2558,7 +2572,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         // Add primary output tab FIRST - show rendered preview of HTML/Markdown with CSS applied
         if (displayResult && displayResult.formatted) {
           // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
-          const isHtml = shouldRenderMarkdownFormatterAsHtml(displayResult)
+          // For markdown-html-formatter, determine if we're in HTML tab mode (not CSS tab)
+          // This ensures the editor uses HTML syntax highlighting in the input tab
+          const isHtml = markdownInputMode !== 'css'
 
           // Extract embedded CSS from HTML (marked with origin: 'html')
           const embeddedRules = isHtml
@@ -2599,6 +2615,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 onToggleFullscreen={onTogglePreviewFullscreen}
                 onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
                 onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
+                allowScripts={true}
+                allowIframes={true}
               />
             ),
             contentType: 'component',
@@ -3109,8 +3128,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const tabs = []
 
     // Detect if the formatted output is HTML or Markdown using formatter metadata
+    // For markdown-html-formatter, use the input mode to determine if we're in HTML tab
+    // This ensures the editor uses HTML syntax highlighting
     const isHtml = isMarkdownFormatter
-      ? shouldRenderMarkdownFormatterAsHtml(displayResult)
+      ? markdownInputMode !== 'css'
       : isHtmlContent(displayResult.formatted)
 
     // Rendered tab - shows the formatted content rendered as HTML (this will be OUTPUT tab - first)
@@ -3155,6 +3176,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             onToggleFullscreen={onTogglePreviewFullscreen}
             onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
             onHtmlChange={handleEmbeddedCssChange}
+            onSourceChange={handleSourceChange}
+            allowScripts={true}
+            allowIframes={true}
           />
         ),
         contentType: 'component',

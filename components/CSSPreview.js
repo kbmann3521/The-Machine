@@ -610,9 +610,15 @@ export default function CSSPreview({
   }
 
   // Phase 7E: Confirm and apply merge operation
-  const handleMergeConfirm = (mergedCSS) => {
-    if (onApplyEdits && mergedCSS) {
+  const handleMergeConfirm = (mergeResult) => {
+    // Handle both old format (string) and new format ({ mergedCSS, mergedHTML })
+    const mergedCSS = typeof mergeResult === 'string' ? mergeResult : mergeResult?.mergedCSS
+
+    // CRITICAL: mergedCSS can be empty string! Empty string means "update to nothing"
+    // Check !== undefined instead of truthiness
+    if (onApplyEdits && mergedCSS !== undefined) {
       try {
+        console.log(`[CSSPreview handleMergeConfirm] Applying ${mergedCSS.length} chars of merged CSS`)
         onApplyEdits(mergedCSS)
         setMergeableGroupsForModal(null) // Close the modal
       } catch (e) {

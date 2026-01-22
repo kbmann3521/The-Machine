@@ -91,7 +91,7 @@
 
 .ruleHeaderContainer {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
   gap: 0;
   transition: all 0.2s ease;
@@ -110,8 +110,8 @@
 .ruleHeader {
   flex: 1;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px 12px;
   background-color: transparent;
   border: none;
@@ -131,12 +131,26 @@
   background-color: transparent;
 }
 
+.ruleHeaderTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ruleHeaderBottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
 .ruleChevron {
   display: inline-flex;
   align-items: center;
   font-size: 10px;
   color: var(--color-text-secondary, #666);
   min-width: 12px;
+  flex-shrink: 0;
 }
 
 .ruleLabel {
@@ -147,40 +161,46 @@
 }
 
 .ruleOrigin {
-  font-size: 12px;
-  margin-left: 6px;
+  font-size: 10px;
+  padding: 2px 6px;
   flex-shrink: 0;
   cursor: help;
   display: inline-flex;
   align-items: center;
+  background-color: rgba(0, 102, 204, 0.08);
+  color: rgba(0, 102, 204, 0.8);
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
-.duplicateIndicator {
-  font-size: 11px;
-  padding: 2px 6px;
+.duplicateIndicatorButton {
+  font-size: 10px;
+  padding: 4px 6px;
   background-color: rgba(156, 39, 176, 0.1);
   color: #7b1fa2;
+  border: 1px solid rgba(156, 39, 176, 0.3);
   border-radius: 3px;
   white-space: nowrap;
   font-weight: 600;
-}
-
-.mergeButtonCompact {
-  background-color: transparent;
-  border: 1px solid rgba(156, 39, 176, 0.3);
-  color: #7b1fa2;
-  padding: 6px 8px;
-  margin-right: 4px;
-  border-radius: 3px;
   cursor: pointer;
-  font-size: 12px;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  font-family: inherit;
+  align-self: flex-end;
+  margin-right: 4px;
+  margin-bottom: 4px;
 }
 
-.mergeButtonCompact:hover {
+.duplicateIndicatorButton:hover {
+  background-color: rgba(156, 39, 176, 0.2);
   border-color: #7b1fa2;
-  background-color: rgba(156, 39, 176, 0.15);
+  box-shadow: 0 1px 3px rgba(156, 39, 176, 0.2);
+}
+
+.duplicateIndicatorButton:active {
+  transform: scale(0.95);
 }
 
 
@@ -242,7 +262,7 @@
 
 .declaration {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
   padding: 6px;
   border-radius: 2px;
@@ -250,7 +270,7 @@
   word-break: break-word;
   min-width: 0;
   width: 100%;
-  overflow: hidden;
+  flex-wrap: wrap;
 }
 
 /* Impact Classification Styles */
@@ -301,23 +321,24 @@
 .property {
   font-weight: 600;
   color: #d73a49;
-  min-width: 60px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
 .colon {
   color: var(--color-text-secondary, #666);
-  display: flex;
-  align-items: center;
+  display: inline;
   padding: 0 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .value {
   color: #0066cc;
-  flex: 1;
+  flex: 1 1 auto;
   word-break: break-word;
   min-width: 0;
-  overflow: hidden;
+  white-space: normal;
 }
 
 .cascadeStatus {
@@ -421,9 +442,10 @@
   color: #7b1fa2;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
+  text-align: center;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -436,18 +458,6 @@
   background-color: rgba(156, 39, 176, 0.25);
   border-color: #7b1fa2;
   box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
-}
-
-.highlightSelectorCode {
-  font-family: 'Courier New', monospace;
-  background-color: rgba(0, 0, 0, 0.05);
-  padding: 2px 4px;
-  border-radius: 2px;
-  color: #7b1fa2;
-  font-weight: 700;
-  flex: 1;
-  min-width: 0;
-  word-break: break-word;
 }
 
 .impactInfo.impactInfoRedundant {
@@ -514,16 +524,19 @@
 
 .impactProperty {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-size: 11px;
   font-family: 'Courier New', monospace;
   color: var(--color-text-secondary, #666);
+  flex-wrap: wrap;
+  word-break: break-word;
 }
 
 .impactPropName {
   font-weight: 600;
   color: #d73a49;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
@@ -759,8 +772,30 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   max-width: 420px;
   width: 90%;
-  overflow: hidden;
+  max-height: 85vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
   animation: slideIn 0.2s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb, #ccc) transparent;
+}
+
+.confirmationModal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.confirmationModal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.confirmationModal::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #ccc);
+  border-radius: 2px;
+}
+
+.confirmationModal::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #999);
 }
 
 @keyframes slideIn {
@@ -789,6 +824,28 @@
 
 .confirmationContent {
   padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb, #ccc) transparent;
+}
+
+.confirmationContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.confirmationContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.confirmationContent::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #ccc);
+  border-radius: 2px;
+}
+
+.confirmationContent::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #999);
 }
 
 .confirmationWarning {
@@ -880,33 +937,35 @@
 .mergeSummaryStats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin: 12px 0;
+  gap: 6px;
+  margin: 8px 0;
 }
 
 .mergeSummaryStat {
-  padding: 12px;
+  padding: 6px 8px;
   background-color: var(--color-background-secondary, #f9f9f9);
   border: 1px solid var(--color-border, #ddd);
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   text-align: center;
 }
 
 .mergeSummaryStatLabel {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   color: var(--color-text-secondary, #666);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
 }
 
 .mergeSummaryStatValue {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   color: #0066cc;
+  line-height: 1;
 }
 
 .mergeDetailsList {
@@ -914,8 +973,8 @@
   flex-direction: column;
   gap: 10px;
   margin: 12px 0;
-  max-height: 200px;
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
   padding-right: 8px;
 }
 
@@ -1537,6 +1596,112 @@
 }
 
 /* Selector Dropdown Scrollbar Styling */
+
+/* Direction Choice Modal Styles */
+
+.directionWarning {
+  padding: 12px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.directionWarning p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.5;
+}
+
+.directionWarning ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--color-text-primary, #000);
+}
+
+.directionWarning li {
+  margin: 4px 0;
+}
+
+.directionWarning code {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(0, 102, 204, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #0066cc;
+}
+
+.directionChoices {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.directionButtonHtml,
+.directionButtonCss {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background-color: var(--color-background-secondary, #f5f5f5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-align: center;
+}
+
+.directionButtonHtml {
+  border-color: rgba(244, 67, 54, 0.3);
+  background-color: rgba(244, 67, 54, 0.05);
+}
+
+.directionButtonHtml:hover {
+  border-color: rgba(244, 67, 54, 0.6);
+  background-color: rgba(244, 67, 54, 0.12);
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+.directionButtonHtml:active {
+  transform: scale(0.98);
+}
+
+.directionButtonCss {
+  border-color: rgba(76, 175, 80, 0.3);
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.directionButtonCss:hover {
+  border-color: rgba(76, 175, 80, 0.6);
+  background-color: rgba(76, 175, 80, 0.12);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.directionButtonCss:active {
+  transform: scale(0.98);
+}
+
+.directionButtonIcon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.directionButtonLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+}
+
+.directionButtonInfo {
+  font-size: 11px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.4;
+}
 
 .selectorDropdown::-webkit-scrollbar {
   width: 6px;

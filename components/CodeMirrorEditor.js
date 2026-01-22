@@ -38,6 +38,10 @@ const syntaxLight = HighlightStyle.define([
   { tag: tags.propertyName, color: '#2563eb' },         // JSON object keys (muted blue) - less visually loud than values
   { tag: tags.className, color: '#1f4fd8' },            // Class names (blue)
   { tag: tags.variableName, color: '#0f766e' },         // Variable names (teal)
+  // HTML-specific token colors
+  { tag: tags.tagName, color: '#1f4fd8' },              // HTML tag names like <div>, <span> (blue)
+  { tag: tags.attributeName, color: '#7c3aed' },        // HTML attributes like class, id (purple)
+  { tag: tags.attributeValue, color: '#059669' },       // HTML attribute values (green)
 ])
 
 // Dark mode syntax colors (professional JSON standard)
@@ -52,6 +56,10 @@ const syntaxDark = HighlightStyle.define([
   { tag: tags.propertyName, color: '#7dd3fc' },         // JSON object keys (cyan/blue) - muted, less visually loud than values
   { tag: tags.className, color: '#7aa2f7' },            // Class names (bright blue)
   { tag: tags.variableName, color: '#7dcfff' },         // Variable names (bright cyan)
+  // HTML-specific token colors
+  { tag: tags.tagName, color: '#7aa2f7' },              // HTML tag names like <div>, <span> (bright blue)
+  { tag: tags.attributeName, color: '#d8b4fe' },        // HTML attributes like class, id (bright purple)
+  { tag: tags.attributeValue, color: '#a7f3d0' },       // HTML attribute values (bright green)
 ])
 
 // Note: We rely on CodeMirror 6's built-in language completions
@@ -212,7 +220,10 @@ function getLanguageExtension(language = 'javascript') {
       return xml()
     case 'html':
     case 'markup':
-      return html()
+      return html({
+        matchClosingTags: true,
+        autoCloseTags: true
+      })
     case 'css':
       return css()
     case 'markdown':
@@ -273,6 +284,7 @@ export default function CodeMirrorEditor({
   useEffect(() => {
     valueRef.current = value
   }, [value])
+
 
   // Calculate gutter width when line numbers are shown
   useEffect(() => {
