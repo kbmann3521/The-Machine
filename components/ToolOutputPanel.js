@@ -32,7 +32,7 @@ import ResizeOutput from './ImageToolkit/outputs/ResizeOutput'
 const CSSEditorInput = dynamic(() => import('./CSSEditorInput'), { ssr: false })
 const MarkdownPreviewWithInspector = dynamic(() => import('./MarkdownPreviewWithInspector'), { ssr: false })
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, isPreviewFullscreen, onTogglePreviewFullscreen, renderCssTabOnly = false, activeMarkdownInputTab = 'input', markdownInputMode = 'input', markdownCustomCss: externalMarkdownCss = null, onMarkdownCustomCssChange = null, cssConfigOptions = {}, onCssConfigChange = null }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, isPreviewFullscreen, onTogglePreviewFullscreen, renderCssTabOnly = false, activeMarkdownInputTab = 'input', markdownInputMode = 'input', markdownCustomCss: externalMarkdownCss = null, onMarkdownCustomCssChange = null, markdownCustomJs: externalMarkdownJs = null, onMarkdownCustomJsChange = null, cssConfigOptions = {}, onCssConfigChange = null, jsConfigOptions = {}, onJsConfigChange = null, onJsFormatterDiagnosticsChange = null }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -50,8 +50,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   // Use external prop if provided (for renderCssTabOnly mode), otherwise use internal state
   const markdownCustomCss = externalMarkdownCss !== null ? externalMarkdownCss : internalMarkdownCss
   const setMarkdownCustomCss = onMarkdownCustomCssChange || setInternalMarkdownCss
+  const [internalMarkdownJs, setInternalMarkdownJs] = useState('')
+  // Use external prop if provided (for JS tab), otherwise use internal state
+  const markdownCustomJs = externalMarkdownJs !== null ? externalMarkdownJs : internalMarkdownJs
+  const setMarkdownCustomJs = onMarkdownCustomJsChange || setInternalMarkdownJs
   const [scannedSelectors, setScannedSelectors] = useState({ tags: [], classes: [], suggestions: [] })
   const [cssFormatterResult, setCssFormatterResult] = useState(null)
+  const [jsFormatterResult, setJsFormatterResult] = useState(null)
 
   // Format CSS when markdownCustomCss changes (only for markdown-html-formatter)
   React.useEffect(() => {
@@ -90,6 +95,45 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       setCssFormatterResult(null)
     }
   }, [markdownCustomCss, toolId, cssConfigOptions])
+
+  // Format JavaScript when markdownCustomJs or jsConfigOptions changes (only for markdown-html-formatter)
+  React.useEffect(() => {
+    if (toolId === 'markdown-html-formatter' && markdownCustomJs && markdownCustomJs.trim()) {
+      const formatJs = async () => {
+        try {
+          // Call JavaScript formatter via API with all the config options
+          console.log('[JS Formatter] Config:', jsConfigOptions)
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: 'js-formatter',
+              inputText: markdownCustomJs,
+              config: jsConfigOptions,
+            }),
+          })
+          const data = await response.json()
+          console.log('[JS Formatter] Response:', data)
+          console.log('[JS Formatter] Diagnostics:', data.result?.diagnostics)
+          console.log('[JS Formatter] Linting:', data.result?.linting)
+          setJsFormatterResult(data.result || data)
+        } catch (err) {
+          console.error('[JS Formatter] Error:', err)
+          setJsFormatterResult(null)
+        }
+      }
+      formatJs()
+    } else {
+      setJsFormatterResult(null)
+    }
+  }, [markdownCustomJs, toolId, jsConfigOptions])
+
+  // Update parent component with JS formatter diagnostics for editor linting
+  React.useEffect(() => {
+    if (onJsFormatterDiagnosticsChange && jsFormatterResult?.diagnostics) {
+      onJsFormatterDiagnosticsChange(jsFormatterResult.diagnostics)
+    }
+  }, [jsFormatterResult?.diagnostics, onJsFormatterDiagnosticsChange])
 
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
@@ -334,9 +378,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
-  // Show blank tabs when no result (but skip for markdown formatter CSS mode)
-  // Skip both when renderCssTabOnly AND when in CSS mode (markdownInputMode === 'css')
-  if (!displayResult && !(toolId === 'markdown-html-formatter' && (renderCssTabOnly || markdownInputMode === 'css'))) {
+  // Show blank tabs when no result (but skip for markdown formatter CSS/JS mode)
+  // Skip both when renderCssTabOnly AND when in CSS/JS mode (markdownInputMode === 'css' or 'js')
+  if (!displayResult && !(toolId === 'markdown-html-formatter' && (renderCssTabOnly || markdownInputMode === 'css' || markdownInputMode === 'js'))) {
     const waitingMessage = isInputEmpty ? 'Waiting for input...' : ''
     const blankTabs = [
       {
@@ -2496,136 +2540,80 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       return selector
     }
 
-    // If CSS mode is active, ALWAYS show CSS formatter output tabs (not renderCssTabOnly)
-    // This should be checked FIRST, even if there's no HTML/Markdown input
-    // Use markdownInputMode instead of activeMarkdownInputTab to preserve CSS output when clicking OPTIONS tab
+    // If CSS mode is active, show CSS formatter output tabs
+    // OUTPUT and JSON are always shown (persistent)
+    // FORMATTED, VALIDATION, and LINTING are conditional on having CSS input
     if (!renderCssTabOnly && markdownInputMode === 'css') {
       const cssOutputTabs = []
 
-      // Always build the tabs regardless of cssFormatterResult state
-      if (!cssFormatterResult) {
-        // If no CSS formatter result yet, show rendered preview (if HTML/Markdown exists)
-        if (displayResult && displayResult.formatted) {
-          // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
-          // Use the actual content classification from formatter result
-          // This ensures markdown renders as markdown even if pasted in HTML tab
-          const isHtml = displayResult.contentMode === 'html'
-
-          // Extract embedded CSS from HTML (marked with origin: 'html')
-          const embeddedRules = isHtml
-            ? extractAndParseCssFromHtml(displayResult.formatted)
-            : []
-
-          // Parse customCss with origin: 'css' for tracking
-          const customCssRules = markdownCustomCss && markdownCustomCss.trim()
-            ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
-            : []
-
-          // Offset CSS tab rules' ruleIndex by embedded rules count
-          // This ensures globally unique ruleIndex across all sources
-          const customCssRulesWithOffset = customCssRules.map(rule => ({
-            ...rule,
-            ruleIndex: rule.ruleIndex + embeddedRules.length
-          }))
-
-          // Merge: embedded rules first, then customCss rules
-          const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
-
-          cssOutputTabs.push({
-            id: 'output',
-            label: 'OUTPUT',
-            content: (
-              <MarkdownPreviewWithInspector
-                isHtml={isHtml}
-                content={displayResult.formatted}
-                customCss={markdownCustomCss}
-                rulesTree={mergedRulesForDisplay}
-                allowHtml={enableHtmlPreview}
-                enableGfm={enableGfmFeatures}
-                isFullscreen={isPreviewFullscreen}
-                onToggleFullscreen={onTogglePreviewFullscreen}
-                onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
-                onHtmlChange={handleEmbeddedCssChange}
-                onSourceChange={handleSourceChange}
-                allowScripts={true}
-                allowIframes={true}
-              />
-            ),
-            contentType: 'component',
-          })
-        } else {
-          // No HTML/Markdown to render yet
-          cssOutputTabs.push({
-            id: 'output',
-            label: 'OUTPUT',
-            content: 'Waiting for results...',
-            contentType: 'text',
-          })
+      // Add OUTPUT tab - always visible (persistent preview)
+      // Show rendered preview with HTML/Markdown and CSS applied
+      if (displayResult && displayResult.formatted) {
+        // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
+        // Use the actual content classification from formatter result
+        let isHtml = displayResult.contentMode === 'html'
+        if (displayResult.appliedConversion === 'html') {
+          isHtml = true
+        } else if (displayResult.appliedConversion === 'markdown') {
+          isHtml = false
         }
-      } else {
-        // Check if CSS is valid
-        const isValid = cssFormatterResult.isWellFormed !== false
-        const validationErrors = (cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics))
-          ? cssFormatterResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+
+        // Extract embedded CSS from HTML
+        const embeddedRules = isHtml
+          ? extractAndParseCssFromHtml(displayResult.formatted)
           : []
 
-        // Add primary output tab FIRST - show rendered preview of HTML/Markdown with CSS applied
-        if (displayResult && displayResult.formatted) {
-          // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
-          // Use the actual content classification from formatter result
-          // This ensures markdown renders as markdown even if pasted in HTML tab
-          const isHtml = displayResult.contentMode === 'html'
+        // Parse custom CSS with proper origin tracking
+        const customCssRules = markdownCustomCss && markdownCustomCss.trim()
+          ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
+          : []
 
-          // Extract embedded CSS from HTML (marked with origin: 'html')
-          const embeddedRules = isHtml
-            ? extractAndParseCssFromHtml(displayResult.formatted)
-            : []
+        // Offset CSS tab rules' ruleIndex by embedded rules count
+        const customCssRulesWithOffset = customCssRules.map(rule => ({
+          ...rule,
+          ruleIndex: rule.ruleIndex + embeddedRules.length
+        }))
 
-          // Get CSS rules from formatter with origin: 'css'
-          // Note: formatter rules already have origin info, but ensure css-tab containerId
-          const cssFormatterRules = (cssFormatterResult?.analysis?.rulesTree || []).map(rule => ({
-            ...rule,
-            origin: rule.origin || { source: 'css', containerId: 'css-tab' }
-          }))
+        const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
 
-          // Offset CSS formatter rules' ruleIndex by embedded rules count
-          // This ensures globally unique ruleIndex across all sources
-          const cssFormatterRulesWithOffset = cssFormatterRules.map(rule => ({
-            ...rule,
-            ruleIndex: rule.ruleIndex + embeddedRules.length
-          }))
+        cssOutputTabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: (
+            <MarkdownPreviewWithInspector
+              isHtml={isHtml}
+              content={displayResult.formatted}
+              customCss={markdownCustomCss}
+              customJs={markdownCustomJs}
+              rulesTree={mergedRulesForDisplay}
+              allowHtml={enableHtmlPreview}
+              enableGfm={enableGfmFeatures}
+              isFullscreen={isPreviewFullscreen}
+              onToggleFullscreen={onTogglePreviewFullscreen}
+              onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+              onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+              onHtmlChange={handleEmbeddedCssChange}
+              onSourceChange={handleSourceChange}
+              allowScripts={true}
+              allowIframes={true}
+            />
+          ),
+          contentType: 'component',
+        })
+      } else {
+        // No HTML/Markdown to render yet
+        cssOutputTabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: 'Waiting for input...',
+          contentType: 'text',
+        })
+      }
 
-          // Merge: embedded rules first, then CSS rules
-          const mergedRulesForDisplay = [...embeddedRules, ...cssFormatterRulesWithOffset]
-
-          cssOutputTabs.push({
-            id: 'output',
-            label: 'OUTPUT',
-            content: (
-              <MarkdownPreviewWithInspector
-                isHtml={isHtml}
-                content={displayResult.formatted}
-                customCss={markdownCustomCss}
-                rulesTree={mergedRulesForDisplay}
-                allowHtml={enableHtmlPreview}
-                enableGfm={enableGfmFeatures}
-                isFullscreen={isPreviewFullscreen}
-                onToggleFullscreen={onTogglePreviewFullscreen}
-                onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
-                onHtmlChange={handleEmbeddedCssChange}
-                onSourceChange={handleSourceChange}
-                allowScripts={true}
-                allowIframes={true}
-              />
-            ),
-            contentType: 'component',
-          })
-        }
-
+      // Only add FORMATTED, VALIDATION, and LINTING tabs if there's CSS input
+      if (markdownCustomCss && markdownCustomCss.trim()) {
         // Add FORMATTED tab - show the formatted CSS code
-        // Use !== undefined to allow empty strings as valid formatted output
-        if (cssFormatterResult.formatted !== undefined) {
-          // Check if formatted CSS is empty (e.g., from minifying empty rules)
+        if (cssFormatterResult) {
           const isEmptyFormatted = cssFormatterResult.formatted === '' || cssFormatterResult.formatted.trim() === ''
 
           if (isEmptyFormatted) {
@@ -2661,32 +2649,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               language: 'css',
             })
           }
-        } else if (!isValid && validationErrors.length > 0) {
-          // Show validation errors in FORMATTED if there's no formatted CSS
-          cssOutputTabs.push({
-            id: 'formatted',
-            label: 'FORMATTED',
-            content: (
-              <div>
-                <div style={{
-                  marginBottom: '16px',
-                  padding: '12px',
-                  backgroundColor: 'rgba(239, 83, 80, 0.1)',
-                  border: '1px solid rgba(239, 83, 80, 0.3)',
-                  borderRadius: '4px',
-                  color: '#ef5350',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                }}>
-                  {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
-                </div>
-                {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
-              </div>
-            ),
-            contentType: 'component',
-          })
         } else {
-          // Show placeholder when CSS formatter is running but no result yet
+          // Show placeholder when CSS formatter is running
           cssOutputTabs.push({
             id: 'formatted',
             label: 'FORMATTED',
@@ -2694,48 +2658,34 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'text',
           })
         }
-      }
 
-      // When there's no cssFormatterResult yet, still show FORMATTED tab as placeholder
-      if (!cssFormatterResult) {
-        cssOutputTabs.push({
-          id: 'formatted',
-          label: 'FORMATTED',
-          content: 'Waiting for CSS...',
-          contentType: 'text',
-        })
-      }
-
-      // Add VALIDATION tab - always show (regardless of cssFormatterResult state)
-      if (cssFormatterResult) {
-        if (cssFormatterResult.showValidation !== false) {
+        // Add VALIDATION tab
+        if (cssFormatterResult && cssFormatterResult.showValidation !== false) {
           const validationErrors = (cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics))
             ? cssFormatterResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
             : []
 
           if (validationErrors.length > 0) {
-            const validationContent = (
-              <div>
-                <div style={{
-                  marginBottom: '16px',
-                  padding: '12px',
-                  backgroundColor: 'rgba(239, 83, 80, 0.1)',
-                  border: '1px solid rgba(239, 83, 80, 0.3)',
-                  borderRadius: '4px',
-                  color: '#ef5350',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                }}>
-                  {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
-                </div>
-                {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
-              </div>
-            )
-
             cssOutputTabs.push({
               id: 'validation',
               label: `Validation (${validationErrors.length})`,
-              content: validationContent,
+              content: (
+                <div>
+                  <div style={{
+                    marginBottom: '16px',
+                    padding: '12px',
+                    backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                    border: '1px solid rgba(239, 83, 80, 0.3)',
+                    borderRadius: '4px',
+                    color: '#ef5350',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                  }}>
+                    {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+                  </div>
+                  {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
+                </div>
+              ),
               contentType: 'component',
             })
           } else {
@@ -2745,19 +2695,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               content: (
                 <div style={{
                   textAlign: 'center',
-                  color: 'var(--color-text-secondary)',
+                  padding: '16px',
+                  backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                  border: '1px solid rgba(102, 187, 106, 0.3)',
+                  borderRadius: '4px',
+                  color: '#66bb6a',
+                  fontSize: '13px',
+                  fontWeight: '500',
                 }}>
-                  <div style={{
-                    padding: '16px',
-                    backgroundColor: 'rgba(102, 187, 106, 0.1)',
-                    border: '1px solid rgba(102, 187, 106, 0.3)',
-                    borderRadius: '4px',
-                    color: '#66bb6a',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                  }}>
-                    Valid CSS
-                  </div>
+                  Valid CSS
                 </div>
               ),
               contentType: 'component',
@@ -2765,8 +2711,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           }
         }
 
-        // Add LINTING tab - show warnings from diagnostics (if linting is enabled)
-        if (cssFormatterResult.showLinting && cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics)) {
+        // Add LINTING tab
+        if (cssFormatterResult && cssFormatterResult.showLinting && cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics)) {
           const lintingWarnings = cssFormatterResult.diagnostics.filter(d => d.category === 'lint')
           const isCssValid = cssFormatterResult.isWellFormed !== false
 
@@ -2851,21 +2797,261 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'component',
           })
         }
-
-        // Add JSON tab
-        cssOutputTabs.push({
-          id: 'json',
-          label: 'JSON',
-          content: JSON.stringify(cssFormatterResult, null, 2),
-          contentType: 'json',
-        })
       }
 
-      if (cssOutputTabs.length === 0) return null
+      // Add JSON tab (always show - persistent)
+      cssOutputTabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: cssFormatterResult ? JSON.stringify(cssFormatterResult, null, 2) : '{}',
+        contentType: 'json',
+      })
 
       return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={cssOutputTabs} analysisData={cssFormatterResult?.analysis} sourceText={markdownCustomCss} showCopyButton={true} showAnalysisTab={cssConfigOptions?.showAnalysisTab || false} onShowAnalysisTabChange={(val) => onCssConfigChange?.({ ...cssConfigOptions, showAnalysisTab: val })} showRulesTab={cssConfigOptions?.showRulesTab || false} onShowRulesTabChange={(val) => onCssConfigChange?.({ ...cssConfigOptions, showRulesTab: val })} isPreviewFullscreen={isPreviewFullscreen} onTogglePreviewFullscreen={onTogglePreviewFullscreen} />
     }
 
+    // If JS mode is active, show JavaScript formatter output tabs
+    // OUTPUT and JSON are always shown (persistent)
+    // FORMATTED, VALIDATION, and LINTING are conditional on having JS input
+    if (!renderCssTabOnly && markdownInputMode === 'js') {
+
+      // Build JS formatter output tabs
+      const jsOutputTabs = []
+
+      // Add OUTPUT tab - always visible (persistent preview)
+      // Show rendered preview with HTML, CSS, and JS all applied
+      if (displayResult && displayResult.formatted) {
+        // Determine if content is HTML or Markdown
+        let isHtml = displayResult.contentMode === 'html'
+        if (displayResult.appliedConversion === 'html') {
+          isHtml = true
+        } else if (displayResult.appliedConversion === 'markdown') {
+          isHtml = false
+        }
+
+        // Extract CSS rules from HTML
+        const embeddedRules = isHtml
+          ? extractAndParseCssFromHtml(displayResult.formatted)
+          : []
+
+        // Parse custom CSS
+        const customCssRules = markdownCustomCss && markdownCustomCss.trim()
+          ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
+          : []
+
+        // Offset CSS tab rules
+        const customCssRulesWithOffset = customCssRules.map(rule => ({
+          ...rule,
+          ruleIndex: rule.ruleIndex + embeddedRules.length
+        }))
+
+        const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
+
+        // Add OUTPUT tab - rendered preview with HTML, CSS, and JS all applied
+        jsOutputTabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: (
+            <MarkdownPreviewWithInspector
+              isHtml={isHtml}
+              content={displayResult.formatted}
+              customCss={markdownCustomCss}
+              customJs={markdownCustomJs}
+              rulesTree={mergedRulesForDisplay}
+              allowHtml={enableHtmlPreview}
+              enableGfm={enableGfmFeatures}
+              isFullscreen={isPreviewFullscreen}
+              onToggleFullscreen={onTogglePreviewFullscreen}
+              onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+              onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+              onHtmlChange={handleEmbeddedCssChange}
+              onSourceChange={handleSourceChange}
+              allowScripts={true}
+              allowIframes={true}
+            />
+          ),
+          contentType: 'component',
+        })
+      } else {
+        // No HTML/Markdown content - show blank OUTPUT tab
+        jsOutputTabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: 'Waiting for input...',
+          contentType: 'text',
+        })
+      }
+
+      // Only add FORMATTED, VALIDATION, and LINTING tabs if there's JS input
+      if (markdownCustomJs && markdownCustomJs.trim()) {
+        // Add FORMATTED tab - the beautified JS code
+        jsOutputTabs.push({
+          id: 'formatted',
+          label: 'FORMATTED',
+          content: jsFormatterResult?.formatted || markdownCustomJs,
+          contentType: 'code',
+          language: 'javascript',
+        })
+
+        // Add VALIDATION tab
+        const validationErrors = (jsFormatterResult?.diagnostics && Array.isArray(jsFormatterResult.diagnostics))
+          ? jsFormatterResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+          : []
+
+        if (validationErrors.length > 0) {
+          jsOutputTabs.push({
+            id: 'validation',
+            label: `Validation (${validationErrors.length})`,
+            content: (
+              <div>
+                <div style={{
+                  marginBottom: '16px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                  border: '1px solid rgba(239, 83, 80, 0.3)',
+                  borderRadius: '4px',
+                  color: '#ef5350',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}>
+                  ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+                </div>
+                {renderValidationErrorsUnified(validationErrors, 'JavaScript Syntax Errors')}
+              </div>
+            ),
+            contentType: 'component',
+          })
+        } else {
+          // No syntax errors - show success message
+          jsOutputTabs.push({
+            id: 'validation',
+            label: 'Validation (✓)',
+            content: (
+              <div style={{
+                textAlign: 'center',
+                padding: '16px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid JavaScript
+              </div>
+            ),
+            contentType: 'component',
+          })
+        }
+
+        // Add LINTING tab
+        const lintingWarnings = (jsFormatterResult?.diagnostics && Array.isArray(jsFormatterResult.diagnostics))
+          ? jsFormatterResult.diagnostics.filter(d => d.category === 'lint')
+          : []
+        const isValid = jsFormatterResult?.isWellFormed !== false
+
+        let lintingLabel = 'Linting'
+        let lintingContent = null
+
+        if (!isValid && jsFormatterResult) {
+          lintingLabel = 'Linting (⊘)'
+          lintingContent = (
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'rgba(158, 158, 158, 0.1)',
+              border: '1px solid rgba(158, 158, 158, 0.3)',
+              borderRadius: '4px',
+              color: '#9e9e9e',
+              fontSize: '13px',
+              fontWeight: '500',
+              textAlign: 'center',
+            }}>
+              Linting skipped (syntax errors present)
+            </div>
+          )
+        } else if (lintingWarnings.length === 0) {
+          lintingLabel = 'Linting (✓)'
+          lintingContent = (
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'rgba(102, 187, 106, 0.1)',
+              border: '1px solid rgba(102, 187, 106, 0.3)',
+              borderRadius: '4px',
+              color: '#66bb6a',
+              fontSize: '13px',
+              fontWeight: '500',
+              textAlign: 'center',
+            }}>
+              ✓ No linting warnings found
+            </div>
+          )
+        } else {
+          lintingLabel = `Linting (${lintingWarnings.length})`
+          lintingContent = (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {lintingWarnings.map((warning, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                      border: '1px solid rgba(255, 167, 38, 0.2)',
+                      borderRadius: '4px',
+                      borderLeft: '3px solid #ffa726',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                      ⚠️ {warning.message}
+                    </div>
+                    {warning.line && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Line {warning.line}{warning.column ? `, Column ${warning.column}` : ''}
+                      </div>
+                    )}
+                    {(warning.ruleId || warning.rule) && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '2px' }}>
+                        Rule: {warning.ruleId || warning.rule}
+                      </div>
+                    )}
+                    {warning.category && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        Category: {warning.category}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        jsOutputTabs.push({
+          id: 'linting',
+          label: lintingLabel,
+          content: lintingContent,
+          contentType: 'component',
+        })
+      }
+
+      // Add JSON tab (always show - persistent)
+      jsOutputTabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: jsFormatterResult ? JSON.stringify(jsFormatterResult, null, 2) : '{}',
+        contentType: 'json',
+      })
+
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={jsOutputTabs}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
 
     // If renderCssTabOnly is true, return only the CSS editor (even with no HTML/MD input)
     if (renderCssTabOnly) {
@@ -3128,13 +3314,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Detect if the formatted output is HTML or Markdown using formatter metadata
     // For markdown-html-formatter, use the actual content classification from the formatter
     // This ensures markdown renders as markdown even if pasted in the HTML tab
-    const isHtml = isMarkdownFormatter
+    // IMPORTANT: Check appliedConversion first - it determines actual output format after conversion
+    const isConversionApplied = displayResult.appliedConversion && displayResult.appliedConversion !== 'none'
+    let isHtml = isMarkdownFormatter
       ? displayResult.contentMode === 'html'
       : isHtmlContent(displayResult.formatted)
 
+    // Override based on conversion that was applied
+    if (displayResult.appliedConversion === 'html') {
+      isHtml = true  // Conversion to HTML was applied, output is definitely HTML
+    } else if (displayResult.appliedConversion === 'markdown') {
+      isHtml = false  // Conversion to Markdown was applied, output is definitely Markdown
+    }
+
     // Rendered tab - shows the formatted content rendered as HTML (this will be OUTPUT tab - first)
+    // Allow rendering if:
+    // 1. Content is well-formed, OR
+    // 2. A conversion was applied (user intentionally converted the format)
     let renderTab = null
-    if (displayResult.formatted && displayResult.isWellFormed !== false) {
+    if (displayResult.formatted && (displayResult.isWellFormed !== false || isConversionApplied)) {
       // Use MarkdownPreviewWithInspector for all modes to ensure consistent CSS extraction and application
       // This component handles both HTML mode (extracts <style> tags) and Markdown mode
       // Extract embedded CSS from HTML (marked with origin: 'html')
@@ -3167,12 +3365,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             isHtml={isHtml}
             content={displayResult.formatted}
             customCss={markdownCustomCss}
+            customJs={markdownCustomJs}
             rulesTree={mergedRulesForDisplay}
             allowHtml={enableHtmlPreview}
             enableGfm={enableGfmFeatures}
             isFullscreen={isPreviewFullscreen}
             onToggleFullscreen={onTogglePreviewFullscreen}
             onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+            onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
             onHtmlChange={handleEmbeddedCssChange}
             onSourceChange={handleSourceChange}
             allowScripts={true}

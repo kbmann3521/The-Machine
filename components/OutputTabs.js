@@ -29,6 +29,9 @@ export default function OutputTabs({
   onShowRulesTabChange = null,
   isPreviewFullscreen = false,
   onTogglePreviewFullscreen = null,
+  jsOptionsContent = null,
+  showJsOptionsModal = false,
+  onToggleJsOptionsModal = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState(null)
   const [isMinified, setIsMinified] = useState(false)
@@ -38,6 +41,7 @@ export default function OutputTabs({
   const [localShowAnalysisTab, setLocalShowAnalysisTab] = useState(showAnalysisTab)
   const [localShowRulesTab, setLocalShowRulesTab] = useState(showRulesTab)
   const [mergeableGroups, setMergeableGroups] = useState(null) // Phase 7E: Track mergeable groups for confirmation
+  const [localShowJsOptionsModal, setLocalShowJsOptionsModal] = useState(false)
   const codeContentRef = useRef(null)
   const textContentRef = useRef(null)
   const prevToolIdRef = useRef(toolId)
@@ -823,6 +827,16 @@ export default function OutputTabs({
                 </button>
               )}
 
+              {jsOptionsContent && (
+                <button
+                  className="copy-action"
+                  onClick={() => setLocalShowJsOptionsModal(!localShowJsOptionsModal)}
+                  title="JavaScript options"
+                >
+                  ⚙️
+                </button>
+              )}
+
               {showCopyButton && (
                 <button className="copy-action" onClick={handleCopy} title="Copy output">
                   {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
@@ -849,6 +863,60 @@ export default function OutputTabs({
           </div>
         </div>
       </div>
+
+      {/* JavaScript Options Modal */}
+      {localShowJsOptionsModal && jsOptionsContent && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000,
+        }}>
+          <div style={{
+            backgroundColor: 'var(--color-background-primary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '8px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: '0', fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                JavaScript Options
+              </h2>
+              <button
+                onClick={() => setLocalShowJsOptionsModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: 'var(--color-text-secondary)',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="Close options"
+              >
+                ✕
+              </button>
+            </div>
+            {jsOptionsContent}
+          </div>
+        </div>
+      )}
 
       {/* Phase 7E: Merge Selector Confirmation Modal */}
       {mergeableGroups && analysisData?.rulesTree && (
