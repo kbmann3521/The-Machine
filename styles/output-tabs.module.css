@@ -1495,6 +1495,18 @@
 }
 
 /* Tab Settings Button and Dropdown */
+.tabOptionsContainer {
+  position: relative;
+}
+
+/* Mobile: Stack options vertically on small screens */
+@media (max-width: 640px) {
+  .tabOptionsContainer {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 .tabSettingsButton {
   display: flex;
   align-items: center;
@@ -1547,6 +1559,19 @@
   padding: 12px;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile: Center dropdown in viewport */
+@media (max-width: 640px) {
+  .tabOptionsDropdown {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    max-width: calc(100vw - 16px);
+    min-width: auto;
+  }
 }
 
 .tabOptionsDropdown::-webkit-scrollbar {

@@ -161,7 +161,7 @@ export default function InputTabs({
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {/* Settings gear icon - only visible for active tab if it has options */}
             {hasTabOptions && (
-              <div style={{ position: 'relative' }} ref={optionsDropdownRef}>
+              <div className={styles.tabOptionsContainer} ref={optionsDropdownRef}>
                 <button
                   className={styles.tabSettingsButton}
                   onClick={() => setOpenOptionsDropdown(openOptionsDropdown === currentActiveTab ? null : currentActiveTab)}
