@@ -23,6 +23,7 @@ import styles from '../styles/output-tabs.module.css'
  *   isHtml: boolean
  *   content: string (HTML or Markdown)
  *   customCss: string
+ *   customJs: string (JavaScript to inject into preview)
  *   rulesTree: CssRuleNode[]
  *   allowHtml: boolean
  *   enableGfm: boolean
@@ -149,12 +150,14 @@ export default function MarkdownPreviewWithInspector({
   isHtml = false,
   content = '',
   customCss = '',
+  customJs = '', // JavaScript to inject into preview
   rulesTree = [],
   allowHtml = true,
   enableGfm = true,
   isFullscreen = false,
   onToggleFullscreen = null,
   onCssChange = null,
+  onJsChange = null, // Called when JS is edited in fullscreen
   onHtmlChange = null, // Called when editing embedded HTML CSS
   onSourceChange = null, // Called with { source: 'html'|'css', newContent }
   allowScripts = false, // Allow JavaScript execution in HTML (Web Playground only)
@@ -177,13 +180,17 @@ export default function MarkdownPreviewWithInspector({
   const [isClosingFullscreenSettings, setIsClosingFullscreenSettings] = useState(false)
   const [showFullscreenInputPanel, setShowFullscreenInputPanel] = useState(false)
   const [isClosingInputPanel, setIsClosingInputPanel] = useState(false)
-  const [inputPanelDividerRatio, setInputPanelDividerRatio] = useState(50) // 50/50 split
+  const [inputPanelDividerRatio, setInputPanelDividerRatio] = useState(50) // 50/50 split between HTML and CSS/JS
   const [inputPanelContent, setInputPanelContent] = useState(content)
   const [inputPanelCss, setInputPanelCss] = useState(customCss)
+  const [inputPanelJs, setInputPanelJs] = useState(customJs)
+  const [rightPanelDividerRatio, setRightPanelDividerRatio] = useState(50) // 50/50 split between CSS and JS
   const [inputPanelWidth, setInputPanelWidth] = useState(480) // Width in pixels
   const [isClosingFullscreen, setIsClosingFullscreen] = useState(false)
   const inputPanelDividerRef = useRef(null)
+  const rightPanelDividerRef = useRef(null)
   const isDraggingInputDividerRef = useRef(false)
+  const isDraggingRightDividerRef = useRef(false)
   const isDraggingInputPanelEdgeRef = useRef(false)
   const inputPanelEdgeRef = useRef(null)
   const inputPanelEdgeHandleRef = useRef(null)
@@ -208,6 +215,11 @@ export default function MarkdownPreviewWithInspector({
   // Use local rules tree if available (after modifications), otherwise use prop
   // This ensures immediate UI updates when removing/adding properties
   const effectiveRulesTree = localRulesTree !== null ? localRulesTree : rulesTree
+
+  // Sync inputPanelJs with customJs prop when it changes externally
+  React.useEffect(() => {
+    setInputPanelJs(customJs)
+  }, [customJs])
 
   // Calculate responsive inspector panel width
   const getInspectorPanelWidth = () => {
@@ -314,6 +326,10 @@ export default function MarkdownPreviewWithInspector({
     isDraggingInputDividerRef.current = true
   }
 
+  const handleRightPanelDividerMouseDown = () => {
+    isDraggingRightDividerRef.current = true
+  }
+
   const handleInputPanelEdgeMouseDown = () => {
     isDraggingInputPanelEdgeRef.current = true
   }
@@ -356,6 +372,45 @@ export default function MarkdownPreviewWithInspector({
       window.removeEventListener('mouseup', handleMouseUp)
       window.removeEventListener('mousedown', handleMouseDown)
       // Clean up in case component unmounts while dragging
+      document.body.style.userSelect = 'auto'
+    }
+  }, [])
+
+  // Right panel divider (CSS/JS vertical split)
+  React.useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDraggingRightDividerRef.current || !rightPanelDividerRef.current) return
+
+      const container = rightPanelDividerRef.current.parentElement
+      if (!container) return
+
+      const containerHeight = container.clientHeight
+      const relativeY = e.clientY - container.getBoundingClientRect().top
+      const newRatio = Math.max(20, Math.min(80, (relativeY / containerHeight) * 100))
+      setRightPanelDividerRatio(newRatio)
+    }
+
+    const handleMouseUp = () => {
+      isDraggingRightDividerRef.current = false
+      document.body.style.userSelect = 'auto'
+      if (rightPanelDividerRef.current) {
+        rightPanelDividerRef.current.style.backgroundColor = 'var(--color-border, #ddd)'
+      }
+    }
+
+    const handleMouseDown = (e) => {
+      if (isDraggingRightDividerRef.current) {
+        document.body.style.userSelect = 'none'
+      }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('mousedown', handleMouseDown)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mousedown', handleMouseDown)
       document.body.style.userSelect = 'auto'
     }
   }, [])
@@ -1484,6 +1539,7 @@ export default function MarkdownPreviewWithInspector({
           <HTMLRenderer
             html={contentToRender}
             customCss={previewCss}
+            customJs={customJs}
             allowScripts={allowScripts}
             allowIframes={allowIframes}
           />
@@ -1976,30 +2032,86 @@ export default function MarkdownPreviewWithInspector({
                 <div style={{ width: '24px', height: '3px', backgroundColor: 'rgba(33, 150, 243, 0.5)', borderRadius: '1px' }} />
               </div>
 
-              {/* CSS Input Section */}
+              {/* CSS and JS Input Sections */}
               <div style={{ flex: `${100 - inputPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
-                  CSS
+                {/* CSS Input Section */}
+                <div style={{ flex: `${rightPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
+                    CSS
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+                    <CodeMirrorEditor
+                      value={inputPanelCss}
+                      onChange={(newValue) => {
+                        setInputPanelCss(newValue)
+                        onCssChange?.(newValue)
+                      }}
+                      language="css"
+                      showLineNumbers={true}
+                      editorType="input"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        fontSize: '11px',
+                      }}
+                    />
+                  </div>
                 </div>
-                <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-                  <CodeMirrorEditor
-                    value={inputPanelCss}
-                    onChange={(newValue) => {
-                      setInputPanelCss(newValue)
-                      onCssChange?.(newValue)
-                    }}
-                    language="css"
-                    showLineNumbers={true}
-                    editorType="input"
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      fontSize: '11px',
-                    }}
-                  />
+
+                {/* Draggable Divider between CSS and JS */}
+                <div
+                  ref={rightPanelDividerRef}
+                  onMouseDown={handleRightPanelDividerMouseDown}
+                  style={{
+                    height: '6px',
+                    backgroundColor: 'var(--color-border, #ddd)',
+                    cursor: 'row-resize',
+                    flexShrink: 0,
+                    transition: isDraggingRightDividerRef.current ? 'none' : 'background-color 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isDraggingRightDividerRef.current) {
+                      e.currentTarget.style.backgroundColor = 'var(--color-border, #ddd)'
+                    }
+                  }}
+                >
+                  <div style={{ width: '24px', height: '3px', backgroundColor: 'rgba(33, 150, 243, 0.5)', borderRadius: '1px' }} />
+                </div>
+
+                {/* JS Input Section */}
+                <div style={{ flex: `${100 - rightPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
+                    JavaScript
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+                    <CodeMirrorEditor
+                      value={inputPanelJs}
+                      onChange={(newValue) => {
+                        setInputPanelJs(newValue)
+                        onJsChange?.(newValue)
+                      }}
+                      language="javascript"
+                      showLineNumbers={true}
+                      editorType="input"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        fontSize: '11px',
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

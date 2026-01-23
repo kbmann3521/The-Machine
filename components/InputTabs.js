@@ -4,7 +4,7 @@ import styles from '../styles/output-tabs.module.css'
 /**
  * InputTabs Component
  *
- * Provides tabbed interface for input area with INPUT, CSS, and OPTIONS tabs
+ * Provides tabbed interface for input area with INPUT, CSS, JS, and OPTIONS tabs
  * Tab-specific options can be shown in dropdown panels next to active tab headers
  * Follows the same pattern as OutputTabs for consistency
  *
@@ -15,10 +15,11 @@ import styles from '../styles/output-tabs.module.css'
  *   tabActions: React element - action buttons for the tab header
  *   inputTabLabel: string - custom label for input tab (defaults to 'INPUT')
  *   cssContent: React element - CSS editor content (for markdown-html-formatter)
+ *   jsContent: React element - JavaScript editor content (for markdown-html-formatter)
  *   infoContent: React element - info/about content shown when no tool is selected
  *   onActiveTabChange: function(tabId) - callback when active tab changes
  *   tabOptionsMap: object - map of tab IDs to their option content/controls
- *     { input: <element>, css: <element>, options: <element> }
+ *     { input: <element>, css: <element>, js: <element>, options: <element> }
  */
 export default function InputTabs({
   inputContent = null,
@@ -27,6 +28,7 @@ export default function InputTabs({
   tabActions = null,
   inputTabLabel = 'INPUT',
   cssContent = null,
+  jsContent = null,
   infoContent = null,
   onActiveTabChange = null,
   tabOptionsMap = {},
@@ -58,6 +60,16 @@ export default function InputTabs({
       id: 'css',
       label: 'CSS',
       content: cssContent,
+      contentType: 'component',
+    })
+  }
+
+  // Add JS tab if content is provided (for markdown-html-formatter)
+  if (jsContent) {
+    tabConfig.push({
+      id: 'js',
+      label: 'JS',
+      content: jsContent,
       contentType: 'component',
     })
   }

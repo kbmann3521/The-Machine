@@ -4,10 +4,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import UniversalInput from '../components/UniversalInput'
 import InputTabs from '../components/InputTabs'
+import dynamic from 'next/dynamic'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import NumericConfig from '../components/NumericConfig'
 import ToolOutputPanel from '../components/ToolOutputPanel'
+import JSEditorInput from '../components/JSEditorInput'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
 import QRCodeGeneratorOutputPanel from '../components/QRCodeGeneratorOutputPanel'
@@ -21,6 +23,7 @@ import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema 
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { classifyMarkdownHtmlInput } from '../lib/contentClassifier'
 import styles from '../styles/hub.module.css'
+import configStyles from '../styles/tool-config.module.css'
 
 export default function Home(props) {
   const router = useRouter()
@@ -89,8 +92,10 @@ export default function Home(props) {
   const [showRulesTab, setShowRulesTab] = useState(false)
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
   const [markdownCustomCss, setMarkdownCustomCss] = useState('')
+  const [markdownCustomJs, setMarkdownCustomJs] = useState('')
+  const [jsFormatterDiagnostics, setJsFormatterDiagnostics] = useState([])
   const [activeMarkdownInputTab, setActiveMarkdownInputTab] = useState('input')
-  const [markdownInputMode, setMarkdownInputMode] = useState('input') // 'input' or 'css' - tracks which input mode is active
+  const [markdownInputMode, setMarkdownInputMode] = useState('input') // 'input', 'css', or 'js' - tracks which input mode is active
   const [cssConfigOptions, setCssConfigOptions] = useState({
     mode: 'beautify',
     indentSize: '2',
@@ -103,11 +108,27 @@ export default function Home(props) {
     showRulesTab: false,
   })
 
-  // When active tab changes, track if it's a content mode (input/css) vs options
+  const [jsConfigOptions, setJsConfigOptions] = useState({
+    mode: 'format',
+    indentSize: '2',
+    useSemicolons: true,
+    singleQuotes: true,
+    trailingComma: 'es5',
+    printWidth: '80',
+    bracketSpacing: true,
+    arrowParens: 'always',
+    showAnalysis: true,
+    showLinting: true,
+    compressCode: false,
+    removeComments: false,
+    removeConsole: false,
+  })
+
+  // When active tab changes, track if it's a content mode (input/css/js) vs options
   const handleMarkdownInputTabChange = (tabId) => {
     setActiveMarkdownInputTab(tabId)
-    // Update the mode only if it's a content tab (input or css)
-    if (tabId === 'input' || tabId === 'css') {
+    // Update the mode only if it's a content tab (input, css, or js)
+    if (tabId === 'input' || tabId === 'css' || tabId === 'js') {
       setMarkdownInputMode(tabId)
     }
   }
@@ -1014,9 +1035,41 @@ export default function Home(props) {
                     activeMarkdownInputTab={activeMarkdownInputTab}
                     markdownCustomCss={markdownCustomCss}
                     onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    markdownCustomJs={markdownCustomJs}
+                    onMarkdownCustomJsChange={setMarkdownCustomJs}
                     cssConfigOptions={cssConfigOptions}
                     onCssConfigChange={setCssConfigOptions}
+                    jsConfigOptions={jsConfigOptions}
+                    onJsConfigChange={setJsConfigOptions}
+                    onJsFormatterDiagnosticsChange={setJsFormatterDiagnostics}
                   />
+                ) : null}
+                jsContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
+                  <div style={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    padding: '16px',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      fontSize: '12px',
+                      color: 'var(--color-text-secondary)',
+                      lineHeight: '1.5',
+                      padding: '10px 12px',
+                      backgroundColor: 'rgba(156, 39, 176, 0.08)',
+                      border: '1px solid rgba(156, 39, 176, 0.2)',
+                      borderRadius: '4px',
+                    }}>
+                      Edit JavaScript to add interactivity. Scripts run in the preview with access to the DOM and CSS.
+                    </div>
+                    <JSEditorInput
+                      value={markdownCustomJs}
+                      onChange={setMarkdownCustomJs}
+                      diagnostics={jsFormatterDiagnostics.filter(d => d.category !== 'lint')}
+                    />
+                  </div>
                 ) : null}
                 inputContent={
                   <div className={styles.inputSection} style={{ overflow: 'hidden', height: '100%' }}>
@@ -1172,6 +1225,151 @@ export default function Home(props) {
                       />
                     </div>
                   ),
+                  js: (
+                    <div className={configStyles.fieldsContainer}>
+                      {/* Mode */}
+                      <div className={configStyles.field}>
+                        <label className={configStyles.fieldLabel}>Mode</label>
+                        <select
+                          className={configStyles.select}
+                          value={jsConfigOptions?.mode || 'format'}
+                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, mode: e.target.value })}
+                        >
+                          <option value="format">Beautify</option>
+                          <option value="minify">Minify</option>
+                          <option value="obfuscate">Obfuscate</option>
+                        </select>
+                      </div>
+
+                      {/* Indent Size */}
+                      <div className={configStyles.field}>
+                        <label className={configStyles.fieldLabel}>Indent Size</label>
+                        <select
+                          className={configStyles.select}
+                          value={jsConfigOptions?.indentSize || '2'}
+                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, indentSize: e.target.value })}
+                        >
+                          <option value="2">2 spaces</option>
+                          <option value="4">4 spaces</option>
+                          <option value="tab">Tab</option>
+                        </select>
+                      </div>
+
+                      {/* Use Semicolons Toggle */}
+                      <div className={configStyles.toggleContainer}>
+                        <label className={configStyles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            checked={jsConfigOptions?.useSemicolons !== false}
+                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, useSemicolons: e.target.checked })}
+                            className={configStyles.toggleInput}
+                          />
+                          <span className={configStyles.toggleSlider}></span>
+                          <span>Use Semicolons</span>
+                        </label>
+                      </div>
+
+                      {/* Single Quotes Toggle */}
+                      <div className={configStyles.toggleContainer}>
+                        <label className={configStyles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            checked={jsConfigOptions?.singleQuotes === true}
+                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, singleQuotes: e.target.checked })}
+                            className={configStyles.toggleInput}
+                          />
+                          <span className={configStyles.toggleSlider}></span>
+                          <span>Single Quotes</span>
+                        </label>
+                      </div>
+
+                      {/* Trailing Comma */}
+                      <div className={configStyles.field}>
+                        <label className={configStyles.fieldLabel}>Trailing Comma</label>
+                        <select
+                          className={configStyles.select}
+                          value={jsConfigOptions?.trailingComma || 'es5'}
+                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, trailingComma: e.target.value })}
+                        >
+                          <option value="es5">ES5</option>
+                          <option value="all">All</option>
+                          <option value="none">None</option>
+                        </select>
+                      </div>
+
+                      {/* Print Width */}
+                      <div className={configStyles.field}>
+                        <label className={configStyles.fieldLabel}>Print Width</label>
+                        <select
+                          className={configStyles.select}
+                          value={jsConfigOptions?.printWidth || '80'}
+                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, printWidth: e.target.value })}
+                        >
+                          <option value="60">60</option>
+                          <option value="80">80</option>
+                          <option value="100">100</option>
+                          <option value="120">120</option>
+                          <option value="140">140</option>
+                          <option value="160">160</option>
+                        </select>
+                      </div>
+
+                      {/* Bracket Spacing Toggle */}
+                      <div className={configStyles.toggleContainer}>
+                        <label className={configStyles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            checked={jsConfigOptions?.bracketSpacing !== false}
+                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, bracketSpacing: e.target.checked })}
+                            className={configStyles.toggleInput}
+                          />
+                          <span className={configStyles.toggleSlider}></span>
+                          <span>Bracket Spacing</span>
+                        </label>
+                      </div>
+
+                      {/* Arrow Parens */}
+                      <div className={configStyles.field}>
+                        <label className={configStyles.fieldLabel}>Arrow Parens</label>
+                        <select
+                          className={configStyles.select}
+                          value={jsConfigOptions?.arrowParens || 'always'}
+                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, arrowParens: e.target.value })}
+                        >
+                          <option value="always">Always</option>
+                          <option value="avoid">Avoid</option>
+                        </select>
+                      </div>
+
+                      {/* Remove Comments Toggle */}
+                      <div className={configStyles.toggleContainer}>
+                        <label className={configStyles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            checked={jsConfigOptions?.removeComments === true}
+                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, removeComments: e.target.checked })}
+                            className={configStyles.toggleInput}
+                          />
+                          <span className={configStyles.toggleSlider}></span>
+                          <span>Remove Comments</span>
+                        </label>
+                      </div>
+
+                      {/* Remove Console Toggle */}
+                      <div className={configStyles.toggleContainer}>
+                        <label className={configStyles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            checked={jsConfigOptions?.removeConsole === true}
+                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, removeConsole: e.target.checked })}
+                            className={configStyles.toggleInput}
+                          />
+                          <span className={configStyles.toggleSlider}></span>
+                          <span>Remove Console</span>
+                        </label>
+                      </div>
+                    </div>
+                  ),
                 } : {}}
               />
             </div>
@@ -1226,8 +1424,13 @@ export default function Home(props) {
                     markdownInputMode={markdownInputMode}
                     markdownCustomCss={markdownCustomCss}
                     onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    markdownCustomJs={markdownCustomJs}
+                    onMarkdownCustomJsChange={setMarkdownCustomJs}
                     cssConfigOptions={cssConfigOptions}
                     onCssConfigChange={setCssConfigOptions}
+                    jsConfigOptions={jsConfigOptions}
+                    onJsConfigChange={setJsConfigOptions}
+                    onJsFormatterDiagnosticsChange={setJsFormatterDiagnostics}
                   />
                 )}
               </div>
