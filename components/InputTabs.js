@@ -20,6 +20,7 @@ import styles from '../styles/output-tabs.module.css'
  *   onActiveTabChange: function(tabId) - callback when active tab changes
  *   tabOptionsMap: object - map of tab IDs to their option content/controls
  *     { input: <element>, css: <element>, js: <element>, options: <element> }
+ *   globalOptionsContent: React element - global options content (shown in modal)
  */
 export default function InputTabs({
   inputContent = null,
@@ -32,10 +33,13 @@ export default function InputTabs({
   infoContent = null,
   onActiveTabChange = null,
   tabOptionsMap = {},
+  globalOptionsContent = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState('input')
   const [openOptionsDropdown, setOpenOptionsDropdown] = useState(null)
+  const [openGlobalOptions, setOpenGlobalOptions] = useState(false)
   const optionsDropdownRef = useRef(null)
+  const globalOptionsRef = useRef(null)
 
   // Notify parent when active tab changes
   useEffect(() => {
@@ -74,11 +78,11 @@ export default function InputTabs({
     })
   }
 
-  // Only show OPTIONS tab if tool is selected (has config options)
+  // Only show DESCRIPTION tab if tool is selected
   if (selectedTool && optionsContent) {
     tabConfig.push({
       id: 'options',
-      label: 'OPTIONS',
+      label: 'DESCRIPTION',
       content: optionsContent,
       contentType: 'component',
     })
@@ -109,17 +113,20 @@ export default function InputTabs({
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    if (!openOptionsDropdown) return
+    if (!openOptionsDropdown && !openGlobalOptions) return
 
     const handleClickOutside = (e) => {
       if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(e.target)) {
         setOpenOptionsDropdown(null)
       }
+      if (globalOptionsRef.current && !globalOptionsRef.current.contains(e.target)) {
+        setOpenGlobalOptions(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [openOptionsDropdown])
+  }, [openOptionsDropdown, openGlobalOptions])
 
   const renderTabContent = () => {
     if (!activeTabConfig) return null
@@ -159,6 +166,27 @@ export default function InputTabs({
             ))}
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {/* Global options - always shown if globalOptionsContent is provided */}
+            {globalOptionsContent && (
+              <div className={styles.tabOptionsContainer} ref={globalOptionsRef}>
+                <button
+                  className={styles.tabSettingsButton}
+                  onClick={() => setOpenGlobalOptions(!openGlobalOptions)}
+                  title="Global options"
+                  aria-label="Global options"
+                >
+                  <span className={styles.settingsIcon}>⚙</span>
+                </button>
+
+                {/* Global options modal */}
+                {openGlobalOptions && (
+                  <div className={styles.globalDropdownMenu}>
+                    {globalOptionsContent}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Settings gear icon - only visible for active tab if it has options */}
             {hasTabOptions && (
               <div className={styles.tabOptionsContainer} ref={optionsDropdownRef}>
@@ -179,9 +207,11 @@ export default function InputTabs({
                 )}
               </div>
             )}
-            <div className={styles.tabActions}>
-              {tabActions}
-            </div>
+            {tabActions && (
+              <div className={styles.tabActions}>
+                {tabActions}
+              </div>
+            )}
           </div>
         </div>
 

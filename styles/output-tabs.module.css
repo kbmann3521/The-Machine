@@ -10,8 +10,6 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  border: 1px solid var(--color-border, #ddd);
-  border-radius: 6px;
   background-color: var(--color-background-primary, #fff);
   overflow: hidden;
   flex: 1;
@@ -1376,6 +1374,8 @@
 
   .outputTabsContainer {
     min-height: 500px;
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 6px;
   }
 }
 
@@ -1494,17 +1494,59 @@
   }
 }
 
+/* Global Dropdown Menu - Modal popup centered in viewport */
+.globalDropdownMenu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--color-background-primary, #fff);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  width: 80%;
+  max-width: 500px;
+  height: 50vh;
+  overflow-y: auto;
+  padding: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.globalDropdownMenu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.globalDropdownMenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.globalDropdownMenu::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.globalDropdownMenu::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile: Adjust modal for smaller screens */
+@media (max-width: 640px) {
+  .globalDropdownMenu {
+    width: 90%;
+    height: 55vh;
+  }
+}
+
 /* Tab Settings Button and Dropdown */
 .tabOptionsContainer {
   position: relative;
-}
-
-/* Mobile: Stack options vertically on small screens */
-@media (max-width: 640px) {
-  .tabOptionsContainer {
-    display: flex;
-    flex-direction: column;
-  }
 }
 
 .tabSettingsButton {
@@ -1542,36 +1584,29 @@
   opacity: 0.9;
 }
 
+/* Alias for backward compatibility - same as globalDropdownMenu */
 .tabOptionsDropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: var(--color-background-primary, #fff);
   border: 1px solid var(--color-border, #ddd);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  min-width: 280px;
-  max-width: 400px;
-  max-height: 70vh;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  width: 80%;
+  max-width: 500px;
+  height: 50vh;
   overflow-y: auto;
-  padding: 12px;
+  padding: 16px;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) rgba(0, 0, 0, 0.1);
-}
-
-/* Mobile: Center dropdown in viewport */
-@media (max-width: 640px) {
-  .tabOptionsDropdown {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    right: auto;
-    transform: translate(-50%, -50%);
-    max-width: calc(100vw - 16px);
-    min-width: auto;
-  }
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .tabOptionsDropdown::-webkit-scrollbar {
@@ -1589,6 +1624,13 @@
 
 .tabOptionsDropdown::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 640px) {
+  .tabOptionsDropdown {
+    width: 90%;
+    height: 55vh;
+  }
 }
 
 /* Inspector Panel Styles */

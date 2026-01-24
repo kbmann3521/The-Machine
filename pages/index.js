@@ -15,8 +15,8 @@ import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
 import QRCodeGeneratorOutputPanel from '../components/QRCodeGeneratorOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
+import ToolDescriptionContent from '../components/ToolDescriptionContent'
 import ValuePropositionCard from '../components/ValuePropositionCard'
-import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
 import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
@@ -42,7 +42,6 @@ export default function Home(props) {
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
   const [inputChangeKey, setInputChangeKey] = useState(0)
-  const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeToolkitSection, setActiveToolkitSection] = useState('textAnalyzer')
   const [findReplaceConfig, setFindReplaceConfig] = useState({
@@ -973,7 +972,7 @@ export default function Home(props) {
           <ThemeToggle />
         </div>
 
-        <div className={`${styles.bodyContainer} ${descriptionSidebarOpen ? styles.sidebarOpenDesktop : ''}`}>
+        <div className={styles.bodyContainer}>
           <ToolSidebar
             predictedTools={predictedTools}
             selectedTool={selectedTool}
@@ -999,18 +998,7 @@ export default function Home(props) {
                 inputTabLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'HTML' : 'INPUT'}
                 onActiveTabChange={selectedTool?.toolId === 'markdown-html-formatter' ? handleMarkdownInputTabChange : null}
                 infoContent={!selectedTool && <ValuePropositionCard />}
-                tabActions={
-                  selectedTool && (
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <FaCircleInfo className={styles.descriptionIcon} />
-                    </button>
-                  )
-                }
+                tabActions={null}
                 cssContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
                   <ToolOutputPanel
                     result={outputResult}
@@ -1097,14 +1085,14 @@ export default function Home(props) {
                   </div>
                 }
                 optionsContent={
-                  selectedTool?.toolId === 'markdown-html-formatter' ? (
-                    <div className={styles.configSection} style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary, #666)' }}>
-                      <p style={{ margin: '0', fontSize: '13px', fontStyle: 'italic' }}>
-                        Options for this tool are available in the tab headers.<br />
-                        Look for the ⚙ icon next to each tab name.
-                      </p>
+                  selectedTool ? (
+                    <div className={styles.configSection} style={{ padding: '16px' }}>
+                      <ToolDescriptionContent tool={selectedTool} />
                     </div>
-                  ) : selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' ? (
+                  ) : null
+                }
+                globalOptionsContent={
+                  selectedTool && selectedTool?.toolId !== 'markdown-html-formatter' ? (
                     <div className={styles.configSection}>
                       <ToolConfigPanel
                         tool={selectedTool}
@@ -1117,8 +1105,6 @@ export default function Home(props) {
                         contentClassification={contentClassification}
                         activeToolkitSection={activeToolkitSection}
                         onToolkitSectionChange={setActiveToolkitSection}
-                        markdownInputMode={markdownInputMode}
-                        cssConfigOptions={cssConfigOptions}
                         findReplaceConfig={findReplaceConfig}
                         onFindReplaceConfigChange={setFindReplaceConfig}
                         diffConfig={diffConfig}
@@ -1138,23 +1124,6 @@ export default function Home(props) {
                       {selectedTool?.toolId === 'math-evaluator' && (
                         <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
                       )}
-                    </div>
-                  ) : selectedTool?.toolId === 'ip-address-toolkit' ? (
-                    <div className={styles.configSection}>
-                      <div className={styles.ipToolkitTipsContainer}>
-                        <div className={styles.tipItem}>
-                          <span className={styles.tipLabel}>Single mode:</span>
-                          <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
-                        </div>
-                        <div className={styles.tipItem}>
-                          <span className={styles.tipLabel}>Bulk (2 items):</span>
-                          <span className={styles.tipText}>Side-by-side comparison</span>
-                        </div>
-                        <div className={styles.tipItem}>
-                          <span className={styles.tipLabel}>Bulk (3-7 items):</span>
-                          <span className={styles.tipText}>Aggregate analysis & insights</span>
-                        </div>
-                      </div>
                     </div>
                   ) : null
                 }
@@ -1440,11 +1409,7 @@ export default function Home(props) {
       </main>
         </div>
 
-        <ToolDescriptionSidebar
-          tool={selectedTool}
-          isOpen={descriptionSidebarOpen}
-          onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-        />
+
 
         <footer className={styles.footer}>
           <div className={styles.footerContent}>
@@ -1456,12 +1421,7 @@ export default function Home(props) {
         </footer>
       </div>
 
-      {descriptionSidebarOpen && (
-        <div
-          className={styles.sidebarOverlay}
-          onClick={() => setDescriptionSidebarOpen(false)}
-        />
-      )}
+
     </>
   )
 }
