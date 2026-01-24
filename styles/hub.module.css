@@ -139,7 +139,7 @@
 .divider {
   width: 3px;
   height: 100%;
-  background-color: #3a3a3a;
+  background-color: var(--color-border);
   cursor: col-resize;
   flex-shrink: 0;
   transition: background-color 0.2s ease;

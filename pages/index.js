@@ -1414,7 +1414,7 @@ export default function Home(props) {
         <footer className={styles.footer}>
           <div className={styles.footerContent}>
             <p>© 2024 Pioneer Web Tools. All rights reserved.</p>
-            <Link href="/blog/why-deterministic-internet-tools-are-better-than-ai" className={styles.footerAboutLink}>
+            <Link href="/blog/how-we-make-tools" className={styles.footerAboutLink}>
               About
             </Link>
           </div>
