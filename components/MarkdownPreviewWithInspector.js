@@ -1205,18 +1205,8 @@ export default function MarkdownPreviewWithInspector({
               }
             `}</style>
             <div
+              className={styles.globalDropdownMenu}
               style={{
-                position: 'absolute',
-                top: '100%',
-                left: 0,
-                marginTop: '8px',
-                backgroundColor: theme === 'dark' ? '#2a2a2a' : 'var(--color-background-primary, #fff)',
-                border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
-                borderRadius: '4px',
-                padding: '12px',
-                minWidth: '280px',
-                boxShadow: theme === 'dark' ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.15)',
-                zIndex: 1000,
                 animation: isClosingControls ? 'fadeOutControls 0.15s ease-in forwards' : 'fadeInControls 0.15s ease-out forwards',
               }}
             >
@@ -1654,18 +1644,8 @@ export default function MarkdownPreviewWithInspector({
                   }
                 `}</style>
                 <div
+                  className={styles.globalDropdownMenu}
                   style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    marginTop: '8px',
-                    backgroundColor: theme === 'dark' ? '#2a2a2a' : 'var(--color-background-primary, #fff)',
-                    border: `1px solid ${theme === 'dark' ? '#444' : 'var(--color-border, #ddd)'}`,
-                    borderRadius: '4px',
-                    padding: '12px',
-                    minWidth: '280px',
-                    boxShadow: theme === 'dark' ? '0 4px 16px rgba(0,0,0,0.5)' : '0 4px 16px rgba(0,0,0,0.15)',
-                    zIndex: 1000,
                     animation: isClosingFullscreenSettings ? 'fadeOutSettings 0.15s ease-in forwards' : 'fadeInSettings 0.15s ease-out forwards',
                   }}
                 >
