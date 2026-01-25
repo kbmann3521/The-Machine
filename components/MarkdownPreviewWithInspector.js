@@ -163,6 +163,7 @@ export default function MarkdownPreviewWithInspector({
   allowScripts = false, // Allow JavaScript execution in HTML (Web Playground only)
   allowIframes = false, // Allow iframes in HTML (Web Playground only)
 }) {
+
   const { theme } = useTheme()
   const previewContainerRef = useRef(null)
   const fullscreenContainerRef = useRef(null)
@@ -1436,13 +1437,14 @@ export default function MarkdownPreviewWithInspector({
         }
         return rule
       }).filter(rule => {
-        // Remove rules with no declarations (after filtering)
-        // But always keep at-rules like @keyframes, @font-face, etc.
-        if (rule.type === 'rule' && (!rule.declarations || rule.declarations.length === 0)) {
-          return false
+        // For regular rules: only keep if they have declarations
+        if (rule.type === 'rule') {
+          return rule.declarations && rule.declarations.length > 0
         }
-        if (rule.type === 'atrule' && (!rule.children || rule.children.length === 0)) {
-          return false
+        // For at-rules: always keep them (keyframes, media queries, font-face, etc)
+        // Even if empty, they might be needed for animations
+        if (rule.type === 'atrule') {
+          return true
         }
         return true
       })
@@ -1515,9 +1517,9 @@ export default function MarkdownPreviewWithInspector({
     if (forcedStates.focus) dataAttrs['data-force-focus'] = 'true'
     if (forcedStates.active) dataAttrs['data-force-active'] = 'true'
 
-    // For HTML mode, the embedded <style> tags will be preserved by HTMLRenderer
-    // and restored after DOMPurify sanitization to keep @keyframes and animations intact
-    const contentToRender = content
+    // For HTML mode, remove <style> tags from content
+    // All CSS (including @keyframes) comes from previewCss (extracted + inspector-modified)
+    const contentToRender = isHtml ? removeStyleTagsFromHtml(content) : content
 
     return (
       <div
@@ -1560,7 +1562,10 @@ export default function MarkdownPreviewWithInspector({
         if (node.type === 'rule') {
           rules.push(node)
         }
-        if (node.children && node.children.length > 0) {
+        // For at-rules: only traverse children of @media, skip @keyframes and others
+        // This prevents keyframe selectors (0%, 50%, 100%, from, to) from appearing in the inspector
+        const shouldTraverseChildren = node.type !== 'atrule' || node.atRule?.name === 'media'
+        if (shouldTraverseChildren && node.children && node.children.length > 0) {
           traverse(node.children)
         }
       }

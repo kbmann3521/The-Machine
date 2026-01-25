@@ -2559,9 +2559,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         }
 
         // Extract embedded CSS from HTML
+        // Extract from displayResult.formatted (what's actually being rendered)
+        // not inputText, to ensure they match
         const embeddedRules = isHtml
           ? extractAndParseCssFromHtml(displayResult.formatted)
           : []
+
 
         // Parse custom CSS with proper origin tracking
         const customCssRules = markdownCustomCss && markdownCustomCss.trim()
