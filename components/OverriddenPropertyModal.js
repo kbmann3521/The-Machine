@@ -174,7 +174,8 @@ export default function OverriddenPropertyModal({
           >
             Close
           </button>
-          {isMergeable && onMergeClick && (
+          {/* Merge Selectors Button - DISABLED (read-only mode) */}
+          {/* {isMergeable && onMergeClick && (
             <button
               className={styles.confirmationMergeButton}
               onClick={() => onMergeClick(mergeableGroups)}
@@ -182,7 +183,7 @@ export default function OverriddenPropertyModal({
             >
               🧩 Merge Selectors
             </button>
-          )}
+          )} */}
         </div>
       </div>
     </div>

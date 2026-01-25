@@ -5,6 +5,7 @@ import { generateSyntheticDom } from '../lib/tools/syntheticDom'
 import { scopeCss } from '../lib/tools/cssScoper'
 import { extractCssFromHtml, removeStyleTagsFromHtml } from '../lib/tools/cssExtractor'
 import { extractSelectorsFromCSS } from '../lib/tools/selectorScanner'
+import { beautifyCss } from '../lib/tools/cssFormatter'
 import { useTheme } from '../lib/ThemeContext'
 import RuleInspector from './RuleInspector'
 import MergeSelectorConfirmation from './MergeSelectorConfirmation'
@@ -277,26 +278,96 @@ export default function MarkdownPreviewWithInspector({
   }, [effectiveRulesTree])
 
   // When properties change, serialize by origin and call appropriate callbacks
-  const applyChangesToSource = (updatedRules) => {
+  const applyChangesToSource = async (updatedRules) => {
     const { html, css } = serializeRulesByOrigin(updatedRules)
 
+    // Beautify CSS before passing to callbacks
+    let beautifiedCss = css
+    let beautifiedHtml = html
+
+    if (css) {
+      try {
+        beautifiedCss = await beautifyCss(css, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed, using original CSS:', err)
+        beautifiedCss = css
+      }
+    }
+
+    if (html) {
+      try {
+        beautifiedHtml = await beautifyCss(html, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed for embedded CSS, using original:', err)
+        beautifiedHtml = html
+      }
+    }
+
     // Update CSS tab if CSS rules changed
-    if (css && onCssChange) {
-      onCssChange(css)
+    if (beautifiedCss && onCssChange) {
+      onCssChange(beautifiedCss)
     }
 
     // Update HTML if embedded CSS rules changed
-    if (html && onHtmlChange) {
-      onHtmlChange(html)
-    }
+    // For embedded CSS, we need to:
+    // 1. Reconstruct the full HTML with beautified CSS
+    // 2. Format the entire document to match the FORMATTED tab output
+    if (beautifiedHtml && inputPanelContent) {
+      try {
+        // Replace the first <style> block content with beautified CSS
+        const updatedHtmlWithBeautifulCss = inputPanelContent.replace(
+          /<style[^>]*>([\s\S]*?)<\/style>/i,
+          `<style>\n${beautifiedHtml}\n</style>`
+        )
 
-    // Fallback: if generic source change callback provided (only if specific handlers weren't used)
-    // If we used onCssChange or onHtmlChange, don't also send onSourceChange
-    // to avoid duplicate updates or conflicting data
-    const hasSpecificHandlers = (css && onCssChange) || (html && onHtmlChange)
-    if (onSourceChange && !hasSpecificHandlers) {
-      if (html) onSourceChange({ source: 'html', newContent: html })
-      if (css) onSourceChange({ source: 'css', newContent: css })
+        // Format the entire HTML document via the markdown-html-formatter API
+        try {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: 'markdown-html-formatter',
+              inputText: updatedHtmlWithBeautifulCss,
+              config: {
+                mode: 'beautify',
+                indent: '2spaces',
+                minify: false,
+                convertTo: 'none',
+                enableGfm: true,
+                showValidation: false,
+                showLinting: false,
+              },
+            }),
+          })
+          const data = await response.json()
+          const formattedHtml = data.result?.formatted || updatedHtmlWithBeautifulCss
+
+          // Pass the fully formatted HTML via onSourceChange (preferred for full HTML)
+          if (onSourceChange) {
+            onSourceChange({ source: 'html', newContent: formattedHtml })
+          } else if (onHtmlChange) {
+            // Fallback: extract CSS from formatted HTML for onHtmlChange
+            const cssMatch = formattedHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
+            if (cssMatch) {
+              onHtmlChange(cssMatch[1].trim())
+            } else {
+              onHtmlChange(beautifiedHtml)
+            }
+          }
+        } catch (formatErr) {
+          console.warn('HTML formatting failed, using beautified CSS directly:', formatErr)
+          // Fallback: use beautified CSS directly
+          if (onHtmlChange) {
+            onHtmlChange(beautifiedHtml)
+          }
+        }
+      } catch (err) {
+        console.warn('HTML reconstruction failed:', err)
+        // Final fallback
+        if (onHtmlChange) {
+          onHtmlChange(beautifiedHtml)
+        }
+      }
     }
   }
 

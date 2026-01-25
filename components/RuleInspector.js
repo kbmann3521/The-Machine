@@ -4,8 +4,10 @@ import { PropertyEditorDispatcher, getPropertyEditorType } from './PropertyEdito
 import { isRuleRedundant } from '../lib/tools/ruleImpactAnalysis'
 import { generateRefactorSuggestions } from '../lib/tools/refactorSuggestions'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
+import { getAllKeyframesFromTree } from '../lib/tools/syntheticDom'
 import { classifyProperty, getImpactBadgeInfo } from '../lib/propertyClassification'
 import OverriddenPropertyModal from './OverriddenPropertyModal'
+import DuplicateSelectorsModal from './DuplicateSelectorsModal'
 import { CSS_PROPERTIES, CSS_UNITS, CSS_COLORS } from './CSSEditorInput'
 import styles from '../styles/rule-inspector.module.css'
 
@@ -306,6 +308,7 @@ export default function RuleInspector({
   const [selectedNewSelector, setSelectedNewSelector] = useState('') // Track the selected selector for adding new rule
   const [showSelectorDropdown, setShowSelectorDropdown] = useState(false) // Track dropdown visibility
   const [hoveredSelector, setHoveredSelector] = useState(null) // Track which selector is hovered in dropdown
+  const [showDuplicatesModalFor, setShowDuplicatesModalFor] = useState(null) // Track which selector's duplicates modal is open (null or selector string)
   const selectorDropdownButtonRef = useRef(null) // Ref to the dropdown button for position calculation
 
   // Phase 7E: Find mergeable groups at top level (from full rulesTree, not just affectingRules)
@@ -392,8 +395,20 @@ export default function RuleInspector({
 
   const toggleRuleExpanded = (ruleKey, rule) => {
     const isExpanding = !expandedRules[ruleKey]
+    const isKeyframeChild = ruleKey.includes('::keyframe::')
 
-    // When expanding, close all other rules (mutually exclusive accordions)
+    // For keyframe children (from/to inside @keyframes), allow independent expansion
+    // without affecting other rules
+    if (isKeyframeChild) {
+      setExpandedRules(prev => ({
+        ...prev,
+        [ruleKey]: !prev[ruleKey],
+      }))
+      return
+    }
+
+    // For regular rules and keyframe parents: use mutually exclusive behavior
+    // When expanding, close all other rules
     // When collapsing, just toggle the current one
     if (isExpanding) {
       setExpandedRules({
@@ -710,228 +725,27 @@ export default function RuleInspector({
         )}
       </div>
 
-      {/* Add New Selector Section */}
-      {availableSelectors && availableSelectors.length > 0 && onAddNewSelector && (
-        <div style={{
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--color-border, #ddd)',
-          backgroundColor: 'var(--color-background-primary, #fff)',
-          display: 'flex',
-          gap: '8px',
-          alignItems: 'center',
-          fontSize: '12px',
-          position: 'relative',
-          zIndex: 1000,
-          overflow: 'visible',
-          minHeight: '40px',
-        }}>
-          <label style={{
-            fontWeight: '600',
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            color: 'var(--color-text-secondary, #666)',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}>
-            Add:
-          </label>
-
-          {/* Custom Dropdown - Use full width container */}
-          <div style={{ position: 'relative', flex: 1, minWidth: '120px' }}>
-            <button
-              ref={selectorDropdownButtonRef}
-              onClick={() => setShowSelectorDropdown(!showSelectorDropdown)}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                border: `1px solid ${showSelectorDropdown ? '#0066cc' : 'var(--color-border, #ddd)'}`,
-                borderRadius: '4px',
-                fontSize: '12px',
-                backgroundColor: 'var(--color-background-primary, #fff)',
-                color: selectedNewSelector ? 'var(--color-text-primary, #000)' : 'var(--color-text-secondary, #666)',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                textAlign: 'left',
-                transition: 'all 0.2s ease',
-                boxShadow: showSelectorDropdown ? '0 0 0 3px rgba(0, 102, 204, 0.1)' : 'none',
-              }}
-              title="Click to open selector dropdown"
-            >
-              {selectedNewSelector || 'Select selector...'}
-            </button>
-
-            {/* Dropdown Menu - Rendered via Portal to avoid overflow clipping */}
-            {showSelectorDropdown && typeof window !== 'undefined' && ReactDOM.createPortal(
-              <div
-                className={styles.selectorDropdown}
-                style={{
-                  position: 'fixed',
-                  top: selectorDropdownButtonRef.current ?
-                    (selectorDropdownButtonRef.current.getBoundingClientRect().bottom + 4) : 0,
-                  left: selectorDropdownButtonRef.current ?
-                    selectorDropdownButtonRef.current.getBoundingClientRect().left : 0,
-                  width: selectorDropdownButtonRef.current ?
-                    selectorDropdownButtonRef.current.getBoundingClientRect().width : 'auto',
-                  minWidth: '200px',
-                  backgroundColor: 'var(--color-background-primary, #fff)',
-                  border: '1px solid var(--color-border, #ddd)',
-                  borderRadius: '4px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  zIndex: 100000,
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: 'var(--scrollbar-thumb, #ccc) transparent',
-                  pointerEvents: 'auto',
-                  willChange: 'transform',
-                }}
-              >
-                {Array.isArray(availableSelectors) && availableSelectors.map((item) => {
-                  // Check if it's a grouped item (has category and selectors properties)
-                  if (item.category && Array.isArray(item.selectors)) {
-                    return (
-                      <div key={item.category}>
-                        <div style={{
-                          padding: '8px 12px',
-                          fontSize: '10px',
-                          fontWeight: '600',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                          color: 'var(--color-text-secondary, #666)',
-                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                          borderBottom: '1px solid var(--color-border, #eee)',
-                        }}>
-                          {item.category}
-                        </div>
-                        {item.selectors
-                          .map((sel) => (
-                          <div
-                            key={sel}
-                            onClick={() => {
-                              setSelectedNewSelector(sel)
-                              setShowSelectorDropdown(false)
-                              // Remove highlight when dropdown closes
-                              if (onHighlightSelector && hoveredSelector === sel) {
-                                onHighlightSelector(sel)
-                                setHoveredSelector(null)
-                              }
-                            }}
-                            onMouseEnter={() => {
-                              setHoveredSelector(sel)
-                              if (onHighlightSelector) {
-                                onHighlightSelector(sel)
-                              }
-                            }}
-                            onMouseLeave={() => {
-                              setHoveredSelector(null)
-                              if (onHighlightSelector) {
-                                onHighlightSelector(sel)
-                              }
-                            }}
-                            style={{
-                              padding: '8px 12px',
-                              fontSize: '12px',
-                              cursor: 'pointer',
-                              backgroundColor: hoveredSelector === sel ? 'rgba(0, 102, 204, 0.1)' : 'transparent',
-                              color: selectedNewSelector === sel ? '#0066cc' : 'var(--color-text-primary, #000)',
-                              fontWeight: selectedNewSelector === sel ? '600' : '400',
-                              transition: 'all 0.15s ease',
-                              borderLeft: selectedNewSelector === sel ? '3px solid #0066cc' : '3px solid transparent',
-                              paddingLeft: selectedNewSelector === sel ? '9px' : '12px',
-                            }}
-                          >
-                            {sel}
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  } else {
-                    // Fallback for flat array
-                    return (
-                      <div
-                        key={item}
-                        onClick={() => {
-                          setSelectedNewSelector(item)
-                          setShowSelectorDropdown(false)
-                          // Remove highlight when dropdown closes
-                          if (onHighlightSelector && hoveredSelector === item) {
-                            onHighlightSelector(item)
-                            setHoveredSelector(null)
-                          }
-                        }}
-                        onMouseEnter={() => {
-                          setHoveredSelector(item)
-                          if (onHighlightSelector) {
-                            onHighlightSelector(item)
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          setHoveredSelector(null)
-                          if (onHighlightSelector) {
-                            onHighlightSelector(item)
-                          }
-                        }}
-                        style={{
-                          padding: '8px 12px',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          backgroundColor: hoveredSelector === item ? 'rgba(0, 102, 204, 0.1)' : 'transparent',
-                          color: selectedNewSelector === item ? '#0066cc' : 'var(--color-text-primary, #000)',
-                          fontWeight: selectedNewSelector === item ? '600' : '400',
-                          transition: 'all 0.15s ease',
-                          borderLeft: selectedNewSelector === item ? '3px solid #0066cc' : '3px solid transparent',
-                          paddingLeft: selectedNewSelector === item ? '9px' : '12px',
-                        }}
-                      >
-                        {item}
-                      </div>
-                    )
-                  }
-                })}
-              </div>,
-              document.body
-            )}
-          </div>
-
-          <button
-            onClick={() => {
-              if (selectedNewSelector) {
-                onAddNewSelector(selectedNewSelector)
-                setSelectedNewSelector('')
-              }
-            }}
-            disabled={!selectedNewSelector}
-            style={{
-              padding: '6px 12px',
-              backgroundColor: selectedNewSelector ? '#0066cc' : 'rgba(0, 102, 204, 0.3)',
-              color: selectedNewSelector ? 'white' : 'rgba(0, 102, 204, 0.6)',
-              border: `1px solid ${selectedNewSelector ? '#0066cc' : 'rgba(0, 102, 204, 0.3)'}`,
-              borderRadius: '4px',
-              cursor: selectedNewSelector ? 'pointer' : 'not-allowed',
-              fontSize: '11px',
-              fontWeight: '600',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              transition: 'all 0.2s ease',
-              flexShrink: 0,
-            }}
-            title={selectedNewSelector ? 'Add this selector to the CSS' : 'Select a selector first'}
-          >
-            ✓ Add
-          </button>
-        </div>
-      )}
+      {/* Add New Selector Section - DISABLED (read-only mode) */}
+      {/* {availableSelectors && availableSelectors.length > 0 && onAddNewSelector && (
+        ... section hidden for read-only mode ...
+      )} */}
 
       <div className={styles.rulesList}>
-        {affectingRules.map((rule, idx) => {
-          // Include origin in ruleKey to distinguish rules with same selector from different sources
-          const origin = rule.origin?.source || 'css'
-          const ruleKey = `${rule.ruleIndex}::${rule.type}::${origin}`
-          const isExpanded = expandedRules[ruleKey]
+        {(() => {
+          // Get all keyframes separately from the rules tree
+          const allKeyframes = getAllKeyframesFromTree(rulesTree)
 
           return (
-            <div key={ruleKey} className={styles.ruleItem}>
+            <>
+              {/* Regular affecting rules section */}
+              {affectingRules.map((rule, idx) => {
+                // Include origin in ruleKey to distinguish rules with same selector from different sources
+                const origin = rule.origin?.source || 'css'
+                const ruleKey = `${rule.ruleIndex}::${rule.type}::${origin}`
+                const isExpanded = expandedRules[ruleKey]
+
+                return (
+                  <div key={ruleKey} className={styles.ruleItem}>
               <div className={`${styles.ruleHeaderContainer} ${isExpanded ? styles.expanded : ''}`}>
                 <button
                   className={`${styles.ruleHeader} ${isExpanded ? styles.expanded : ''}`}
@@ -964,17 +778,32 @@ export default function RuleInspector({
                     </span>
                   </div>
                 </button>
-                {isDuplicateSelector(rule.selector) && onMergeClick && (
-                  <button
-                    className={styles.duplicateIndicatorButton}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onMergeClick(mergeableGroups, rule.selector)
-                    }}
-                    title="Merge all duplicate selectors"
-                  >
-                    🧩 ×{getDuplicateCount(rule.selector)}
-                  </button>
+                {isDuplicateSelector(rule.selector) && (
+                  <>
+                    <button
+                      className={styles.duplicateIndicatorButton}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowDuplicatesModalFor(rule.selector)
+                      }}
+                      title="Show all duplicate selector locations"
+                    >
+                      🧩 DUPLICATE
+                    </button>
+                    {/* Merge Button - DISABLED (read-only mode) */}
+                    {/* {onMergeClick && (
+                      <button
+                        className={styles.duplicateIndicatorButton}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onMergeClick(mergeableGroups, rule.selector)
+                        }}
+                        title="Merge all duplicate selectors"
+                      >
+                        🧩 ×{getDuplicateCount(rule.selector)}
+                      </button>
+                    )} */}
+                  </>
                 )}
               </div>
 
@@ -1121,7 +950,8 @@ export default function RuleInspector({
                                     ✎
                                   </button>
                                 )}
-                                {onRemoveProperty && (
+                                {/* Remove Property Button - DISABLED (read-only mode) */}
+                                {/* {onRemoveProperty && (
                                   <button
                                     className={styles.removeAddedPropertyButton}
                                     title={`Remove ${decl.property}`}
@@ -1131,7 +961,7 @@ export default function RuleInspector({
                                   >
                                     ✕
                                   </button>
-                                )}
+                                )} */}
                               </>
                             )}
                           </div>
@@ -1274,7 +1104,8 @@ export default function RuleInspector({
                                     ✎
                                   </button>
                                 )}
-                                <button
+                                {/* Remove Added Property Button - DISABLED (read-only mode) */}
+                                {/* <button
                                   className={styles.removeAddedPropertyButton}
                                   title={`Remove ${addedPropertyName}`}
                                   onClick={() => {
@@ -1282,7 +1113,7 @@ export default function RuleInspector({
                                   }}
                                 >
                                   ✕
-                                </button>
+                                </button> */}
                               </>
                             )}
                           </div>
@@ -1294,115 +1125,210 @@ export default function RuleInspector({
                     )
                   })()}
 
-                  {/* Add New Property Section */}
-                  <div className={styles.addPropertySection}>
-                    {addingPropertyToRule === rule.ruleIndex ? (
-                      <div className={styles.addPropertyForm}>
-                        <div className={styles.inputFieldsContainer}>
-                          <AutocompleteInput
-                            className={styles.propertyInput}
-                            placeholder="property name"
-                            value={newPropertyName}
-                            onChange={(e) => setNewPropertyName(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Escape') {
-                                setAddingPropertyToRule(null)
-                                setNewPropertyName('')
-                                setNewPropertyValue('')
-                              }
-                            }}
-                            onSelectAndMove={() => {
-                              setTimeout(() => {
-                                const valueInput = document.querySelector(`.${styles.valueInput}`)
-                                valueInput?.focus()
-                              }, 0)
-                            }}
-                            suggestions={CSS_PROPERTIES}
-                            autoFocus
-                          />
-                          <span className={styles.colon}>:</span>
-                          <AutocompleteInput
-                            className={styles.valueInput}
-                            placeholder="value"
-                            value={newPropertyValue}
-                            onChange={(e) => setNewPropertyValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Escape') {
-                                setAddingPropertyToRule(null)
-                                setNewPropertyName('')
-                                setNewPropertyValue('')
-                              }
-                            }}
-                            onSelectAndMove={() => {
-                              handleAddNewProperty(rule)
-                            }}
-                            suggestions={
-                              newPropertyName.toLowerCase().includes('color')
-                                ? CSS_COLORS
-                                : CSS_UNITS
-                            }
-                            isUnitInput={!newPropertyName.toLowerCase().includes('color')}
-                          />
-                          {newPropertyName.toLowerCase().includes('color') && newPropertyValue && (
-                            <input
-                              type="color"
-                              value={
-                                newPropertyValue.startsWith('#')
-                                  ? newPropertyValue.length === 7 || newPropertyValue.length === 4
-                                    ? newPropertyValue
-                                    : '#000000'
-                                  : '#000000'
-                              }
-                              onChange={(e) => setNewPropertyValue(e.target.value)}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                maxWidth: '24px',
-                                padding: '0',
-                                border: '1px solid var(--color-border, #ddd)',
-                                borderRadius: '2px',
-                                cursor: 'pointer',
-                                flexShrink: 0,
-                              }}
-                              title="Pick a color"
-                            />
-                          )}
-                        </div>
-                        <button
-                          className={styles.confirmAddButton}
-                          onClick={() => handleAddNewProperty(rule)}
-                          title="Add new property"
-                        >
-                          ✓
-                        </button>
-                        <button
-                          className={styles.cancelAddButton}
-                          onClick={() => {
-                            setAddingPropertyToRule(null)
-                            setNewPropertyName('')
-                            setNewPropertyValue('')
-                          }}
-                          title="Cancel"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        className={styles.addPropertyButton}
-                        onClick={() => setAddingPropertyToRule(rule.ruleIndex)}
-                        title="Add a new property to this rule"
-                      >
-                        + Add Property
-                      </button>
-                    )}
-                  </div>
+                  {/* Add New Property Section - DISABLED (read-only mode) */}
+                  {/* <div className={styles.addPropertySection}>
+                    ... section hidden for read-only mode ...
+                  </div> */}
                 </div>
                 </>
               )}
-            </div>
+                  </div>
+                )
+              })}
+
+              {/* Keyframes section - separate category */}
+              {allKeyframes.length > 0 && (
+                <div style={{
+                  marginTop: '16px',
+                  paddingTop: '16px',
+                  borderTop: '2px solid var(--color-border, #ddd)',
+                }}>
+                  <div style={{
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    color: 'var(--color-text-secondary, #666)',
+                    padding: '0 8px 16px 8px',
+                  }}>
+                    🎬 Keyframes
+                  </div>
+                  {allKeyframes.map((keyframeGroup, keyframeIdx) => {
+                    // Use parentRuleIndex and array index to create unique key
+                    const keyframeParentKey = `keyframes::${keyframeGroup.parentRuleIndex}::${keyframeGroup.name}`
+                    const isKeyframeExpanded = expandedRules[keyframeParentKey]
+
+                    // Check for duplicate keyframe names
+                    const duplicateCount = allKeyframes.filter(kf => kf.name === keyframeGroup.name).length
+                    const isDuplicateKeyframe = duplicateCount > 1
+
+                    return (
+                      <div key={keyframeParentKey} className={styles.ruleItem} style={{ marginBottom: '8px' }}>
+                        <div className={`${styles.ruleHeaderContainer} ${isKeyframeExpanded ? styles.expanded : ''}`}>
+                          <button
+                            className={`${styles.ruleHeader} ${isKeyframeExpanded ? styles.expanded : ''}`}
+                            onClick={() => toggleRuleExpanded(keyframeParentKey, null)}
+                            title={`Keyframe animation: ${keyframeGroup.name}`}
+                            style={{ padding: '12px 12px' }}
+                          >
+                            <div className={styles.ruleHeaderTop}>
+                              <span className={styles.ruleChevron}>
+                                {isKeyframeExpanded ? '▼' : '▶'}
+                              </span>
+                              <span className={styles.ruleLabel}>
+                                @keyframes <strong>{keyframeGroup.name}</strong>
+                              </span>
+                            </div>
+                          </button>
+                          {isDuplicateKeyframe && (
+                            <button
+                              className={styles.duplicateIndicatorButton}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowDuplicatesModalFor(`@keyframes ${keyframeGroup.name}`)
+                              }}
+                              title="Show all duplicate keyframe locations"
+                            >
+                              🧩 DUPLICATE
+                            </button>
+                          )}
+                        </div>
+
+                        {isKeyframeExpanded && (
+                          <div style={{
+                            paddingLeft: '16px',
+                            paddingRight: '8px',
+                            paddingTop: '8px',
+                            paddingBottom: '8px',
+                            borderLeft: '2px solid var(--color-border, #ddd)',
+                          }}>
+                            {keyframeGroup.rules.map((keyframeRule) => {
+                              const keyframeInnerKey = `${keyframeRule.ruleIndex}::keyframe::${keyframeGroup.parentRuleIndex}`
+                              const isKeyframeInnerExpanded = expandedRules[keyframeInnerKey]
+
+                              // Find if this keyframe step's property is overridden by a LATER DUPLICATE keyframe instance
+                              const findKeyframeOverridingRule = (property) => {
+                                // Look for LATER keyframe instances with the same name that have this step and property
+                                const currentKeyframeGroupIndex = allKeyframes.indexOf(keyframeGroup)
+                                for (let i = currentKeyframeGroupIndex + 1; i < allKeyframes.length; i++) {
+                                  const laterKeyframeGroup = allKeyframes[i]
+                                  // Only check later instances of the SAME animation name
+                                  if (laterKeyframeGroup.name !== keyframeGroup.name) continue
+
+                                  // Check if this later instance has the same step with this property
+                                  const matchingLaterStep = laterKeyframeGroup.rules.find(
+                                    rule => rule.selector === keyframeRule.selector &&
+                                            rule.declarations?.some(d => d.property === property)
+                                  )
+
+                                  if (matchingLaterStep) {
+                                    return matchingLaterStep
+                                  }
+                                }
+                                return null
+                              }
+
+                              return (
+                                <div
+                                  key={keyframeInnerKey}
+                                  className={styles.ruleItem}
+                                  style={{ marginBottom: '8px' }}
+                                >
+                                  <div className={`${styles.ruleHeaderContainer} ${isKeyframeInnerExpanded ? styles.expanded : ''}`}>
+                                    <button
+                                      className={`${styles.ruleHeader} ${isKeyframeInnerExpanded ? styles.expanded : ''}`}
+                                      onClick={() => toggleRuleExpanded(keyframeInnerKey, keyframeRule)}
+                                      title={`${keyframeRule.selector} in @keyframes ${keyframeGroup.name}`}
+                                    >
+                                      <div className={styles.ruleHeaderTop}>
+                                        <span className={styles.ruleChevron}>
+                                          {isKeyframeInnerExpanded ? '▼' : '▶'}
+                                        </span>
+                                        <span className={styles.ruleLabel}>
+                                          {keyframeRule.selector}
+                                        </span>
+                                      </div>
+                                    </button>
+                                  </div>
+
+                                  {isKeyframeInnerExpanded && (
+                                    <div className={styles.declarationsContainer}>
+                                      {keyframeRule.declarations && keyframeRule.declarations.length > 0 ? (
+                                        <div className={styles.declarations}>
+                                          {keyframeRule.declarations.map((decl, declIdx) => {
+                                            const impactInfo = getImpactBadgeInfo(decl.property)
+                                            const isOverriddenByLaterStep = findKeyframeOverridingRule(decl.property)
+
+                                            return (
+                                              <div key={declIdx} className={`${styles.declaration} ${isOverriddenByLaterStep ? styles.propertyOverridden : ''}`}>
+                                                <span className={styles.impactBadge} title={impactInfo.description}>
+                                                  {impactInfo.emoji}
+                                                </span>
+                                                <div
+                                                  style={{
+                                                    display: 'flex',
+                                                    alignItems: 'flex-start',
+                                                    gap: '4px',
+                                                    flex: 1,
+                                                    minWidth: 0,
+                                                    flexWrap: 'wrap',
+                                                    cursor: isOverriddenByLaterStep ? 'pointer' : 'default',
+                                                  }}
+                                                  onClick={() => {
+                                                    if (isOverriddenByLaterStep) {
+                                                      setOverriddenPropertyInfo({
+                                                        property: decl.property,
+                                                        ruleIndex: keyframeRule.ruleIndex,
+                                                        selector: `@keyframes ${keyframeGroup.name} → ${keyframeRule.selector}`,
+                                                        isKeyframeRule: true,
+                                                        overridingStepName: isOverriddenByLaterStep.selector,
+                                                      })
+                                                    }
+                                                  }}
+                                                >
+                                                  <span className={styles.property}>{decl.property}</span>
+                                                  <span className={styles.colon}>:</span>
+                                                  <span className={styles.value}>{decl.value}</span>
+                                                </div>
+                                                {isOverriddenByLaterStep && (
+                                                  <button
+                                                    className={styles.editButton}
+                                                    title={`Property overridden by ${isOverriddenByLaterStep.selector}`}
+                                                    onClick={() => {
+                                                      setOverriddenPropertyInfo({
+                                                        property: decl.property,
+                                                        ruleIndex: keyframeRule.ruleIndex,
+                                                        selector: `@keyframes ${keyframeGroup.name} → ${keyframeRule.selector}`,
+                                                        isKeyframeRule: true,
+                                                        overridingStepName: isOverriddenByLaterStep.selector,
+                                                      })
+                                                    }}
+                                                  >
+                                                    ⓘ
+                                                  </button>
+                                                )}
+                                              </div>
+                                            )
+                                          })}
+                                        </div>
+                                      ) : (
+                                        <div className={styles.noDeclarations}>No declarations</div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
           )
-        })}
+        })()}
       </div>
 
       <div className={styles.inspectorFooter}>
@@ -1489,6 +1415,15 @@ export default function RuleInspector({
           />
         )
       })()}
+
+      {showDuplicatesModalFor && (
+        <DuplicateSelectorsModal
+          selector={showDuplicatesModalFor}
+          affectingRules={affectingRules}
+          keyframes={allKeyframes}
+          onClose={() => setShowDuplicatesModalFor(null)}
+        />
+      )}
     </div>
   )
 }
