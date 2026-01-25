@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import DOMPurify from 'dompurify'
+import { scopeCss } from '../lib/tools/cssScoper'
 import styles from '../styles/markdown-renderer.module.css'
 
 /**
@@ -128,10 +129,29 @@ export default function HTMLRenderer({ html, className = '', customCss = '', cus
   // Get appropriate sanitization config based on allowScripts and allowIframes flags
   const sanitizationConfig = getSanitizationConfig(allowScripts, allowIframes)
 
+  // Special handling: Extract <style> tags before sanitization
+  // DOMPurify may strip them despite ALLOWED_TAGS, so we preserve them manually
+  const styleMap = new Map()
+  let htmlWithoutStyles = html
+  let styleCounter = 0
+
+  const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi
+  let styleMatch
+  while ((styleMatch = styleRegex.exec(html)) !== null) {
+    const styleContent = styleMatch[1]
+    const placeholder = `<div data-style-placeholder="${styleCounter}" style="display:none;"></div>`
+
+    styleMap.set(styleCounter, styleContent)
+
+    // Replace style tag with placeholder
+    htmlWithoutStyles = htmlWithoutStyles.replace(styleMatch[0], placeholder)
+    styleCounter++
+  }
+
   // Special handling: Extract iframes with srcdoc before sanitization
   // DOMPurify may strip srcdoc attributes, so we need to preserve them
   const iframeMap = new Map()
-  let htmlWithoutIframes = html
+  let htmlWithoutIframes = htmlWithoutStyles
   let iframeCounter = 0
 
   if (allowIframes) {
@@ -142,7 +162,7 @@ export default function HTMLRenderer({ html, className = '', customCss = '', cus
 
     while (true) {
       srcdocStartRegex.lastIndex = searchPos
-      const match = srcdocStartRegex.exec(html)
+      const match = srcdocStartRegex.exec(htmlWithoutIframes)
       if (!match) break
 
       const quoteChar = match[1] // The quote character used (either " or ')
@@ -151,8 +171,8 @@ export default function HTMLRenderer({ html, className = '', customCss = '', cus
       // Find the closing quote of the same type
       let contentEnd = contentStart
       let found = false
-      while (contentEnd < html.length) {
-        if (html[contentEnd] === quoteChar && html[contentEnd - 1] !== '\\') {
+      while (contentEnd < htmlWithoutIframes.length) {
+        if (htmlWithoutIframes[contentEnd] === quoteChar && htmlWithoutIframes[contentEnd - 1] !== '\\') {
           found = true
           break
         }
@@ -164,15 +184,15 @@ export default function HTMLRenderer({ html, className = '', customCss = '', cus
         continue // Unclosed quote
       }
 
-      const srcdocContent = html.substring(contentStart, contentEnd)
+      const srcdocContent = htmlWithoutIframes.substring(contentStart, contentEnd)
 
       // Find the start of the iframe tag by searching backwards from srcdoc position
       let iframeStart = match.index - 1
-      while (iframeStart >= 0 && html[iframeStart] !== '<') {
+      while (iframeStart >= 0 && htmlWithoutIframes[iframeStart] !== '<') {
         iframeStart--
       }
 
-      if (iframeStart < 0 || !html.substring(iframeStart, iframeStart + 7).toLowerCase().startsWith('<iframe')) {
+      if (iframeStart < 0 || !htmlWithoutIframes.substring(iframeStart, iframeStart + 7).toLowerCase().startsWith('<iframe')) {
         searchPos = match.index + 1
         continue // Not part of an iframe
       }
@@ -180,29 +200,29 @@ export default function HTMLRenderer({ html, className = '', customCss = '', cus
       // Find the end of the iframe tag (next > after the srcdoc closing quote)
       let iframeEnd = contentEnd + 1
       let depth = 0
-      while (iframeEnd < html.length) {
-        if (html[iframeEnd] === '"' || html[iframeEnd] === "'") {
+      while (iframeEnd < htmlWithoutIframes.length) {
+        if (htmlWithoutIframes[iframeEnd] === '"' || htmlWithoutIframes[iframeEnd] === "'") {
           // Skip quoted strings
-          const quoteType = html[iframeEnd]
+          const quoteType = htmlWithoutIframes[iframeEnd]
           iframeEnd++
-          while (iframeEnd < html.length && html[iframeEnd] !== quoteType) {
-            if (html[iframeEnd] === '\\') iframeEnd++ // Skip escaped chars
+          while (iframeEnd < htmlWithoutIframes.length && htmlWithoutIframes[iframeEnd] !== quoteType) {
+            if (htmlWithoutIframes[iframeEnd] === '\\') iframeEnd++ // Skip escaped chars
             iframeEnd++
           }
           iframeEnd++
-        } else if (html[iframeEnd] === '>') {
+        } else if (htmlWithoutIframes[iframeEnd] === '>') {
           break
         } else {
           iframeEnd++
         }
       }
 
-      if (iframeEnd >= html.length) {
+      if (iframeEnd >= htmlWithoutIframes.length) {
         searchPos = match.index + 1
         continue // No closing >
       }
 
-      const fullTag = html.substring(iframeStart, iframeEnd + 1)
+      const fullTag = htmlWithoutIframes.substring(iframeStart, iframeEnd + 1)
       const placeholder = `<div data-iframe-placeholder="${iframeCounter}" style="display:none;"></div>`
 
       iframeMap.set(iframeCounter, {
@@ -217,12 +237,21 @@ export default function HTMLRenderer({ html, className = '', customCss = '', cus
     }
   }
 
-  // Sanitize the HTML (iframes are now replaced with placeholders)
+  // Sanitize the HTML (styles and iframes are now replaced with placeholders)
   const sanitizedHtml = DOMPurify.sanitize(htmlWithoutIframes, sanitizationConfig)
 
-  // Restore iframes with their original srcdoc content
+  // Restore style tags with scoping applied
   let processedHtml = sanitizedHtml
 
+  styleMap.forEach((styleContent, index) => {
+    const placeholder = `<div data-style-placeholder="${index}" style="display:none;"></div>`
+    // Scope the CSS to only apply within the preview container
+    const scopedCss = scopeCss(styleContent, '.pwt-preview')
+    const restoredStyle = `<style>${scopedCss}</style>`
+    processedHtml = processedHtml.replace(placeholder, restoredStyle)
+  })
+
+  // Restore iframes with their original srcdoc content
   iframeMap.forEach((iframeData, index) => {
     const placeholder = `<div data-iframe-placeholder="${index}" style="display:none;"></div>`
 

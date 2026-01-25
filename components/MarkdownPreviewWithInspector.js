@@ -1437,7 +1437,11 @@ export default function MarkdownPreviewWithInspector({
         return rule
       }).filter(rule => {
         // Remove rules with no declarations (after filtering)
+        // But always keep at-rules like @keyframes, @font-face, etc.
         if (rule.type === 'rule' && (!rule.declarations || rule.declarations.length === 0)) {
+          return false
+        }
+        if (rule.type === 'atrule' && (!rule.children || rule.children.length === 0)) {
           return false
         }
         return true
@@ -1502,6 +1506,7 @@ export default function MarkdownPreviewWithInspector({
   }
 
   const renderPreviewContent = () => {
+    const previewClass = '.pwt-preview'
     const previewCss = getPreviewCss()
 
     // Build data attributes object for forced pseudo-states
@@ -1510,8 +1515,9 @@ export default function MarkdownPreviewWithInspector({
     if (forcedStates.focus) dataAttrs['data-force-focus'] = 'true'
     if (forcedStates.active) dataAttrs['data-force-active'] = 'true'
 
-    // For HTML mode, remove <style> tags from content (CSS is extracted and merged above)
-    const contentToRender = isHtml ? removeStyleTagsFromHtml(content) : content
+    // For HTML mode, the embedded <style> tags will be preserved by HTMLRenderer
+    // and restored after DOMPurify sanitization to keep @keyframes and animations intact
+    const contentToRender = content
 
     return (
       <div
