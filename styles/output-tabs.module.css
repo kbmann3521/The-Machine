@@ -143,6 +143,18 @@
   background-color: rgba(0, 102, 204, 0.2);
 }
 
+.useOutputMenuDisabled {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  color: var(--color-text-secondary, #999);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
 .tabActions {
   display: flex;
   align-items: center;
@@ -655,6 +667,16 @@
     height: 35px;
     padding: 6px 10px;
     gap: 6px;
+  }
+
+  .useOutputChevron {
+    height: 35px;
+  }
+
+  .inputTabContent {
+    min-height: 600px;
+    max-height: 600px;
+    overflow-y: auto;
   }
 
   .minifyToggle {
@@ -1448,12 +1470,7 @@
 
 /* Tablet and below: Increase output container height */
 @media (max-width: 1024px) {
-  .outputTabsWrapper {
-    min-height: 500px;
-  }
-
   .outputTabsContainer {
-    min-height: 500px;
     border: 1px solid var(--color-border, #ddd);
     border-radius: 6px;
   }
@@ -1461,14 +1478,6 @@
 
 /* Mobile: Increase output container height even more */
 @media (max-width: 480px) {
-  .outputTabsWrapper {
-    min-height: 600px;
-  }
-
-  .outputTabsContainer {
-    min-height: 600px;
-  }
-
   .tab {
     padding: 8px 10px;
     font-size: 10px;
@@ -1477,6 +1486,16 @@
   .tabActions {
     padding: 6px 8px;
     gap: 4px;
+  }
+
+  .useOutputChevron {
+    height: 35px;
+  }
+
+  .inputTabContent {
+    min-height: 600px;
+    max-height: 600px;
+    overflow-y: auto;
   }
 
   .minifyToggle {
@@ -1575,6 +1594,24 @@
 }
 
 /* Global Dropdown Menu - Modal popup centered in viewport */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .globalDropdownMenu {
   position: fixed;
   top: 50%;
@@ -1588,31 +1625,58 @@
   width: 80%;
   max-width: 500px;
   height: 50vh;
-  overflow-y: auto;
-  padding: 16px;
+  overflow: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
+  animation: fadeIn 0.12s ease-out;
 }
 
-.globalDropdownMenu::-webkit-scrollbar {
+.globalDropdownMenu.closing {
+  animation: fadeOut 0.12s ease-out forwards;
+}
+
+.globalOptionsHeader {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-bottom: 1px solid var(--color-border, #ddd);
+}
+
+.globalOptionsTitle {
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.globalOptionsContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) rgba(0, 0, 0, 0.1);
+}
+
+.globalOptionsContent::-webkit-scrollbar {
   width: 6px;
 }
 
-.globalDropdownMenu::-webkit-scrollbar-track {
+.globalOptionsContent::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.globalDropdownMenu::-webkit-scrollbar-thumb {
+.globalOptionsContent::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
 
-.globalDropdownMenu::-webkit-scrollbar-thumb:hover {
+.globalOptionsContent::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.2);
 }
 

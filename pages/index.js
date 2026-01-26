@@ -92,6 +92,8 @@ export default function Home(props) {
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
   const [markdownCustomCss, setMarkdownCustomCss] = useState('')
   const [markdownCustomJs, setMarkdownCustomJs] = useState('')
+  const [cssFormattedOutput, setCssFormattedOutput] = useState(null)
+  const [jsFormattedOutput, setJsFormattedOutput] = useState(null)
   const [jsFormatterDiagnostics, setJsFormatterDiagnostics] = useState([])
   const [activeMarkdownInputTab, setActiveMarkdownInputTab] = useState('input')
   const [markdownInputMode, setMarkdownInputMode] = useState('input') // 'input', 'css', or 'js' - tracks which input mode is active
@@ -970,10 +972,42 @@ export default function Home(props) {
     return !!outputResult?.output
   }
 
+  // Helper function to determine if a tool supports copying output to input
+  const getCanCopyOutput = () => {
+    if (!selectedTool) return false
+
+    // Tools that don't support copying output back to input
+    const nonCopyableTools = [
+      'base-converter',
+      'qr-code-generator',
+      'ip-toolkit',
+      'email-validator',
+      'image-resizer',
+      'image-compressor',
+      'json-to-table'
+    ]
+
+    return !nonCopyableTools.includes(selectedTool.toolId)
+  }
+
   // Handler for use output button
   const handleUseOutputClick = () => {
     if (universalInputRef.current?.handleUseOutput) {
       universalInputRef.current.handleUseOutput()
+    }
+  }
+
+  // Handler for replacing CSS input with formatted CSS output
+  const handleUseCssOutputClick = () => {
+    if (cssFormattedOutput && activeMarkdownInputTab === 'css') {
+      setMarkdownCustomCss(cssFormattedOutput)
+    }
+  }
+
+  // Handler for replacing JS input with formatted JS output
+  const handleUseJsOutputClick = () => {
+    if (jsFormattedOutput && activeMarkdownInputTab === 'js') {
+      setMarkdownCustomJs(jsFormattedOutput)
     }
   }
 
@@ -1047,7 +1081,17 @@ export default function Home(props) {
                 infoContent={!selectedTool && <ValuePropositionCard />}
                 tabActions={null}
                 hasOutputToUse={getHasOutputToUse()}
-                onUseOutput={handleUseOutputClick}
+                onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
+                canCopyOutput={getCanCopyOutput()}
+                useOutputLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'Format code' : 'Replace with output'}
+                hasCssOutputToUse={selectedTool?.toolId === 'markdown-html-formatter' && activeMarkdownInputTab === 'css' && markdownCustomCss && cssFormattedOutput ? true : false}
+                onUseCssOutput={selectedTool?.toolId === 'markdown-html-formatter' ? () => handleUseCssOutputClick() : null}
+                canCopyCssOutput={true}
+                useCssOutputLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'Format code' : 'Replace with output'}
+                hasJsOutputToUse={selectedTool?.toolId === 'markdown-html-formatter' && activeMarkdownInputTab === 'js' && markdownCustomJs && jsFormattedOutput ? true : false}
+                onUseJsOutput={selectedTool?.toolId === 'markdown-html-formatter' ? () => handleUseJsOutputClick() : null}
+                canCopyJsOutput={true}
+                useJsOutputLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'Format code' : 'Replace with output'}
                 cssContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
                   <ToolOutputPanel
                     result={outputResult}
@@ -1072,6 +1116,7 @@ export default function Home(props) {
                     activeMarkdownInputTab={activeMarkdownInputTab}
                     markdownCustomCss={markdownCustomCss}
                     onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    onCssFormattedOutput={setCssFormattedOutput}
                     markdownCustomJs={markdownCustomJs}
                     onMarkdownCustomJsChange={setMarkdownCustomJs}
                     cssConfigOptions={cssConfigOptions}
@@ -1136,13 +1181,13 @@ export default function Home(props) {
                 }
                 optionsContent={
                   selectedTool ? (
-                    <div className={styles.configSection} style={{ padding: '16px' }}>
+                    <div className={styles.configSection}>
                       <ToolDescriptionContent tool={selectedTool} />
                     </div>
                   ) : null
                 }
                 globalOptionsContent={
-                  selectedTool && selectedTool?.toolId !== 'markdown-html-formatter' ? (
+                  selectedTool ? (
                     <div className={styles.configSection}>
                       <ToolConfigPanel
                         tool={selectedTool}
@@ -1155,6 +1200,8 @@ export default function Home(props) {
                         contentClassification={contentClassification}
                         activeToolkitSection={activeToolkitSection}
                         onToolkitSectionChange={setActiveToolkitSection}
+                        markdownInputMode={selectedTool?.toolId === 'markdown-html-formatter' ? 'input' : undefined}
+                        cssConfigOptions={cssConfigOptions}
                         findReplaceConfig={findReplaceConfig}
                         onFindReplaceConfigChange={setFindReplaceConfig}
                         diffConfig={diffConfig}
@@ -1177,219 +1224,7 @@ export default function Home(props) {
                     </div>
                   ) : null
                 }
-                tabOptionsMap={selectedTool?.toolId === 'markdown-html-formatter' ? {
-                  input: (
-                    <div className={styles.configSection}>
-                      <ToolConfigPanel
-                        tool={selectedTool}
-                        onConfigChange={handleConfigChange}
-                        onCssConfigChange={setCssConfigOptions}
-                        loading={toolLoading}
-                        onRegenerate={handleRegenerate}
-                        currentConfig={configOptions}
-                        result={outputResult}
-                        contentClassification={contentClassification}
-                        activeToolkitSection={activeToolkitSection}
-                        onToolkitSectionChange={setActiveToolkitSection}
-                        markdownInputMode={'input'}
-                        cssConfigOptions={cssConfigOptions}
-                        findReplaceConfig={findReplaceConfig}
-                        onFindReplaceConfigChange={setFindReplaceConfig}
-                        diffConfig={diffConfig}
-                        onDiffConfigChange={setDiffConfig}
-                        sortLinesConfig={sortLinesConfig}
-                        onSortLinesConfigChange={setSortLinesConfig}
-                        removeExtrasConfig={removeExtrasConfig}
-                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                        delimiterTransformerConfig={delimiterTransformerConfig}
-                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
-                        onSetGeneratedText={handleInputChange}
-                        showAnalysisTab={showAnalysisTab}
-                        onShowAnalysisTabChange={setShowAnalysisTab}
-                        showRulesTab={showRulesTab}
-                        onShowRulesTabChange={setShowRulesTab}
-                      />
-                    </div>
-                  ),
-                  css: (
-                    <div className={styles.configSection}>
-                      <ToolConfigPanel
-                        tool={selectedTool}
-                        onConfigChange={handleConfigChange}
-                        onCssConfigChange={setCssConfigOptions}
-                        loading={toolLoading}
-                        onRegenerate={handleRegenerate}
-                        currentConfig={configOptions}
-                        result={outputResult}
-                        contentClassification={contentClassification}
-                        activeToolkitSection={activeToolkitSection}
-                        onToolkitSectionChange={setActiveToolkitSection}
-                        markdownInputMode={'css'}
-                        cssConfigOptions={cssConfigOptions}
-                        findReplaceConfig={findReplaceConfig}
-                        onFindReplaceConfigChange={setFindReplaceConfig}
-                        diffConfig={diffConfig}
-                        onDiffConfigChange={setDiffConfig}
-                        sortLinesConfig={sortLinesConfig}
-                        onSortLinesConfigChange={setSortLinesConfig}
-                        removeExtrasConfig={removeExtrasConfig}
-                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                        delimiterTransformerConfig={delimiterTransformerConfig}
-                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
-                        onSetGeneratedText={handleInputChange}
-                        showAnalysisTab={showAnalysisTab}
-                        onShowAnalysisTabChange={setShowAnalysisTab}
-                        showRulesTab={showRulesTab}
-                        onShowRulesTabChange={setShowRulesTab}
-                      />
-                    </div>
-                  ),
-                  js: (
-                    <div className={configStyles.fieldsContainer}>
-                      {/* Mode */}
-                      <div className={configStyles.field}>
-                        <label className={configStyles.fieldLabel}>Mode</label>
-                        <select
-                          className={configStyles.select}
-                          value={jsConfigOptions?.mode || 'format'}
-                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, mode: e.target.value })}
-                        >
-                          <option value="format">Beautify</option>
-                          <option value="minify">Minify</option>
-                          <option value="obfuscate">Obfuscate</option>
-                        </select>
-                      </div>
-
-                      {/* Indent Size */}
-                      <div className={configStyles.field}>
-                        <label className={configStyles.fieldLabel}>Indent Size</label>
-                        <select
-                          className={configStyles.select}
-                          value={jsConfigOptions?.indentSize || '2'}
-                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, indentSize: e.target.value })}
-                        >
-                          <option value="2">2 spaces</option>
-                          <option value="4">4 spaces</option>
-                          <option value="tab">Tab</option>
-                        </select>
-                      </div>
-
-                      {/* Use Semicolons Toggle */}
-                      <div className={configStyles.toggleContainer}>
-                        <label className={configStyles.toggleLabel}>
-                          <input
-                            type="checkbox"
-                            checked={jsConfigOptions?.useSemicolons !== false}
-                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, useSemicolons: e.target.checked })}
-                            className={configStyles.toggleInput}
-                          />
-                          <span className={configStyles.toggleSlider}></span>
-                          <span>Use Semicolons</span>
-                        </label>
-                      </div>
-
-                      {/* Single Quotes Toggle */}
-                      <div className={configStyles.toggleContainer}>
-                        <label className={configStyles.toggleLabel}>
-                          <input
-                            type="checkbox"
-                            checked={jsConfigOptions?.singleQuotes === true}
-                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, singleQuotes: e.target.checked })}
-                            className={configStyles.toggleInput}
-                          />
-                          <span className={configStyles.toggleSlider}></span>
-                          <span>Single Quotes</span>
-                        </label>
-                      </div>
-
-                      {/* Trailing Comma */}
-                      <div className={configStyles.field}>
-                        <label className={configStyles.fieldLabel}>Trailing Comma</label>
-                        <select
-                          className={configStyles.select}
-                          value={jsConfigOptions?.trailingComma || 'es5'}
-                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, trailingComma: e.target.value })}
-                        >
-                          <option value="es5">ES5</option>
-                          <option value="all">All</option>
-                          <option value="none">None</option>
-                        </select>
-                      </div>
-
-                      {/* Print Width */}
-                      <div className={configStyles.field}>
-                        <label className={configStyles.fieldLabel}>Print Width</label>
-                        <select
-                          className={configStyles.select}
-                          value={jsConfigOptions?.printWidth || '80'}
-                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, printWidth: e.target.value })}
-                        >
-                          <option value="60">60</option>
-                          <option value="80">80</option>
-                          <option value="100">100</option>
-                          <option value="120">120</option>
-                          <option value="140">140</option>
-                          <option value="160">160</option>
-                        </select>
-                      </div>
-
-                      {/* Bracket Spacing Toggle */}
-                      <div className={configStyles.toggleContainer}>
-                        <label className={configStyles.toggleLabel}>
-                          <input
-                            type="checkbox"
-                            checked={jsConfigOptions?.bracketSpacing !== false}
-                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, bracketSpacing: e.target.checked })}
-                            className={configStyles.toggleInput}
-                          />
-                          <span className={configStyles.toggleSlider}></span>
-                          <span>Bracket Spacing</span>
-                        </label>
-                      </div>
-
-                      {/* Arrow Parens */}
-                      <div className={configStyles.field}>
-                        <label className={configStyles.fieldLabel}>Arrow Parens</label>
-                        <select
-                          className={configStyles.select}
-                          value={jsConfigOptions?.arrowParens || 'always'}
-                          onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, arrowParens: e.target.value })}
-                        >
-                          <option value="always">Always</option>
-                          <option value="avoid">Avoid</option>
-                        </select>
-                      </div>
-
-                      {/* Remove Comments Toggle */}
-                      <div className={configStyles.toggleContainer}>
-                        <label className={configStyles.toggleLabel}>
-                          <input
-                            type="checkbox"
-                            checked={jsConfigOptions?.removeComments === true}
-                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, removeComments: e.target.checked })}
-                            className={configStyles.toggleInput}
-                          />
-                          <span className={configStyles.toggleSlider}></span>
-                          <span>Remove Comments</span>
-                        </label>
-                      </div>
-
-                      {/* Remove Console Toggle */}
-                      <div className={configStyles.toggleContainer}>
-                        <label className={configStyles.toggleLabel}>
-                          <input
-                            type="checkbox"
-                            checked={jsConfigOptions?.removeConsole === true}
-                            onChange={(e) => setJsConfigOptions({ ...jsConfigOptions, removeConsole: e.target.checked })}
-                            className={configStyles.toggleInput}
-                          />
-                          <span className={configStyles.toggleSlider}></span>
-                          <span>Remove Console</span>
-                        </label>
-                      </div>
-                    </div>
-                  ),
-                } : {}}
+                tabOptionsMap={{}}
               />
             </div>
 
@@ -1445,6 +1280,7 @@ export default function Home(props) {
                     onMarkdownCustomCssChange={setMarkdownCustomCss}
                     markdownCustomJs={markdownCustomJs}
                     onMarkdownCustomJsChange={setMarkdownCustomJs}
+                    onJsFormattedOutput={setJsFormattedOutput}
                     cssConfigOptions={cssConfigOptions}
                     onCssConfigChange={setCssConfigOptions}
                     jsConfigOptions={jsConfigOptions}

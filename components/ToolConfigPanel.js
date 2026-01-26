@@ -1113,44 +1113,30 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               // Only show HTML/Markdown options when INPUT tab is active
               if (markdownInputMode === 'input') {
                 return (
-                  <div>
-                    <div style={{
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      textTransform: 'uppercase',
-                      color: 'var(--color-text-secondary)',
-                      marginBottom: '12px',
-                      paddingBottom: '8px',
-                      borderBottom: '1px solid var(--color-border)',
-                      letterSpacing: '0.5px',
-                    }}>
-                      Markdown/HTML Options
-                    </div>
-                    <div className={styles.fieldsContainer}>
-                      {configSchema.map(field => {
-                        // Check visibility
-                        if (field.visibleWhen) {
-                          const { field: conditionField, value: conditionValue } = field.visibleWhen
-                          if (config[conditionField] !== conditionValue) {
-                            return null
-                          }
-                        }
-
-                        const renderedField = renderField(field)
-                        if (!renderedField) {
+                  <div className={styles.fieldsContainer}>
+                    {configSchema.map(field => {
+                      // Check visibility
+                      if (field.visibleWhen) {
+                        const { field: conditionField, value: conditionValue } = field.visibleWhen
+                        if (config[conditionField] !== conditionValue) {
                           return null
                         }
+                      }
 
-                        return (
-                          <div key={field.id} className={styles.field}>
-                            <label className={styles.fieldLabel} htmlFor={field.id}>
-                              {field.label}
-                            </label>
-                            {renderedField}
-                          </div>
-                        )
-                      })}
-                    </div>
+                      const renderedField = renderField(field)
+                      if (!renderedField) {
+                        return null
+                      }
+
+                      return (
+                        <div key={field.id} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={field.id}>
+                            {field.label}
+                          </label>
+                          {renderedField}
+                        </div>
+                      )
+                    })}
                   </div>
                 )
               }
@@ -1158,73 +1144,59 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               // Only show CSS options when CSS tab is active
               if (markdownInputMode === 'css') {
                 return (
-                  <div>
-                    <div style={{
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      textTransform: 'uppercase',
-                      color: 'var(--color-text-secondary)',
-                      marginBottom: '12px',
-                      paddingBottom: '8px',
-                      borderBottom: '1px solid var(--color-border)',
-                      letterSpacing: '0.5px',
-                    }}>
-                      CSS Styling Options
-                    </div>
-                    <div className={styles.fieldsContainer}>
-                      {cssSchema.map(field => {
-                        // Check visibility
-                        if (field.visibleWhen) {
-                          const { field: conditionField, value: conditionValue } = field.visibleWhen
-                          if (cssConfigOptions[conditionField] !== conditionValue) {
-                            return null
-                          }
-                        }
-
-                        const renderedField = renderCssField(field)
-                        if (!renderedField) {
+                  <div className={styles.fieldsContainer}>
+                    {cssSchema.map(field => {
+                      // Check visibility
+                      if (field.visibleWhen) {
+                        const { field: conditionField, value: conditionValue } = field.visibleWhen
+                        if (cssConfigOptions[conditionField] !== conditionValue) {
                           return null
                         }
+                      }
 
-                        return (
-                          <div key={`css-${field.id}`} className={styles.field}>
-                            <label className={styles.fieldLabel} htmlFor={`css-${field.id}`}>
-                              {field.label}
-                            </label>
-                            {renderedField}
-                          </div>
-                        )
-                      })}
-                      {/* Analysis/Rules toggles for CSS */}
-                      <div className={styles.field}>
-                        <label className={styles.fieldLabel}></label>
-                        <div className={styles.toggleContainer}>
-                          <label className={styles.toggleLabel}>
-                            <input
-                              type="checkbox"
-                              className={styles.toggleInput}
-                              checked={cssConfigOptions?.showAnalysisTab || false}
-                              onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showAnalysisTab: e.target.checked })}
-                            />
-                            <span className={styles.toggleSlider}></span>
-                            <span>Show Analysis Tab</span>
+                      const renderedField = renderCssField(field)
+                      if (!renderedField) {
+                        return null
+                      }
+
+                      return (
+                        <div key={`css-${field.id}`} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={`css-${field.id}`}>
+                            {field.label}
                           </label>
+                          {renderedField}
                         </div>
+                      )
+                    })}
+                    {/* Analysis/Rules toggles for CSS */}
+                    <div className={styles.field}>
+                      <label className={styles.fieldLabel}></label>
+                      <div className={styles.toggleContainer}>
+                        <label className={styles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            className={styles.toggleInput}
+                            checked={cssConfigOptions?.showAnalysisTab || false}
+                            onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showAnalysisTab: e.target.checked })}
+                          />
+                          <span className={styles.toggleSlider}></span>
+                          <span>Show Analysis Tab</span>
+                        </label>
                       </div>
-                      <div className={styles.field}>
-                        <label className={styles.fieldLabel}></label>
-                        <div className={styles.toggleContainer}>
-                          <label className={styles.toggleLabel}>
-                            <input
-                              type="checkbox"
-                              className={styles.toggleInput}
-                              checked={cssConfigOptions?.showRulesTab || false}
-                              onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showRulesTab: e.target.checked })}
-                            />
-                            <span className={styles.toggleSlider}></span>
-                            <span>Show Rules Tab</span>
-                          </label>
-                        </div>
+                    </div>
+                    <div className={styles.field}>
+                      <label className={styles.fieldLabel}></label>
+                      <div className={styles.toggleContainer}>
+                        <label className={styles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            className={styles.toggleInput}
+                            checked={cssConfigOptions?.showRulesTab || false}
+                            onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showRulesTab: e.target.checked })}
+                          />
+                          <span className={styles.toggleSlider}></span>
+                          <span>Show Rules Tab</span>
+                        </label>
                       </div>
                     </div>
                   </div>

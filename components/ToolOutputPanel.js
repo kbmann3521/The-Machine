@@ -33,7 +33,7 @@ import ResizeOutput from './ImageToolkit/outputs/ResizeOutput'
 const CSSEditorInput = dynamic(() => import('./CSSEditorInput'), { ssr: false })
 const MarkdownPreviewWithInspector = dynamic(() => import('./MarkdownPreviewWithInspector'), { ssr: false })
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, isPreviewFullscreen, onTogglePreviewFullscreen, renderCssTabOnly = false, activeMarkdownInputTab = 'input', markdownInputMode = 'input', markdownCustomCss: externalMarkdownCss = null, onMarkdownCustomCssChange = null, markdownCustomJs: externalMarkdownJs = null, onMarkdownCustomJsChange = null, cssConfigOptions = {}, onCssConfigChange = null, jsConfigOptions = {}, onJsConfigChange = null, onJsFormatterDiagnosticsChange = null }) {
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, isPreviewFullscreen, onTogglePreviewFullscreen, renderCssTabOnly = false, activeMarkdownInputTab = 'input', markdownInputMode = 'input', markdownCustomCss: externalMarkdownCss = null, onMarkdownCustomCssChange = null, onCssFormattedOutput = null, markdownCustomJs: externalMarkdownJs = null, onMarkdownCustomJsChange = null, onJsFormattedOutput = null, cssConfigOptions = {}, onCssConfigChange = null, jsConfigOptions = {}, onJsConfigChange = null, onJsFormatterDiagnosticsChange = null }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -138,8 +138,24 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
-  const displayResult = isInputEmpty ? null : result
+  // Always show result even if empty/invalid - renders partial output
+  const displayResult = result
   const isMarkdownFormatter = toolId === 'markdown-html-formatter'
+
+  // Capture CSS formatted output when on CSS tab
+  React.useEffect(() => {
+    if (isMarkdownFormatter && activeMarkdownInputTab === 'css' && cssFormatterResult?.formatted && onCssFormattedOutput) {
+      onCssFormattedOutput(cssFormatterResult.formatted)
+    }
+  }, [cssFormatterResult?.formatted, activeMarkdownInputTab, isMarkdownFormatter, onCssFormattedOutput])
+
+  // Capture JS formatted output when on JS tab
+  React.useEffect(() => {
+    if (isMarkdownFormatter && activeMarkdownInputTab === 'js' && jsFormatterResult?.formatted && onJsFormattedOutput) {
+      onJsFormattedOutput(jsFormatterResult.formatted)
+    }
+  }, [jsFormatterResult?.formatted, activeMarkdownInputTab, isMarkdownFormatter, onJsFormattedOutput])
+
   const enableHtmlPreview = isMarkdownFormatter
     ? configOptions?.enableHtml === true
     : true
@@ -379,9 +395,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
-  // Show blank tabs when no result (but skip for markdown formatter CSS/JS mode)
-  // Skip both when renderCssTabOnly AND when in CSS/JS mode (markdownInputMode === 'css' or 'js')
-  if (!displayResult && !(toolId === 'markdown-html-formatter' && (renderCssTabOnly || markdownInputMode === 'css' || markdownInputMode === 'js'))) {
+  // Show blank tabs when no result (but skip for markdown formatter - it has its own rendering)
+  // Skip for markdown-html-formatter entirely - it handles empty states with empty preview rendering
+  if (!displayResult && toolId !== 'markdown-html-formatter') {
     const waitingMessage = isInputEmpty ? 'Waiting for input...' : ''
     const blankTabs = [
       {
@@ -2606,12 +2622,40 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         })
       } else {
         // No HTML/Markdown to render yet
-        cssOutputTabs.push({
-          id: 'output',
-          label: 'OUTPUT',
-          content: 'Waiting for input...',
-          contentType: 'text',
-        })
+        // For markdown-html-formatter, show empty preview instead of waiting message
+        if (isMarkdownFormatter) {
+          cssOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: (
+              <MarkdownPreviewWithInspector
+                isHtml={true}
+                content=""
+                customCss={markdownCustomCss}
+                customJs={markdownCustomJs}
+                rulesTree={[]}
+                allowHtml={enableHtmlPreview}
+                enableGfm={enableGfmFeatures}
+                isFullscreen={isPreviewFullscreen}
+                onToggleFullscreen={onTogglePreviewFullscreen}
+                onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+                onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+                onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
+                allowScripts={true}
+                allowIframes={true}
+              />
+            ),
+            contentType: 'component',
+          })
+        } else {
+          cssOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: 'Waiting for input...',
+            contentType: 'text',
+          })
+        }
       }
 
       // Only add FORMATTED, VALIDATION, and LINTING tabs if there's CSS input
@@ -2878,12 +2922,40 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         })
       } else {
         // No HTML/Markdown content - show blank OUTPUT tab
-        jsOutputTabs.push({
-          id: 'output',
-          label: 'OUTPUT',
-          content: 'Waiting for input...',
-          contentType: 'text',
-        })
+        // For markdown-html-formatter, show empty preview instead of waiting message
+        if (isMarkdownFormatter) {
+          jsOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: (
+              <MarkdownPreviewWithInspector
+                isHtml={true}
+                content=""
+                customCss={markdownCustomCss}
+                customJs={markdownCustomJs}
+                rulesTree={[]}
+                allowHtml={enableHtmlPreview}
+                enableGfm={enableGfmFeatures}
+                isFullscreen={isPreviewFullscreen}
+                onToggleFullscreen={onTogglePreviewFullscreen}
+                onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+                onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+                onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
+                allowScripts={true}
+                allowIframes={true}
+              />
+            ),
+            contentType: 'component',
+          })
+        } else {
+          jsOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: 'Waiting for input...',
+            contentType: 'text',
+          })
+        }
       }
 
       // Only add FORMATTED, VALIDATION, and LINTING tabs if there's JS input
@@ -3310,8 +3382,40 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       )
     }
 
-    // If no HTML/Markdown input and not in CSS mode, show waiting state
-    if (!displayResult || typeof displayResult !== 'object') return null
+    // Always render output tabs even if displayResult is empty/null - show what we can
+
+    // If no displayResult yet (input is empty), render with empty content
+    if (!displayResult) {
+      const tabs = []
+
+      // Always show OUTPUT tab with empty preview
+      tabs.push({
+        id: 'output',
+        label: 'OUTPUT',
+        content: (
+          <MarkdownPreviewWithInspector
+            isHtml={true}
+            content=""
+            customCss={markdownCustomCss}
+            customJs={markdownCustomJs}
+            rulesTree={[]}
+            allowHtml={enableHtmlPreview}
+            enableGfm={enableGfmFeatures}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={onTogglePreviewFullscreen}
+            onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+            onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+            onHtmlChange={handleEmbeddedCssChange}
+            onSourceChange={handleSourceChange}
+            allowScripts={true}
+            allowIframes={true}
+          />
+        ),
+        contentType: 'component',
+      })
+
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    }
 
     const tabs = []
 
@@ -3319,24 +3423,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // For markdown-html-formatter, use the actual content classification from the formatter
     // This ensures markdown renders as markdown even if pasted in the HTML tab
     // IMPORTANT: Check appliedConversion first - it determines actual output format after conversion
-    const isConversionApplied = displayResult.appliedConversion && displayResult.appliedConversion !== 'none'
-    let isHtml = isMarkdownFormatter
+    const isConversionApplied = displayResult?.appliedConversion && displayResult.appliedConversion !== 'none'
+    let isHtml = isMarkdownFormatter && displayResult
       ? displayResult.contentMode === 'html'
-      : isHtmlContent(displayResult.formatted)
+      : displayResult?.formatted ? isHtmlContent(displayResult.formatted) : true
 
     // Override based on conversion that was applied
-    if (displayResult.appliedConversion === 'html') {
+    if (displayResult?.appliedConversion === 'html') {
       isHtml = true  // Conversion to HTML was applied, output is definitely HTML
-    } else if (displayResult.appliedConversion === 'markdown') {
+    } else if (displayResult?.appliedConversion === 'markdown') {
       isHtml = false  // Conversion to Markdown was applied, output is definitely Markdown
     }
 
     // Rendered tab - shows the formatted content rendered as HTML (this will be OUTPUT tab - first)
-    // Allow rendering if:
-    // 1. Content is well-formed, OR
-    // 2. A conversion was applied (user intentionally converted the format)
+    // Always try to render output, even if malformed - render what we can
     let renderTab = null
-    if (displayResult.formatted && (displayResult.isWellFormed !== false || isConversionApplied)) {
+    if (displayResult?.formatted) {
       // Use MarkdownPreviewWithInspector for all modes to ensure consistent CSS extraction and application
       // This component handles both HTML mode (extracts <style> tags) and Markdown mode
       // Extract embedded CSS from HTML (marked with origin: 'html')
@@ -3386,6 +3488,42 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         contentType: 'component',
       }
       tabs.push(renderTab)
+    } else if (!renderTab && !displayResult?.formatted) {
+      // If we have a displayResult but no rendered content, show empty preview or error
+      // For markdown-html-formatter, show empty preview rendering
+      if (isMarkdownFormatter) {
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: (
+            <MarkdownPreviewWithInspector
+              isHtml={true}
+              content=""
+              customCss={markdownCustomCss}
+              customJs={markdownCustomJs}
+              rulesTree={[]}
+              allowHtml={enableHtmlPreview}
+              enableGfm={enableGfmFeatures}
+              isFullscreen={isPreviewFullscreen}
+              onToggleFullscreen={onTogglePreviewFullscreen}
+              onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+              onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+              onHtmlChange={handleEmbeddedCssChange}
+              onSourceChange={handleSourceChange}
+              allowScripts={true}
+              allowIframes={true}
+            />
+          ),
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: displayResult?.error || 'Processing output...',
+          contentType: displayResult?.error ? 'text' : 'text',
+        })
+      }
     }
 
     // Add formatted code tab - shows the beautified source code
@@ -3421,8 +3559,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Validation tab - show if enabled
-    if (displayResult.showValidation !== false) {
-      const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+    if (displayResult?.showValidation !== false) {
+      const validationErrors = (displayResult?.diagnostics && Array.isArray(displayResult?.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
         : []
 
@@ -3479,11 +3617,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Linting tab - show if enabled and content is valid
-    if (displayResult.showLinting !== false) {
-      const lintingWarnings = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+    if (displayResult?.showLinting !== false) {
+      const lintingWarnings = (displayResult?.diagnostics && Array.isArray(displayResult?.diagnostics))
         ? displayResult.diagnostics.filter(d => d.category === 'lint')
         : []
-      const isValid = displayResult.isWellFormed !== false
+      const isValid = displayResult?.isWellFormed !== false
 
       let lintingLabel = 'Linting'
       let lintingContent = null
@@ -4075,9 +4213,31 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (tabs.length === 0) return null
+    // Always show at least one tab, even if no output yet
+    // If nothing was added to tabs, add a placeholder
+    if (tabs.length === 0) {
+      tabs.push({
+        id: 'output',
+        label: 'OUTPUT',
+        content: displayResult?.error ? (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+            }}>
+              {displayResult.error}
+            </div>
+          </div>
+        ) : 'Waiting for input...',
+        contentType: displayResult?.error ? 'component' : 'text',
+      })
+    }
 
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} analysisData={displayResult.analysis} sourceText={inputText} showCopyButton={true} onApplyEdits={handleApplyCSSStagedEdits} showAnalysisTab={showAnalysisTab} onShowAnalysisTabChange={onShowAnalysisTabChange} showRulesTab={showRulesTab} onShowRulesTabChange={onShowRulesTabChange} isPreviewFullscreen={isPreviewFullscreen} onTogglePreviewFullscreen={onTogglePreviewFullscreen} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} analysisData={displayResult?.analysis} sourceText={inputText} showCopyButton={true} onApplyEdits={handleApplyCSSStagedEdits} showAnalysisTab={showAnalysisTab} onShowAnalysisTabChange={onShowAnalysisTabChange} showRulesTab={showRulesTab} onShowRulesTabChange={onShowRulesTabChange} isPreviewFullscreen={isPreviewFullscreen} onTogglePreviewFullscreen={onTogglePreviewFullscreen} />
   }
 
   const renderSqlFormatterOutput = () => {
