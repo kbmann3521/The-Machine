@@ -37,14 +37,29 @@ export default function InputTabs({
   globalOptionsContent = null,
   hasOutputToUse = false,
   onUseOutput = null,
+  canCopyOutput = true,
+  useOutputLabel = 'Replace with output',
+  hasCssOutputToUse = false,
+  onUseCssOutput = null,
+  canCopyCssOutput = true,
+  useCssOutputLabel = 'Replace with output',
+  hasJsOutputToUse = false,
+  onUseJsOutput = null,
+  canCopyJsOutput = true,
+  useJsOutputLabel = 'Replace with output',
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState('input')
   const [openOptionsDropdown, setOpenOptionsDropdown] = useState(null)
   const [openGlobalOptions, setOpenGlobalOptions] = useState(false)
+  const [closingGlobalOptions, setClosingGlobalOptions] = useState(false)
   const [showUseOutputMenu, setShowUseOutputMenu] = useState(false)
+  const [showUseCssOutputMenu, setShowUseCssOutputMenu] = useState(false)
+  const [showUseJsOutputMenu, setShowUseJsOutputMenu] = useState(false)
   const optionsDropdownRef = useRef(null)
   const globalOptionsRef = useRef(null)
   const useOutputMenuRef = useRef(null)
+  const useCssOutputMenuRef = useRef(null)
+  const useJsOutputMenuRef = useRef(null)
 
   // Notify parent when active tab changes
   useEffect(() => {
@@ -116,25 +131,43 @@ export default function InputTabs({
 
   const activeTabConfig = tabConfig.find(t => t.id === currentActiveTab)
 
+  // Handle closing animation for global options
+  useEffect(() => {
+    if (!closingGlobalOptions) return
+
+    const timer = setTimeout(() => {
+      setOpenGlobalOptions(false)
+      setClosingGlobalOptions(false)
+    }, 120) // Match animation duration
+
+    return () => clearTimeout(timer)
+  }, [closingGlobalOptions])
+
   // Close dropdown when clicking outside
   useEffect(() => {
-    if (!openOptionsDropdown && !openGlobalOptions && !showUseOutputMenu) return
+    if (!openOptionsDropdown && !openGlobalOptions && !showUseOutputMenu && !showUseCssOutputMenu && !showUseJsOutputMenu && !closingGlobalOptions) return
 
     const handleClickOutside = (e) => {
       if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(e.target)) {
         setOpenOptionsDropdown(null)
       }
-      if (globalOptionsRef.current && !globalOptionsRef.current.contains(e.target)) {
-        setOpenGlobalOptions(false)
+      if (globalOptionsRef.current && !globalOptionsRef.current.contains(e.target) && openGlobalOptions && !closingGlobalOptions) {
+        setClosingGlobalOptions(true)
       }
       if (useOutputMenuRef.current && !useOutputMenuRef.current.contains(e.target)) {
         setShowUseOutputMenu(false)
+      }
+      if (useCssOutputMenuRef.current && !useCssOutputMenuRef.current.contains(e.target)) {
+        setShowUseCssOutputMenu(false)
+      }
+      if (useJsOutputMenuRef.current && !useJsOutputMenuRef.current.contains(e.target)) {
+        setShowUseJsOutputMenu(false)
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [openOptionsDropdown, openGlobalOptions, showUseOutputMenu])
+  }, [openOptionsDropdown, openGlobalOptions, showUseOutputMenu, showUseCssOutputMenu, showUseJsOutputMenu, closingGlobalOptions])
 
   const renderTabContent = () => {
     if (!activeTabConfig) return null
@@ -178,29 +211,115 @@ export default function InputTabs({
                   <div
                     className={styles.useOutputContainer}
                     ref={useOutputMenuRef}
-                    style={{ visibility: hasOutputToUse && onUseOutput ? 'visible' : 'hidden' }}
                   >
                     <button
                       className={styles.useOutputChevron}
                       onClick={() => setShowUseOutputMenu(!showUseOutputMenu)}
                       type="button"
-                      aria-label="Replace with output"
-                      disabled={!hasOutputToUse || !onUseOutput}
+                      aria-label={useOutputLabel}
                     >
                       <FaChevronDown size={12} />
                     </button>
                     {showUseOutputMenu && (
                       <div className={styles.useOutputMenu}>
-                        <button
-                          className={styles.useOutputMenuButton}
-                          onClick={() => {
-                            onUseOutput()
-                            setShowUseOutputMenu(false)
-                          }}
-                          type="button"
-                        >
-                          Replace with output
-                        </button>
+                        {!canCopyOutput ? (
+                          <div className={styles.useOutputMenuDisabled}>
+                            This output can't be copied
+                          </div>
+                        ) : !hasOutputToUse ? (
+                          <div className={styles.useOutputMenuDisabled}>
+                            Nothing to copy to input
+                          </div>
+                        ) : (
+                          <button
+                            className={styles.useOutputMenuButton}
+                            onClick={() => {
+                              onUseOutput()
+                              setShowUseOutputMenu(false)
+                            }}
+                            type="button"
+                          >
+                            {useOutputLabel}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {tab.id === 'css' && (
+                  <div
+                    className={styles.useOutputContainer}
+                    ref={useCssOutputMenuRef}
+                  >
+                    <button
+                      className={styles.useOutputChevron}
+                      onClick={() => setShowUseCssOutputMenu(!showUseCssOutputMenu)}
+                      type="button"
+                      aria-label={useCssOutputLabel}
+                    >
+                      <FaChevronDown size={12} />
+                    </button>
+                    {showUseCssOutputMenu && (
+                      <div className={styles.useOutputMenu}>
+                        {!canCopyCssOutput ? (
+                          <div className={styles.useOutputMenuDisabled}>
+                            This output can't be copied
+                          </div>
+                        ) : !hasCssOutputToUse ? (
+                          <div className={styles.useOutputMenuDisabled}>
+                            Nothing to copy to input
+                          </div>
+                        ) : (
+                          <button
+                            className={styles.useOutputMenuButton}
+                            onClick={() => {
+                              onUseCssOutput()
+                              setShowUseCssOutputMenu(false)
+                            }}
+                            type="button"
+                          >
+                            {useCssOutputLabel}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {tab.id === 'js' && (
+                  <div
+                    className={styles.useOutputContainer}
+                    ref={useJsOutputMenuRef}
+                  >
+                    <button
+                      className={styles.useOutputChevron}
+                      onClick={() => setShowUseJsOutputMenu(!showUseJsOutputMenu)}
+                      type="button"
+                      aria-label={useJsOutputLabel}
+                    >
+                      <FaChevronDown size={12} />
+                    </button>
+                    {showUseJsOutputMenu && (
+                      <div className={styles.useOutputMenu}>
+                        {!canCopyJsOutput ? (
+                          <div className={styles.useOutputMenuDisabled}>
+                            This output can't be copied
+                          </div>
+                        ) : !hasJsOutputToUse ? (
+                          <div className={styles.useOutputMenuDisabled}>
+                            Nothing to copy to input
+                          </div>
+                        ) : (
+                          <button
+                            className={styles.useOutputMenuButton}
+                            onClick={() => {
+                              onUseJsOutput()
+                              setShowUseJsOutputMenu(false)
+                            }}
+                            type="button"
+                          >
+                            {useJsOutputLabel}
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -214,7 +333,13 @@ export default function InputTabs({
               <div className={styles.tabOptionsContainer} ref={globalOptionsRef}>
                 <button
                   className={styles.tabSettingsButton}
-                  onClick={() => setOpenGlobalOptions(!openGlobalOptions)}
+                  onClick={() => {
+                    if (openGlobalOptions) {
+                      setClosingGlobalOptions(true)
+                    } else {
+                      setOpenGlobalOptions(true)
+                    }
+                  }}
                   title="Global options"
                   aria-label="Global options"
                 >
@@ -222,9 +347,14 @@ export default function InputTabs({
                 </button>
 
                 {/* Global options modal */}
-                {openGlobalOptions && (
-                  <div className={styles.globalDropdownMenu}>
-                    {globalOptionsContent}
+                {(openGlobalOptions || closingGlobalOptions) && (
+                  <div className={`${styles.globalDropdownMenu} ${closingGlobalOptions ? styles.closing : ''}`}>
+                    <div className={styles.globalOptionsHeader}>
+                      <h2 className={styles.globalOptionsTitle}>Options</h2>
+                    </div>
+                    <div className={styles.globalOptionsContent}>
+                      {globalOptionsContent}
+                    </div>
                   </div>
                 )}
               </div>

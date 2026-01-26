@@ -1280,6 +1280,8 @@ export default function MarkdownPreviewWithInspector({
               className={styles.globalDropdownMenu}
               style={{
                 animation: isClosingControls ? 'fadeOutControls 0.15s ease-in forwards' : 'fadeInControls 0.15s ease-out forwards',
+                height: 'auto',
+                padding: '12px',
               }}
             >
               <div style={{ marginBottom: '12px' }}>
@@ -1729,6 +1731,8 @@ export default function MarkdownPreviewWithInspector({
                   className={styles.globalDropdownMenu}
                   style={{
                     animation: isClosingFullscreenSettings ? 'fadeOutSettings 0.15s ease-in forwards' : 'fadeInSettings 0.15s ease-out forwards',
+                    height: 'auto',
+                    padding: '12px',
                   }}
                 >
                   <div style={{ marginBottom: '12px' }}>
