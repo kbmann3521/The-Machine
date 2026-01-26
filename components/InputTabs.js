@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { FaChevronDown } from 'react-icons/fa6'
 import styles from '../styles/output-tabs.module.css'
 
 /**
@@ -34,12 +35,16 @@ export default function InputTabs({
   onActiveTabChange = null,
   tabOptionsMap = {},
   globalOptionsContent = null,
+  hasOutputToUse = false,
+  onUseOutput = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState('input')
   const [openOptionsDropdown, setOpenOptionsDropdown] = useState(null)
   const [openGlobalOptions, setOpenGlobalOptions] = useState(false)
+  const [showUseOutputMenu, setShowUseOutputMenu] = useState(false)
   const optionsDropdownRef = useRef(null)
   const globalOptionsRef = useRef(null)
+  const useOutputMenuRef = useRef(null)
 
   // Notify parent when active tab changes
   useEffect(() => {
@@ -113,7 +118,7 @@ export default function InputTabs({
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    if (!openOptionsDropdown && !openGlobalOptions) return
+    if (!openOptionsDropdown && !openGlobalOptions && !showUseOutputMenu) return
 
     const handleClickOutside = (e) => {
       if (optionsDropdownRef.current && !optionsDropdownRef.current.contains(e.target)) {
@@ -122,11 +127,14 @@ export default function InputTabs({
       if (globalOptionsRef.current && !globalOptionsRef.current.contains(e.target)) {
         setOpenGlobalOptions(false)
       }
+      if (useOutputMenuRef.current && !useOutputMenuRef.current.contains(e.target)) {
+        setShowUseOutputMenu(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [openOptionsDropdown, openGlobalOptions])
+  }, [openOptionsDropdown, openGlobalOptions, showUseOutputMenu])
 
   const renderTabContent = () => {
     if (!activeTabConfig) return null
@@ -156,13 +164,48 @@ export default function InputTabs({
         <div className={styles.tabsHeader}>
           <div className={styles.tabs}>
             {tabConfig.map(tab => (
-              <button
+              <div
                 key={tab.id}
-                className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
-                onClick={() => setUserSelectedTabId(tab.id)}
+                className={styles.tabWrapper}
               >
-                {tab.label}
-              </button>
+                <button
+                  className={`${styles.tab} ${currentActiveTab === tab.id ? styles.tabActive : ''}`}
+                  onClick={() => setUserSelectedTabId(tab.id)}
+                >
+                  {tab.label}
+                </button>
+                {tab.id === 'input' && (
+                  <div
+                    className={styles.useOutputContainer}
+                    ref={useOutputMenuRef}
+                    style={{ visibility: hasOutputToUse && onUseOutput ? 'visible' : 'hidden' }}
+                  >
+                    <button
+                      className={styles.useOutputChevron}
+                      onClick={() => setShowUseOutputMenu(!showUseOutputMenu)}
+                      type="button"
+                      aria-label="Replace with output"
+                      disabled={!hasOutputToUse || !onUseOutput}
+                    >
+                      <FaChevronDown size={12} />
+                    </button>
+                    {showUseOutputMenu && (
+                      <div className={styles.useOutputMenu}>
+                        <button
+                          className={styles.useOutputMenuButton}
+                          onClick={() => {
+                            onUseOutput()
+                            setShowUseOutputMenu(false)
+                          }}
+                          type="button"
+                        >
+                          Replace with output
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

@@ -393,6 +393,9 @@ export default function RuleInspector({
     return null
   }
 
+  // Get all keyframes from the rules tree (moved to component level for global access)
+  const allKeyframes = getAllKeyframesFromTree(rulesTree)
+
   const toggleRuleExpanded = (ruleKey, rule) => {
     const isExpanding = !expandedRules[ruleKey]
     const isKeyframeChild = ruleKey.includes('::keyframe::')
@@ -732,9 +735,6 @@ export default function RuleInspector({
 
       <div className={styles.rulesList}>
         {(() => {
-          // Get all keyframes separately from the rules tree
-          const allKeyframes = getAllKeyframesFromTree(rulesTree)
-
           return (
             <>
               {/* Regular affecting rules section */}

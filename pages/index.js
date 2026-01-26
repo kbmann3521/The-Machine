@@ -144,6 +144,7 @@ export default function Home(props) {
   const [dividerLeftRatio, setDividerLeftRatio] = useState(50) // Track left panel width as percentage
   const isDraggingRef = useRef(false)
   const dividerContainerRef = useRef(null)
+  const universalInputRef = useRef(null)
   const [isDesktop, setIsDesktop] = useState(true)
 
   // Cleanup function for pending timers and requests
@@ -929,6 +930,52 @@ export default function Home(props) {
     runTool()
   }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, activeToolkitSection])
 
+  // Helper function to determine if there's output to use
+  const getHasOutputToUse = () => {
+    if (!outputResult) return false
+    if (!selectedTool) return false
+
+    // For Text Toolkit, check specific sections
+    if (selectedTool.toolId === 'text-toolkit' && activeToolkitSection) {
+      const supportedSections = {
+        'slugGenerator': 'slugGenerator',
+        'reverseText': 'reverseText',
+        'removeExtras': 'removeExtras',
+        'sortLines': 'sortLines',
+        'findReplace': 'findReplace',
+        'caseConverter': 'caseConverter',
+        'delimiterTransformer': 'delimiterTransformer'
+      }
+      const key = supportedSections[activeToolkitSection]
+      return key && outputResult[key]
+    }
+
+    // For CSS Formatter, check formatted field
+    if (selectedTool.toolId === 'css-formatter' && outputResult?.formatted) {
+      return true
+    }
+
+    // For Web Playground, check formatted field
+    if (selectedTool.toolId === 'markdown-html-formatter' && outputResult?.formatted) {
+      return true
+    }
+
+    // For formatters, check formatted or output field
+    const formatterTools = ['sql-formatter', 'json-formatter', 'xml-formatter', 'yaml-formatter', 'js-formatter']
+    if (formatterTools.includes(selectedTool.toolId)) {
+      return !!(outputResult?.formatted || outputResult?.output)
+    }
+
+    // For regular tools, check output field
+    return !!outputResult?.output
+  }
+
+  // Handler for use output button
+  const handleUseOutputClick = () => {
+    if (universalInputRef.current?.handleUseOutput) {
+      universalInputRef.current.handleUseOutput()
+    }
+  }
 
   return (
     <>
@@ -999,6 +1046,8 @@ export default function Home(props) {
                 onActiveTabChange={selectedTool?.toolId === 'markdown-html-formatter' ? handleMarkdownInputTabChange : null}
                 infoContent={!selectedTool && <ValuePropositionCard />}
                 tabActions={null}
+                hasOutputToUse={getHasOutputToUse()}
+                onUseOutput={handleUseOutputClick}
                 cssContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
                   <ToolOutputPanel
                     result={outputResult}
@@ -1062,6 +1111,7 @@ export default function Home(props) {
                 inputContent={
                   <div className={styles.inputSection} style={{ overflow: 'hidden', height: '100%' }}>
                     <UniversalInput
+                      ref={universalInputRef}
                       inputText={inputText}
                       inputImage={inputImage}
                       imagePreview={imagePreview}

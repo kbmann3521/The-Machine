@@ -197,7 +197,16 @@ export default function HTMLRenderer({ html, className = '', customCss = '', cus
 
         // Wrap the custom JS in an IIFE to create a new scope
         // This prevents variable redeclaration errors when code re-runs
-        const wrappedJs = `(function() {\n${customJs}\n})()`
+        // Silently catch errors so incomplete code while typing doesn't break the preview
+        const wrappedJs = `
+try {
+  (function() {
+${customJs}
+  })()
+} catch (error) {
+  // Silently fail - don't show errors while user is typing
+}
+`
 
         // Set the script content
         script.textContent = wrappedJs
