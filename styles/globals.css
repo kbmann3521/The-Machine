@@ -337,6 +337,21 @@ input[type="file"] {
   opacity: 0.9;
 }
 
+/* Use Output as Input Button - Global reusable button for applying output to input */
+.use-output-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
 /* Copy card styles moved to tool-output.module.css as .copyCard, .copyCardHeader, .copyCardLabel, .copyCardValue */
 
 /* Color Picker Input Override */

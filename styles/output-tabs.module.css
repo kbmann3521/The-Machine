@@ -37,15 +37,15 @@
 
 .tab {
   height: 40px;
-  padding: 0 16px;
+  padding: 0 8px 0 16px;
   border: none;
+  border-bottom: 3px solid transparent;
   background-color: transparent;
   color: var(--color-text-secondary, #666);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 3px solid transparent;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -60,7 +60,87 @@
 
 .tab.tabActive {
   color: #0066cc;
+  border-bottom: 3px solid #0066cc;
+}
+
+.tabWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 40px;
+}
+
+.useOutputChevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 8px;
+  margin-left: -6px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary, #666);
+  transition: all 0.2s ease;
+}
+
+.tabWrapper:has(.tabActive) .useOutputChevron {
+  color: #0066cc;
   border-bottom-color: #0066cc;
+}
+
+.useOutputChevron:hover {
+  color: #0066cc;
+}
+
+.useOutputChevron:active {
+  opacity: 0.8;
+}
+
+.useOutputContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 40px;
+}
+
+.useOutputMenu {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background-color: var(--color-background-secondary, #fff);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  white-space: nowrap;
+  animation: slideDown 0.2s ease-out;
+}
+
+.useOutputMenuButton {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary, #000);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.useOutputMenuButton:hover {
+  background-color: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
+}
+
+.useOutputMenuButton:active {
+  background-color: rgba(0, 102, 204, 0.2);
 }
 
 .tabActions {

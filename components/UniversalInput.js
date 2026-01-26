@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import { forwardRef, useImperativeHandle } from 'react'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
+import { useOutputToInput } from '../lib/hooks/useOutputToInput'
 import CodeMirrorEditor from './CodeMirrorEditor'
 import styles from '../styles/universal-input.module.css'
 
@@ -48,7 +50,7 @@ const getLanguageForTool = (toolId) => {
   }
 }
 
-export default function UniversalInput({ inputText = '', inputImage = null, imagePreview = null, onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }) {
+const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null, imagePreview = null, onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }, ref) => {
   const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
 
   const getPlaceholder = () => {
@@ -318,55 +320,30 @@ export default function UniversalInput({ inputText = '', inputImage = null, imag
     onInputChange('', null, null, false)
   }
 
-  const getOutputToUse = () => {
-    if (!result) return null
+  // Use the custom hook for "use output as input" functionality
+  const { getOutputToUse, handleUseOutput: hookHandleUseOutput, hasOutput } = useOutputToInput(
+    result,
+    selectedTool,
+    activeToolkitSection,
+    selectedCaseType,
+    onInputChange
+  )
 
-    // For Text Toolkit, only show button for specific sections
-    if (selectedTool?.toolId === 'text-toolkit' && activeToolkitSection) {
-      // Only these sections support "use output as input"
-      if (activeToolkitSection === 'caseConverter' && result.caseConverter) {
-        return result.caseConverter[selectedCaseType]
-      }
-
-      const supportedSections = {
-        'slugGenerator': 'slugGenerator',
-        'reverseText': 'reverseText',
-        'removeExtras': 'removeExtras',
-        'sortLines': 'sortLines',
-        'findReplace': 'findReplace',
-        'caseConverter': 'caseConverter',
-        'delimiterTransformer': 'delimiterTransformer'
-      }
-
-      const key = supportedSections[activeToolkitSection]
-      if (key && result[key]) {
-        return result[key]
-      }
-      return null
-    }
-
-    // For CSS Formatter, use the formatted field
-    if (selectedTool?.toolId === 'css-formatter' && result?.formatted) {
-      return result.formatted
-    }
-
-    // For regular tools, use the output field
-    if (result?.output) {
-      return result.output
-    }
-
-    return null
-  }
-
+  // Wrapper to also update local state
   const handleUseOutput = () => {
     const output = getOutputToUse()
     if (output) {
       const outputText = typeof output === 'string' ? output : JSON.stringify(output, null, 2)
       setLocalInputText(outputText)
       setCharCount(outputText.length)
-      onInputChange(outputText, null, null, false)
     }
+    hookHandleUseOutput()
   }
+
+  // Expose handleUseOutput to parent via ref
+  useImperativeHandle(ref, () => ({
+    handleUseOutput
+  }), [handleUseOutput])
 
   const getInstructionText = () => {
     if (!selectedTool) return null
@@ -479,31 +456,18 @@ export default function UniversalInput({ inputText = '', inputImage = null, imag
                         >
                           <span className={styles.buttonText}>Clear Input</span>
                         </button>
-                        {getOutputToUse() && (
-                          <>
-                            {activeToolkitSection === 'caseConverter' && (
-                              <select
-                                className={styles.caseTypeSelect}
-                                value={selectedCaseType}
-                                onChange={(e) => setSelectedCaseType(e.target.value)}
-                                title="Select case type to use"
-                              >
-                                <option value="uppercase">UPPERCASE</option>
-                                <option value="lowercase">lowercase</option>
-                                <option value="titleCase">Title Case</option>
-                                <option value="sentenceCase">Sentence case</option>
-                              </select>
-                            )}
-                            <button
-                              className={styles.useOutputButton}
-                              onClick={handleUseOutput}
-                              title="Use output as input"
-                              type="button"
-                              aria-label="Use output as input"
-                            >
-                              ⬇️
-                            </button>
-                          </>
+                        {activeToolkitSection === 'caseConverter' && getOutputToUse() && (
+                          <select
+                            className={styles.caseTypeSelect}
+                            value={selectedCaseType}
+                            onChange={(e) => setSelectedCaseType(e.target.value)}
+                            title="Select case type to use"
+                          >
+                            <option value="uppercase">UPPERCASE</option>
+                            <option value="lowercase">lowercase</option>
+                            <option value="titleCase">Title Case</option>
+                            <option value="sentenceCase">Sentence case</option>
+                          </select>
                         )}
                       </>
                     )}
@@ -599,4 +563,7 @@ export default function UniversalInput({ inputText = '', inputImage = null, imag
       </div>
     </div>
   )
-}
+})
+
+UniversalInputComponent.displayName = 'UniversalInput'
+export default UniversalInputComponent

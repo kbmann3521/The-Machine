@@ -125,7 +125,7 @@ export default function InputToolbar({
                     </select>
                   )}
                   <button
-                    className={styles.useOutputButton}
+                    className="use-output-button"
                     onClick={onUseOutput}
                     title="Use output as input"
                     type="button"

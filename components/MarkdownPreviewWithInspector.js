@@ -5,6 +5,7 @@ import { generateSyntheticDom } from '../lib/tools/syntheticDom'
 import { scopeCss } from '../lib/tools/cssScoper'
 import { extractCssFromHtml, removeStyleTagsFromHtml } from '../lib/tools/cssExtractor'
 import { extractSelectorsFromCSS } from '../lib/tools/selectorScanner'
+import { beautifyCss } from '../lib/tools/cssFormatter'
 import { useTheme } from '../lib/ThemeContext'
 import RuleInspector from './RuleInspector'
 import MergeSelectorConfirmation from './MergeSelectorConfirmation'
@@ -163,6 +164,7 @@ export default function MarkdownPreviewWithInspector({
   allowScripts = false, // Allow JavaScript execution in HTML (Web Playground only)
   allowIframes = false, // Allow iframes in HTML (Web Playground only)
 }) {
+
   const { theme } = useTheme()
   const previewContainerRef = useRef(null)
   const fullscreenContainerRef = useRef(null)
@@ -276,26 +278,96 @@ export default function MarkdownPreviewWithInspector({
   }, [effectiveRulesTree])
 
   // When properties change, serialize by origin and call appropriate callbacks
-  const applyChangesToSource = (updatedRules) => {
+  const applyChangesToSource = async (updatedRules) => {
     const { html, css } = serializeRulesByOrigin(updatedRules)
 
+    // Beautify CSS before passing to callbacks
+    let beautifiedCss = css
+    let beautifiedHtml = html
+
+    if (css) {
+      try {
+        beautifiedCss = await beautifyCss(css, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed, using original CSS:', err)
+        beautifiedCss = css
+      }
+    }
+
+    if (html) {
+      try {
+        beautifiedHtml = await beautifyCss(html, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed for embedded CSS, using original:', err)
+        beautifiedHtml = html
+      }
+    }
+
     // Update CSS tab if CSS rules changed
-    if (css && onCssChange) {
-      onCssChange(css)
+    if (beautifiedCss && onCssChange) {
+      onCssChange(beautifiedCss)
     }
 
     // Update HTML if embedded CSS rules changed
-    if (html && onHtmlChange) {
-      onHtmlChange(html)
-    }
+    // For embedded CSS, we need to:
+    // 1. Reconstruct the full HTML with beautified CSS
+    // 2. Format the entire document to match the FORMATTED tab output
+    if (beautifiedHtml && inputPanelContent) {
+      try {
+        // Replace the first <style> block content with beautified CSS
+        const updatedHtmlWithBeautifulCss = inputPanelContent.replace(
+          /<style[^>]*>([\s\S]*?)<\/style>/i,
+          `<style>\n${beautifiedHtml}\n</style>`
+        )
 
-    // Fallback: if generic source change callback provided (only if specific handlers weren't used)
-    // If we used onCssChange or onHtmlChange, don't also send onSourceChange
-    // to avoid duplicate updates or conflicting data
-    const hasSpecificHandlers = (css && onCssChange) || (html && onHtmlChange)
-    if (onSourceChange && !hasSpecificHandlers) {
-      if (html) onSourceChange({ source: 'html', newContent: html })
-      if (css) onSourceChange({ source: 'css', newContent: css })
+        // Format the entire HTML document via the markdown-html-formatter API
+        try {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: 'markdown-html-formatter',
+              inputText: updatedHtmlWithBeautifulCss,
+              config: {
+                mode: 'beautify',
+                indent: '2spaces',
+                minify: false,
+                convertTo: 'none',
+                enableGfm: true,
+                showValidation: false,
+                showLinting: false,
+              },
+            }),
+          })
+          const data = await response.json()
+          const formattedHtml = data.result?.formatted || updatedHtmlWithBeautifulCss
+
+          // Pass the fully formatted HTML via onSourceChange (preferred for full HTML)
+          if (onSourceChange) {
+            onSourceChange({ source: 'html', newContent: formattedHtml })
+          } else if (onHtmlChange) {
+            // Fallback: extract CSS from formatted HTML for onHtmlChange
+            const cssMatch = formattedHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
+            if (cssMatch) {
+              onHtmlChange(cssMatch[1].trim())
+            } else {
+              onHtmlChange(beautifiedHtml)
+            }
+          }
+        } catch (formatErr) {
+          console.warn('HTML formatting failed, using beautified CSS directly:', formatErr)
+          // Fallback: use beautified CSS directly
+          if (onHtmlChange) {
+            onHtmlChange(beautifiedHtml)
+          }
+        }
+      } catch (err) {
+        console.warn('HTML reconstruction failed:', err)
+        // Final fallback
+        if (onHtmlChange) {
+          onHtmlChange(beautifiedHtml)
+        }
+      }
     }
   }
 
@@ -1436,13 +1508,14 @@ export default function MarkdownPreviewWithInspector({
         }
         return rule
       }).filter(rule => {
-        // Remove rules with no declarations (after filtering)
-        // But always keep at-rules like @keyframes, @font-face, etc.
-        if (rule.type === 'rule' && (!rule.declarations || rule.declarations.length === 0)) {
-          return false
+        // For regular rules: only keep if they have declarations
+        if (rule.type === 'rule') {
+          return rule.declarations && rule.declarations.length > 0
         }
-        if (rule.type === 'atrule' && (!rule.children || rule.children.length === 0)) {
-          return false
+        // For at-rules: always keep them (keyframes, media queries, font-face, etc)
+        // Even if empty, they might be needed for animations
+        if (rule.type === 'atrule') {
+          return true
         }
         return true
       })
@@ -1515,9 +1588,9 @@ export default function MarkdownPreviewWithInspector({
     if (forcedStates.focus) dataAttrs['data-force-focus'] = 'true'
     if (forcedStates.active) dataAttrs['data-force-active'] = 'true'
 
-    // For HTML mode, the embedded <style> tags will be preserved by HTMLRenderer
-    // and restored after DOMPurify sanitization to keep @keyframes and animations intact
-    const contentToRender = content
+    // For HTML mode, remove <style> tags from content
+    // All CSS (including @keyframes) comes from previewCss (extracted + inspector-modified)
+    const contentToRender = isHtml ? removeStyleTagsFromHtml(content) : content
 
     return (
       <div
@@ -1560,7 +1633,10 @@ export default function MarkdownPreviewWithInspector({
         if (node.type === 'rule') {
           rules.push(node)
         }
-        if (node.children && node.children.length > 0) {
+        // For at-rules: only traverse children of @media, skip @keyframes and others
+        // This prevents keyframe selectors (0%, 50%, 100%, from, to) from appearing in the inspector
+        const shouldTraverseChildren = node.type !== 'atrule' || node.atRule?.name === 'media'
+        if (shouldTraverseChildren && node.children && node.children.length > 0) {
           traverse(node.children)
         }
       }
