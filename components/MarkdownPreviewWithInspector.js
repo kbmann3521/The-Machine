@@ -256,15 +256,15 @@ export default function MarkdownPreviewWithInspector({
     }
   }, [])
 
-  // When CSS is cleared or selectors are removed, clean up added properties for those selectors
+  // When CSS is cleared or selectors are removed, clean up added properties and disabled properties for those selectors
   React.useEffect(() => {
-    if (Object.keys(addedProperties).length === 0) return
-
     // Build a map of rule index -> set of properties that exist in that rule
     const existingPropertiesByRule = new Map()
+    const existingRuleIndices = new Set()
     const collectPropertiesByRule = (rules) => {
       for (const rule of rules) {
         if (rule.type === 'rule') {
+          existingRuleIndices.add(rule.ruleIndex)
           if (!existingPropertiesByRule.has(rule.ruleIndex)) {
             existingPropertiesByRule.set(rule.ruleIndex, new Set())
           }
@@ -282,27 +282,59 @@ export default function MarkdownPreviewWithInspector({
     collectPropertiesByRule(effectiveRulesTree)
 
     // Remove added properties that no longer exist in their rules
-    setAddedProperties(prev => {
-      let hasChanges = false
-      const next = { ...prev }
+    if (Object.keys(addedProperties).length > 0) {
+      setAddedProperties(prev => {
+        let hasChanges = false
+        const next = { ...prev }
 
-      Object.keys(prev).forEach(key => {
-        const [ruleIndexStr, ...propertyParts] = key.split('::')
-        const ruleIndex = parseInt(ruleIndexStr)
-        const propertyName = propertyParts.slice(1).join('::') // Skip 'ADDED' part
+        Object.keys(prev).forEach(key => {
+          const [ruleIndexStr, ...propertyParts] = key.split('::')
+          const ruleIndex = parseInt(ruleIndexStr)
+          const propertyName = propertyParts.slice(1).join('::') // Skip 'ADDED' part
 
-        // Check if this rule exists and still has this property
-        const ruleExists = existingPropertiesByRule.has(ruleIndex)
-        const propertyExists = ruleExists && existingPropertiesByRule.get(ruleIndex).has(propertyName)
+          // Check if this rule exists and still has this property
+          const ruleExists = existingPropertiesByRule.has(ruleIndex)
+          const propertyExists = ruleExists && existingPropertiesByRule.get(ruleIndex).has(propertyName)
 
-        if (!ruleExists || !propertyExists) {
-          delete next[key]
-          hasChanges = true
-        }
+          if (!ruleExists || !propertyExists) {
+            delete next[key]
+            hasChanges = true
+          }
+        })
+
+        return hasChanges ? next : prev
       })
+    }
 
-      return hasChanges ? next : prev
-    })
+    // Also clean up disabled properties for rules that no longer exist
+    if (disabledProperties.size > 0) {
+      setDisabledProperties(prev => {
+        let hasChanges = false
+        const next = new Set(prev)
+
+        prev.forEach(key => {
+          // Key format: "ruleIndex-property" for original properties or "ruleIndex::ADDED::property" for added
+          const isAddedProperty = key.includes('::')
+          let ruleIndex
+
+          if (isAddedProperty) {
+            const [ruleIndexStr] = key.split('::')
+            ruleIndex = parseInt(ruleIndexStr)
+          } else {
+            const [ruleIndexStr] = key.split('-')
+            ruleIndex = parseInt(ruleIndexStr)
+          }
+
+          // Remove if the rule no longer exists
+          if (!existingRuleIndices.has(ruleIndex)) {
+            next.delete(key)
+            hasChanges = true
+          }
+        })
+
+        return hasChanges ? next : prev
+      })
+    }
   }, [effectiveRulesTree])
 
   // Apply forced pseudo-states to iframe whenever forcedStates changes
@@ -338,38 +370,185 @@ export default function MarkdownPreviewWithInspector({
     }
   }, [forcedStates, isHtml])
 
-  // Synchronous version that just calls callbacks without beautification
-  // Used for inspector operations where we want source to update first
-  const applyChangesToSourceSync = (updatedRules) => {
+  // Synchronous version that beautifies CSS and formats HTML
+  // Used for inspector operations like delete where we want source to update first
+  const applyChangesToSourceSync = async (updatedRules) => {
     const { html, css } = serializeRulesByOrigin(updatedRules)
 
-    // Update CSS tab if CSS rules changed (without beautification)
-    if (css && onCssChange) {
-      onCssChange(css)
+    // Beautify CSS before passing to callbacks
+    let beautifiedCss = css
+    let beautifiedHtml = html
+
+    if (css) {
+      try {
+        beautifiedCss = await beautifyCss(css, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed, using original CSS:', err)
+        beautifiedCss = css
+      }
     }
 
-    // Update HTML if embedded CSS rules changed (without formatting)
-    if (html && inputPanelContent && onSourceChange) {
-      // For HTML mode, update the entire document
-      const updatedHtmlWithBeautifulCss = inputPanelContent.replace(
-        /<style[^>]*>([\s\S]*?)<\/style>/i,
-        `<style>\n${html}\n</style>`
-      )
-      onSourceChange({ source: 'html', newContent: updatedHtmlWithBeautifulCss })
-    } else if (html && onHtmlChange) {
-      // Fallback for HTML-only callback
-      onHtmlChange(html)
+    if (html) {
+      try {
+        beautifiedHtml = await beautifyCss(html, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed for embedded CSS, using original:', err)
+        beautifiedHtml = html
+      }
+    }
+
+    // Update CSS tab if CSS rules changed
+    if (beautifiedCss && beautifiedCss.trim() && onCssChange) {
+      onCssChange(beautifiedCss)
+    }
+
+    // Update HTML if embedded CSS rules changed - format entire document
+    if (beautifiedHtml && inputPanelContent) {
+      try {
+        const updatedHtmlWithBeautifulCss = inputPanelContent.replace(
+          /<style[^>]*>([\s\S]*?)<\/style>/i,
+          `<style>\n${beautifiedHtml}\n</style>`
+        )
+
+        // Format the entire HTML document via the markdown-html-formatter API
+        try {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: 'markdown-html-formatter',
+              inputText: updatedHtmlWithBeautifulCss,
+              config: {
+                mode: 'beautify',
+                indent: '2spaces',
+                minify: false,
+                convertTo: 'none',
+                enableGfm: true,
+                showValidation: false,
+                showLinting: false,
+              },
+            }),
+          })
+          const data = await response.json()
+          const formattedHtml = data.result?.formatted || updatedHtmlWithBeautifulCss
+
+          // Pass the fully formatted HTML via onSourceChange
+          if (onSourceChange) {
+            onSourceChange({ source: 'html', newContent: formattedHtml })
+          } else if (onHtmlChange) {
+            const cssMatch = formattedHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
+            if (cssMatch) {
+              onHtmlChange(cssMatch[1].trim())
+            } else {
+              onHtmlChange(beautifiedHtml)
+            }
+          }
+        } catch (formatErr) {
+          console.warn('HTML formatting failed, using beautified CSS directly:', formatErr)
+          if (onHtmlChange) {
+            onHtmlChange(beautifiedHtml)
+          }
+        }
+      } catch (err) {
+        console.warn('HTML reconstruction failed:', err)
+        if (onHtmlChange) {
+          onHtmlChange(beautifiedHtml)
+        }
+      }
     }
   }
 
-  // Debounced version for color picker dragging - update source only after user stops dragging
+  // Debounced version for color picker dragging - beautifies CSS and updates source only after user stops dragging
   const applyChangesToSourceDebounced = (updatedRules) => {
     if (applyChangesDebounceRef.current) {
       clearTimeout(applyChangesDebounceRef.current)
     }
 
-    applyChangesDebounceRef.current = setTimeout(() => {
-      applyChangesToSourceSync(updatedRules)
+    applyChangesDebounceRef.current = setTimeout(async () => {
+      const { html, css } = serializeRulesByOrigin(updatedRules)
+
+      // Beautify CSS before passing to callbacks
+      let beautifiedCss = css
+      let beautifiedHtml = html
+
+      if (css) {
+        try {
+          beautifiedCss = await beautifyCss(css, '2')
+        } catch (err) {
+          console.warn('CSS beautification failed, using original CSS:', err)
+          beautifiedCss = css
+        }
+      }
+
+      if (html) {
+        try {
+          beautifiedHtml = await beautifyCss(html, '2')
+        } catch (err) {
+          console.warn('CSS beautification failed for embedded CSS, using original:', err)
+          beautifiedHtml = html
+        }
+      }
+
+      // Update CSS tab if CSS rules changed
+      if (beautifiedCss && beautifiedCss.trim() && onCssChange) {
+        onCssChange(beautifiedCss)
+      }
+
+      // Update HTML if embedded CSS rules changed - format entire document like applyChangesToSourceImmediate
+      if (beautifiedHtml && inputPanelContent) {
+        try {
+          const updatedHtmlWithBeautifulCss = inputPanelContent.replace(
+            /<style[^>]*>([\s\S]*?)<\/style>/i,
+            `<style>\n${beautifiedHtml}\n</style>`
+          )
+
+          // Format the entire HTML document via the markdown-html-formatter API
+          try {
+            const response = await fetch('/api/tools/run', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                toolId: 'markdown-html-formatter',
+                inputText: updatedHtmlWithBeautifulCss,
+                config: {
+                  mode: 'beautify',
+                  indent: '2spaces',
+                  minify: false,
+                  convertTo: 'none',
+                  enableGfm: true,
+                  showValidation: false,
+                  showLinting: false,
+                },
+              }),
+            })
+            const data = await response.json()
+            const formattedHtml = data.result?.formatted || updatedHtmlWithBeautifulCss
+
+            // Pass the fully formatted HTML via onSourceChange
+            if (onSourceChange) {
+              onSourceChange({ source: 'html', newContent: formattedHtml })
+            } else if (onHtmlChange) {
+              const cssMatch = formattedHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
+              if (cssMatch) {
+                onHtmlChange(cssMatch[1].trim())
+              } else {
+                onHtmlChange(beautifiedHtml)
+              }
+            }
+          } catch (formatErr) {
+            console.warn('HTML formatting failed, using beautified CSS directly:', formatErr)
+            if (onHtmlChange) {
+              onHtmlChange(beautifiedHtml)
+            }
+          }
+        } catch (err) {
+          console.warn('HTML reconstruction failed:', err)
+          if (onHtmlChange) {
+            onHtmlChange(beautifiedHtml)
+          }
+        }
+      }
+
       applyChangesDebounceRef.current = null
     }, 200)
   }
@@ -400,8 +579,8 @@ export default function MarkdownPreviewWithInspector({
       }
     }
 
-    // Update CSS tab if CSS rules changed
-    if (beautifiedCss && onCssChange) {
+    // Update CSS tab if CSS rules changed (only if there's meaningful content)
+    if (beautifiedCss && beautifiedCss.trim() && onCssChange) {
       onCssChange(beautifiedCss)
     }
 
@@ -909,8 +1088,8 @@ export default function MarkdownPreviewWithInspector({
     setTriggeringSelector(triggeringSelector)
   }
 
-  // Confirm and apply merge
-  const handleMergeConfirm = (mergeResult) => {
+  // Confirm and apply merge - uses the same beautification as applyChangesToSourceSync
+  const handleMergeConfirm = async (mergeResult) => {
     // Handle new format { mergedCSS, mergedHTML } or legacy format (string)
     const mergedCSS = typeof mergeResult === 'string' ? mergeResult : mergeResult?.mergedCSS
     const mergedHTML = typeof mergeResult === 'string' ? null : mergeResult?.mergedHTML
@@ -919,18 +1098,87 @@ export default function MarkdownPreviewWithInspector({
     // Empty string means "update to nothing" (remove all rules from that origin)
     // We must check !== undefined, not just truthiness
 
-    if (mergedCSS !== undefined && onCssChange) {
-      console.log(`[handleMergeConfirm] Updating CSS source with ${mergedCSS.length} chars`)
-      onCssChange(mergedCSS)
-      // Also update local panel state
-      setInputPanelCss(mergedCSS)
+    // Beautify CSS before passing to callbacks
+    let beautifiedCss = mergedCSS
+    let beautifiedHtml = mergedHTML
+
+    if (mergedCSS) {
+      try {
+        beautifiedCss = await beautifyCss(mergedCSS, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed, using original CSS:', err)
+        beautifiedCss = mergedCSS
+      }
     }
 
-    // If merged HTML is defined (even if empty string), update the HTML source
-    // Empty string means "remove all HTML-origin rules" (critical for cross-tab merges!)
-    if (mergedHTML !== undefined && onHtmlChange) {
-      console.log(`[handleMergeConfirm] Updating HTML source with ${mergedHTML.length} chars`)
-      onHtmlChange(mergedHTML)
+    if (mergedHTML) {
+      try {
+        beautifiedHtml = await beautifyCss(mergedHTML, '2')
+      } catch (err) {
+        console.warn('CSS beautification failed for embedded CSS, using original:', err)
+        beautifiedHtml = mergedHTML
+      }
+    }
+
+    // Update CSS tab if CSS rules changed
+    if (beautifiedCss && beautifiedCss.trim() && onCssChange) {
+      onCssChange(beautifiedCss)
+      setInputPanelCss(beautifiedCss)
+    }
+
+    // Update HTML if embedded CSS rules changed - format entire document like applyChangesToSourceSync
+    if (beautifiedHtml && inputPanelContent) {
+      try {
+        const updatedHtmlWithBeautifulCss = inputPanelContent.replace(
+          /<style[^>]*>([\s\S]*?)<\/style>/i,
+          `<style>\n${beautifiedHtml}\n</style>`
+        )
+
+        // Format the entire HTML document via the markdown-html-formatter API
+        try {
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: 'markdown-html-formatter',
+              inputText: updatedHtmlWithBeautifulCss,
+              config: {
+                mode: 'beautify',
+                indent: '2spaces',
+                minify: false,
+                convertTo: 'none',
+                enableGfm: true,
+                showValidation: false,
+                showLinting: false,
+              },
+            }),
+          })
+          const data = await response.json()
+          const formattedHtml = data.result?.formatted || updatedHtmlWithBeautifulCss
+
+          // Pass the fully formatted HTML via onSourceChange
+          if (onSourceChange) {
+            onSourceChange({ source: 'html', newContent: formattedHtml })
+          } else if (onHtmlChange) {
+            const cssMatch = formattedHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i)
+            if (cssMatch) {
+              onHtmlChange(cssMatch[1].trim())
+            } else {
+              onHtmlChange(beautifiedHtml)
+            }
+          }
+        } catch (formatErr) {
+          console.warn('HTML formatting failed, using beautified CSS directly:', formatErr)
+          if (onHtmlChange) {
+            onHtmlChange(beautifiedHtml)
+          }
+        }
+      } catch (err) {
+        console.warn('HTML reconstruction failed:', err)
+        if (onHtmlChange) {
+          onHtmlChange(beautifiedHtml)
+        }
+      }
     }
 
     // Reset local rules tree so it syncs with the updated prop from formatter
@@ -1361,6 +1609,7 @@ export default function MarkdownPreviewWithInspector({
     }
 
     findAndRemoveProperty(mutatedRules)
+
     // Update source code immediately so input area updates first
     applyChangesToSourceSync(mutatedRules)
     // Update local state for inspector UI feedback only

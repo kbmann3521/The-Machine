@@ -467,7 +467,7 @@ function RuleInspector({
   }
 
   // Handle removing a property from a rule
-  const handleRemoveProperty = (ruleIndex, property, isAddedProperty = false) => {
+  const handleRemoveProperty = (ruleIndex, property, isAddedProperty = false, selector = null) => {
     // If it's an added property, remove it from addedProperties state
     if (isAddedProperty) {
       const key = `${ruleIndex}::${property}`
@@ -480,9 +480,15 @@ function RuleInspector({
       }
     } else {
       // If it's an original property, remove it from the CSS rules tree
-      const rule = affectingRules.find(r => r.ruleIndex === ruleIndex)
-      if (rule && onRemoveProperty) {
-        onRemoveProperty(ruleIndex, rule.selector, property)
+      // Use the provided selector if available, otherwise look it up in affectingRules
+      let ruleSelector = selector
+      if (!ruleSelector) {
+        const rule = affectingRules.find(r => r.ruleIndex === ruleIndex)
+        ruleSelector = rule?.selector
+      }
+
+      if (ruleSelector && onRemoveProperty) {
+        onRemoveProperty(ruleIndex, ruleSelector, property)
       }
     }
   }
@@ -1166,7 +1172,7 @@ function RuleInspector({
                                     className={styles.removeAddedPropertyButton}
                                     title={`Remove ${decl.property}`}
                                     onClick={() => {
-                                      handleRemoveProperty(rule.ruleIndex, decl.property, false)
+                                      handleRemoveProperty(rule.ruleIndex, decl.property, false, rule.selector)
                                     }}
                                   >
                                     ✕
