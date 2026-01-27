@@ -1,29 +1,23 @@
 .renderer {
   padding: 16px;
-  background-color: #fff;
-  border: 1px solid #ddd;
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
   font-size: 14px;
   line-height: 1.7;
-  color: #000;
+  color: #000000;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
   min-height: 0;
   scrollbar-width: thin;
-  scrollbar-color: #ccc transparent;
+  scrollbar-color: #cccccc transparent;
   word-wrap: break-word;
   word-break: break-word;
+  /* Force light color scheme for native elements */
+  color-scheme: light !important;
 }
 
-/* Ensure all text content in renderer stays black regardless of theme */
-.renderer div,
-.renderer span,
-.renderer a,
-.renderer li,
-.renderer td,
-.renderer th {
-  color: #000;
-}
+
 
 .renderer::-webkit-scrollbar {
   width: 6px;
@@ -109,7 +103,7 @@
   margin: 24px 0 12px 0;
   font-weight: 700;
   line-height: 1.3;
-  color: #000;
+  color: #000000;
   background-color: transparent;
 }
 
@@ -117,36 +111,30 @@
   font-size: 32px;
   margin-top: 32px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #ddd;
-  color: #000;
+  border-bottom: 2px solid #dddddd;
 }
 
 .renderer h2 {
   font-size: 24px;
   margin-top: 28px;
   padding-bottom: 6px;
-  border-bottom: 1px solid #ddd;
-  color: #000;
+  border-bottom: 1px solid #dddddd;
 }
 
 .renderer h3 {
   font-size: 20px;
-  color: #000;
 }
 
 .renderer h4 {
   font-size: 18px;
-  color: #000;
 }
 
 .renderer h5 {
   font-size: 16px;
-  color: #000;
 }
 
 .renderer h6 {
   font-size: 14px;
-  color: #000;
 }
 
 /* Paragraphs */
@@ -163,13 +151,12 @@
 .renderer p {
   margin: 0 0 12px 0;
   line-height: 1.7;
-  color: #000;
+  color: #000000;
   background-color: transparent;
 }
 
 .renderer p:last-child {
   margin-bottom: 0;
-  color: #000;
 }
 
 /* Text emphasis */
@@ -187,23 +174,23 @@
 .renderer em {
   font-style: italic;
   opacity: 0.9;
-  color: #000;
+  color: #000000;
 }
 
 .renderer strong {
   font-weight: 700;
-  color: #000;
+  color: #000000;
 }
 
 /* Code */
 .inlineCode {
   font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
   font-size: 13px;
-  background-color: var(--color-background-secondary);
+  background-color: #f5f5f5;
   color: #e01e5a;
   padding: 2px 6px;
   border-radius: 3px;
-  border: 1px solid var(--color-border);
+  border: 1px solid #dddddd;
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -257,7 +244,7 @@
   color: #e01e5a;
   padding: 2px 6px;
   border-radius: 3px;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   word-wrap: break-word;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -352,8 +339,8 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  background-color: var(--color-background-secondary);
-  border: 1px dashed var(--color-border);
+  background-color: #f5f5f5;
+  border: 1px dashed #dddddd;
   border-radius: 4px;
   margin: 0 4px;
   font-size: 12px;
@@ -363,7 +350,7 @@
 .imageCode {
   font-family: 'Courier New', monospace;
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: #666666;
   word-break: break-all;
   flex: 1;
   min-width: 0;
@@ -371,7 +358,7 @@
 
 .imageCaption {
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: #666666;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -417,9 +404,9 @@
   overflow-x: auto;
   margin: 16px 0;
   border-radius: 4px;
-  border: 1px solid var(--color-border);
+  border: 1px solid #dddddd;
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: #dddddd transparent;
 }
 
 .tableWrapper::-webkit-scrollbar {
@@ -431,30 +418,29 @@
 }
 
 .tableWrapper::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
+  background-color: #dddddd;
   border-radius: 3px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 .tableWrapper::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-text-secondary);
+  background-color: #999999;
   background-clip: content-box;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--color-background-secondary);
+  background-color: #ffffff;
   font-size: 13px;
 }
 
 .tableHeader {
   padding: 10px 12px;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, var(--color-background-secondary) 100%);
   border-bottom: 2px solid #0066cc;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: #000000;
   text-align: left;
   white-space: normal;
   word-wrap: break-word;
@@ -462,14 +448,14 @@
 
 .tableCell {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-primary);
+  border-bottom: 1px solid #dddddd;
+  color: #000000;
   word-wrap: break-word;
   word-break: break-word;
 }
 
 .table tr:nth-child(even) {
-  background-color: var(--color-background-tertiary);
+  background-color: #f9f9f9;
 }
 
 .table tr:hover {
@@ -480,20 +466,23 @@
 .renderer table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--color-background-secondary);
+  background-color: #ffffff;
   font-size: 13px;
   margin: 16px 0;
   border-radius: 4px;
-  border: 1px solid var(--color-border);
+  border: 1px solid #dddddd;
   overflow: hidden;
+}
+
+.renderer thead {
+  color: inherit;
 }
 
 .renderer th {
   padding: 10px 12px;
-  background: linear-gradient(135deg, var(--color-background-tertiary) 0%, var(--color-background-secondary) 100%);
   border-bottom: 2px solid #0066cc;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: inherit;
   text-align: left;
   white-space: normal;
   word-wrap: break-word;
@@ -501,14 +490,14 @@
 
 .renderer td {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-primary);
+  border-bottom: 1px solid #dddddd;
+  color: #000000;
   word-wrap: break-word;
   word-break: break-word;
 }
 
 .renderer tr:nth-child(even) {
-  background-color: var(--color-background-tertiary);
+  background-color: #f9f9f9;
 }
 
 .renderer tr:hover {
@@ -538,18 +527,9 @@
   background-color: #f5f5f5;
   border-left: 4px solid #0066cc;
   border-radius: 0 4px 4px 0;
-  color: #333;
+  color: #666666;
   font-style: italic;
   line-height: 1.6;
-}
-
-/* Force all text in renderer to be dark regardless of theme */
-.renderer {
-  color-scheme: light;
-}
-
-.renderer :is(h1, h2, h3, h4, h5, h6, p, div, span, li, td, th, a, strong, em, b, i, u) {
-  color: #000;
 }
 
 .renderer blockquote > p:last-child {
@@ -568,7 +548,7 @@
 .renderer hr {
   margin: 24px 0;
   border: none;
-  border-top: 2px solid #ddd;
+  border-top: 2px solid #dddddd;
   height: 0;
 }
 
@@ -583,7 +563,7 @@
 .renderer del {
   text-decoration: line-through;
   opacity: 0.7;
-  color: var(--color-text-secondary);
+  color: #666666;
 }
 
 /* Responsive adjustments */

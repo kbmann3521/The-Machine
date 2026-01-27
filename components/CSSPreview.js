@@ -632,69 +632,6 @@ export default function CSSPreview({
     setMergeableGroupsForModal(null)
   }
 
-  // Phase 7A Stage 4: Handle hover interactions for affected nodes
-  // Highlights or removes highlights from matching elements in the preview
-  const handleAffectedNodeHover = (selector, action) => {
-    // Use fullscreen iframe if in fullscreen mode, otherwise use regular iframe
-    const iframeToUse = isFullscreen ? fullscreenIframeRef.current : iframeRef.current
-    if (!iframeToUse) return
-
-    const iframe = iframeToUse
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
-    if (!iframeDoc) return
-
-    try {
-      let elements = null
-
-      // Extract base selector from pseudo-classes/pseudo-elements
-      // Handle pseudo-element selectors (.header::before, .button::after, etc.)
-      // and pseudo-class selectors (.button:hover, .header:focus, etc.)
-      // Pseudo-elements and pseudo-classes aren't real DOM elements, so we highlight the base element instead
-      if (selector.includes(':')) {
-        // Find the first colon and extract everything before it
-        const colonIndex = selector.indexOf(':')
-        const baseSelector = selector.substring(0, colonIndex)
-        if (baseSelector && baseSelector.trim()) {
-          try {
-            elements = iframeDoc.querySelectorAll(baseSelector.trim())
-          } catch (selectorError) {
-            // Fallback: try to extract just the class/tag name
-            const classMatch = selector.match(/\.([a-zA-Z0-9_-]+)/)
-            if (classMatch) {
-              elements = iframeDoc.querySelectorAll('.' + classMatch[1])
-            } else {
-              const tagMatch = selector.match(/^([a-zA-Z]+)/)
-              if (tagMatch) {
-                elements = iframeDoc.querySelectorAll(tagMatch[1])
-              }
-            }
-          }
-        }
-      } else {
-        // Regular selector without pseudo-classes/elements (.button, .header, etc.)
-        try {
-          elements = iframeDoc.querySelectorAll(selector)
-        } catch (selectorError) {
-          console.warn(`Invalid selector "${selector}":`, selectorError)
-        }
-      }
-
-      if (elements && elements.length > 0) {
-        elements.forEach(el => {
-          if (action === 'highlight') {
-            el.classList.add('_preview-highlight')
-            setHighlightedSelector(selector)
-          } else if (action === 'remove') {
-            el.classList.remove('_preview-highlight')
-            setHighlightedSelector(null)
-          }
-        })
-      }
-    } catch (e) {
-      console.warn(`Could not highlight selector ${selector}:`, e)
-    }
-  }
-
   // Phase 6(E): Apply previewOverrides to rulesTree by mutating in place (NOT creating new rules)
   // This ensures we preserve cascade structure and don't create duplicate selectors
   // Overrides are keyed by "ruleIndex::selector" to ensure edits are rule-specific
@@ -1142,7 +1079,7 @@ export default function CSSPreview({
               onApplyEdits={handleApplyEdits}
               onRuleSelect={handleComputeRuleImpact}
               selectedRuleImpact={selectedRuleImpact}
-              onAffectedNodeHover={handleAffectedNodeHover}
+
               disabledProperties={disabledProperties}
               onTogglePropertyDisabled={handleTogglePropertyDisabled}
               onRemoveRule={handleRemoveRule}
@@ -1402,7 +1339,7 @@ export default function CSSPreview({
                   onApplyEdits={handleApplyEdits}
                   onRuleSelect={handleComputeRuleImpact}
                   selectedRuleImpact={selectedRuleImpact}
-                  onAffectedNodeHover={handleAffectedNodeHover}
+    
                   disabledProperties={disabledProperties}
                   onTogglePropertyDisabled={handleTogglePropertyDisabled}
                   onRemoveRule={handleRemoveRule}
