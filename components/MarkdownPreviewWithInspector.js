@@ -1,7 +1,7 @@
-import React, { useRef, useState, useCallback } from 'react'
+import React, { useRef, useState, useCallback, useEffect } from 'react'
 import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
-import { generateSyntheticDom } from '../lib/tools/syntheticDom'
+import { generateSyntheticDom, togglePseudoStateOnAll } from '../lib/tools/syntheticDom'
 import { scopeCss } from '../lib/tools/cssScoper'
 import { extractCssFromHtml, removeStyleTagsFromHtml } from '../lib/tools/cssExtractor'
 import { extractSelectorsFromCSS } from '../lib/tools/selectorScanner'
@@ -36,20 +36,17 @@ import styles from '../styles/output-tabs.module.css'
 // Note: CSS scoping is now handled by scopeCss() during serialization
 
 // Transform CSS to simulate forced pseudo-states
-// Finds rules with :hover, :focus, :active and creates duplicates
-// by prepending a parent attribute selector (data-force-*) that sits outside preview
+// Finds rules with :hover, :focus, :active and creates duplicates using .pseudo-* classes
+// These classes will be added to elements by togglePseudoStateOnAll() in CSSPreview
 function transformCssForForcedStates(css, previewClass, forcedStates) {
   if (!css || Object.values(forcedStates).every(v => !v)) return css
 
   let result = css
-  const duplicates = []
+  const rulesToAdd = []
 
   // Simple regex-based approach: find any rule containing :hover/:focus/:active
   const ruleRegex = /([^{}]+)\s*\{\s*([^{}]*)\}/g
   let match
-
-  // Collect rules to avoid modifying while iterating
-  const rulesToAdd = []
 
   while ((match = ruleRegex.exec(css)) !== null) {
     const selector = match[1].trim()
@@ -59,26 +56,26 @@ function transformCssForForcedStates(css, previewClass, forcedStates) {
     if (!selector || !block) continue
 
     // Check if this selector has pseudo-states
+    // Replace :pseudo with .pseudo-pseudo to create class-based selectors
     if (forcedStates.hover && selector.includes(':hover')) {
-      // Remove :hover and prepend [data-force-hover] parent selector
-      const forcedSelector = selector.replace(/:hover/g, '').trim()
-      rulesToAdd.push(`[data-force-hover="true"] ${forcedSelector} { ${block} }`)
+      const forcedSelector = selector.replace(/:hover/g, '.pseudo-hover').trim()
+      rulesToAdd.push(`${forcedSelector} { ${block} }`)
     }
 
     if (forcedStates.focus && selector.includes(':focus')) {
-      const forcedSelector = selector.replace(/:focus/g, '').trim()
-      rulesToAdd.push(`[data-force-focus="true"] ${forcedSelector} { ${block} }`)
+      const forcedSelector = selector.replace(/:focus/g, '.pseudo-focus').trim()
+      rulesToAdd.push(`${forcedSelector} { ${block} }`)
     }
 
     if (forcedStates.active && selector.includes(':active')) {
-      const forcedSelector = selector.replace(/:active/g, '').trim()
-      rulesToAdd.push(`[data-force-active="true"] ${forcedSelector} { ${block} }`)
+      const forcedSelector = selector.replace(/:active/g, '.pseudo-active').trim()
+      rulesToAdd.push(`${forcedSelector} { ${block} }`)
     }
   }
 
   // Append all duplicates to the CSS
   if (rulesToAdd.length > 0) {
-    result += '\n/* Forced pseudo-state rules */\n'
+    result += '\n/* Forced pseudo-state rules - applied via .pseudo-* classes */\n'
     result += rulesToAdd.join('\n')
   }
 
@@ -168,6 +165,8 @@ export default function MarkdownPreviewWithInspector({
   const { theme } = useTheme()
   const previewContainerRef = useRef(null)
   const fullscreenContainerRef = useRef(null)
+  const htmlRendererRef = useRef(null)
+  const applyChangesDebounceRef = useRef(null)
 
   // Preview settings
   const [viewportWidth, setViewportWidth] = useState(1024)
@@ -214,6 +213,9 @@ export default function MarkdownPreviewWithInspector({
   const closeInputPanelTimeoutRef = useRef(null)
   const [containerWidth, setContainerWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
 
+  // Track if we just made a mutation to avoid resetting localRulesTree unnecessarily
+  const justMutatedRef = React.useRef(false)
+
   // Use local rules tree if available (after modifications), otherwise use prop
   // This ensures immediate UI updates when removing/adding properties
   const effectiveRulesTree = localRulesTree !== null ? localRulesTree : rulesTree
@@ -236,38 +238,64 @@ export default function MarkdownPreviewWithInspector({
   const inspectorPanelWidth = getInspectorPanelWidth()
 
   // Sync localRulesTree with prop when it changes (e.g., after formatter finishes)
+  // But skip if we just made a mutation, to avoid the double-render flicker
   React.useEffect(() => {
+    if (justMutatedRef.current) {
+      justMutatedRef.current = false
+      return
+    }
     setLocalRulesTree(null)
   }, [rulesTree])
+
+  // Cleanup debounce timers on unmount
+  React.useEffect(() => {
+    return () => {
+      if (applyChangesDebounceRef.current) {
+        clearTimeout(applyChangesDebounceRef.current)
+      }
+    }
+  }, [])
 
   // When CSS is cleared or selectors are removed, clean up added properties for those selectors
   React.useEffect(() => {
     if (Object.keys(addedProperties).length === 0) return
 
-    // Get all rule indices that still exist in effectiveRulesTree
-    const existingRuleIndices = new Set()
-    const collectRuleIndices = (rules) => {
+    // Build a map of rule index -> set of properties that exist in that rule
+    const existingPropertiesByRule = new Map()
+    const collectPropertiesByRule = (rules) => {
       for (const rule of rules) {
         if (rule.type === 'rule') {
-          existingRuleIndices.add(rule.ruleIndex)
+          if (!existingPropertiesByRule.has(rule.ruleIndex)) {
+            existingPropertiesByRule.set(rule.ruleIndex, new Set())
+          }
+          if (rule.declarations) {
+            rule.declarations.forEach(decl => {
+              existingPropertiesByRule.get(rule.ruleIndex).add(decl.property)
+            })
+          }
         }
         if (rule.children && rule.children.length > 0) {
-          collectRuleIndices(rule.children)
+          collectPropertiesByRule(rule.children)
         }
       }
     }
-    collectRuleIndices(effectiveRulesTree)
+    collectPropertiesByRule(effectiveRulesTree)
 
-    // Remove added properties for rules that no longer exist
+    // Remove added properties that no longer exist in their rules
     setAddedProperties(prev => {
       let hasChanges = false
       const next = { ...prev }
 
       Object.keys(prev).forEach(key => {
-        const [ruleIndexStr] = key.split('::')
+        const [ruleIndexStr, ...propertyParts] = key.split('::')
         const ruleIndex = parseInt(ruleIndexStr)
+        const propertyName = propertyParts.slice(1).join('::') // Skip 'ADDED' part
 
-        if (!existingRuleIndices.has(ruleIndex)) {
+        // Check if this rule exists and still has this property
+        const ruleExists = existingPropertiesByRule.has(ruleIndex)
+        const propertyExists = ruleExists && existingPropertiesByRule.get(ruleIndex).has(propertyName)
+
+        if (!ruleExists || !propertyExists) {
           delete next[key]
           hasChanges = true
         }
@@ -277,8 +305,77 @@ export default function MarkdownPreviewWithInspector({
     })
   }, [effectiveRulesTree])
 
+  // Apply forced pseudo-states to iframe whenever forcedStates changes
+  useEffect(() => {
+    const iframe = htmlRendererRef.current
+    if (!iframe || !isHtml) return
+
+    // Wait for iframe to be ready
+    const applyPseudoStates = () => {
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document
+        if (!iframeDoc) return
+
+        // Apply or remove pseudo-state classes based on forcedStates
+        for (const [state, isForced] of Object.entries(forcedStates)) {
+          if (isForced) {
+            togglePseudoStateOnAll(iframeDoc.documentElement, state, true)
+          } else {
+            togglePseudoStateOnAll(iframeDoc.documentElement, state, false)
+          }
+        }
+      } catch (err) {
+        console.warn('Error applying pseudo-states to iframe:', err)
+      }
+    }
+
+    // Try immediately and also on load
+    applyPseudoStates()
+    iframe.addEventListener('load', applyPseudoStates)
+
+    return () => {
+      iframe.removeEventListener('load', applyPseudoStates)
+    }
+  }, [forcedStates, isHtml])
+
+  // Synchronous version that just calls callbacks without beautification
+  // Used for inspector operations where we want source to update first
+  const applyChangesToSourceSync = (updatedRules) => {
+    const { html, css } = serializeRulesByOrigin(updatedRules)
+
+    // Update CSS tab if CSS rules changed (without beautification)
+    if (css && onCssChange) {
+      onCssChange(css)
+    }
+
+    // Update HTML if embedded CSS rules changed (without formatting)
+    if (html && inputPanelContent && onSourceChange) {
+      // For HTML mode, update the entire document
+      const updatedHtmlWithBeautifulCss = inputPanelContent.replace(
+        /<style[^>]*>([\s\S]*?)<\/style>/i,
+        `<style>\n${html}\n</style>`
+      )
+      onSourceChange({ source: 'html', newContent: updatedHtmlWithBeautifulCss })
+    } else if (html && onHtmlChange) {
+      // Fallback for HTML-only callback
+      onHtmlChange(html)
+    }
+  }
+
+  // Debounced version for color picker dragging - update source only after user stops dragging
+  const applyChangesToSourceDebounced = (updatedRules) => {
+    if (applyChangesDebounceRef.current) {
+      clearTimeout(applyChangesDebounceRef.current)
+    }
+
+    applyChangesDebounceRef.current = setTimeout(() => {
+      applyChangesToSourceSync(updatedRules)
+      applyChangesDebounceRef.current = null
+    }, 200)
+  }
+
   // When properties change, serialize by origin and call appropriate callbacks
-  const applyChangesToSource = async (updatedRules) => {
+  const applyChangesToSourceImmediate = async (updatedRules) => {
     const { html, css } = serializeRulesByOrigin(updatedRules)
 
     // Beautify CSS before passing to callbacks
@@ -615,12 +712,19 @@ export default function MarkdownPreviewWithInspector({
     return () => window.removeEventListener('mousedown', handleClickOutside)
   }, [showFullscreenSettings])
 
+
   // Helper: check if property is overridden by later rule
+  // Account for disabled properties - a property is only overriding if it's not disabled
   const isPropertyOverriddenByLaterRule = (ruleIndex, selector, property) => {
     for (const rule of effectiveRulesTree) {
       if (rule.ruleIndex <= ruleIndex) continue
       if (rule.selector === selector && rule.declarations?.some(d => d.property === property)) {
-        return true
+        // Check if this later property is disabled
+        const disabledKey = `${rule.ruleIndex}-${property}`
+        if (!disabledProperties.has(disabledKey)) {
+          // Property is not disabled, so it's overriding
+          return true
+        }
       }
     }
     return false
@@ -666,7 +770,8 @@ export default function MarkdownPreviewWithInspector({
     }
 
     findAndUpdateRule(mutatedRules)
-    applyChangesToSource(mutatedRules)
+    // Use debounced version for color picker dragging - only update source when user stops
+    applyChangesToSourceDebounced(mutatedRules)
   }
 
   // Handle property disabled state - serialize and update source
@@ -686,44 +791,17 @@ export default function MarkdownPreviewWithInspector({
     })
   }
 
-  // Manage added properties
+  // Manage added properties - just update state, don't serialize here
   const handleAddPropertyChange = (updater) => {
     setAddedProperties(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater
-
-      // Serialize and update source when added properties change
-      const mutatedRules = JSON.parse(JSON.stringify(effectiveRulesTree))
-
-      Object.entries(next).forEach(([key, value]) => {
-        const [ruleIndexStr, propertyName] = key.split('::')
-        const ruleIndex = parseInt(ruleIndexStr)
-
-        const findAndAddProperty = (rules) => {
-          for (const rule of rules) {
-            if (rule.type === 'rule' && rule.ruleIndex === ruleIndex) {
-              if (!rule.declarations) rule.declarations = []
-              const idx = rule.declarations.findIndex(d => d.property === propertyName)
-              if (idx === -1) {
-                rule.declarations.push({ property: propertyName, value, loc: {} })
-              } else {
-                rule.declarations[idx].value = value
-              }
-              return true
-            }
-            if (rule.children && rule.children.length > 0) {
-              if (findAndAddProperty(rule.children)) return true
-            }
-          }
-          return false
-        }
-
-        findAndAddProperty(mutatedRules)
-      })
-
-      applyChangesToSource(mutatedRules)
       return next
     })
   }
+
+  // Note: We DON'T update the output when added properties change
+  // The inspector operates on local state only - the CSS source will naturally
+  // stay in sync because we merge addedProperties with rulesTree at render time
 
   const handleLockPropertyChange = (updater) => {
     setLockedDisabledProperties(prev => typeof updater === 'function' ? updater(prev) : updater)
@@ -746,17 +824,25 @@ export default function MarkdownPreviewWithInspector({
       const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
       if (!containerRef?.current) return
 
-      const previewElement = containerRef.current.querySelector('.pwt-html-preview') ||
-                            containerRef.current.querySelector('.pwt-markdown-preview')
-
-      if (!previewElement) return
+      let iframeDoc
+      if (isHtml) {
+        // HTML mode: get the iframe's contentDocument
+        const iframe = containerRef.current.querySelector('iframe')
+        if (!iframe?.contentDocument) return
+        iframeDoc = iframe.contentDocument
+      } else {
+        // Markdown mode: use the preview element's ownerDocument
+        const previewElement = containerRef.current.querySelector('.pwt-markdown-preview')
+        if (!previewElement) return
+        iframeDoc = previewElement.ownerDocument
+      }
 
       // Compute impact
       const impact = computeRuleImpact(
         rule.ruleIndex,
         rule.selector,
         rule.declarations || [],
-        previewElement,
+        iframeDoc,
         effectiveRulesTree,
         addedProperties
       )
@@ -836,6 +922,8 @@ export default function MarkdownPreviewWithInspector({
     if (mergedCSS !== undefined && onCssChange) {
       console.log(`[handleMergeConfirm] Updating CSS source with ${mergedCSS.length} chars`)
       onCssChange(mergedCSS)
+      // Also update local panel state
+      setInputPanelCss(mergedCSS)
     }
 
     // If merged HTML is defined (even if empty string), update the HTML source
@@ -862,10 +950,28 @@ export default function MarkdownPreviewWithInspector({
   // Groups them by type (STRUCTURE, HEADINGS, TEXT, CODE) like the CSS tab does
   const getAvailableSelectors = () => {
     const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
-    if (!containerRef?.current) return []
+    if (!containerRef?.current) {
+      return []
+    }
 
     const previewElement = containerRef.current.querySelector('.pwt-preview')
-    if (!previewElement) return []
+    if (!previewElement) {
+      // Return default common selectors that are always available
+      return [
+        {
+          category: 'STRUCTURE',
+          selectors: ['body', 'div', 'section', 'article', 'main', 'header', 'footer'],
+        },
+        {
+          category: 'HEADINGS',
+          selectors: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        },
+        {
+          category: 'TEXT',
+          selectors: ['p', 'span', 'a', 'strong', 'em', 'button'],
+        },
+      ]
+    }
 
     // Collect all selectors from the preview
     const selectors = {
@@ -1101,8 +1207,10 @@ export default function MarkdownPreviewWithInspector({
 
     // Add the new rule to the rulesTree
     const mutatedRules = [...effectiveRulesTree, newRule]
+    // Apply source changes FIRST, then update local state
+    applyChangesToSourceImmediate(mutatedRules)
+    justMutatedRef.current = true
     setLocalRulesTree(mutatedRules)
-    applyChangesToSource(mutatedRules)
   }
 
   // Remove a rule from the stylesheet
@@ -1127,7 +1235,10 @@ export default function MarkdownPreviewWithInspector({
     }
 
     removeRuleRecursive(mutatedRules)
-    applyChangesToSource(mutatedRules)
+    // Apply source changes FIRST, then update local state
+    applyChangesToSourceImmediate(mutatedRules)
+    justMutatedRef.current = true
+    setLocalRulesTree(mutatedRules)
   }
 
   // Highlight or unhighlight a selector in the preview
@@ -1138,8 +1249,18 @@ export default function MarkdownPreviewWithInspector({
     // If already highlighted and clicking same selector, toggle it off
     if (highlightedSelector === selector) {
       // Remove the highlight style tag
-      if (highlightStyleRef.current && highlightStyleRef.current.parentNode) {
-        highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
+      if (highlightStyleRef.current) {
+        if (isHtml) {
+          // HTML mode: remove from iframe document
+          if (highlightStyleRef.current.parentNode) {
+            highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
+          }
+        } else {
+          // Markdown mode: remove from main document
+          if (highlightStyleRef.current.parentNode) {
+            highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
+          }
+        }
       }
       highlightStyleRef.current = null
       setHighlightedSelector(null)
@@ -1151,30 +1272,62 @@ export default function MarkdownPreviewWithInspector({
       highlightStyleRef.current.parentNode.removeChild(highlightStyleRef.current)
     }
 
-    // Find the preview element
-    const previewElement = containerRef.current.querySelector('.pwt-preview')
+    // Handle HTML mode (iframe) and Markdown mode (DOM) differently
+    if (isHtml) {
+      // HTML mode: inject highlight style into iframe document
+      const iframe = containerRef.current.querySelector('iframe')
+      if (!iframe?.contentDocument) return
 
-    if (!previewElement) return
+      const iframeDoc = iframe.contentDocument
+      const highlightStyle = iframeDoc.createElement('style')
+      highlightStyle.setAttribute('data-highlight', 'true')
+      highlightStyle.textContent = `
+        ${selector} {
+          outline: 3px dashed #ff00ff !important;
+          outline-offset: 2px;
+        }
+      `
 
-    // Scope the selector to only match elements within the preview container
-    // If selector is .pwt-preview itself, don't double-scope it
-    const scopedSelector = selector === '.pwt-preview'
-      ? selector
-      : `.pwt-preview ${selector}`
-
-    // Create new highlight style
-    const highlightStyle = document.createElement('style')
-    highlightStyle.setAttribute('data-highlight', 'true')
-    highlightStyle.textContent = `
-      ${scopedSelector} {
-        outline: 3px dashed #ff00ff !important;
-        outline-offset: 2px;
+      // Check if head exists, otherwise append to body
+      if (iframeDoc.head) {
+        iframeDoc.head.appendChild(highlightStyle)
+      } else if (iframeDoc.body) {
+        iframeDoc.body.appendChild(highlightStyle)
+      } else {
+        // Document not ready yet, skip highlighting
+        return
       }
-    `
+      highlightStyleRef.current = highlightStyle
+      setHighlightedSelector(selector)
+    } else {
+      // Markdown mode: inject highlight style into main DOM (scoped to .pwt-preview)
+      const previewElement = containerRef.current.querySelector('.pwt-preview')
+      if (!previewElement) return
 
-    previewElement.appendChild(highlightStyle)
-    highlightStyleRef.current = highlightStyle
-    setHighlightedSelector(selector)
+      // Scope the selector to only match elements within the preview container
+      const scopedSelector = selector === '.pwt-preview'
+        ? selector
+        : `.pwt-preview ${selector}`
+
+      // Create new highlight style
+      const highlightStyle = document.createElement('style')
+      highlightStyle.setAttribute('data-highlight', 'true')
+      highlightStyle.textContent = `
+        ${scopedSelector} {
+          outline: 3px dashed #ff00ff !important;
+          outline-offset: 2px;
+        }
+      `
+
+      // Double-check previewElement still exists (it might be removed during rendering)
+      if (previewElement && previewElement.parentNode) {
+        previewElement.appendChild(highlightStyle)
+        highlightStyleRef.current = highlightStyle
+      } else {
+        return
+      }
+      setHighlightedSelector(selector)
+    }
   }
 
   // Clean up highlight on unmount
@@ -1208,20 +1361,12 @@ export default function MarkdownPreviewWithInspector({
     }
 
     findAndRemoveProperty(mutatedRules)
-    // Update local state immediately so UI reflects change right away
+    // Update source code immediately so input area updates first
+    applyChangesToSourceSync(mutatedRules)
+    // Update local state for inspector UI feedback only
+    // Note: output preview will use rulesTree (actual source), not this local state
+    justMutatedRef.current = true
     setLocalRulesTree(mutatedRules)
-    // Also update the CSS source
-    applyChangesToSource(mutatedRules)
-
-    // If this property was added via the inspector, remove it from addedProperties
-    const addedPropertyKey = `${ruleIndex}::${property}`
-    if (addedProperties[addedPropertyKey]) {
-      setAddedProperties(prev => {
-        const next = { ...prev }
-        delete next[addedPropertyKey]
-        return next
-      })
-    }
   }
 
   const handleCloseControls = () => {
@@ -1461,9 +1606,15 @@ export default function MarkdownPreviewWithInspector({
   )
 
   // Generate CSS with disabled properties filtered out for what-if preview
+  // Use actual parsed rules (rulesTree), not local mutations (localRulesTree)
+  // This ensures output is always based on source code, not in-progress edits
   const getPreviewCss = () => {
-    // Use the universal preview class for scoping (works for both HTML and Markdown)
-    const previewClass = '.pwt-preview'
+    // Note: For HTML mode, we'll skip scoping since iframe provides natural isolation
+    // For Markdown mode, we still need scoping
+    const previewClass = isHtml ? '' : '.pwt-preview'
+
+    // Use rulesTree (actual parsed source), not effectiveRulesTree (which includes local mutations)
+    const baseRules = rulesTree
 
     // Build filtered rules tree by removing disabled properties
     const getFilteredRulesTree = (rules) => {
@@ -1561,15 +1712,17 @@ export default function MarkdownPreviewWithInspector({
     let css = ''
 
     // Filter the rules tree to remove disabled properties
-    const filteredRulesTree = getFilteredRulesTree(effectiveRulesTree)
+    const filteredRulesTree = getFilteredRulesTree(baseRules)
 
     // Serialize the filtered rules back to CSS
+    // For HTML mode: this includes inspector modifications (disabled/added properties)
+    // These will be added after the original <style> tags, so they'll override embedded styles
     if (filteredRulesTree.length > 0) {
       css = serializeRulesToCss(filteredRulesTree)
     }
 
-    // Scope the merged CSS
-    if (css) {
+    // Scope the merged CSS (only for Markdown mode - HTML mode uses iframe isolation)
+    if (css && !isHtml) {
       css = scopeCss(css, previewClass)
     }
 
@@ -1590,9 +1743,10 @@ export default function MarkdownPreviewWithInspector({
     if (forcedStates.focus) dataAttrs['data-force-focus'] = 'true'
     if (forcedStates.active) dataAttrs['data-force-active'] = 'true'
 
-    // For HTML mode, remove <style> tags from content
-    // All CSS (including @keyframes) comes from previewCss (extracted + inspector-modified)
-    const contentToRender = isHtml ? removeStyleTagsFromHtml(content) : content
+    // For HTML mode with iframe: keep original style tags (they're sandboxed in iframe)
+    // Iframe provides natural CSS isolation, so no scoping needed
+    // For Markdown mode: pass content as-is (inspector will handle scoping)
+    const contentToRender = content
 
     return (
       <div
@@ -1608,6 +1762,7 @@ export default function MarkdownPreviewWithInspector({
       >
         {isHtml ? (
           <HTMLRenderer
+            ref={htmlRendererRef}
             html={contentToRender}
             customCss={previewCss}
             customJs={customJs}
@@ -1627,7 +1782,9 @@ export default function MarkdownPreviewWithInspector({
   }
 
   const getAllRulesFlat = () => {
-    if (!effectiveRulesTree || effectiveRulesTree.length === 0) return []
+    // Use rulesTree (actual parsed source) for impact analysis, not effectiveRulesTree (which includes local mutations)
+    // This ensures the Affects list matches what's actually rendered
+    if (!rulesTree || rulesTree.length === 0) return []
 
     const rules = []
     const traverse = (nodes) => {
@@ -1644,11 +1801,11 @@ export default function MarkdownPreviewWithInspector({
       }
     }
 
-    traverse(effectiveRulesTree)
+    traverse(rulesTree)
     return rules
   }
 
-  const allRules = getAllRulesFlat()
+  const allRules = React.useMemo(() => getAllRulesFlat(), [rulesTree])
 
   // Fullscreen layout
   if (isFullscreen) {

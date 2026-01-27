@@ -552,6 +552,12 @@
   font-size: 10px;
 }
 
+.impactDisabled {
+  color: #ffb74d;
+  font-weight: 500;
+  font-size: 10px;
+}
+
 .impactOverriddenBy {
   color: #ff9800;
   font-size: 10px;

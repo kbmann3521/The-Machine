@@ -60,13 +60,17 @@ function AutocompleteInput({
   autoFocus = false,
   onSelectAndMove = null, // Called when user selects an item via Enter/Tab
   isUnitInput = false, // Special handling for unit input (extract unit part from value)
+  inputRef = null, // Optional ref to forward to the input element
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [filtered, setFiltered] = useState([])
   const [selectedIndex, setSelectedIndex] = useState(-1)
-  const inputRef = useRef(null)
+  const internalInputRef = useRef(null)
   const containerRef = useRef(null)
   const justSelectedRef = useRef(false)
+
+  // Use provided ref or fallback to internal ref
+  const activeInputRef = inputRef || internalInputRef
 
   useEffect(() => {
     if (value && value.length > 0) {
@@ -124,7 +128,7 @@ function AutocompleteInput({
     } else {
       // Refocus the input after selection if no callback
       setTimeout(() => {
-        inputRef.current?.focus()
+        activeInputRef.current?.focus()
       }, 0)
     }
   }
@@ -140,7 +144,7 @@ function AutocompleteInput({
       }}
     >
       <input
-        ref={inputRef}
+        ref={activeInputRef}
         type="text"
         className={className}
         placeholder={placeholder}
@@ -267,7 +271,7 @@ function AutocompleteInput({
  *   onHighlightSelector: (selector) => void (Phase 7F: highlight selector in preview)
  *   highlightedSelector: string | null (Phase 7F: currently highlighted selector)
  */
-export default function RuleInspector({
+function RuleInspector({
   selector = null,
   affectingRules = [],
   rulesTree = [],
@@ -277,7 +281,6 @@ export default function RuleInspector({
   onApplyEdits = null,
   onRuleSelect = null,
   selectedRuleImpact = null,
-  onAffectedNodeHover = null,
   disabledProperties = new Set(),
   onTogglePropertyDisabled = null,
   onRemoveRule = null,
@@ -310,6 +313,7 @@ export default function RuleInspector({
   const [hoveredSelector, setHoveredSelector] = useState(null) // Track which selector is hovered in dropdown
   const [showDuplicatesModalFor, setShowDuplicatesModalFor] = useState(null) // Track which selector's duplicates modal is open (null or selector string)
   const selectorDropdownButtonRef = useRef(null) // Ref to the dropdown button for position calculation
+  const addPropertyValueInputRef = useRef(null) // Ref to value input field for Tab navigation
 
   // Phase 7E: Find mergeable groups at top level (from full rulesTree, not just affectingRules)
   const mergeableGroups = findAllMergeableGroups(rulesTree)
@@ -609,12 +613,14 @@ export default function RuleInspector({
     // Add original declarations
     if (selectedRule.declarations && selectedRule.declarations.length > 0) {
       selectedRule.declarations.forEach(decl => {
+        const isDisabled = disabledProperties.has(`${selectedRule.ruleIndex}-${decl.property}`)
         const isOverridden = isPropertyOverriddenByLaterRule?.(selectedRule.ruleIndex, selectedRule.selector, decl.property)
         propertiesWithStatus.push({
           property: decl.property,
-          effective: !isOverridden,
+          effective: !isOverridden && !isDisabled,
           value: decl.value,
           isOriginal: true,
+          isDisabled,
         })
       })
     }
@@ -629,12 +635,14 @@ export default function RuleInspector({
           return
         }
 
+        const isDisabled = disabledProperties.has(`${selectedRule.ruleIndex}-${propertyName}`)
         const isOverridden = isPropertyOverriddenByLaterRule?.(selectedRule.ruleIndex, selectedRule.selector, propertyName)
         propertiesWithStatus.push({
           property: propertyName,
-          effective: !isOverridden,
+          effective: !isOverridden && !isDisabled,
           value: value,
           isAdded: true,
+          isDisabled,
         })
       }
     })
@@ -642,7 +650,15 @@ export default function RuleInspector({
     const { affectedNodes = [] } = selectedRuleImpact || {}
 
     // Phase 7B: Detect redundant rules (CSS-only analysis)
-    const redundancyInfo = isRuleRedundant(selectedRuleImpact)
+    // Pass disabledProperties and isPropertyOverriddenByLaterRule to recalculate truly effective properties
+    const redundancyInfo = isRuleRedundant(
+      selectedRuleImpact,
+      disabledProperties,
+      selectedRule?.ruleIndex,
+      selectedRule?.selector,
+      isPropertyOverriddenByLaterRule
+    )
+
 
     // Phase 7F: Show highlight button when no direct matches (regardless of properties)
     const shouldShowHighlight = affectedNodes.length === 0
@@ -677,8 +693,8 @@ export default function RuleInspector({
               {propertiesWithStatus.map((prop, idx) => (
                 <div key={idx} className={styles.impactProperty}>
                   <span className={styles.impactPropName}>{prop.property}</span>
-                  <span className={prop.effective ? styles.impactEffective : styles.impactInert}>
-                    {prop.effective ? '(effective)' : '(overridden)'}
+                  <span className={prop.isDisabled ? styles.impactDisabled : (prop.effective ? styles.impactEffective : styles.impactInert)}>
+                    {prop.isDisabled ? '(disabled)' : (prop.effective ? '(effective)' : '(overridden)')}
                   </span>
                 </div>
               ))}
@@ -686,26 +702,7 @@ export default function RuleInspector({
           </div>
         )}
 
-        {/* Show affected nodes if available */}
-        {affectedNodes.map((node, idx) => (
-          <div key={idx} className={styles.impactSection}>
-            <div
-              className={styles.impactElement}
-              onMouseEnter={() => {
-                if (onAffectedNodeHover) {
-                  onAffectedNodeHover(node.element, 'highlight')
-                }
-              }}
-              onMouseLeave={() => {
-                if (onAffectedNodeHover) {
-                  onAffectedNodeHover(node.element, 'remove')
-                }
-              }}
-            >
-              ✔ {node.element}
-            </div>
-          </div>
-        ))}
+
       </div>
     )
   }
@@ -728,10 +725,218 @@ export default function RuleInspector({
         )}
       </div>
 
-      {/* Add New Selector Section - DISABLED (read-only mode) */}
-      {/* {availableSelectors && availableSelectors.length > 0 && onAddNewSelector && (
-        ... section hidden for read-only mode ...
-      )} */}
+      {/* Add New Selector Section */}
+      {availableSelectors && availableSelectors.length > 0 && onAddNewSelector && (
+        <div style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid var(--color-border, #ddd)',
+          backgroundColor: 'var(--color-background-primary, #fff)',
+          display: 'flex',
+          gap: '8px',
+          alignItems: 'center',
+          fontSize: '12px',
+          position: 'relative',
+          zIndex: 1000,
+          overflow: 'visible',
+          minHeight: '40px',
+        }}>
+          <label style={{
+            fontWeight: '600',
+            fontSize: '11px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            color: 'var(--color-text-secondary, #666)',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}>
+            Add:
+          </label>
+
+          {/* Custom Dropdown - Use full width container */}
+          <div style={{ position: 'relative', flex: 1, minWidth: '120px' }}>
+            <button
+              ref={selectorDropdownButtonRef}
+              onClick={() => setShowSelectorDropdown(!showSelectorDropdown)}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                border: `1px solid ${showSelectorDropdown ? '#0066cc' : 'var(--color-border, #ddd)'}`,
+                borderRadius: '4px',
+                fontSize: '12px',
+                backgroundColor: 'var(--color-background-primary, #fff)',
+                color: selectedNewSelector ? 'var(--color-text-primary, #000)' : 'var(--color-text-secondary, #666)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                textAlign: 'left',
+                transition: 'all 0.2s ease',
+                boxShadow: showSelectorDropdown ? '0 0 0 3px rgba(0, 102, 204, 0.1)' : 'none',
+              }}
+              title="Click to open selector dropdown"
+            >
+              {selectedNewSelector || 'Select selector...'}
+            </button>
+
+            {/* Dropdown Menu - Rendered via Portal to avoid overflow clipping */}
+            {showSelectorDropdown && typeof window !== 'undefined' && ReactDOM.createPortal(
+              <div
+                className={styles.selectorDropdown}
+                style={{
+                  position: 'fixed',
+                  top: selectorDropdownButtonRef.current ?
+                    (selectorDropdownButtonRef.current.getBoundingClientRect().bottom + 4) : 0,
+                  left: selectorDropdownButtonRef.current ?
+                    selectorDropdownButtonRef.current.getBoundingClientRect().left : 0,
+                  width: selectorDropdownButtonRef.current ?
+                    selectorDropdownButtonRef.current.getBoundingClientRect().width : 'auto',
+                  minWidth: '200px',
+                  backgroundColor: 'var(--color-background-primary, #fff)',
+                  border: '1px solid var(--color-border, #ddd)',
+                  borderRadius: '4px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  maxHeight: '300px',
+                  overflowY: 'auto',
+                  zIndex: 100000,
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'var(--scrollbar-thumb, #ccc) transparent',
+                  pointerEvents: 'auto',
+                  willChange: 'transform',
+                }}
+              >
+                {Array.isArray(availableSelectors) && availableSelectors.map((item) => {
+                  // Check if it's a grouped item (has category and selectors properties)
+                  if (item.category && Array.isArray(item.selectors)) {
+                    return (
+                      <div key={item.category}>
+                        <div style={{
+                          padding: '8px 12px',
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                          color: 'var(--color-text-secondary, #666)',
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          borderBottom: '1px solid var(--color-border, #eee)',
+                        }}>
+                          {item.category}
+                        </div>
+                        {item.selectors
+                          .map((sel) => (
+                          <div
+                            key={sel}
+                            onClick={() => {
+                              setSelectedNewSelector(sel)
+                              setShowSelectorDropdown(false)
+                              // Remove highlight when dropdown closes
+                              if (onHighlightSelector && hoveredSelector === sel) {
+                                onHighlightSelector(sel)
+                                setHoveredSelector(null)
+                              }
+                            }}
+                            onMouseEnter={() => {
+                              setHoveredSelector(sel)
+                              if (onHighlightSelector) {
+                                onHighlightSelector(sel)
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              setHoveredSelector(null)
+                              if (onHighlightSelector) {
+                                onHighlightSelector(sel)
+                              }
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              backgroundColor: hoveredSelector === sel ? 'rgba(0, 102, 204, 0.1)' : 'transparent',
+                              color: selectedNewSelector === sel ? '#0066cc' : 'var(--color-text-primary, #000)',
+                              fontWeight: selectedNewSelector === sel ? '600' : '400',
+                              transition: 'all 0.15s ease',
+                              borderLeft: selectedNewSelector === sel ? '3px solid #0066cc' : '3px solid transparent',
+                              paddingLeft: selectedNewSelector === sel ? '9px' : '12px',
+                            }}
+                          >
+                            {sel}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  } else {
+                    // Fallback for flat array
+                    return (
+                      <div
+                        key={item}
+                        onClick={() => {
+                          setSelectedNewSelector(item)
+                          setShowSelectorDropdown(false)
+                          // Remove highlight when dropdown closes
+                          if (onHighlightSelector && hoveredSelector === item) {
+                            onHighlightSelector(item)
+                            setHoveredSelector(null)
+                          }
+                        }}
+                        onMouseEnter={() => {
+                          setHoveredSelector(item)
+                          if (onHighlightSelector) {
+                            onHighlightSelector(item)
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredSelector(null)
+                          if (onHighlightSelector) {
+                            onHighlightSelector(item)
+                          }
+                        }}
+                        style={{
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          backgroundColor: hoveredSelector === item ? 'rgba(0, 102, 204, 0.1)' : 'transparent',
+                          color: selectedNewSelector === item ? '#0066cc' : 'var(--color-text-primary, #000)',
+                          fontWeight: selectedNewSelector === item ? '600' : '400',
+                          transition: 'all 0.15s ease',
+                          borderLeft: selectedNewSelector === item ? '3px solid #0066cc' : '3px solid transparent',
+                          paddingLeft: selectedNewSelector === item ? '9px' : '12px',
+                        }}
+                      >
+                        {item}
+                      </div>
+                    )
+                  }
+                })}
+              </div>,
+              document.body
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              if (selectedNewSelector) {
+                onAddNewSelector(selectedNewSelector)
+                setSelectedNewSelector('')
+              }
+            }}
+            disabled={!selectedNewSelector}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: selectedNewSelector ? '#0066cc' : 'rgba(0, 102, 204, 0.3)',
+              color: selectedNewSelector ? 'white' : 'rgba(0, 102, 204, 0.6)',
+              border: `1px solid ${selectedNewSelector ? '#0066cc' : 'rgba(0, 102, 204, 0.3)'}`,
+              borderRadius: '4px',
+              cursor: selectedNewSelector ? 'pointer' : 'not-allowed',
+              fontSize: '11px',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              transition: 'all 0.2s ease',
+              flexShrink: 0,
+            }}
+            title={selectedNewSelector ? 'Add this selector to the CSS' : 'Select a selector first'}
+          >
+            ✓ Add
+          </button>
+        </div>
+      )}
 
       <div className={styles.rulesList}>
         {(() => {
@@ -827,6 +1032,12 @@ export default function RuleInspector({
                     return (hasDeclarations || hasAddedPropsForRule) ? (
                     <div className={styles.declarations}>
                       {rule.declarations?.map((decl, declIdx) => {
+                        // Skip properties that are in addedProperties (they'll be shown in the added properties section)
+                        const addedPropKey = `${rule.ruleIndex}::${decl.property}`
+                        if (addedProperties[addedPropKey]) {
+                          return null
+                        }
+
                         const impactClass = getPropertyImpactClass(decl.property)
                         const impactInfo = getImpactBadgeInfo(decl.property)
                         const propKey = `${ruleKey}-${decl.property}`
@@ -838,7 +1049,7 @@ export default function RuleInspector({
 
                         return (
                           <div
-                            key={declIdx}
+                            key={`${rule.ruleIndex}-${decl.property}`}
                             className={`${styles.declaration} ${styles[impactClass]} ${isOverridden ? styles.propertyOverridden : ''}`}
                           >
                             {onTogglePropertyDisabled && (
@@ -950,8 +1161,7 @@ export default function RuleInspector({
                                     ✎
                                   </button>
                                 )}
-                                {/* Remove Property Button - DISABLED (read-only mode) */}
-                                {/* {onRemoveProperty && (
+                                {onRemoveProperty && (
                                   <button
                                     className={styles.removeAddedPropertyButton}
                                     title={`Remove ${decl.property}`}
@@ -961,7 +1171,7 @@ export default function RuleInspector({
                                   >
                                     ✕
                                   </button>
-                                )} */}
+                                )}
                               </>
                             )}
                           </div>
@@ -971,15 +1181,10 @@ export default function RuleInspector({
                       {/* Render added properties (new properties that don't exist in original rule) */}
                       {Object.entries(addedProperties).map(([key, value]) => {
                         const [addedRuleIndex, addedPropertyName] = key.split('::')
+                        const parsedIdx = parseInt(addedRuleIndex)
 
                         // Only show added properties for this rule (matched by ruleIndex)
-                        if (parseInt(addedRuleIndex) !== rule.ruleIndex) return null
-
-                        // Skip if this property already exists in the original declarations
-                        // (it will be rendered above as a regular declaration, not as an added property)
-                        if (rule.declarations?.some(d => d.property === addedPropertyName)) {
-                          return null
-                        }
+                        if (parsedIdx !== rule.ruleIndex) return null
 
                         const propKey = `${ruleKey}-${addedPropertyName}`
                         const isEditing = editingProp?.propKey === propKey
@@ -1104,16 +1309,17 @@ export default function RuleInspector({
                                     ✎
                                   </button>
                                 )}
-                                {/* Remove Added Property Button - DISABLED (read-only mode) */}
-                                {/* <button
+                                <button
                                   className={styles.removeAddedPropertyButton}
                                   title={`Remove ${addedPropertyName}`}
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
                                     handleRemoveProperty(rule.ruleIndex, addedPropertyName, true)
                                   }}
                                 >
                                   ✕
-                                </button> */}
+                                </button>
                               </>
                             )}
                           </div>
@@ -1125,10 +1331,87 @@ export default function RuleInspector({
                     )
                   })()}
 
-                  {/* Add New Property Section - DISABLED (read-only mode) */}
-                  {/* <div className={styles.addPropertySection}>
-                    ... section hidden for read-only mode ...
-                  </div> */}
+                  {/* Add New Property Section */}
+                  {addingPropertyToRule === rule.ruleIndex ? (
+                    <div className={styles.addPropertyForm} style={{ marginTop: '12px' }}>
+                      <div className={styles.inputFieldsContainer}>
+                        <div style={{ flex: '0 0 80px', position: 'relative', minWidth: 0 }}>
+                          <AutocompleteInput
+                            placeholder="property"
+                            value={newPropertyName}
+                            onChange={(e) => setNewPropertyName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddNewProperty(rule)
+                              } else if (e.key === 'Escape') {
+                                setAddingPropertyToRule(null)
+                                setNewPropertyName('')
+                                setNewPropertyValue('')
+                              }
+                            }}
+                            onSelectAndMove={() => {
+                              // Move focus to value input after Tab
+                              addPropertyValueInputRef.current?.focus()
+                            }}
+                            suggestions={CSS_PROPERTIES}
+                            className={styles.propertyInput}
+                            autoFocus
+                          />
+                        </div>
+                        <span className={styles.colon}>:</span>
+                        <div style={{ flex: '1 1 auto', position: 'relative', minWidth: '60px' }}>
+                          <AutocompleteInput
+                            placeholder="value"
+                            value={newPropertyValue}
+                            onChange={(e) => setNewPropertyValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddNewProperty(rule)
+                              } else if (e.key === 'Escape') {
+                                setAddingPropertyToRule(null)
+                                setNewPropertyName('')
+                                setNewPropertyValue('')
+                              }
+                            }}
+                            onSelectAndMove={() => {
+                              // Submit the form after Tab in value field
+                              handleAddNewProperty(rule)
+                            }}
+                            suggestions={CSS_UNITS.concat(CSS_COLORS)}
+                            className={styles.valueInput}
+                            inputRef={addPropertyValueInputRef}
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className={styles.confirmAddButton}
+                        onClick={() => handleAddNewProperty(rule)}
+                        title="Add this property"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        className={styles.cancelAddButton}
+                        onClick={() => {
+                          setAddingPropertyToRule(null)
+                          setNewPropertyName('')
+                          setNewPropertyValue('')
+                        }}
+                        title="Cancel adding property"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className={styles.addPropertyButton}
+                      onClick={() => setAddingPropertyToRule(rule.ruleIndex)}
+                      title="Add a new property to this rule"
+                      style={{ marginTop: '12px' }}
+                    >
+                      + Add Property
+                    </button>
+                  )}
                 </div>
                 </>
               )}
@@ -1421,9 +1704,13 @@ export default function RuleInspector({
           selector={showDuplicatesModalFor}
           affectingRules={affectingRules}
           keyframes={allKeyframes}
+          mergeableGroups={mergeableGroups}
+          onMergeClick={onMergeClick}
           onClose={() => setShowDuplicatesModalFor(null)}
         />
       )}
     </div>
   )
 }
+
+export default React.memo(RuleInspector)

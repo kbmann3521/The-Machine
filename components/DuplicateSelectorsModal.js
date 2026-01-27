@@ -26,12 +26,16 @@ function getOriginLabel(rule) {
  *   selector: string - The selector to show duplicates for (e.g., ".button" or "@keyframes fadeIn")
  *   affectingRules: array - All rules affecting the selector (for regular selectors)
  *   keyframes: array - All keyframe groups (for keyframe selectors)
+ *   mergeableGroups: array - Groups of mergeable selectors
+ *   onMergeClick: function - Callback when merge button is clicked
  *   onClose: () => void - Callback when modal is closed
  */
 export default function DuplicateSelectorsModal({
   selector = '',
   affectingRules = [],
   keyframes = [],
+  mergeableGroups = [],
+  onMergeClick = null,
   onClose = null,
 }) {
   if (!selector) {
@@ -177,6 +181,15 @@ export default function DuplicateSelectorsModal({
           >
             Close
           </button>
+          {!isKeyframeSelector && onMergeClick && mergeableGroups.some(g => g.selector === selector) && (
+            <button
+              className={styles.confirmationMergeButton}
+              onClick={() => onMergeClick(mergeableGroups)}
+              title="Open merge selectors dialog"
+            >
+              🧩 Merge Selectors
+            </button>
+          )}
         </div>
       </div>
     </div>

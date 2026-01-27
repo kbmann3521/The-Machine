@@ -280,6 +280,7 @@ export default function CodeMirrorEditor({
   const lintThemeCompartmentRef = useRef(new Compartment())
   const linterCompartmentRef = useRef(new Compartment())
   const [gutterWidth, setGutterWidth] = useState(0)
+  const lastLinterUpdateRef = useRef(null)
 
   useEffect(() => {
     valueRef.current = value
@@ -288,7 +289,7 @@ export default function CodeMirrorEditor({
 
   // Calculate gutter width when line numbers are shown
   useEffect(() => {
-    if (!viewRef.current || !showLineNumbers) {
+    if (!showLineNumbers) {
       setGutterWidth(0)
       return
     }
@@ -309,12 +310,15 @@ export default function CodeMirrorEditor({
       if (gutterElement) {
         const observer = new ResizeObserver(measureGutterWidth)
         observer.observe(gutterElement)
-        return () => observer.disconnect()
+        return () => {
+          observer.disconnect()
+          clearTimeout(timer)
+        }
       }
     }
 
     return () => clearTimeout(timer)
-  }, [showLineNumbers, viewRef.current])
+  }, [showLineNumbers])
 
   useEffect(() => {
     if (!editorRef.current) return
@@ -455,6 +459,13 @@ export default function CodeMirrorEditor({
   useEffect(() => {
     if (!viewRef.current || !enableLinting) return
 
+    const updateKey = `${diagnostics?.length ?? 0}-${formatMode}`
+
+    // Skip if we just updated with the same params
+    if (lastLinterUpdateRef.current === updateKey) {
+      return
+    }
+
     // Create new linter with updated diagnostics
     let linterExtensions = []
     if (diagnostics && diagnostics.length > 0) {
@@ -467,10 +478,15 @@ export default function CodeMirrorEditor({
 
     // Update the linter compartment with the new linter or empty array
     // This ensures errors are cleared when there are no diagnostics
-    viewRef.current.dispatch({
-      effects: linterCompartmentRef.current.reconfigure(linterExtensions),
-    })
-  }, [diagnostics, formatMode, enableLinting])
+    try {
+      viewRef.current.dispatch({
+        effects: linterCompartmentRef.current.reconfigure(linterExtensions),
+      })
+      lastLinterUpdateRef.current = updateKey
+    } catch (error) {
+      console.error('[CodeMirrorEditor] Error updating linter:', error)
+    }
+  }, [diagnostics?.length, formatMode, enableLinting])
 
   return (
     <div
