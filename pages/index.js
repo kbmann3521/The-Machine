@@ -958,7 +958,7 @@ export default function Home(props) {
     }
 
     // For Web Playground, check formatted field
-    if (selectedTool.toolId === 'markdown-html-formatter' && outputResult?.formatted) {
+    if (selectedTool.toolId === 'web-playground' && outputResult?.formatted) {
       return true
     }
 
@@ -1092,7 +1092,7 @@ export default function Home(props) {
                 onUseJsOutput={selectedTool?.toolId === 'markdown-html-formatter' ? () => handleUseJsOutputClick() : null}
                 canCopyJsOutput={true}
                 useJsOutputLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'Format code' : 'Replace with output'}
-                cssContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
+                cssContent={selectedTool?.toolId === 'web-playground' ? (
                   <ToolOutputPanel
                     result={outputResult}
                     outputType={selectedTool?.outputType}
@@ -1126,7 +1126,7 @@ export default function Home(props) {
                     onJsFormatterDiagnosticsChange={setJsFormatterDiagnostics}
                   />
                 ) : null}
-                jsContent={selectedTool?.toolId === 'markdown-html-formatter' ? (
+                jsContent={selectedTool?.toolId === 'web-playground' ? (
                   <div style={{
                     height: '100%',
                     display: 'flex',

@@ -9,12 +9,12 @@ import styles from '../styles/universal-input.module.css'
 const TOOLS_WITH_LINE_NUMBERS = new Set([
   'js-formatter',           // JavaScript Formatter Suite
   'json-formatter',         // JSON Formatter
-  'markdown-html-formatter', // Markdown + HTML Formatter
+  'web-playground', // Web Playground
   'sql-formatter',          // SQL Formatter
   'xml-formatter',          // XML Formatter
   'yaml-formatter',         // YAML Formatter
   'svg-optimizer',          // SVG Optimizer
-  'css-formatter',          // CSS Toolkit
+  'css-formatter',          // CSS Formatter
 ])
 
 // Map tool IDs to their correct language for syntax highlighting
@@ -27,7 +27,7 @@ const getLanguageForTool = (toolId) => {
     case 'css-formatter':
       return 'css'
     case 'html-formatter':
-    case 'markdown-html-formatter':
+    case 'web-playground':
       return 'html'
     case 'xml-formatter':
       return 'xml'
@@ -360,7 +360,7 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
       'reverse-text': 'Reverse text characters, words, or lines',
       'regex-tester': 'Test regex patterns with live matching and replacement',
       'csv-json-converter': 'Transform CSV spreadsheet data to JSON format',
-      'markdown-html-formatter': 'Format and convert between Markdown and HTML',
+      'web-playground': 'Format and convert between Markdown and HTML',
       'xml-formatter': 'Validate and format XML with proper structure',
       'yaml-formatter': 'Format YAML configuration files with correct indentation',
       'url-toolkit': 'Parse, validate, normalize, and manipulate URLs with advanced features',

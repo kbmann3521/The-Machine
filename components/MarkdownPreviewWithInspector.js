@@ -416,7 +416,7 @@ export default function MarkdownPreviewWithInspector({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              toolId: 'markdown-html-formatter',
+              toolId: 'web-playground',
               inputText: updatedHtmlWithBeautifulCss,
               config: {
                 mode: 'beautify',
@@ -508,7 +508,7 @@ export default function MarkdownPreviewWithInspector({
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                toolId: 'markdown-html-formatter',
+                toolId: 'web-playground',
                 inputText: updatedHtmlWithBeautifulCss,
                 config: {
                   mode: 'beautify',
@@ -602,7 +602,7 @@ export default function MarkdownPreviewWithInspector({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              toolId: 'markdown-html-formatter',
+              toolId: 'web-playground',
               inputText: updatedHtmlWithBeautifulCss,
               config: {
                 mode: 'beautify',
@@ -1140,7 +1140,7 @@ export default function MarkdownPreviewWithInspector({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              toolId: 'markdown-html-formatter',
+              toolId: 'web-playground',
               inputText: updatedHtmlWithBeautifulCss,
               config: {
                 mode: 'beautify',
