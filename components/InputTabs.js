@@ -15,8 +15,8 @@ import styles from '../styles/output-tabs.module.css'
  *   selectedTool: tool object - used to determine which tabs to show
  *   tabActions: React element - action buttons for the tab header
  *   inputTabLabel: string - custom label for input tab (defaults to 'INPUT')
- *   cssContent: React element - CSS editor content (for markdown-html-formatter)
- *   jsContent: React element - JavaScript editor content (for markdown-html-formatter)
+ *   cssContent: React element - CSS editor content (for web-playground)
+ *   jsContent: React element - JavaScript editor content (for web-playground)
  *   infoContent: React element - info/about content shown when no tool is selected
  *   onActiveTabChange: function(tabId) - callback when active tab changes
  *   tabOptionsMap: object - map of tab IDs to their option content/controls
@@ -78,7 +78,7 @@ export default function InputTabs({
     },
   ]
 
-  // Add CSS tab if content is provided (for markdown-html-formatter)
+  // Add CSS tab if content is provided (for web-playground)
   if (cssContent) {
     tabConfig.push({
       id: 'css',
@@ -88,7 +88,7 @@ export default function InputTabs({
     })
   }
 
-  // Add JS tab if content is provided (for markdown-html-formatter)
+  // Add JS tab if content is provided (for web-playground)
   if (jsContent) {
     tabConfig.push({
       id: 'js',

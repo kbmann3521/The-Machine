@@ -59,9 +59,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [cssFormatterResult, setCssFormatterResult] = useState(null)
   const [jsFormatterResult, setJsFormatterResult] = useState(null)
 
-  // Format CSS when markdownCustomCss changes (only for markdown-html-formatter)
+  // Format CSS when markdownCustomCss changes (only for web-playground)
   React.useEffect(() => {
-    if (toolId === 'markdown-html-formatter' && markdownCustomCss && markdownCustomCss.trim()) {
+    if (toolId === 'web-playground' && markdownCustomCss && markdownCustomCss.trim()) {
       const formatCss = async () => {
         try {
           // Build formatter options from cssConfigOptions
@@ -97,9 +97,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [markdownCustomCss, toolId, cssConfigOptions])
 
-  // Format JavaScript when markdownCustomJs or jsConfigOptions changes (only for markdown-html-formatter)
+  // Format JavaScript when markdownCustomJs or jsConfigOptions changes (only for web-playground)
   React.useEffect(() => {
-    if (toolId === 'markdown-html-formatter' && markdownCustomJs && markdownCustomJs.trim()) {
+    if (toolId === 'web-playground' && markdownCustomJs && markdownCustomJs.trim()) {
       const formatJs = async () => {
         try {
           // Call JavaScript formatter via API with all the config options
@@ -140,7 +140,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
   // Always show result even if empty/invalid - renders partial output
   const displayResult = result
-  const isMarkdownFormatter = toolId === 'markdown-html-formatter'
+  const isMarkdownFormatter = toolId === 'web-playground'
 
   // Capture CSS formatted output when on CSS tab
   React.useEffect(() => {
@@ -332,7 +332,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   }), [])
 
   React.useEffect(() => {
-    if (toolId !== 'markdown-html-formatter') {
+    if (toolId !== 'web-playground') {
       setScannedSelectors(emptySelectorState)
       return
     }
@@ -396,8 +396,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
   // Show blank tabs when no result (but skip for markdown formatter - it has its own rendering)
-  // Skip for markdown-html-formatter entirely - it handles empty states with empty preview rendering
-  if (!displayResult && toolId !== 'markdown-html-formatter') {
+  // Skip for web-playground entirely - it handles empty states with empty preview rendering
+  if (!displayResult && toolId !== 'web-playground') {
     const waitingMessage = isInputEmpty ? 'Waiting for input...' : ''
     const blankTabs = [
       {
@@ -2620,7 +2620,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         })
       } else {
         // No HTML/Markdown to render yet
-        // For markdown-html-formatter, show empty preview instead of waiting message
+        // For web-playground, show empty preview instead of waiting message
         if (isMarkdownFormatter) {
           cssOutputTabs.push({
             id: 'output',
@@ -2920,7 +2920,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         })
       } else {
         // No HTML/Markdown content - show blank OUTPUT tab
-        // For markdown-html-formatter, show empty preview instead of waiting message
+        // For web-playground, show empty preview instead of waiting message
         if (isMarkdownFormatter) {
           jsOutputTabs.push({
             id: 'output',
@@ -3418,7 +3418,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     const tabs = []
 
     // Detect if the formatted output is HTML or Markdown using formatter metadata
-    // For markdown-html-formatter, use the actual content classification from the formatter
+    // For web-playground, use the actual content classification from the formatter
     // This ensures markdown renders as markdown even if pasted in the HTML tab
     // IMPORTANT: Check appliedConversion first - it determines actual output format after conversion
     const isConversionApplied = displayResult?.appliedConversion && displayResult.appliedConversion !== 'none'
@@ -3488,7 +3488,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       tabs.push(renderTab)
     } else if (!renderTab && !displayResult?.formatted) {
       // If we have a displayResult but no rendered content, show empty preview or error
-      // For markdown-html-formatter, show empty preview rendering
+      // For web-playground, show empty preview rendering
       if (isMarkdownFormatter) {
         tabs.push({
           id: 'output',
@@ -3707,8 +3707,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     // CSS Editor tab - allows users to customize markdown rendering styles
     // Skip if we're rendering CSS tab only in the InputTabs (renderCssTabOnly mode)
-    // Also skip for markdown-html-formatter since CSS is handled in the input tabs
-    if (!renderCssTabOnly && displayResult.formatted && displayResult.isWellFormed !== false && toolId !== 'markdown-html-formatter') {
+    // Also skip for web-playground since CSS is handled in the input tabs
+    if (!renderCssTabOnly && displayResult.formatted && displayResult.isWellFormed !== false && toolId !== 'web-playground') {
       tabs.push({
         id: 'css',
         label: 'CSS',
@@ -7472,7 +7472,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderJsFormatterOutput()
       case 'css-formatter':
         return renderCssFormatterOutput()
-      case 'markdown-html-formatter':
+      case 'web-playground':
         return renderMarkdownFormatterOutput()
       case 'sql-formatter':
         return renderSqlFormatterOutput()

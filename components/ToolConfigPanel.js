@@ -42,7 +42,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   }, [tool?.toolId, currentConfig, tool?.configSchema])
 
   useEffect(() => {
-    if (tool?.toolId !== 'markdown-html-formatter') {
+    if (tool?.toolId !== 'web-playground') {
       return
     }
 
@@ -215,7 +215,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id)) ||
       (isChecksumAutoDetect && checksumDisabledFields.includes(field.id))
 
-    if (tool.toolId === 'markdown-html-formatter' && field.id === 'convertTo') {
+    if (tool.toolId === 'web-playground' && field.id === 'convertTo') {
       const convertOptions = [{ value: 'none', label: 'None' }]
       if (classificationMode === 'markdown') {
         convertOptions.push({ value: 'html', label: 'HTML' })
@@ -961,8 +961,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             // Always show the base schema for markdown formatter (HTML/MD options)
             const configSchema = tool.configSchema
 
-            // Define CSS schema for markdown formatter (Analysis/Rules toggles handled separately below)
-            const cssSchema = tool.toolId === 'markdown-html-formatter' ? [
+            // Define CSS schema for web playground (Analysis/Rules toggles handled separately below)
+            const cssSchema = tool.toolId === 'web-playground' ? [
               { id: 'mode', label: 'Mode', type: 'select', options: [{ value: 'beautify', label: 'Beautify' }, { value: 'minify', label: 'Minify' }], default: 'beautify' },
               { id: 'indentSize', label: 'Indent Size', type: 'select', options: [{ value: '2', label: '2 spaces' }, { value: '4', label: '4 spaces' }, { value: 'tab', label: 'Tab' }], default: '2', visibleWhen: { field: 'mode', value: 'beautify' } },
               { id: 'removeComments', label: 'Remove Comments', type: 'toggle', default: false },

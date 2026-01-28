@@ -67,7 +67,7 @@ export default function OutputTabs({
     }
   }
 
-  // Generate analysis tab for CSS Toolkit (Phase 2)
+  // Generate analysis tab for CSS Formatter (Phase 2)
   const generateAnalysisTab = (analysis) => {
     if (!analysis || typeof analysis !== 'object') {
       return null
@@ -436,8 +436,8 @@ export default function OutputTabs({
     }
   }
 
-  // Add Analysis tab for CSS Toolkit (Phase 2) and Markdown+HTML Toolkit in CSS mode
-  if ((toolId === 'css-formatter' || toolId === 'markdown-html-formatter') && analysisData && finalShowAnalysisTab) {
+  // Add Analysis tab for CSS Formatter (Phase 2) and Web Playground in CSS mode
+  if ((toolId === 'css-formatter' || toolId === 'web-playground') && analysisData && finalShowAnalysisTab) {
     if (!tabConfig) {
       tabConfig = []
     }
@@ -452,8 +452,8 @@ export default function OutputTabs({
     }
   }
 
-  // Add Rules tab for CSS Toolkit (Phase 3) and Markdown+HTML Toolkit in CSS mode
-  if ((toolId === 'css-formatter' || toolId === 'markdown-html-formatter') && analysisData && analysisData.rulesTree && finalShowRulesTab) {
+  // Add Rules tab for CSS Formatter (Phase 3) and Web Playground in CSS mode
+  if ((toolId === 'css-formatter' || toolId === 'web-playground') && analysisData && analysisData.rulesTree && finalShowRulesTab) {
     if (!tabConfig) {
       tabConfig = []
     }
@@ -488,7 +488,7 @@ export default function OutputTabs({
     }
   }
 
-  // Add comprehensive JSON tab for CSS Toolkit (Phase 3+)
+  // Add comprehensive JSON tab for CSS Formatter (Phase 3+)
   if (toolId === 'css-formatter' && analysisData) {
     if (!tabConfig) {
       tabConfig = []
