@@ -300,6 +300,7 @@ function AIAnalysisSection({ patternName, patternDescription, pattern, matches, 
 
 export default function RegexTesterOutput({ result, inputText, patternName, patternDescription }) {
   const [activeTab, setActiveTab] = useState('matches');
+  const [copiedPattern, setCopiedPattern] = useState(false);
 
   if (!result) {
     return null;
@@ -317,8 +318,46 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
     );
   }
 
+  const handleCopyPattern = () => {
+    try {
+      navigator.clipboard.writeText(result.pattern).then(() => {
+        setCopiedPattern(true);
+        setTimeout(() => setCopiedPattern(false), 2000);
+      }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = result.pattern;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCopiedPattern(true);
+        setTimeout(() => setCopiedPattern(false), 2000);
+      });
+    } catch (error) {
+      console.error('Failed to copy pattern:', error);
+    }
+  };
+
   return (
     <div className={styles.container}>
+      {/* Pattern display with copy button */}
+      <div className={styles.patternResultBox}>
+        <div className={styles.patternResultHeader}>
+          <span className={styles.patternResultLabel}>Regex Pattern:</span>
+          <button
+            className={styles.copyPatternButton}
+            onClick={handleCopyPattern}
+            title="Copy pattern to clipboard"
+          >
+            {copiedPattern ? '✓ Copied' : '📋 Copy'}
+          </button>
+        </div>
+        <code className={styles.patternResultCode}>{result.pattern}</code>
+      </div>
+
       {/* Warnings panel */}
       {result.warnings && result.warnings.length > 0 && (
         <WarningsPanel warnings={result.warnings} />

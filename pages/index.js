@@ -19,7 +19,7 @@ import ToolDescriptionContent from '../components/ToolDescriptionContent'
 import ValuePropositionCard from '../components/ValuePropositionCard'
 import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
-import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
+import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema, generatePageMetadata } from '../lib/seoUtils'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { classifyMarkdownHtmlInput } from '../lib/contentClassifier'
 import styles from '../styles/hub.module.css'
@@ -1014,13 +1014,48 @@ export default function Home(props) {
   return (
     <>
       <Head>
-        {/* TEST: Hardcoded title and description */}
-        <title>{testTitle}</title>
-        <meta name="description" content={testDescription} />
+        {/* Dynamic meta tags based on selected tool */}
+        {(() => {
+          const metadata = generatePageMetadata({
+            seoSettings: props?.seoSettings || {},
+            title: selectedTool ? selectedTool.name : testTitle,
+            description: selectedTool ? selectedTool.description : testDescription,
+            path: selectedTool ? `/?tool=${selectedTool.toolId}` : '/',
+            tool: selectedTool || null,
+          })
+
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pioneerwebtools.com'
+          const canonicalUrl = metadata.canonical || siteUrl
+
+          return (
+            <>
+              <title>{metadata.title}</title>
+              <meta name="description" content={metadata.description} />
+              {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
+              <link rel="canonical" href={canonicalUrl} />
+
+              {/* Open Graph Tags for social sharing */}
+              <meta property="og:title" content={metadata.openGraph?.title || metadata.title} />
+              <meta property="og:description" content={metadata.openGraph?.description || metadata.description} />
+              <meta property="og:url" content={metadata.openGraph?.url || canonicalUrl} />
+              <meta property="og:type" content={metadata.openGraph?.type || 'website'} />
+              {metadata.openGraph?.image && <meta property="og:image" content={metadata.openGraph.image} />}
+
+              {/* Twitter Card Tags */}
+              <meta name="twitter:card" content={metadata.twitter?.card || 'summary_large_image'} />
+              <meta name="twitter:title" content={metadata.twitter?.title || metadata.title} />
+              <meta name="twitter:description" content={metadata.twitter?.description || metadata.description} />
+              {metadata.twitter?.site && <meta name="twitter:site" content={metadata.twitter.site} />}
+              {metadata.twitter?.creator && <meta name="twitter:creator" content={metadata.twitter.creator} />}
+            </>
+          )
+        })()}
+
+        {/* Schema markup */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateSoftwareAppSchema()),
+            __html: JSON.stringify(generateSoftwareAppSchema(props?.seoSettings || {})),
           }}
         />
         <script
@@ -1032,8 +1067,8 @@ export default function Home(props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateBreadcrumbSchema([
-              { name: 'Tools', item: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com'}/` }
+            __html: JSON.stringify(generateBreadcrumbSchema(props?.seoSettings || {}, [
+              { name: 'Tools', path: '/' }
             ])),
           }}
         />
