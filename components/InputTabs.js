@@ -351,6 +351,14 @@ export default function InputTabs({
                   <div className={`${styles.globalDropdownMenu} ${closingGlobalOptions ? styles.closing : ''}`}>
                     <div className={styles.globalOptionsHeader}>
                       <h2 className={styles.globalOptionsTitle}>Options</h2>
+                      <button
+                        className={styles.closeOptionsButton}
+                        onClick={() => setClosingGlobalOptions(true)}
+                        title="Close options"
+                        aria-label="Close options"
+                      >
+                        ×
+                      </button>
                     </div>
                     <div className={styles.globalOptionsContent}>
                       {globalOptionsContent}

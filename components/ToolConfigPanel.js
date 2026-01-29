@@ -32,8 +32,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
     if (currentConfig && typeof currentConfig === 'object') {
       Object.entries(currentConfig).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          mergedConfig[key] = value
+        // Allow empty strings for pattern field (regex tester needs to support empty patterns)
+        if (value !== undefined && value !== null) {
+          if (value !== '' || key === 'pattern') {
+            mergedConfig[key] = value
+          }
         }
       })
     }
