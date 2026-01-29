@@ -490,6 +490,16 @@ export default function Home(props) {
     setImagePreview(preview)
     setPreviousInputLength(text.length)
 
+    // Reset regex tester config to defaults when loading an example
+    if (isLoadExample && selectedTool?.toolId === 'regex-tester') {
+      const defaultConfig = {
+        pattern: '[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
+        flags: 'g',
+        replacement: ''
+      }
+      setConfigOptions(defaultConfig)
+    }
+
     // Increment key to trigger effect on EVERY input change, bypassing batching
     setInputChangeKey(prev => prev + 1)
 
@@ -706,7 +716,7 @@ export default function Home(props) {
         console.debug('Unhandled error in predictTools:', err?.message || String(err))
       })
     }, 300)
-  }, [fastLocalClassification, previousInputLength])
+  }, [fastLocalClassification, previousInputLength, selectedTool, setConfigOptions])
 
   const handleImageChange = useCallback((image, preview) => {
     setInputImage(image)
