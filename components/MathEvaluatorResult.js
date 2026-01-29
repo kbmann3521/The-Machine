@@ -247,6 +247,21 @@ export default function MathEvaluatorResult({ result, expression, showPhase5ByDe
         )}
       </div>
 
+      {/* 3.5. Diagnostic Info - assumptions and transparency about evaluation */}
+      {result.diagnostics?.info && result.diagnostics.info.length > 0 && (
+        <div className={styles.infoBlock}>
+          <div className={styles.blockLabel}>Diagnostic Notes</div>
+          <div className={styles.infoList}>
+            {result.diagnostics.info.map((item, idx) => (
+              <div key={idx} className={styles.infoItem}>
+                <span className={styles.infoIcon}>ℹ</span>
+                <span className={styles.infoMessage}>{item.message}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 4. Calculation Details (show if we have any diagnostic data) */}
       {(result.result !== undefined || numericConfig || result.diagnostics?.functionsUsed?.length > 0 || result.diagnostics?.variables?.length > 0 || complexity) && (
         <div className={styles.detailsBlock}>

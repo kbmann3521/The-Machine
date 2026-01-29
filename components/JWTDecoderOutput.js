@@ -734,17 +734,17 @@ export default function JWTDecoderOutput({ result, onSecretChange }) {
                   <div className={`${styles.verificationStatus} ${styles[`status-${verificationToDisplay.verified === true ? 'valid' : verificationToDisplay.verified === false ? 'invalid' : 'unknown'}`]}`}>
                     {verificationToDisplay.verified === true && (
                       <>
-                        <span className={styles.statusText}>Signature Valid</span>
+                        <span className={styles.statusText}>✅ Signature Valid</span>
                       </>
                     )}
                     {verificationToDisplay.verified === false && (
                       <>
-                        <span className={styles.statusText}>Signature Invalid</span>
+                        <span className={styles.statusText}>❌ Signature Invalid</span>
                       </>
                     )}
                     {verificationToDisplay.verified === null && (
                       <>
-                        <span className={styles.statusText}>Cannot Verify</span>
+                        <span className={styles.statusText}>❌ Cannot Verify</span>
                       </>
                     )}
                   </div>
