@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/regex-tester.module.css'
+import toolOutputStyles from '../styles/tool-output.module.css'
 
 function WarningsPanel({ warnings }) {
   if (!warnings || warnings.length === 0) {
@@ -344,18 +346,19 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
   return (
     <div className={styles.container}>
       {/* Pattern display with copy button */}
-      <div className={styles.patternResultBox}>
-        <div className={styles.patternResultHeader}>
-          <span className={styles.patternResultLabel}>Regex Pattern:</span>
+      <div className={toolOutputStyles.copyCard}>
+        <div className={toolOutputStyles.copyCardHeader}>
+          <span className={toolOutputStyles.copyCardLabel}>Regex Pattern</span>
           <button
-            className={styles.copyPatternButton}
+            type="button"
+            className="copy-action"
             onClick={handleCopyPattern}
             title="Copy pattern to clipboard"
           >
-            {copiedPattern ? '✓ Copied' : '📋 Copy'}
+            {copiedPattern ? '✓' : <FaCopy />}
           </button>
         </div>
-        <code className={styles.patternResultCode}>{result.pattern}</code>
+        <div className={toolOutputStyles.copyCardValue}>{result.pattern}</div>
       </div>
 
       {/* Warnings panel */}
@@ -414,7 +417,19 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
         </div>
       </div>
 
-      {/* AI Analysis Section */}
+      {/*
+        AI ANALYSIS SECTION - DISABLED FOR NOW
+        Purpose: Provides AI-powered analysis of matched strings using the OpenAI API
+        Functionality:
+          - Displays "Analyze Matches" button that users can click to get AI insights
+          - When clicked, sends matched substrings, pattern, and input text to /api/test-regex-patterns with action 'analyze'
+          - Returns natural language explanation of what the matches represent
+          - Includes copy button to copy the analysis to clipboard
+          - Requires OPENAI_API_KEY environment variable to be set
+        How to re-enable: Uncomment this entire block and ensure AIAnalysisSection function above is still present
+        Status: Keeping functional code intact (AIAnalysisSection function and all logic) but hiding UI
+      */}
+      {/*
       {result.matches && (
         <AIAnalysisSection
           patternName={patternName}
@@ -424,6 +439,7 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
           inputText={inputText}
         />
       )}
+      */}
     </div>
   );
 }
