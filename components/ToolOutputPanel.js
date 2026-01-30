@@ -2600,7 +2600,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           content: (
             <MarkdownPreviewWithInspector
               isHtml={isHtml}
-              content={displayResult.formatted}
+              content={inputText}
               customCss={markdownCustomCss}
               customJs={markdownCustomJs}
               rulesTree={mergedRulesForDisplay}
@@ -2900,7 +2900,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           content: (
             <MarkdownPreviewWithInspector
               isHtml={isHtml}
-              content={displayResult.formatted}
+              content={inputText}
               customCss={markdownCustomCss}
               customJs={markdownCustomJs}
               rulesTree={mergedRulesForDisplay}

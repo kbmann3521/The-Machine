@@ -286,6 +286,21 @@ export default function CodeMirrorEditor({
     valueRef.current = value
   }, [value])
 
+  // Update editor content when value prop changes (external update)
+  useEffect(() => {
+    if (!viewRef.current) return
+
+    const currentValue = viewRef.current.state.doc.toString()
+    if (currentValue !== value && value !== undefined) {
+      viewRef.current.dispatch({
+        changes: {
+          from: 0,
+          to: currentValue.length,
+          insert: value,
+        },
+      })
+    }
+  }, [value])
 
   // Calculate gutter width when line numbers are shown
   useEffect(() => {
@@ -439,21 +454,7 @@ export default function CodeMirrorEditor({
     viewRef.current.dispatch({ effects })
   }, [theme, editorType, highlightingEnabled])
 
-  // Update editor content programmatically (only if value changed externally)
-  useEffect(() => {
-    if (!viewRef.current) return
 
-    const currentValue = viewRef.current.state.doc.toString()
-    if (currentValue !== valueRef.current && valueRef.current !== undefined) {
-      viewRef.current.dispatch({
-        changes: {
-          from: 0,
-          to: currentValue.length,
-          insert: valueRef.current,
-        },
-      })
-    }
-  }, [value])
 
   // Update linting when diagnostics or formatMode changes
   useEffect(() => {

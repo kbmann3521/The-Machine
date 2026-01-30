@@ -1121,22 +1121,22 @@ export default function Home(props) {
             <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
               <InputTabs
                 selectedTool={selectedTool}
-                inputTabLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'HTML' : 'INPUT'}
-                onActiveTabChange={selectedTool?.toolId === 'markdown-html-formatter' ? handleMarkdownInputTabChange : null}
+                inputTabLabel={selectedTool?.toolId === 'web-playground' ? 'HTML' : 'INPUT'}
+                onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
                 infoContent={!selectedTool && <ValuePropositionCard />}
                 tabActions={null}
                 hasOutputToUse={getHasOutputToUse()}
                 onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
                 canCopyOutput={getCanCopyOutput()}
-                useOutputLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'Format code' : 'Replace with output'}
-                hasCssOutputToUse={selectedTool?.toolId === 'markdown-html-formatter' && activeMarkdownInputTab === 'css' && markdownCustomCss && cssFormattedOutput ? true : false}
-                onUseCssOutput={selectedTool?.toolId === 'markdown-html-formatter' ? () => handleUseCssOutputClick() : null}
+                useOutputLabel={selectedTool?.toolId === 'web-playground' ? 'Format code' : 'Replace with output'}
+                hasCssOutputToUse={selectedTool?.toolId === 'web-playground' && activeMarkdownInputTab === 'css' && markdownCustomCss && cssFormattedOutput ? true : false}
+                onUseCssOutput={selectedTool?.toolId === 'web-playground' ? () => handleUseCssOutputClick() : null}
                 canCopyCssOutput={true}
-                useCssOutputLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'Format code' : 'Replace with output'}
-                hasJsOutputToUse={selectedTool?.toolId === 'markdown-html-formatter' && activeMarkdownInputTab === 'js' && markdownCustomJs && jsFormattedOutput ? true : false}
-                onUseJsOutput={selectedTool?.toolId === 'markdown-html-formatter' ? () => handleUseJsOutputClick() : null}
+                useCssOutputLabel={selectedTool?.toolId === 'web-playground' ? 'Format code' : 'Replace with output'}
+                hasJsOutputToUse={selectedTool?.toolId === 'web-playground' && activeMarkdownInputTab === 'js' && markdownCustomJs && jsFormattedOutput ? true : false}
+                onUseJsOutput={selectedTool?.toolId === 'web-playground' ? () => handleUseJsOutputClick() : null}
                 canCopyJsOutput={true}
-                useJsOutputLabel={selectedTool?.toolId === 'markdown-html-formatter' ? 'Format code' : 'Replace with output'}
+                useJsOutputLabel={selectedTool?.toolId === 'web-playground' ? 'Format code' : 'Replace with output'}
                 cssContent={selectedTool?.toolId === 'web-playground' ? (
                   <ToolOutputPanel
                     result={outputResult}
@@ -1159,6 +1159,7 @@ export default function Home(props) {
                     onTogglePreviewFullscreen={setIsPreviewFullscreen}
                     renderCssTabOnly={true}
                     activeMarkdownInputTab={activeMarkdownInputTab}
+                    markdownInputMode={markdownInputMode}
                     markdownCustomCss={markdownCustomCss}
                     onMarkdownCustomCssChange={setMarkdownCustomCss}
                     onCssFormattedOutput={setCssFormattedOutput}
@@ -1245,7 +1246,7 @@ export default function Home(props) {
                         contentClassification={contentClassification}
                         activeToolkitSection={activeToolkitSection}
                         onToolkitSectionChange={setActiveToolkitSection}
-                        markdownInputMode={selectedTool?.toolId === 'markdown-html-formatter' ? 'input' : undefined}
+                        markdownInputMode={selectedTool?.toolId === 'web-playground' ? 'input' : undefined}
                         cssConfigOptions={cssConfigOptions}
                         findReplaceConfig={findReplaceConfig}
                         onFindReplaceConfigChange={setFindReplaceConfig}
