@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react'
+import { FaChevronDown } from 'react-icons/fa6'
 import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
 import { generateSyntheticDom, togglePseudoStateOnAll } from '../lib/tools/syntheticDom'
@@ -213,6 +214,11 @@ export default function MarkdownPreviewWithInspector({
   const closeInputPanelTimeoutRef = useRef(null)
   const [containerWidth, setContainerWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
 
+  // Format menu states for fullscreen panels
+  const [showFormatHtmlMenu, setShowFormatHtmlMenu] = useState(false)
+  const [showFormatCssMenu, setShowFormatCssMenu] = useState(false)
+  const [showFormatJsMenu, setShowFormatJsMenu] = useState(false)
+
   // Track if we just made a mutation to avoid resetting localRulesTree unnecessarily
   const justMutatedRef = React.useRef(false)
 
@@ -220,7 +226,15 @@ export default function MarkdownPreviewWithInspector({
   // This ensures immediate UI updates when removing/adding properties
   const effectiveRulesTree = localRulesTree !== null ? localRulesTree : rulesTree
 
-  // Sync inputPanelJs with customJs prop when it changes externally
+  // Sync fullscreen panel content with external props when they change
+  React.useEffect(() => {
+    setInputPanelContent(content)
+  }, [content])
+
+  React.useEffect(() => {
+    setInputPanelCss(customCss)
+  }, [customCss])
+
   React.useEffect(() => {
     setInputPanelJs(customJs)
   }, [customJs])
@@ -682,6 +696,116 @@ export default function MarkdownPreviewWithInspector({
     isDraggingInputPanelEdgeRef.current = true
   }
 
+  // Toggle format menus
+  const handleOpenFormatHtmlMenu = () => {
+    setShowFormatHtmlMenu(!showFormatHtmlMenu)
+  }
+
+  const handleOpenFormatCssMenu = () => {
+    setShowFormatCssMenu(!showFormatCssMenu)
+  }
+
+  const handleOpenFormatJsMenu = () => {
+    setShowFormatJsMenu(!showFormatJsMenu)
+  }
+
+  // Format handlers for fullscreen panels
+  const handleFormatHtml = async () => {
+    try {
+      const response = await fetch('/api/tools/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'web-playground',
+          inputText: inputPanelContent,
+          config: {
+            convertTo: 'none',
+            indent: '2spaces',
+            minify: false,
+            showValidation: true,
+            showLinting: true,
+            enableGfm: true,
+          },
+        }),
+      })
+      const data = await response.json()
+      if (data.result?.formatted) {
+        setInputPanelContent(data.result.formatted)
+        onSourceChange?.({ source: isHtml ? 'html' : 'markdown', newContent: data.result.formatted })
+        // Close menu after state update
+        setTimeout(() => setShowFormatHtmlMenu(false), 0)
+      } else {
+        setShowFormatHtmlMenu(false)
+      }
+    } catch (error) {
+      console.error('Failed to format HTML:', error)
+      setShowFormatHtmlMenu(false)
+    }
+  }
+
+  const handleFormatCss = async () => {
+    try {
+      const response = await fetch('/api/tools/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'css-formatter',
+          inputText: inputPanelCss,
+          config: {
+            mode: 'beautify',
+            indentSize: '2',
+            showValidation: true,
+            showLinting: true,
+          },
+        }),
+      })
+      const data = await response.json()
+      if (data.result?.formatted || data.result?.formatted === '') {
+        const formatted = data.result.formatted
+        setInputPanelCss(formatted)
+        onCssChange?.(formatted)
+        // Close menu after state update
+        setTimeout(() => setShowFormatCssMenu(false), 0)
+      } else {
+        setShowFormatCssMenu(false)
+      }
+    } catch (error) {
+      console.error('Failed to format CSS:', error)
+      setShowFormatCssMenu(false)
+    }
+  }
+
+  const handleFormatJs = async () => {
+    try {
+      const response = await fetch('/api/tools/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: 'js-formatter',
+          inputText: inputPanelJs,
+          config: {
+            mode: 'format',
+            indentSize: '2',
+            showAnalysis: false,
+            showLinting: false,
+          },
+        }),
+      })
+      const data = await response.json()
+      if (data.result?.formatted) {
+        setInputPanelJs(data.result.formatted)
+        onJsChange?.(data.result.formatted)
+        // Close menu after state update
+        setTimeout(() => setShowFormatJsMenu(false), 0)
+      } else {
+        setShowFormatJsMenu(false)
+      }
+    } catch (error) {
+      console.error('Failed to format JavaScript:', error)
+      setShowFormatJsMenu(false)
+    }
+  }
+
   React.useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isDraggingInputDividerRef.current || !inputPanelDividerRef.current) return
@@ -891,6 +1015,24 @@ export default function MarkdownPreviewWithInspector({
     return () => window.removeEventListener('mousedown', handleClickOutside)
   }, [showFullscreenSettings])
 
+  // Close format menus when clicking outside (for fullscreen panels)
+  React.useEffect(() => {
+    if (!showFormatHtmlMenu && !showFormatCssMenu && !showFormatJsMenu) return
+
+    const handleClickOutside = (e) => {
+      // Check if click is on any chevron button or menu - if so, don't close
+      // The menu will be inside its relative-positioned parent, so clicks inside it are allowed
+      const target = e.target.closest('[data-format-menu]')
+      if (target) return
+
+      setShowFormatHtmlMenu(false)
+      setShowFormatCssMenu(false)
+      setShowFormatJsMenu(false)
+    }
+
+    window.addEventListener('mousedown', handleClickOutside)
+    return () => window.removeEventListener('mousedown', handleClickOutside)
+  }, [showFormatHtmlMenu, showFormatCssMenu, showFormatJsMenu])
 
   // Helper: check if property is overridden by later rule
   // Account for disabled properties - a property is only overriding if it's not disabled
@@ -2453,11 +2595,41 @@ export default function MarkdownPreviewWithInspector({
               )}
               {/* HTML/MD Input Section */}
               <div style={{ flex: `${inputPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden', borderBottom: '1px solid var(--color-border, #ddd)' }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
-                  HTML / Markdown
+                <div style={{ fontSize: '11px', fontWeight: '600', padding: '1px 12px', margin: '0', backgroundColor: 'var(--color-background-tertiary, #f5f5f5)', color: 'var(--color-text-secondary, #666)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: '1', height: '18px' }}>
+                  <span style={{ margin: 0 }}>HTML / Markdown</span>
+                  <div style={{ position: 'relative' }} data-format-menu>
+                    <button
+                      className={styles.useOutputChevron}
+                      onClick={() => handleOpenFormatHtmlMenu()}
+                      type="button"
+                      aria-label="Format HTML"
+                      style={{
+                        marginRight: '4px',
+                        padding: '4px 2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <FaChevronDown size={10} />
+                    </button>
+                    {showFormatHtmlMenu && (
+                      <div className={`${styles.useOutputMenu} ${styles.alignRight}`}>
+                        <button
+                          className={styles.useOutputMenuButton}
+                          onClick={() => {
+                            handleFormatHtml()
+                          }}
+                          type="button"
+                        >
+                          Format Code
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                   <CodeMirrorEditor
+                    key="html-editor"
                     value={inputPanelContent}
                     onChange={(newValue) => {
                       setInputPanelContent(newValue)
@@ -2508,11 +2680,41 @@ export default function MarkdownPreviewWithInspector({
               <div style={{ flex: `${100 - inputPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 {/* CSS Input Section */}
                 <div style={{ flex: `${rightPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
-                    CSS
+                  <div style={{ fontSize: '11px', fontWeight: '600', padding: '1px 12px', margin: '0', backgroundColor: 'var(--color-background-tertiary, #f5f5f5)', color: 'var(--color-text-secondary, #666)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: '1', height: '18px' }}>
+                    <span style={{ margin: 0 }}>CSS</span>
+                    <div style={{ position: 'relative' }} data-format-menu>
+                      <button
+                        className={styles.useOutputChevron}
+                        onClick={() => handleOpenFormatCssMenu()}
+                        type="button"
+                        aria-label="Format CSS"
+                        style={{
+                          marginRight: '4px',
+                          padding: '4px 2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <FaChevronDown size={10} />
+                      </button>
+                      {showFormatCssMenu && (
+                        <div className={`${styles.useOutputMenu} ${styles.alignRight}`}>
+                          <button
+                            className={styles.useOutputMenuButton}
+                            onClick={() => {
+                              handleFormatCss()
+                            }}
+                            type="button"
+                          >
+                            Format Code
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                     <CodeMirrorEditor
+                      key="css-editor"
                       value={inputPanelCss}
                       onChange={(newValue) => {
                         setInputPanelCss(newValue)
@@ -2561,11 +2763,41 @@ export default function MarkdownPreviewWithInspector({
 
                 {/* JS Input Section */}
                 <div style={{ flex: `${100 - rightPanelDividerRatio}% 1 0`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '600', padding: '10px 12px 6px 12px', color: 'var(--color-text-secondary, #666)', flexShrink: 0 }}>
-                    JavaScript
+                  <div style={{ fontSize: '11px', fontWeight: '600', padding: '1px 12px', margin: '0', backgroundColor: 'var(--color-background-tertiary, #f5f5f5)', color: 'var(--color-text-secondary, #666)', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: '1', height: '18px' }}>
+                    <span style={{ margin: 0 }}>JavaScript</span>
+                    <div style={{ position: 'relative' }} data-format-menu>
+                      <button
+                        className={styles.useOutputChevron}
+                        onClick={() => handleOpenFormatJsMenu()}
+                        type="button"
+                        aria-label="Format JavaScript"
+                        style={{
+                          marginRight: '4px',
+                          padding: '4px 2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <FaChevronDown size={10} />
+                      </button>
+                      {showFormatJsMenu && (
+                        <div className={`${styles.useOutputMenu} ${styles.alignRight}`}>
+                          <button
+                            className={styles.useOutputMenuButton}
+                            onClick={() => {
+                              handleFormatJs()
+                            }}
+                            type="button"
+                          >
+                            Format Code
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                     <CodeMirrorEditor
+                      key="js-editor"
                       value={inputPanelJs}
                       onChange={(newValue) => {
                         setInputPanelJs(newValue)

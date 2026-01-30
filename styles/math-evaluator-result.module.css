@@ -201,8 +201,9 @@
 
 .infoIcon {
   flex-shrink: 0;
-  font-size: 14px;
-  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1;
+  margin-top: 1px;
 }
 
 .infoMessage {

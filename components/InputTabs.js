@@ -61,6 +61,12 @@ export default function InputTabs({
   const useCssOutputMenuRef = useRef(null)
   const useJsOutputMenuRef = useRef(null)
 
+  // For Web Playground, override labels to "Format Code"
+  const isWebPlayground = selectedTool?.id === 'web-playground'
+  const finalUseOutputLabel = isWebPlayground ? 'Format Code' : useOutputLabel
+  const finalUseCssOutputLabel = isWebPlayground ? 'Format Code' : useCssOutputLabel
+  const finalUseJsOutputLabel = isWebPlayground ? 'Format Code' : useJsOutputLabel
+
   // Notify parent when active tab changes
   useEffect(() => {
     if (onActiveTabChange) {
@@ -211,12 +217,13 @@ export default function InputTabs({
                   <div
                     className={styles.useOutputContainer}
                     ref={useOutputMenuRef}
+                    style={{ position: 'relative' }}
                   >
                     <button
                       className={styles.useOutputChevron}
                       onClick={() => setShowUseOutputMenu(!showUseOutputMenu)}
                       type="button"
-                      aria-label={useOutputLabel}
+                      aria-label={finalUseOutputLabel}
                     >
                       <FaChevronDown size={12} />
                     </button>
@@ -239,7 +246,7 @@ export default function InputTabs({
                             }}
                             type="button"
                           >
-                            {useOutputLabel}
+                            {finalUseOutputLabel}
                           </button>
                         )}
                       </div>
@@ -250,12 +257,13 @@ export default function InputTabs({
                   <div
                     className={styles.useOutputContainer}
                     ref={useCssOutputMenuRef}
+                    style={{ position: 'relative' }}
                   >
                     <button
                       className={styles.useOutputChevron}
                       onClick={() => setShowUseCssOutputMenu(!showUseCssOutputMenu)}
                       type="button"
-                      aria-label={useCssOutputLabel}
+                      aria-label={finalUseCssOutputLabel}
                     >
                       <FaChevronDown size={12} />
                     </button>
@@ -278,7 +286,7 @@ export default function InputTabs({
                             }}
                             type="button"
                           >
-                            {useCssOutputLabel}
+                            {finalUseCssOutputLabel}
                           </button>
                         )}
                       </div>
@@ -289,12 +297,13 @@ export default function InputTabs({
                   <div
                     className={styles.useOutputContainer}
                     ref={useJsOutputMenuRef}
+                    style={{ position: 'relative' }}
                   >
                     <button
                       className={styles.useOutputChevron}
                       onClick={() => setShowUseJsOutputMenu(!showUseJsOutputMenu)}
                       type="button"
-                      aria-label={useJsOutputLabel}
+                      aria-label={finalUseJsOutputLabel}
                     >
                       <FaChevronDown size={12} />
                     </button>
@@ -317,7 +326,7 @@ export default function InputTabs({
                             }}
                             type="button"
                           >
-                            {useJsOutputLabel}
+                            {finalUseJsOutputLabel}
                           </button>
                         )}
                       </div>

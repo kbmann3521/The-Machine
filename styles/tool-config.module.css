@@ -605,9 +605,8 @@
 
 .findReplaceToggles {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 8px;
   max-height: 300px;
   overflow-y: auto;
   padding-right: 4px;
@@ -619,13 +618,12 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--form-input-font-size, 12px);
   font-weight: 500;
   font-stretch: condensed;
   letter-spacing: -0.3px;
   color: var(--form-input-text, var(--color-text-primary));
-  white-space: nowrap;
 }
 
 
