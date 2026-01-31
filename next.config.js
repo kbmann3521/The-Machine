@@ -51,6 +51,23 @@ const nextConfig = {
   // Generate ETags for better caching
   generateEtags: true,
 
+  async redirects() {
+    return [
+      // Redirect non-www versions to www
+      {
+        source: '/:path*',
+        destination: 'https://www.pioneerwebtools.com/:path*',
+        permanent: true,
+        has: [
+          {
+            type: 'host',
+            value: '^pioneerwebtools\\.com$',
+          },
+        ],
+      },
+    ]
+  },
+
   async headers() {
     return [
       // Cache static assets (JS, CSS) for 1 year (immutable)

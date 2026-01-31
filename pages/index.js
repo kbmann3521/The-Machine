@@ -1071,7 +1071,7 @@ export default function Home(props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateFAQSchema()),
+            __html: JSON.stringify(generateFAQSchema(props?.seoSettings || {})),
           }}
         />
         <script
