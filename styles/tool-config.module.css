@@ -101,17 +101,40 @@
   border-radius: var(--form-input-border-radius, 5px);
   background-color: var(--form-input-bg, var(--color-background-secondary));
   color: var(--form-input-text, var(--color-text-primary));
-  transition: border-color 0.2s;
+  transition: none;
   width: 100%;
   box-sizing: border-box;
 }
 
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* Default to dark theme (white chevron) */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 18px;
+  padding-right: 32px;
+}
+
+:root[data-theme="light"] .select {
+  /* Light theme (dark chevron) */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
 .input:focus,
-.textarea:focus,
-.select:focus {
+.textarea:focus {
   outline: none;
   border-color: var(--form-input-focus-border, #0066cc);
   box-shadow: var(--form-input-focus-shadow, 0 0 0 2px rgba(0, 102, 204, 0.1));
+}
+
+.select:focus,
+.select:hover {
+  outline: none;
+  box-shadow: none;
+  /* Keep original border and background - no visual changes on focus/hover */
 }
 
 .input:disabled,
@@ -127,6 +150,7 @@
   resize: vertical;
   min-height: 100px;
 }
+
 
 /* Toggle Switch Styling (module version - see globals.css for global toggle classes) */
 /* These classes use the same height and styling as form inputs for consistency */

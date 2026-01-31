@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import styles from '../../styles/svg-optimizer.module.css'
 import toolConfigStyles from '../../styles/tool-config.module.css'
 
@@ -59,12 +59,39 @@ const PHASE2_PRESETS = {
   }
 }
 
-export default function Phase2Controls({ onConfigChange, safetyFlags }) {
-  const [selectedLevel, setSelectedLevel] = useState('safe')
+export default function Phase2Controls({ onConfigChange, safetyFlags, currentConfig = {} }) {
+  const [selectedLevel, setSelectedLevel] = useState(() =>
+    currentConfig?.phase2?.level || 'safe'
+  )
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const [phase2Source, setPhase2Source] = useState('preset')
-  const [advancedConfig, setAdvancedConfig] = useState(PHASE2_PRESETS.safe)
-  const [isMinified, setIsMinified] = useState(false)
+  const [phase2Source, setPhase2Source] = useState(() =>
+    currentConfig?.phase2?.source || 'preset'
+  )
+  const [advancedConfig, setAdvancedConfig] = useState(() =>
+    currentConfig?.phase2?.overrides || PHASE2_PRESETS[currentConfig?.phase2?.level || 'safe']
+  )
+  const [isMinified, setIsMinified] = useState(() =>
+    currentConfig?.outputFormat === 'compact'
+  )
+
+  // Track if we've already synced with currentConfig to avoid glitching
+  const hasInitializedRef = useRef(false)
+
+  // Sync state when currentConfig changes from parent (but only after initial mount)
+  useEffect(() => {
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true
+      return // Skip first effect run since we initialized via useState
+    }
+
+    if (!currentConfig || !currentConfig.phase2) return
+
+    const phase2Config = currentConfig.phase2
+    setSelectedLevel(phase2Config.level || 'safe')
+    setPhase2Source(phase2Config.source || 'preset')
+    setAdvancedConfig(phase2Config.overrides || PHASE2_PRESETS[phase2Config.level || 'safe'])
+    setIsMinified(currentConfig.outputFormat === 'compact')
+  }, [currentConfig?.phase2?.level, currentConfig?.phase2?.source, currentConfig?.outputFormat])
 
   const isAggressiveBlocked = safetyFlags?.hasAnimations || safetyFlags?.hasScripts || safetyFlags?.hasBrokenReferences
   const aggressiveBlockReason = safetyFlags?.hasAnimations

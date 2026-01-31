@@ -82,7 +82,7 @@ export default function SVGOptimizerOutput({ result, config, onJSONToggle }) {
   const [copiedSVG, setCopiedSVG] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
 
-  const outputFormat = config?.outputFormat || 'compact'
+  const outputFormat = config?.outputFormat || 'pretty'
   const formattedSvg = useMemo(() => {
     if (!result?.optimizedSvg) return ''
     return formatSVGOutput(result.optimizedSvg, outputFormat)
