@@ -577,6 +577,322 @@
   color: var(--color-text-primary);
 }
 
+/* New Comprehensive Analyzer Styling */
+.analyzerTableContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+}
+
+.analyzerMetricRow {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 0.2s ease;
+}
+
+.analyzerMetricRow:hover {
+  background-color: var(--color-background-secondary);
+}
+
+.analyzerMetricHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.analyzerMetricHeader:hover {
+  background-color: var(--color-background-secondary);
+}
+
+.analyzerMetricLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: capitalize;
+  letter-spacing: 0.4px;
+  flex: 1;
+}
+
+.analyzerMetricValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: right;
+}
+
+.analyzerMetricExpander {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.analyzerMetricDetail {
+  padding: 16px 16px 16px 16px;
+  background-color: var(--color-background-secondary);
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.analyzerMetricDetail pre {
+  margin: 8px 0 0 0;
+  padding: 8px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 11px;
+  line-height: 1.5;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.analyzerMetricDetail ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.analyzerMetricDetail li {
+  margin: 4px 0;
+}
+
+.whitespaceVisualization {
+  font-family: 'Courier New', monospace !important;
+  font-size: 11px !important;
+  color: var(--color-text-primary) !important;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+  padding: 8px 12px !important;
+  background-color: var(--color-background-primary) !important;
+  border-radius: 3px !important;
+  line-height: 1.6 !important;
+  border: 1px solid var(--color-border) !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  max-height: 200px !important;
+  transition: none !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--color-border) transparent !important;
+  margin-top: 8px !important;
+}
+
+.whitespaceVisualization::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.whitespaceVisualization::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.whitespaceVisualization::-webkit-scrollbar-thumb {
+  background-color: var(--color-border) !important;
+  border-radius: 3px !important;
+  border: 2px solid transparent !important;
+  background-clip: content-box !important;
+}
+
+.whitespaceVisualization::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-secondary) !important;
+  background-clip: content-box !important;
+}
+
+.analyzerSectionColorBar {
+  width: 4px;
+  height: 100%;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+/* Color coding for different metric categories */
+.analyzerMetricRow.basicCounts .analyzerSectionColorBar {
+  background-color: #3b82f6;
+}
+
+.analyzerMetricRow.characterAnalysis .analyzerSectionColorBar {
+  background-color: #8b5cf6;
+}
+
+.analyzerMetricRow.wordMetrics .analyzerSectionColorBar {
+  background-color: #ec4899;
+}
+
+.analyzerMetricRow.sentenceMetrics .analyzerSectionColorBar {
+  background-color: #f59e0b;
+}
+
+.analyzerMetricRow.paragraphMetrics .analyzerSectionColorBar {
+  background-color: #10b981;
+}
+
+.analyzerMetricRow.densityVocabulary .analyzerSectionColorBar {
+  background-color: #06b6d4;
+}
+
+.analyzerMetricRow.readabilityScores .analyzerSectionColorBar {
+  background-color: #ef4444;
+}
+
+.analyzerMetricRow.practicalMetrics .analyzerSectionColorBar {
+  background-color: #6366f1;
+}
+
+.analyzerMetricRow.readability .analyzerSectionColorBar {
+  background-color: #f43f5e;
+}
+
+.analyzerSearchContainer {
+  padding: 12px 16px;
+  background-color: var(--color-background-secondary);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 12px;
+}
+
+.analyzerSearchInput {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.analyzerSearchInput:focus {
+  outline: none;
+  border-color: var(--color-text-secondary);
+  background-color: var(--color-background-primary);
+}
+
+.analyzerSearchInput::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.tierHeader {
+  padding: 0;
+}
+
+.tierToggle {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--color-background-secondary);
+  border: none;
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.15s ease;
+}
+
+.tierToggle:hover {
+  background-color: var(--color-background-tertiary);
+}
+
+/* Visual representation for whitespace */
+.whitespaceVisualization {
+  margin: 8px 0 0 0;
+  padding: 8px 12px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--color-text-primary);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.whitespaceVisualization .space {
+  background-color: rgba(59, 130, 246, 0.3);
+  padding: 2px 4px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.whitespaceVisualization .tab {
+  background-color: rgba(139, 92, 246, 0.3);
+  padding: 2px 6px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.whitespaceVisualization .newline {
+  background-color: rgba(244, 63, 94, 0.3);
+  padding: 2px 4px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* Frequency table styling */
+.frequencyTable {
+  width: 100%;
+  margin: 8px 0 0 0;
+  border-collapse: collapse;
+  font-size: 11px;
+  background-color: var(--color-background-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.frequencyTable th,
+.frequencyTable td {
+  padding: 6px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.frequencyTable th {
+  background-color: var(--color-background-secondary);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.4px;
+}
+
+.frequencyTable tr:last-child td {
+  border-bottom: none;
+}
+
+.frequencyTable td {
+  color: var(--color-text-primary);
+}
+
+.frequencyTableWord {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 600;
+}
+
+.frequencyTableCount {
+  text-align: right;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.frequencyTablePercent {
+  text-align: right;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+
 .wordFrequencyView {
   display: flex;
   flex-direction: column;
@@ -706,6 +1022,105 @@
   background-color: var(--color-background-primary);
   border-radius: 3px;
   border: 1px solid var(--color-border);
+}
+
+/* Diff Checker Output */
+
+.diffCheckerView {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+}
+
+.diffSummary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+}
+
+.diffSummaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.diffSummaryLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.diffSummaryValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  font-family: 'Courier New', monospace;
+}
+
+.diffTable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.diffRow {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background-color: var(--color-background-secondary);
+  transition: background-color 0.2s;
+}
+
+.diffLineNum {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding-right: 8px;
+  border-right: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+}
+
+.diffColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diffColumnLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+}
+
+.diffColumnContent {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  word-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.5;
+  padding: 8px;
+  background-color: var(--color-background-primary);
+  border-radius: 3px;
+  border: 1px solid var(--color-border);
+  min-height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 /* ASCII/Unicode Converter Output */

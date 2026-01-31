@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Linting Example - All Rules Triggered</title>
+</head>
+<body>
+
+<!-- RULE 1 & 2: Multiple <h1> tags (should have only one) -->
+<h1>First Main Heading</h1>
+<p>This is the first H1, which is good.</p>
+
+<h1>Second Main Heading</h1>
+<p>This is a second H1, which violates the "multiple-h1" rule.</p>
+
+<!-- RULE 3: Skipped heading levels (H1 → H3, should go to H2) -->
+<h3>This Skips H2!</h3>
+<p>Jumped from H1 directly to H3, skipping H2. Violates "heading-increment" rule.</p>
+
+<!-- RULE 4: Excessive divs on one line -->
+<div><div><div>Too many divs on one line</div></div></div>
+
+<!-- RULE 5: Missing alt attribute on image -->
+<img src="test.jpg" />
+
+<!-- RULE 6: Empty alt attribute on image -->
+<img src="test2.jpg" alt="" />
+
+<!-- RULE 7: Missing href attribute on link -->
+<a>Click me (but I have no href)</a>
+
+<!-- RULE 8: Button with no visible text -->
+<button onclick="doSomething()"></button>
+
+<!-- RULE 9: Label missing for attribute -->
+<label>Enter your name:</label>
+<input type="text" id="username" />
+
+<!-- RULE 10: Input missing name attribute -->
+<input type="email" id="email" />
+
+<!-- RULE 11: Deprecated tags -->
+<font color="red">This uses deprecated font tag</font>
+<center>This uses deprecated center tag</center>
+<marquee>This uses deprecated marquee tag</marquee>
+
+<!-- RULE 12: Deprecated attributes -->
+<table border="1" cellpadding="5" cellspacing="0" align="center">
+  <tr>
+    <td align="right" valign="top">Cell</td>
+  </tr>
+</table>
+
+<!-- RULE 13: Inline styles (should use CSS classes) -->
+<div style="color: red; font-size: 18px; margin: 10px;">Styled with inline style attribute</div>
+<p style="background-color: yellow;">Another inline style</p>
+
+<!-- RULE 14: Inline event handlers (should use JavaScript event listeners) -->
+<button onclick="alert('clicked')">Click me</button>
+<div onmouseover="changeColor()" onload="init()">Hover over me</div>
+<img src="image.jpg" alt="Image" onerror="handleError()" onload="imageLoaded()" />
+
+<!-- RULE 5 again: Multiple images without alt tags -->
+<img src="photo1.jpg" />
+<img src="photo2.jpg" />
+<img src="photo3.jpg" />
+
+<!-- RULE 6 again: Another empty alt -->
+<img src="icon.png" alt="" />
+
+<!-- RULE 1 continuation: Trailing whitespace example -->
+<p>This line has trailing whitespace at the end.   </p>
+
+<!-- Multiple violations on single line -->
+<h1 style="color: blue;" onclick="doStuff()">Another H1 with inline style and handler</h1>
+
+<!-- More deprecated attribute examples -->
+<img src="old.jpg" width="200" height="150" />
+<hr width="50%" />
+
+<!-- Excessive divs in other forms -->
+<div><div><div><div>Four nested divs here</div></div></div></div>
+
+<!-- Another button without text -->
+<button title="Search"></button>
+
+<!-- Another form without proper structure -->
+<label for="nonexistent">Missing input element</label>
+<input type="password" />
+
+<!-- Another deprecated tag -->
+<applet code="something"></applet>
+
+</body>
+</html>

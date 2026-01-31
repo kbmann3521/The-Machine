@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HTML Renderer Stress Test Elements</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fb;
+      color: #1f2933;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .page-header,
+    .section-block {
+      background-color: #ffffff;
+      border: 1px solid #dce3f0;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .section-block {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 1.25rem;
+      color: #0f172a;
+    }
+
+    .section-description {
+      margin: 0 0 16px;
+      color: #3c4a63;
+    }
+
+    .section-separator {
+      border: 0;
+      border-top: 2px dashed #c6cfdf;
+      margin: 24px 0;
+    }
+
+    .heading-stack h1,
+    .heading-stack h2,
+    .heading-stack h3,
+    .heading-stack h4,
+    .heading-stack h5,
+    .heading-stack h6 {
+      margin: 4px 0;
+    }
+
+    .highlight-text {
+      background-color: #fff3c4;
+      padding: 0 6px;
+      border-radius: 4px;
+    }
+
+    .quote-callout {
+      margin: 0;
+      padding: 16px 20px;
+      border-left: 4px solid #3b82f6;
+      background-color: #eff6ff;
+      border-radius: 6px;
+      color: #1e3a8a;
+    }
+
+    .quote-citation {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: #475569;
+    }
+
+    .styled-list,
+    .ordered-list,
+    .definition-list {
+      margin: 0;
+      padding-left: 24px;
+    }
+
+    .image-figure {
+      margin: 0;
+      text-align: center;
+    }
+
+    .responsive-image {
+      max-width: 100%;
+      border-radius: 12px;
+      border: 6px solid #ecf2ff;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.15);
+    }
+
+    .image-caption {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .primary-button,
+    .outline-button,
+    .ghost-button {
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 0;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .primary-button {
+      background: linear-gradient(135deg, #4c6ef5, #5ec2ff);
+      color: #ffffff;
+      box-shadow: 0 12px 20px rgba(76, 110, 245, 0.35);
+    }
+
+    .outline-button {
+      border: 2px solid #4c6ef5;
+      background-color: transparent;
+      color: #4c6ef5;
+    }
+
+    .ghost-button {
+      background-color: rgba(76, 110, 245, 0.1);
+      color: #64748b;
+      cursor: not-allowed;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-label {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .text-input,
+    .select-input,
+    .multiline-input {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #cbd5f5;
+      background-color: #f8faff;
+      font-size: 1rem;
+      color: #0f172a;
+    }
+
+    .multiline-input {
+      min-height: 120px;
+    }
+
+    .option-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .progress-indicator,
+    .meter-indicator {
+      width: 100%;
+      height: 20px;
+      border-radius: 10px;
+    }
+
+    .table-demo {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table-demo caption {
+      caption-side: top;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .table-demo th,
+    .table-demo td {
+      border: 1px solid #b8c4dd;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .table-demo tbody tr:nth-child(even) {
+      background-color: #f1f5ff;
+    }
+
+    .media-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .media-wrapper video,
+    .media-wrapper audio {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #c8d3eb;
+      background-color: #000000;
+    }
+
+    .semantic-layout {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 2fr 1fr;
+    }
+
+    .primary-article {
+      background-color: #f0f9ff;
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid #bae6fd;
+    }
+
+    .supporting-aside {
+      background-color: #fef3c7;
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid #fcd34d;
+    }
+
+    .code-sample {
+      margin: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 18px;
+      border-radius: 12px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.95rem;
+      overflow-x: auto;
+    }
+
+    .details-panel {
+      border: 1px solid #94a3b8;
+      border-radius: 10px;
+      padding: 12px 16px;
+      background-color: #f8fafc;
+    }
+
+    .details-summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #2563eb;
+    }
+
+    .marquee-banner {
+      padding: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ec4899, #8b5cf6, #0ea5e9);
+      color: #ffffff;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 20px;
+      }
+
+      .semantic-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <h1>HTML Renderer Stress Test Collection</h1>
+      <p class="section-description">
+        Each section below showcases a specific HTML element or a related group, separated by <code>&lt;hr&gt;</code> tags to help you
+        evaluate styling, sanitization, and selector detection in isolation.
+      </p>
+    </header>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="headings-demo">
+      <h2 class="section-title" id="headings-demo">Heading Samples</h2>
+      <p class="section-description">All heading levels are stacked to verify typography consistency.</p>
+      <div class="heading-stack">
+        <h1>Heading Level One</h1>
+        <h2>Heading Level Two</h2>
+        <h3>Heading Level Three</h3>
+        <h4>Heading Level Four</h4>
+        <h5>Heading Level Five</h5>
+        <h6>Heading Level Six</h6>
+      </div>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="text-formatting">
+      <h2 class="section-title" id="text-formatting">Text Formatting</h2>
+      <p class="section-description">Test inline semantics including emphasis, highlights, links, and blockquotes.</p>
+      <p>
+        <strong>Bold text</strong>, <em>italic text</em>, <span class="highlight-text">highlighted phrases</span>,
+        <code>inline code</code>, and accessible <a href="https://example.com" rel="noreferrer noopener">links</a>
+        appear together here for visual comparison.
+      </p>
+      <blockquote class="quote-callout">
+        "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away."
+        <cite class="quote-citation">— Antoine de Saint-Exupéry</cite>
+      </blockquote>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="list-structures">
+      <h2 class="section-title" id="list-structures">List Structures</h2>
+      <p class="section-description">Unordered, ordered, and definition lists for layout verification.</p>
+      <ul class="styled-list">
+        <li>Discovery</li>
+        <li>Planning</li>
+        <li>Execution</li>
+      </ul>
+      <ol class="ordered-list">
+        <li>Research requirements</li>
+        <li>Create milestones</li>
+        <li>Deliver iteratively</li>
+      </ol>
+      <dl class="definition-list">
+        <dt>API</dt>
+        <dd>Application Programming Interface</dd>
+        <dt>SPA</dt>
+        <dd>Single Page Application</dd>
+      </dl>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="image-figure">
+      <h2 class="section-title" id="image-figure">Image &amp; Figure</h2>
+      <p class="section-description">Responsive image rendering and caption alignment.</p>
+      <figure class="image-figure">
+        <img
+          class="responsive-image"
+          src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=60"
+          alt="Sunlit mountain landscape with a winding river"
+          width="900"
+          height="540"
+          loading="lazy"
+        />
+        <figcaption class="image-caption">An expansive alpine valley captured during golden hour.</figcaption>
+      </figure>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="button-showcase">
+      <h2 class="section-title" id="button-showcase">Buttons</h2>
+      <p class="section-description">Different button states, fill styles, and disabled behavior.</p>
+      <div class="button-row">
+        <button type="button" class="primary-button">Primary Action</button>
+        <button type="button" class="outline-button">Outline Button</button>
+        <button type="button" class="ghost-button" disabled>Ghost Disabled</button>
+      </div>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="form-controls">
+      <h2 class="section-title" id="form-controls">Form Controls</h2>
+      <p class="section-description">Text inputs, selections, radios, checkboxes, progress, and meter elements.</p>
+      <form class="form-grid">
+        <label class="field-group">
+          <span class="field-label">Full Name</span>
+          <input class="text-input" type="text" name="fullName" placeholder="Alex Rivera" />
+        </label>
+        <label class="field-group">
+          <span class="field-label">Email Address</span>
+          <input class="text-input" type="email" name="email" placeholder="alex@example.com" />
+        </label>
+        <label class="field-group">
+          <span class="field-label">Select a Region</span>
+          <select class="select-input" name="region">
+            <option value="">Choose one</option>
+            <option value="na">North America</option>
+            <option value="eu">Europe</option>
+            <option value="apac">Asia-Pacific</option>
+          </select>
+        </label>
+        <label class="field-group">
+          <span class="field-label">Project Summary</span>
+          <textarea class="multiline-input" name="summary" placeholder="Describe the goal in a few sentences."></textarea>
+        </label>
+        <fieldset class="field-group">
+          <legend class="field-label">Delivery Preference</legend>
+          <div class="option-stack">
+            <label><input type="radio" name="delivery" value="standard" checked /> Standard</label>
+            <label><input type="radio" name="delivery" value="express" /> Express</label>
+          </div>
+        </fieldset>
+        <fieldset class="field-group">
+          <legend class="field-label">Platforms</legend>
+          <div class="option-stack">
+            <label><input type="checkbox" name="platforms" value="ios" /> iOS</label>
+            <label><input type="checkbox" name="platforms" value="android" /> Android</label>
+            <label><input type="checkbox" name="platforms" value="web" /> Web</label>
+          </div>
+        </fieldset>
+        <label class="field-group">
+          <span class="field-label">Upload Progress</span>
+          <progress class="progress-indicator" value="65" max="100">65%</progress>
+        </label>
+        <label class="field-group">
+          <span class="field-label">Usage Meter</span>
+          <meter class="meter-indicator" value="0.4" min="0" max="1">40%</meter>
+        </label>
+      </form>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="table-demo">
+      <h2 class="section-title" id="table-demo">Tables</h2>
+      <p class="section-description">Tabular data with caption, head, body, zebra striping, and numeric alignment.</p>
+      <table class="table-demo">
+        <caption>Weekly Production Metrics</caption>
+        <thead>
+          <tr>
+            <th scope="col">Day</th>
+            <th scope="col">Units</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Monday</td>
+            <td>120</td>
+            <td>Ramp-up activities</td>
+          </tr>
+          <tr>
+            <td>Tuesday</td>
+            <td>145</td>
+            <td>Peak output</td>
+          </tr>
+          <tr>
+            <td>Wednesday</td>
+            <td>138</td>
+            <td>Routine maintenance</td>
+          </tr>
+          <tr>
+            <td>Thursday</td>
+            <td>150</td>
+            <td>Record throughput</td>
+          </tr>
+          <tr>
+            <td>Friday</td>
+            <td>112</td>
+            <td>Short staffing</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="media-elements">
+      <h2 class="section-title" id="media-elements">Audio &amp; Video</h2>
+      <p class="section-description">Media tags with controls, poster image, and fallback text.</p>
+      <div class="media-wrapper">
+        <video controls poster="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=60">
+          <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <audio controls>
+          <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3" type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="semantic-layout">
+      <h2 class="section-title" id="semantic-layout">Article &amp; Aside</h2>
+      <p class="section-description">Semantic containers arranged via CSS grid.</p>
+      <div class="semantic-layout">
+        <article class="primary-article">
+          <h3>Product Launch Recap</h3>
+          <time dateTime="2024-04-18">April 18, 2024</time>
+          <p>
+            The launch introduced adaptive theming, multilingual support, and near-real-time collaboration powered by edge runtimes.
+          </p>
+        </article>
+        <aside class="supporting-aside">
+          <h3>Quick Stats</h3>
+          <ul>
+            <li>12K beta sign-ups</li>
+            <li>97% satisfaction</li>
+            <li>Sub-200ms latency</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="code-sample">
+      <h2 class="section-title" id="code-sample">Preformatted Code</h2>
+      <p class="section-description">Ensure code fences retain whitespace and horizontal scrolling.</p>
+      <pre class="code-sample"><code>function formatMarkdown(input) {
+  return marked.parse(input, { mangle: false, headerIds: true });
+}
+
+const htmlString = formatMarkdown("## Sample Heading\n\nContent block.");
+console.log(htmlString);
+</code></pre>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="details-summary">
+      <h2 class="section-title" id="details-summary">Details &amp; Summary</h2>
+      <p class="section-description">Collapsible disclosure widget with nested content.</p>
+      <details class="details-panel" open>
+        <summary class="details-summary">Environment Setup Checklist</summary>
+        <ul>
+          <li>Install dependencies with <code>npm install</code></li>
+          <li>Create an <code>.env.local</code> file with required keys</li>
+          <li>Run tests via <code>npm run test</code></li>
+        </ul>
+      </details>
+    </section>
+
+    <hr class="section-separator" />
+
+    <section class="section-block" aria-labelledby="marquee-demo">
+      <h2 class="section-title" id="marquee-demo">Marquee</h2>
+      <p class="section-description">Deprecated marquee element retained for sanitization testing.</p>
+      <marquee class="marquee-banner" behavior="alternate" scrollamount="6">
+        Experimental marquee content for legacy compatibility checks.
+      </marquee>
+    </section>
+  </main>
+</body>
+</html>

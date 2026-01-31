@@ -1,0 +1,1731 @@
+/* Rule Inspector Panel — Right Drawer for Phase 6 */
+
+.inspectorPanel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-left: 1px solid var(--color-border, #ddd);
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.inspectorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--color-background-primary, #fff);
+  border-bottom: 1px solid var(--color-border, #ddd);
+  flex-shrink: 0;
+}
+
+.inspectorTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inspectorTitle code {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(0, 102, 204, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #0066cc;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #666);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-text-primary, #000);
+}
+
+.rulesList {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.rulesList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.rulesList::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.rulesList::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.rulesList::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.ruleItem {
+  margin-bottom: 8px;
+  background-color: var(--color-background-primary, #fff);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  overflow: visible;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.ruleHeaderContainer {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  gap: 0;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.ruleHeaderContainer:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+}
+
+.ruleHeaderContainer.expanded {
+  background-color: rgba(0, 102, 204, 0.05);
+  border-bottom-color: var(--color-border, #ddd);
+}
+
+.ruleHeader {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  text-align: left;
+}
+
+.ruleHeader:hover {
+  background-color: transparent;
+}
+
+.ruleHeader.expanded {
+  background-color: transparent;
+}
+
+.ruleHeaderTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ruleHeaderBottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.ruleChevron {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  min-width: 12px;
+  flex-shrink: 0;
+}
+
+.ruleLabel {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  word-break: break-word;
+  color: #0066cc;
+}
+
+.ruleOrigin {
+  font-size: 10px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(0, 102, 204, 0.08);
+  color: rgba(0, 102, 204, 0.8);
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.duplicateIndicatorButton {
+  font-size: 10px;
+  padding: 4px 6px;
+  background-color: rgba(156, 39, 176, 0.1);
+  color: #7b1fa2;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-family: inherit;
+  align-self: flex-end;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.duplicateIndicatorButton:hover {
+  background-color: rgba(156, 39, 176, 0.2);
+  border-color: #7b1fa2;
+  box-shadow: 0 1px 3px rgba(156, 39, 176, 0.2);
+}
+
+.duplicateIndicatorButton:active {
+  transform: scale(0.95);
+}
+
+
+
+.propertyToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0;
+  background-color: #0066cc;
+  border: 2px solid #0066cc;
+  border-radius: 3px;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.propertyToggleBtn:hover {
+  background-color: #0052a3;
+  border-color: #0052a3;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.propertyToggleBtn:active {
+  transform: scale(0.9);
+}
+
+.propertyToggleBtn.propertyToggleBtnActive {
+  background-color: transparent;
+  border-color: #ccc;
+  color: #ccc;
+}
+
+.declarationDisabled {
+  opacity: 0.5;
+  text-decoration: line-through;
+  background-color: rgba(255, 152, 0, 0.05) !important;
+}
+
+.declarationsContainer {
+  padding: 8px;
+  background-color: rgba(0, 102, 204, 0.02);
+}
+
+.declarations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.declaration {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 2px;
+  background-color: var(--color-background-primary, #fff);
+  word-break: break-word;
+  min-width: 0;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* Impact Classification Styles */
+
+.impactBadge {
+  font-size: 11px;
+  margin-right: 2px;
+  flex-shrink: 0;
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* All properties are now editable with impact indicators */
+.declaration {
+  background-color: rgba(255, 193, 7, 0.05);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.declaration:hover {
+  background-color: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.4);
+}
+
+/* Impact class styling for additional visual distinction */
+.declaration.impact-visual {
+  border-left-color: #66bb6a;
+}
+
+.declaration.impact-layout {
+  border-left-color: #ffc107;
+}
+
+.declaration.impact-interactive {
+  border-left-color: #2196f3;
+}
+
+.declaration.impact-structural {
+  border-left-color: #f44336;
+}
+
+.declaration.impact-unknown {
+  border-left-color: #9e9e9e;
+}
+
+.property {
+  font-weight: 600;
+  color: #d73a49;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.colon {
+  color: var(--color-text-secondary, #666);
+  display: inline;
+  padding: 0 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.value {
+  color: #0066cc;
+  flex: 1 1 auto;
+  word-break: break-word;
+  min-width: 0;
+  white-space: normal;
+}
+
+.cascadeStatus {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-secondary, #666);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.semicolon {
+  color: var(--color-text-secondary, #666);
+}
+
+.editButton {
+  background: none;
+  border: none;
+  color: #ffc107;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.editButton:hover {
+  opacity: 1;
+}
+
+.noDeclarations {
+  padding: 8px;
+  color: var(--color-text-secondary, #666);
+  font-style: italic;
+  font-size: 11px;
+  text-align: center;
+}
+
+.inspectorFooter {
+  padding: 8px 12px;
+  background-color: var(--color-background-primary, #fff);
+  border-top: 1px solid var(--color-border, #ddd);
+  flex-shrink: 0;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.applyEditsButton {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: #0066cc;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.applyEditsButton:hover {
+  background-color: #0052a3;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+}
+
+/* Phase 7A & 7B: Impact Analysis & Dead Rule Detection Styles */
+
+.impactInfo {
+  padding: 8px;
+  background-color: rgba(102, 187, 106, 0.08);
+  border-left: 3px solid #66bb6a;
+  margin-bottom: 8px;
+  border-radius: 2px;
+}
+
+/* Highlight Selector Button */
+
+.highlightSelectorButton {
+  width: 100%;
+  padding: 8px 10px;
+  background-color: rgba(156, 39, 176, 0.08);
+  border: 1px solid rgba(156, 39, 176, 0.3);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7b1fa2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.highlightSelectorButton:hover {
+  background-color: rgba(156, 39, 176, 0.15);
+  border-color: #7b1fa2;
+}
+
+.highlightSelectorButton.highlightSelectorButtonActive {
+  background-color: rgba(156, 39, 176, 0.25);
+  border-color: #7b1fa2;
+  box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
+}
+
+.impactInfo.impactInfoRedundant {
+  background-color: rgba(76, 175, 200, 0.08);
+  border-left-color: #4cafca;
+}
+
+.redundancyIndicator {
+  padding: 6px 8px;
+  background-color: rgba(76, 175, 200, 0.15);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4cafca;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(76, 175, 200, 0.3);
+}
+
+.impactSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.impactSection.impactSectionWithButton {
+  margin-top: 12px;
+}
+
+.impactLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #66bb6a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.impactElement {
+  font-size: 11px;
+  color: var(--color-text-primary, #000);
+  font-family: 'Courier New', monospace;
+  padding: 4px 8px;
+  background-color: rgba(102, 187, 106, 0.1);
+  border-radius: 2px;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.impactElement:hover {
+  background-color: rgba(102, 187, 106, 0.25);
+  border-left: 2px solid #66bb6a;
+  padding-left: 6px;
+}
+
+.impactProperties {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-left: 8px;
+  padding-top: 4px;
+}
+
+.impactProperty {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: var(--color-text-secondary, #666);
+  flex-wrap: wrap;
+  word-break: break-word;
+}
+
+.impactPropName {
+  font-weight: 600;
+  color: #d73a49;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.impactEffective {
+  color: #66bb6a;
+  font-weight: 500;
+  font-size: 10px;
+}
+
+.impactInert {
+  color: #9e9e9e;
+  font-weight: 500;
+  font-size: 10px;
+}
+
+.impactDisabled {
+  color: #ffb74d;
+  font-weight: 500;
+  font-size: 10px;
+}
+
+.impactOverriddenBy {
+  color: #ff9800;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+/* Editor Container for Phase 6(B) */
+
+.editorContainer {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.confirmEditButton {
+  background: none;
+  border: none;
+  color: #66bb6a;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.confirmEditButton:hover {
+  opacity: 1;
+}
+
+/* Phase 7C: Refactor Suggestions Panel */
+
+.suggestionsPanelCollapsible {
+  margin-top: 8px;
+  border-top: 1px solid rgba(33, 150, 243, 0.2);
+}
+
+.suggestionsToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-align: left;
+}
+
+.suggestionsToggle:hover {
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+.suggestionsToggle.suggestionsToggleExpanded {
+  color: #2196f3;
+  background-color: rgba(33, 150, 243, 0.08);
+}
+
+.suggestionsChevron {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  min-width: 8px;
+}
+
+.suggestionsLabel {
+  flex: 1;
+}
+
+.suggestionsPanel {
+  padding: 8px;
+  background-color: rgba(33, 150, 243, 0.04);
+  border-left: 3px solid #2196f3;
+  margin-bottom: 8px;
+  border-radius: 2px;
+}
+
+.suggestionItem {
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border-left: 2px solid rgba(33, 150, 243, 0.3);
+  border-radius: 2px;
+  font-size: 10px;
+}
+
+.suggestionItem.severity-info {
+  border-left-color: #2196f3;
+}
+
+.suggestionItem.severity-low {
+  border-left-color: #ffc107;
+}
+
+.suggestionItem.severity-medium {
+  border-left-color: #ff9800;
+}
+
+.suggestionItem.severity-high {
+  border-left-color: #f44336;
+}
+
+.suggestionTitle {
+  font-weight: 600;
+  color: #2196f3;
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+
+.suggestionDescription {
+  color: var(--color-text-secondary, #666);
+  font-size: 10px;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+
+.suggestionDetails {
+  color: #999;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  padding: 3px 6px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 2px;
+  margin-top: 3px;
+  word-break: break-word;
+}
+
+.suggestionProperties {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.suggestionProperty {
+  display: flex;
+  gap: 6px;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.suggestionPropName {
+  font-weight: 600;
+  color: #d73a49;
+  min-width: 80px;
+}
+
+.suggestionPropValue {
+  color: #0066cc;
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Apply Refactor Button */
+
+.applyRefactorButton {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background-color: rgba(76, 175, 200, 0.15);
+  border: 1px solid rgba(76, 175, 200, 0.4);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #4cafca;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  text-align: center;
+}
+
+.applyRefactorButton:hover {
+  background-color: rgba(76, 175, 200, 0.25);
+  border-color: rgba(76, 175, 200, 0.6);
+  box-shadow: 0 1px 4px rgba(76, 175, 200, 0.2);
+}
+
+/* Confirmation Modal Overlay */
+
+.confirmationOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirmationModal {
+  background-color: var(--color-background-primary, #fff);
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 420px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.2s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb, #ccc) transparent;
+}
+
+.confirmationModal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.confirmationModal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.confirmationModal::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #ccc);
+  border-radius: 2px;
+}
+
+.confirmationModal::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #999);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.confirmationHeader {
+  padding: 16px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-bottom: 1px solid var(--color-border, #ddd);
+}
+
+.confirmationTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+}
+
+.confirmationContent {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb, #ccc) transparent;
+}
+
+.confirmationContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.confirmationContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.confirmationContent::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #ccc);
+  border-radius: 2px;
+}
+
+.confirmationContent::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #999);
+}
+
+.confirmationWarning {
+  margin: 0 0 12px 0;
+  padding: 8px 12px;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 3px solid #ff9800;
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.4;
+}
+
+.confirmationDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.confirmationDetailItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.confirmationDetailLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  flex-shrink: 0;
+  min-width: 60px;
+}
+
+.confirmationDetailValue {
+  color: var(--color-text-primary, #000);
+  font-family: 'Courier New', monospace;
+  word-break: break-word;
+}
+
+.confirmationActions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-top: 1px solid var(--color-border, #ddd);
+  justify-content: flex-end;
+}
+
+.confirmationCancelButton {
+  padding: 6px 16px;
+  background-color: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirmationCancelButton:hover {
+  background-color: var(--color-background-primary, #fff);
+  border-color: var(--color-text-secondary, #666);
+}
+
+.confirmationRemoveButton {
+  padding: 6px 16px;
+  background-color: #f44336;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirmationRemoveButton:hover {
+  background-color: #d32f2f;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+/* Merge Selector Confirmation Styles (Phase 7E) */
+.mergeSummaryStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.mergeSummaryStat {
+  padding: 6px 8px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.mergeSummaryStatLabel {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
+}
+
+.mergeSummaryStatValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0066cc;
+  line-height: 1;
+}
+
+.mergeDetailsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  max-height: none;
+  overflow-y: visible;
+  padding-right: 8px;
+}
+
+.mergeDetailsTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.mergeDetailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border-left: 2px solid #0066cc;
+  border-radius: 3px;
+}
+
+.mergeDetailSelector {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0066cc;
+}
+
+.mergeDetailChange {
+  font-size: 11px;
+  color: var(--color-text-primary, #000);
+}
+
+.mergeDetailDeclarations {
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  display: block;
+}
+
+.mergeDetailLines {
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  font-family: 'Courier New', monospace;
+}
+
+.mergePreviewToggle {
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+  margin: 8px 0;
+}
+
+.mergePreviewToggle:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.mergePreviewContent {
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  margin: 8px 0;
+  height: 120px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.mergePreviewText {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0;
+}
+
+.confirmationMergeButton {
+  padding: 6px 16px;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirmationMergeButton:hover:not(:disabled) {
+  background-color: #388e3c;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.confirmationMergeButton:disabled {
+  background-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Merge Selector Modal - Selective Merging Styles */
+
+.mergeDetailsHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.mergeSelectAllButton {
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.mergeSelectAllButton:hover {
+  background-color: rgba(0, 102, 204, 0.05);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.mergeSelectableItem {
+  padding: 8px 12px;
+  background-color: var(--color-background-secondary, #f9f9f9);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.mergeSelectableItem:hover {
+  border-color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.03);
+}
+
+.mergeSelectableHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mergeCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: #0066cc;
+}
+
+.mergeDetailSelector {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0066cc;
+  flex: 1;
+}
+
+.mergeDetailChange {
+  font-size: 11px;
+  color: var(--color-text-secondary, #666);
+  flex-shrink: 0;
+  min-width: 50px;
+  text-align: right;
+}
+
+.mergeExpandButton {
+  padding: 2px 6px;
+  background-color: transparent;
+  border: none;
+  border-radius: 2px;
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mergeExpandButton:hover:not(:disabled) {
+  background-color: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
+}
+
+.mergeExpandButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--color-text-secondary, #999);
+}
+
+.mergeCodePreview {
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 102, 204, 0.2);
+  border-radius: 3px;
+  margin-left: 24px;
+}
+
+.mergeCodePreviewText {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0;
+}
+
+/* Add New Property Section */
+
+.addPropertySection {
+  padding: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: 6px;
+}
+
+.addPropertyButton {
+  width: 100%;
+  padding: 6px 8px;
+  background-color: rgba(102, 187, 106, 0.08);
+  border: 1px dashed rgba(102, 187, 106, 0.4);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #66bb6a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+}
+
+.addPropertyButton:hover {
+  background-color: rgba(102, 187, 106, 0.15);
+  border-style: solid;
+  box-shadow: 0 1px 4px rgba(102, 187, 106, 0.2);
+}
+
+.addPropertyForm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background-color: rgba(102, 187, 106, 0.05);
+  border: 1px solid rgba(102, 187, 106, 0.2);
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 36px;
+}
+
+.inputFieldsContainer {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.propertyInput {
+  flex: 0 0 80px;
+  min-width: 0;
+  padding: 4px 6px;
+  background-color: var(--color-background-primary, #fff);
+  border: 1px solid rgba(0, 102, 204, 0.3);
+  border-radius: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #d73a49;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.propertyInput::placeholder {
+  color: rgba(215, 58, 73, 0.5);
+}
+
+.propertyInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.valueInput {
+  flex: 1 1 auto;
+  min-width: 60px;
+  padding: 4px 6px;
+  background-color: var(--color-background-primary, #fff);
+  border: 1px solid rgba(0, 102, 204, 0.3);
+  border-radius: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #0066cc;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 100%;
+}
+
+.valueInput::placeholder {
+  color: rgba(0, 102, 204, 0.5);
+}
+
+.valueInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.confirmAddButton {
+  background: none;
+  border: none;
+  color: #66bb6a;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.confirmAddButton:hover {
+  opacity: 1;
+  background-color: rgba(102, 187, 106, 0.15);
+}
+
+.confirmAddButton:active {
+  transform: scale(0.95);
+}
+
+.cancelAddButton {
+  background: none;
+  border: none;
+  color: #ff9800;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.cancelAddButton:hover {
+  opacity: 1;
+  background-color: rgba(255, 152, 0, 0.15);
+}
+
+.cancelAddButton:active {
+  transform: scale(0.95);
+}
+
+/* Added Properties (properties added via "+ Add Property" button) */
+
+.addedProperty {
+  background-color: rgba(102, 187, 106, 0.12) !important;
+  border: 1px solid rgba(102, 187, 106, 0.3) !important;
+  border-left-color: #66bb6a;
+}
+
+.addedProperty:hover {
+  background-color: rgba(102, 187, 106, 0.2) !important;
+  border-color: rgba(102, 187, 106, 0.5) !important;
+}
+
+.removeAddedPropertyButton {
+  background: none;
+  border: none;
+  color: #ff9800;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+.removeAddedPropertyButton:hover {
+  opacity: 1;
+  background-color: rgba(255, 152, 0, 0.15);
+}
+
+/* Overridden Properties (properties overridden by later rules) */
+
+.propertyOverridden {
+  opacity: 0.65;
+  background-color: rgba(156, 39, 176, 0.06) !important;
+  border-left-color: #9c27b0 !important;
+}
+
+.propertyOverridden:hover {
+  opacity: 0.8;
+  background-color: rgba(156, 39, 176, 0.12) !important;
+}
+
+.propertyOverridden .property {
+  color: #9c27b0;
+  text-decoration: line-through;
+  text-decoration-color: #9c27b0;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* Overridden Property Modal Styles */
+
+.overriddenPropertyDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px;
+  background-color: rgba(255, 152, 0, 0.05);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
+.overriddenPropertySection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overriddenPropertyLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.overriddenPropertyValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.overriddenPropertySelector {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.overriddenPropertyLineNumber {
+  font-size: 10px;
+  color: var(--color-text-secondary, #999);
+  padding: 2px 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+  font-family: monospace;
+}
+
+.overriddenPropertyDecl {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--color-text-secondary, #666);
+  padding: 6px 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 3px;
+  margin-left: 8px;
+}
+
+.overriddenPropertyDeclValue {
+  color: #0066cc;
+  font-weight: 600;
+}
+
+.overriddenPropertyOrigin {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  padding: 2px 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.overriddenPropertyArrow {
+  text-align: center;
+  font-size: 16px;
+  color: #ff9800;
+  margin: 8px 0;
+}
+
+.solutionsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border-left: 3px solid #2196f3;
+  border-radius: 2px;
+  margin: 12px 0;
+}
+
+.solutionsLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2196f3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.solutionItem {
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  background-color: rgba(33, 150, 243, 0.08);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 3px;
+}
+
+.solutionNumber {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #2196f3;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.solutionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.solutionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+}
+
+.solutionDescription {
+  font-size: 10px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.4;
+}
+
+.inlineCode {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #d73a49;
+  font-weight: 600;
+}
+
+.solutionPros {
+  font-size: 10px;
+  color: #66bb6a;
+  margin-top: 4px;
+  padding: 4px 6px;
+  background-color: rgba(102, 187, 106, 0.08);
+  border-radius: 2px;
+}
+
+.solutionProLabel {
+  font-weight: 600;
+}
+
+.solutionCons {
+  font-size: 10px;
+  color: #ff9800;
+  margin-top: 3px;
+  padding: 4px 6px;
+  background-color: rgba(255, 152, 0, 0.08);
+  border-radius: 2px;
+}
+
+/* Selector Dropdown Scrollbar Styling */
+
+/* Direction Choice Modal Styles */
+
+.directionWarning {
+  padding: 12px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.directionWarning p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--color-text-primary, #000);
+  line-height: 1.5;
+}
+
+.directionWarning ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--color-text-primary, #000);
+}
+
+.directionWarning li {
+  margin: 4px 0;
+}
+
+.directionWarning code {
+  font-family: 'Courier New', monospace;
+  background-color: rgba(0, 102, 204, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #0066cc;
+}
+
+.directionChoices {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.directionButtonHtml,
+.directionButtonCss {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background-color: var(--color-background-secondary, #f5f5f5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-align: center;
+}
+
+.directionButtonHtml {
+  border-color: rgba(244, 67, 54, 0.3);
+  background-color: rgba(244, 67, 54, 0.05);
+}
+
+.directionButtonHtml:hover {
+  border-color: rgba(244, 67, 54, 0.6);
+  background-color: rgba(244, 67, 54, 0.12);
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+.directionButtonHtml:active {
+  transform: scale(0.98);
+}
+
+.directionButtonCss {
+  border-color: rgba(76, 175, 80, 0.3);
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.directionButtonCss:hover {
+  border-color: rgba(76, 175, 80, 0.6);
+  background-color: rgba(76, 175, 80, 0.12);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.directionButtonCss:active {
+  transform: scale(0.98);
+}
+
+.directionButtonIcon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.directionButtonLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary, #000);
+}
+
+.directionButtonInfo {
+  font-size: 11px;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.4;
+}
+
+.selectorDropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.selectorDropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.selectorDropdown::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #ccc);
+  border-radius: 3px;
+}
+
+.selectorDropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #999);
+}
+
+.solutionConLabel {
+  font-weight: 600;
+}

@@ -7,22 +7,76 @@ import Phase2Controls from './SVGOptimizer/Phase2Controls'
 // Lazy-load RegexToolkit - only needed when configuring regex patterns
 const RegexToolkit = dynamic(() => import('./RegexToolkit'), { ssr: false })
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, onSetGeneratedText }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, markdownInputMode = 'input', cssConfigOptions = {}, onCssConfigChange = null }) {
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
+  const [localDelimiter, setLocalDelimiter] = useState(delimiterTransformerConfig?.delimiter ?? ' ')
+  const [localJoinSeparator, setLocalJoinSeparator] = useState(delimiterTransformerConfig?.joinSeparator ?? ' ')
 
   useEffect(() => {
-    if (tool?.configSchema) {
-      const initialConfig = {}
-      tool.configSchema.forEach(field => {
-        initialConfig[field.id] = field.default || ''
+    if (!tool?.configSchema) return
+
+    const initialConfig = {}
+
+    // Use the base schema (HTML/MD options for markdown formatter)
+    const effectiveSchema = tool.configSchema
+
+    // Initialize with all defaults from effective schema
+    effectiveSchema.forEach(field => {
+      initialConfig[field.id] = field.default !== undefined ? field.default : ''
+    })
+
+    // Build the final config by merging with currentConfig
+    let mergedConfig = { ...initialConfig }
+
+    if (currentConfig && typeof currentConfig === 'object') {
+      Object.entries(currentConfig).forEach(([key, value]) => {
+        // Allow empty strings for pattern field (regex tester needs to support empty patterns)
+        if (value !== undefined && value !== null) {
+          if (value !== '' || key === 'pattern') {
+            mergedConfig[key] = value
+          }
+        }
       })
-      // Merge with currentConfig (which includes suggestedConfig from API)
-      const mergedConfig = { ...initialConfig, ...currentConfig }
-      setConfig(mergedConfig)
     }
-  }, [tool?.toolId, currentConfig])
+
+    setConfig(mergedConfig)
+  }, [tool?.toolId, currentConfig, tool?.configSchema])
+
+  useEffect(() => {
+    if (tool?.toolId !== 'web-playground') {
+      return
+    }
+
+    const mode = contentClassification?.mode || 'markdown'
+    const allowedValues = new Set(['none'])
+    if (mode === 'markdown') {
+      allowedValues.add('html')
+    }
+    if (mode === 'html') {
+      allowedValues.add('markdown')
+    }
+
+    setConfig(prevConfig => {
+      if (!prevConfig || prevConfig.convertTo === undefined || allowedValues.has(prevConfig.convertTo)) {
+        return prevConfig
+      }
+      const updatedConfig = { ...prevConfig, convertTo: 'none' }
+      onConfigChange(updatedConfig)
+      return updatedConfig
+    })
+  }, [contentClassification?.mode, onConfigChange, tool?.toolId])
+
+  // Sync local delimiter state when parent config changes
+  useEffect(() => {
+    setLocalDelimiter(delimiterTransformerConfig?.delimiter ?? ' ')
+  }, [delimiterTransformerConfig?.delimiter])
+
+  // Sync local join separator state when parent config changes
+  useEffect(() => {
+    setLocalJoinSeparator(delimiterTransformerConfig?.joinSeparator ?? ' ')
+  }, [delimiterTransformerConfig?.joinSeparator])
 
   if (!tool) {
     return (
@@ -62,6 +116,74 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
   ]
 
   const isGeneratorTool = tool && noInputRequiredTools.includes(tool.toolId)
+  const classificationMode = contentClassification?.mode || 'markdown'
+
+  // Helper function to render CSS schema fields for markdown formatter
+  const renderCssField = field => {
+    const value = cssConfigOptions[field.id]
+    const isMinify = cssConfigOptions.mode === 'minify'
+
+    const cssFormatterDisabledFields = [
+      'indentSize',
+      'showLinting',
+    ]
+
+    const isFieldDisabled = isMinify && cssFormatterDisabledFields.includes(field.id)
+
+    switch (field.type) {
+      case 'text':
+        return (
+          <input
+            key={field.id}
+            type="text"
+            className={styles.input}
+            value={value || ''}
+            onChange={e => onCssConfigChange?.({ ...cssConfigOptions, [field.id]: e.target.value })}
+            placeholder={field.placeholder || ''}
+            disabled={isFieldDisabled}
+          />
+        )
+
+      case 'select':
+        return (
+          <select
+            key={field.id}
+            className={styles.select}
+            value={value || field.default || ''}
+            onChange={e => onCssConfigChange?.({ ...cssConfigOptions, [field.id]: e.target.value })}
+            disabled={isFieldDisabled}
+          >
+            {!field.hideEmptyOption && <option value="">Select an option</option>}
+            {field.options?.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        )
+
+      case 'toggle':
+        return (
+          <div key={field.id} className={styles.toggleContainer} title={field.tooltip}>
+            <label className={styles.toggleLabel}>
+              <input
+                type="checkbox"
+                checked={value || false}
+                onChange={e => onCssConfigChange?.({ ...cssConfigOptions, [field.id]: e.target.checked })}
+                className={styles.toggleInput}
+                disabled={isFieldDisabled}
+              />
+              <span className={styles.toggleSlider}></span>
+              <span>{field.label}</span>
+            </label>
+            {field.tooltip && <span className={styles.tooltipIcon} title={field.tooltip}>ℹ️</span>}
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
 
   const renderField = field => {
     const value = config[field.id]
@@ -95,6 +217,38 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
       (isCssFormatterInMinify && cssFormatterDisabledFields.includes(field.id)) ||
       (isBaseConverterAutoDetect && baseConverterDisabledFields.includes(field.id)) ||
       (isChecksumAutoDetect && checksumDisabledFields.includes(field.id))
+
+    if (tool.toolId === 'web-playground' && field.id === 'convertTo') {
+      const convertOptions = [{ value: 'none', label: 'None' }]
+      if (classificationMode === 'markdown') {
+        convertOptions.push({ value: 'html', label: 'HTML' })
+      }
+      if (classificationMode === 'html') {
+        convertOptions.push({ value: 'markdown', label: 'Markdown' })
+      }
+
+      if (convertOptions.length <= 1) {
+        return null
+      }
+
+      const normalizedValue = convertOptions.some(option => option.value === value) ? value : 'none'
+
+      return (
+        <select
+          key={field.id}
+          className={styles.select}
+          value={normalizedValue}
+          onChange={e => handleFieldChange(field.id, e.target.value)}
+          disabled={isFieldDisabled}
+        >
+          {convertOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )
+    }
 
     switch (field.type) {
       case 'text':
@@ -247,7 +401,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
       case 'toggle':
         return (
-          <div key={field.id} className={styles.toggleContainer}>
+          <div key={field.id} className={styles.toggleContainer} title={field.tooltip}>
             <label className={styles.toggleLabel}>
               <input
                 type="checkbox"
@@ -259,6 +413,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               <span className={styles.toggleSlider}></span>
               <span>{field.label}</span>
             </label>
+            {field.tooltip && <span className={styles.tooltipIcon} title={field.tooltip}>ℹ️</span>}
           </div>
         )
 
@@ -391,35 +546,53 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     }
   }
 
-  const toolkitSections = [
-    { id: 'wordCounter', label: 'Word Counter' },
-    { id: 'wordFrequency', label: 'Word Frequency' },
-    { id: 'caseConverter', label: 'Case Converter' },
+  const analyticalSections = [
     { id: 'textAnalyzer', label: 'Text Analyzer' },
+    { id: 'textDiff', label: 'Diff Checker' },
+  ]
+
+  const transformativeSections = [
+    { id: 'caseConverter', label: 'Case Converter' },
     { id: 'slugGenerator', label: 'Slug Generator' },
     { id: 'reverseText', label: 'Reverse Text' },
     { id: 'removeExtras', label: 'Clean Text' },
-    { id: 'whitespaceVisualizer', label: 'Whitespace' },
     { id: 'sortLines', label: 'Sort Lines' },
     { id: 'findReplace', label: 'Find & Replace' },
-    { id: 'textDiff', label: 'Diff Checker' },
+    { id: 'delimiterTransformer', label: 'Delimiter Transformer' },
   ]
 
   return (
     <div className={styles.container}>
       {tool.toolId === 'text-toolkit' && (
         <div className={styles.toolkitFilters}>
-          <div className={styles.filterLabel}>Filter Results:</div>
-          <div className={styles.filterButtonsGrid}>
-            {toolkitSections.map(section => (
-              <button
-                key={section.id}
-                className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
-                onClick={() => onToolkitSectionChange(section.id)}
-              >
-                {section.label}
-              </button>
-            ))}
+          <div className={styles.filterSectionGroup}>
+            <div className={styles.filterGroupLabel}>Analytical</div>
+            <div className={styles.filterButtonsGrid}>
+              {analyticalSections.map(section => (
+                <button
+                  key={section.id}
+                  className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
+                  onClick={() => onToolkitSectionChange(section.id)}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.filterSectionGroup}>
+            <div className={styles.filterGroupLabel}>Transformative</div>
+            <div className={styles.filterButtonsGrid}>
+              {transformativeSections.map(section => (
+                <button
+                  key={section.id}
+                  className={`${styles.filterButton} ${activeToolkitSection === section.id ? styles.filterButtonActive : ''}`}
+                  onClick={() => onToolkitSectionChange(section.id)}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {activeToolkitSection === 'findReplace' && (
@@ -671,6 +844,96 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               </div>
             </div>
           )}
+
+          {activeToolkitSection === 'delimiterTransformer' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="splitDelimiter">
+                  Split By (character)
+                </label>
+                <input
+                  id="splitDelimiter"
+                  type="text"
+                  className={styles.input}
+                  placeholder="e.g., comma, semicolon, or space"
+                  value={localDelimiter}
+                  onChange={(e) => {
+                    const newValue = e.target.value
+                    setLocalDelimiter(newValue)
+                    onDelimiterTransformerConfigChange({
+                      ...delimiterTransformerConfig,
+                      delimiter: newValue
+                    })
+                  }}
+                  maxLength="5"
+                  autoComplete="off"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>
+                  Output Format
+                </label>
+                <div className={styles.radioGroup}>
+                  <label className={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="delimiterOutputMode"
+                      value="rows"
+                      checked={delimiterTransformerConfig?.mode === 'rows' || !delimiterTransformerConfig?.mode}
+                      onChange={(e) => {
+                        const newConfig = {
+                          ...delimiterTransformerConfig,
+                          mode: e.target.value
+                        }
+                        onDelimiterTransformerConfigChange(newConfig)
+                      }}
+                    />
+                    <span>Rows (one per line)</span>
+                  </label>
+                  <label className={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="delimiterOutputMode"
+                      value="singleLine"
+                      checked={delimiterTransformerConfig?.mode === 'singleLine'}
+                      onChange={(e) => {
+                        const newConfig = {
+                          ...delimiterTransformerConfig,
+                          mode: e.target.value
+                        }
+                        onDelimiterTransformerConfigChange(newConfig)
+                      }}
+                    />
+                    <span>Single Line (rejoin with separator)</span>
+                  </label>
+                </div>
+              </div>
+              {delimiterTransformerConfig?.mode === 'singleLine' && (
+                <div className={styles.field}>
+                  <label className={styles.fieldLabel} htmlFor="joinSeparator">
+                    Join With (separator)
+                  </label>
+                  <input
+                    id="joinSeparator"
+                    type="text"
+                    className={styles.input}
+                    placeholder="e.g., space, comma, dash"
+                    value={localJoinSeparator}
+                    onChange={(e) => {
+                      const newValue = e.target.value
+                      setLocalJoinSeparator(newValue)
+                      onDelimiterTransformerConfigChange({
+                        ...delimiterTransformerConfig,
+                        joinSeparator: newValue
+                      })
+                    }}
+                    maxLength="5"
+                    autoComplete="off"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -678,10 +941,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         <Phase2Controls
           onConfigChange={onConfigChange}
           safetyFlags={result?.safetyFlags}
+          currentConfig={currentConfig}
         />
       )}
 
-      {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
+      {(tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit') || tool.toolId === 'text-toolkit' ? (
         <div>
           {tool.toolId === 'regex-tester' && (
             <RegexToolkit
@@ -698,7 +962,21 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             const rows = {}
             const fieldsWithoutRow = []
 
-            tool.configSchema.forEach(field => {
+            // Always show the base schema for markdown formatter (HTML/MD options)
+            const configSchema = tool.configSchema
+
+            // Define CSS schema for web playground (Analysis/Rules toggles handled separately below)
+            const cssSchema = tool.toolId === 'web-playground' ? [
+              { id: 'mode', label: 'Mode', type: 'select', options: [{ value: 'beautify', label: 'Beautify' }, { value: 'minify', label: 'Minify' }], default: 'beautify' },
+              { id: 'indentSize', label: 'Indent Size', type: 'select', options: [{ value: '2', label: '2 spaces' }, { value: '4', label: '4 spaces' }, { value: 'tab', label: 'Tab' }], default: '2', visibleWhen: { field: 'mode', value: 'beautify' } },
+              { id: 'removeComments', label: 'Remove Comments', type: 'toggle', default: false },
+              { id: 'addAutoprefix', label: 'Autoprefix (vendor prefixes)', type: 'toggle', default: false },
+              { id: 'browsers', label: 'Browserslist Query', type: 'text', placeholder: 'e.g., last 2 versions, >1%, defaults', default: 'last 2 versions', visibleWhen: { field: 'addAutoprefix', value: true } },
+              { id: 'showValidation', label: 'Show Validation', type: 'toggle', default: true },
+              { id: 'showLinting', label: 'Show Linting', type: 'toggle', default: true },
+            ] : []
+
+            configSchema.forEach(field => {
               // Check visibility
               if (field.visibleWhen) {
                 const { field: conditionField, value: conditionValue } = field.visibleWhen
@@ -725,12 +1003,16 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                         if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                           return null;
                         }
+                        const renderedField = renderField(field)
+                        if (!renderedField) {
+                          return null
+                        }
                         return (
                           <div key={field.id} className={styles.field}>
                             <label className={styles.fieldLabel} htmlFor={field.id}>
                               {field.label}
                             </label>
-                            {renderField(field)}
+                            {renderedField}
                           </div>
                         );
                       })}
@@ -742,15 +1024,87 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                         if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                           return null;
                         }
+                        const renderedField = renderField(field)
+                        if (!renderedField) {
+                          return null
+                        }
                         return (
                           <div key={field.id} className={styles.field}>
                             <label className={styles.fieldLabel} htmlFor={field.id}>
                               {field.label}
                             </label>
-                            {renderField(field)}
+                            {renderedField}
                           </div>
                         );
                       })}
+                      {tool.toolId === 'css-formatter' && (
+                        <div className={styles.field}>
+                          <label className={styles.fieldLabel}></label>
+                          <div className={styles.toggleContainer}>
+                            <label className={styles.toggleLabel}>
+                              <input
+                                type="checkbox"
+                                className={styles.toggleInput}
+                                checked={showAnalysisTab || false}
+                                onChange={(e) => onShowAnalysisTabChange && onShowAnalysisTabChange(e.target.checked)}
+                              />
+                              <span className={styles.toggleSlider}></span>
+                              <span>Analysis</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                      {tool.toolId === 'css-formatter' && (
+                        <div className={styles.field}>
+                          <label className={styles.fieldLabel}></label>
+                          <div className={styles.toggleContainer}>
+                            <label className={styles.toggleLabel}>
+                              <input
+                                type="checkbox"
+                                className={styles.toggleInput}
+                                checked={showRulesTab || false}
+                                onChange={(e) => onShowRulesTabChange && onShowRulesTabChange(e.target.checked)}
+                              />
+                              <span className={styles.toggleSlider}></span>
+                              <span>Rules</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {fieldsWithoutRow.length === 0 && tool.toolId === 'css-formatter' && (
+                    <div className={styles.fieldsContainer}>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}></label>
+                        <div className={styles.toggleContainer}>
+                          <label className={styles.toggleLabel}>
+                            <input
+                              type="checkbox"
+                              className={styles.toggleInput}
+                              checked={showAnalysisTab || false}
+                              onChange={(e) => onShowAnalysisTabChange && onShowAnalysisTabChange(e.target.checked)}
+                            />
+                            <span className={styles.toggleSlider}></span>
+                            <span>Analysis</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <label className={styles.fieldLabel}></label>
+                        <div className={styles.toggleContainer}>
+                          <label className={styles.toggleLabel}>
+                            <input
+                              type="checkbox"
+                              className={styles.toggleInput}
+                              checked={showRulesTab || false}
+                              onChange={(e) => onShowRulesTabChange && onShowRulesTabChange(e.target.checked)}
+                            />
+                            <span className={styles.toggleSlider}></span>
+                            <span>Rules</span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>
@@ -758,9 +1112,110 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             }
 
             // Fallback: render all fields in a single grid (original behavior)
+            // For markdown-html-formatter, render ONLY the options for the active tab mode
+            if (tool.toolId === 'markdown-html-formatter' && cssSchema.length > 0) {
+              // Only show HTML/Markdown options when INPUT tab is active
+              if (markdownInputMode === 'input') {
+                return (
+                  <div className={styles.fieldsContainer}>
+                    {configSchema.map(field => {
+                      // Check visibility
+                      if (field.visibleWhen) {
+                        const { field: conditionField, value: conditionValue } = field.visibleWhen
+                        if (config[conditionField] !== conditionValue) {
+                          return null
+                        }
+                      }
+
+                      const renderedField = renderField(field)
+                      if (!renderedField) {
+                        return null
+                      }
+
+                      return (
+                        <div key={field.id} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={field.id}>
+                            {field.label}
+                          </label>
+                          {renderedField}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              }
+
+              // Show CSS options for both CSS tab and HTML tab (for validation/linting toggles)
+              if (markdownInputMode === 'css' || markdownInputMode === 'input') {
+                return (
+                  <div className={styles.fieldsContainer}>
+                    {cssSchema.map(field => {
+                      // Check visibility
+                      if (field.visibleWhen) {
+                        const { field: conditionField, value: conditionValue } = field.visibleWhen
+                        if (cssConfigOptions[conditionField] !== conditionValue) {
+                          return null
+                        }
+                      }
+
+                      // For HTML tab (input mode), only show validation/linting toggles
+                      if (markdownInputMode === 'input' && !['showValidation', 'showLinting'].includes(field.id)) {
+                        return null
+                      }
+
+                      const renderedField = renderCssField(field)
+                      if (!renderedField) {
+                        return null
+                      }
+
+                      return (
+                        <div key={`css-${field.id}`} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={`css-${field.id}`}>
+                            {field.label}
+                          </label>
+                          {renderedField}
+                        </div>
+                      )
+                    })}
+                    {/* Analysis/Rules toggles for CSS */}
+                    <div className={styles.field}>
+                      <label className={styles.fieldLabel}></label>
+                      <div className={styles.toggleContainer}>
+                        <label className={styles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            className={styles.toggleInput}
+                            checked={cssConfigOptions?.showAnalysisTab || false}
+                            onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showAnalysisTab: e.target.checked })}
+                          />
+                          <span className={styles.toggleSlider}></span>
+                          <span>Show Analysis Tab</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className={styles.field}>
+                      <label className={styles.fieldLabel}></label>
+                      <div className={styles.toggleContainer}>
+                        <label className={styles.toggleLabel}>
+                          <input
+                            type="checkbox"
+                            className={styles.toggleInput}
+                            checked={cssConfigOptions?.showRulesTab || false}
+                            onChange={(e) => onCssConfigChange?.({ ...cssConfigOptions, showRulesTab: e.target.checked })}
+                          />
+                          <span className={styles.toggleSlider}></span>
+                          <span>Show Rules Tab</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+            }
+
             return (
               <div className={styles.fieldsContainer}>
-                {tool.configSchema.map(field => {
+                {configSchema.map(field => {
                   // Skip fields handled by RegexToolkit for regex-tester
                   if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
                     return null;
@@ -774,18 +1229,61 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                     }
                   }
 
+                  const renderedField = renderField(field)
+                  if (!renderedField) {
+                    return null
+                  }
+
                   return (
                     <div key={field.id} className={styles.field}>
                       <label className={styles.fieldLabel} htmlFor={field.id}>
                         {field.label}
                       </label>
-                      {renderField(field)}
+                      {renderedField}
                     </div>
                   )
                 })}
+                {tool.toolId === 'css-formatter' && (
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}></label>
+                    <div className={styles.toggleContainer}>
+                      <label className={styles.toggleLabel}>
+                        <input
+                          type="checkbox"
+                          className={styles.toggleInput}
+                          checked={showAnalysisTab || false}
+                          onChange={(e) => onShowAnalysisTabChange && onShowAnalysisTabChange(e.target.checked)}
+                        />
+                        <span className={styles.toggleSlider}></span>
+                        <span>Analysis</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+                {tool.toolId === 'css-formatter' && (
+                  <div className={styles.field}>
+                    <label className={styles.fieldLabel}></label>
+                    <div className={styles.toggleContainer}>
+                      <label className={styles.toggleLabel}>
+                        <input
+                          type="checkbox"
+                          className={styles.toggleInput}
+                          checked={showRulesTab || false}
+                          onChange={(e) => onShowRulesTabChange && onShowRulesTabChange(e.target.checked)}
+                        />
+                        <span className={styles.toggleSlider}></span>
+                        <span>Rules</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })()}
+        </div>
+      ) : (
+        <div className={styles.placeholder}>
+          This tool has no configuration options.
         </div>
       )}
 

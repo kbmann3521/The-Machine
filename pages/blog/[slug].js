@@ -6,9 +6,9 @@ import { supabase } from '../../lib/supabase-client'
 import styles from '../../styles/blog-post.module.css'
 import AdminCSSBar from '../../components/AdminCSSBar'
 
-export default function BlogPost({ post }) {
+export default function BlogPost({ post, customCss: initialCss = '' }) {
   const [isAdmin, setIsAdmin] = useState(false)
-  const [customCss, setCustomCss] = useState('')
+  const [customCss, setCustomCss] = useState(initialCss)
 
   // Apply custom CSS whenever it changes
   useEffect(() => {
@@ -22,13 +22,7 @@ export default function BlogPost({ post }) {
   }, [customCss])
 
   useEffect(() => {
-    const checkAdminAndLoadCss = async () => {
-      // Try to load from cache first to prevent flickering
-      const cached = localStorage.getItem('blog_custom_css_cache')
-      if (cached) {
-        setCustomCss(cached)
-      }
-
+    const checkAdminAndRefreshCss = async () => {
       // Check if user is admin
       const {
         data: { session },
@@ -42,23 +36,25 @@ export default function BlogPost({ post }) {
           .single()
 
         setIsAdmin(!!adminUser)
-      }
 
-      // Always load custom CSS for all visitors
-      try {
-        const response = await fetch('/api/blog/custom-css')
-        const data = await response.json()
-        const css = data.css || ''
-        setCustomCss(css)
-        // Cache for next visit to prevent flickering
-        localStorage.setItem('blog_custom_css_cache', css)
-      } catch (err) {
-        console.error('Failed to load custom CSS:', err)
+        // For admin: refresh CSS in case it was updated
+        if (adminUser) {
+          try {
+            const response = await fetch('/api/blog/custom-css')
+            const data = await response.json()
+            const css = data.css || ''
+            if (css !== initialCss) {
+              setCustomCss(css)
+            }
+          } catch (err) {
+            console.error('Failed to load custom CSS:', err)
+          }
+        }
       }
     }
 
-    checkAdminAndLoadCss()
-  }, [])
+    checkAdminAndRefreshCss()
+  }, [initialCss])
 
   if (!post) {
     return (
@@ -182,6 +178,22 @@ export async function getStaticProps({ params }) {
       }
     }
 
+    // Fetch custom CSS on the server to avoid layout shift
+    let customCss = ''
+    try {
+      const { data: cssData, error: cssError } = await supabase
+        .from('blog_custom_css')
+        .select('css_content')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .single()
+
+      if (!cssError && cssData?.css_content) {
+        customCss = cssData.css_content
+      }
+    } catch (cssErr) {
+      console.error('Error fetching custom CSS:', cssErr)
+    }
+
     // Format dates server-side to avoid hydration mismatch
     const { date: pubDate, time: pubTime } = formatDateForDisplay(post.published_at)
     const { date: updatedDate } = formatDateForDisplay(post.updated_at)
@@ -193,6 +205,7 @@ export async function getStaticProps({ params }) {
           publishedFormatted: `${pubDate} at ${pubTime}`,
           updatedFormatted: updatedDate,
         },
+        customCss,
       },
       revalidate: 3600,
     }

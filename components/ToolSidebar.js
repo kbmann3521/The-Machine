@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator } from 'react-icons/fa6'
-import { BsRegex } from 'react-icons/bs'
+import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator, FaChevronLeft } from 'react-icons/fa6'
+import { BsRegex, BsQrCode } from 'react-icons/bs'
 import { ImCalculator } from 'react-icons/im'
 import styles from '../styles/tool-sidebar.module.css'
 
@@ -12,7 +12,7 @@ const toolIcons = {
   'json-formatter': FaCode,
   'regex-tester': BsRegex,
   'csv-json-converter': FaFileExcel,
-  'markdown-html-formatter': FaMarkdown,
+  'web-playground': FaMarkdown,
   'xml-formatter': FaCode,
   'yaml-formatter': FaCode,
   'url-toolkit': FaGlobe,
@@ -40,6 +40,44 @@ const toolIcons = {
   'js-formatter': FaCode,
   'email-validator': FaEnvelope,
   'ip-address-toolkit': FaNetworkWired,
+  'qr-code-generator': BsQrCode,
+}
+
+// Map tool IDs to their category groups
+const toolGroups = {
+  'text-toolkit': 'Text & Encoding',
+  'ascii-unicode-converter': 'Text & Encoding',
+  'base-converter': 'Text & Encoding',
+  'base64-converter': 'Text & Encoding',
+  'caesar-cipher': 'Text & Encoding',
+  'regex-tester': 'Text & Encoding',
+  'js-formatter': 'Data Formats & Languages',
+  'json-formatter': 'Data Formats & Languages',
+  'web-playground': 'Data Formats & Languages',
+  'sql-formatter': 'Data Formats & Languages',
+  'xml-formatter': 'Data Formats & Languages',
+  'yaml-formatter': 'Data Formats & Languages',
+  'csv-json-converter': 'Data Formats & Languages',
+  'css-formatter': 'Data Formats & Languages',
+  'url-toolkit': 'Web & Networking',
+  'http-header-parser': 'Web & Networking',
+  'http-status-lookup': 'Web & Networking',
+  'mime-type-lookup': 'Web & Networking',
+  'ip-address-toolkit': 'Web & Networking',
+  'jwt-decoder': 'Web & Networking',
+  'email-validator': 'Validation & Identifiers',
+  'uuid-validator': 'Validation & Identifiers',
+  'checksum-calculator': 'Validation & Identifiers',
+  'number-formatter': 'Numbers, Time & Math',
+  'math-evaluator': 'Numbers, Time & Math',
+  'unit-converter': 'Numbers, Time & Math',
+  'file-size-converter': 'Numbers, Time & Math',
+  'time-normalizer': 'Numbers, Time & Math',
+  'cron-tester': 'Numbers, Time & Math',
+  'image-toolkit': 'Media & Visual',
+  'svg-optimizer': 'Media & Visual',
+  'qr-code-generator': 'Media & Visual',
+  'color-converter': 'Media & Visual',
 }
 
 const getScoreColor = (similarity) => {
@@ -57,13 +95,15 @@ const getScoreLabel = (similarity) => {
   return 'Available'
 }
 
-export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading, initialLoading }) {
+export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool, loading, initialLoading, sidebarOpen = true, onSidebarToggle }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [showCascadeAnimation, setShowCascadeAnimation] = useState(true)
   const itemRefs = useRef({})
   const prevPositionsRef = useRef({})
+  const hasLoadedRef = useRef(false)
 
   const filteredTools = useMemo(() => {
-    let tools = [...predictedTools].sort((a, b) => a.name.localeCompare(b.name))
+    let tools = [...predictedTools]
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -74,10 +114,66 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
       )
     }
 
-    return tools
+    // Group tools by category
+    const groupOrder = [
+      'Text & Encoding',
+      'Data Formats & Languages',
+      'Web & Networking',
+      'Validation & Identifiers',
+      'Numbers, Time & Math',
+      'Media & Visual',
+    ]
+
+    const grouped = {}
+    tools.forEach(tool => {
+      const group = toolGroups[tool.toolId] || 'Other'
+      if (!grouped[group]) {
+        grouped[group] = []
+      }
+      grouped[group].push(tool)
+    })
+
+    // Sort tools within each group alphabetically
+    Object.keys(grouped).forEach(group => {
+      grouped[group].sort((a, b) => a.name.localeCompare(b.name))
+    })
+
+    // Return flattened array with group headers
+    const result = []
+    groupOrder.forEach(group => {
+      if (grouped[group]) {
+        result.push({ isGroupHeader: true, groupName: group })
+        result.push(...grouped[group])
+      }
+    })
+    // Add any remaining groups not in groupOrder
+    Object.keys(grouped).forEach(group => {
+      if (!groupOrder.includes(group)) {
+        result.push({ isGroupHeader: true, groupName: group })
+        result.push(...grouped[group])
+      }
+    })
+
+    return result
   }, [predictedTools, searchQuery])
 
-  const topMatch = filteredTools[0]
+  const topMatch = filteredTools.find(item => !item.isGroupHeader) || null
+
+  // Disable cascade animation after initial load or when searching
+  useEffect(() => {
+    if (!initialLoading && !hasLoadedRef.current) {
+      // First time tools finish loading - allow animation for this render
+      hasLoadedRef.current = true
+    } else if (searchQuery.trim()) {
+      // Disable animation when user starts searching
+      setShowCascadeAnimation(false)
+    } else if (!searchQuery.trim() && !initialLoading) {
+      // Re-enable animation when search is cleared (but only on subsequent clears)
+      if (hasLoadedRef.current) {
+        setShowCascadeAnimation(false)
+      }
+    }
+  }, [initialLoading, searchQuery])
 
   // Position tracking (animations disabled)
   useEffect(() => {
@@ -106,8 +202,16 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
   }
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${!sidebarOpen ? styles.collapsed : ''}`}>
       <div className={styles.header}>
+        <button
+          className={styles.collapseButton}
+          onClick={() => onSidebarToggle?.(!sidebarOpen)}
+          title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          <FaChevronLeft />
+        </button>
         <input
           type="text"
           placeholder="Search by tool name or function..."
@@ -122,14 +226,33 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         <div className={styles.loadingState}>
           <div className={styles.spinnerContainer}>
             <div className={styles.spinner} />
+            <div className={styles.spinnerDots}>
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+              <div className={styles.dot} />
+            </div>
             <p className={styles.loadingText}>Loading tools...</p>
           </div>
         </div>
       )}
 
-      {!initialLoading && filteredTools.length > 0 && (
+      {!initialLoading && filteredTools.some(item => !item.isGroupHeader) && (
         <nav className={styles.toolsList} aria-label="Available tools">
-          {filteredTools.map((tool, index) => {
+          {filteredTools.map((item, index) => {
+            // Render group header
+            if (item.isGroupHeader) {
+              return (
+                <div
+                  key={`group-${item.groupName}`}
+                  className={styles.groupHeader}
+                >
+                  {item.groupName}
+                </div>
+              )
+            }
+
+            // Render tool item
+            const tool = item
             const isTopMatch = topMatch && tool.toolId === topMatch.toolId && tool.similarity >= 0.75
             const isSelected = selectedTool?.toolId === tool.toolId
 
@@ -138,8 +261,11 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
                 key={tool.toolId}
                 ref={(el) => setItemRef(tool.toolId, el)}
                 className={`${styles.toolItem} ${
+                  showCascadeAnimation ? styles.toolItemAnimated : ''
+                } ${
                   isSelected ? styles.selected : ''
                 } ${isTopMatch && !searchQuery ? styles.topMatch : ''}`}
+                style={showCascadeAnimation ? { animationDelay: `${index * 50}ms` } : {}}
                 onClick={() => onSelectTool(tool)}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectTool(tool)}
                 role="button"
@@ -163,7 +289,7 @@ export default function ToolSidebar({ predictedTools, selectedTool, onSelectTool
         </nav>
       )}
 
-      {!initialLoading && predictedTools.length > 0 && filteredTools.length === 0 && (
+      {!initialLoading && predictedTools.length > 0 && !filteredTools.some(item => !item.isGroupHeader) && (
         <div className={styles.emptyState}>
           <p>No tools match your search. Try a different query.</p>
         </div>

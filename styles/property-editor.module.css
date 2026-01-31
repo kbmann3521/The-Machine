@@ -1,0 +1,142 @@
+/* Property Editor Styles */
+
+.colorEditor {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.colorPicker {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.colorInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  background-color: var(--color-background-primary, #fff);
+  color: var(--color-text-primary, #000);
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.colorInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+/* Spacing Editor */
+
+.spacingEditor {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.numericInput {
+  width: 60px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-size: 11px;
+  background-color: var(--color-background-primary, #fff);
+  color: var(--color-text-primary, #000);
+}
+
+.numericInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.unitSelect {
+  padding: 6px 6px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-size: 11px;
+  background-color: var(--color-background-primary, #fff);
+  color: var(--color-text-primary, #000);
+  cursor: pointer;
+}
+
+.unitSelect:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.directInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  background-color: var(--color-background-primary, #fff);
+  color: var(--color-text-primary, #000);
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.directInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+/* Select Editor */
+
+.selectInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-size: 11px;
+  background-color: var(--color-background-primary, #fff);
+  color: var(--color-text-primary, #000);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.selectInput:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+/* Text Editor */
+
+.textInput {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  background-color: var(--color-background-primary, #fff);
+  color: var(--color-text-primary, #000);
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}

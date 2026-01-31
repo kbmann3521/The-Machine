@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+import { FaCopy } from 'react-icons/fa6'
 import styles from '../styles/regex-tester.module.css'
+import toolOutputStyles from '../styles/tool-output.module.css'
 
 function WarningsPanel({ warnings }) {
   if (!warnings || warnings.length === 0) {
@@ -300,6 +302,7 @@ function AIAnalysisSection({ patternName, patternDescription, pattern, matches, 
 
 export default function RegexTesterOutput({ result, inputText, patternName, patternDescription }) {
   const [activeTab, setActiveTab] = useState('matches');
+  const [copiedPattern, setCopiedPattern] = useState(false);
 
   if (!result) {
     return null;
@@ -317,8 +320,47 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
     );
   }
 
+  const handleCopyPattern = () => {
+    try {
+      navigator.clipboard.writeText(result.pattern).then(() => {
+        setCopiedPattern(true);
+        setTimeout(() => setCopiedPattern(false), 2000);
+      }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = result.pattern;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCopiedPattern(true);
+        setTimeout(() => setCopiedPattern(false), 2000);
+      });
+    } catch (error) {
+      console.error('Failed to copy pattern:', error);
+    }
+  };
+
   return (
     <div className={styles.container}>
+      {/* Pattern display with copy button */}
+      <div className={toolOutputStyles.copyCard}>
+        <div className={toolOutputStyles.copyCardHeader}>
+          <span className={toolOutputStyles.copyCardLabel}>Regex Pattern</span>
+          <button
+            type="button"
+            className="copy-action"
+            onClick={handleCopyPattern}
+            title="Copy pattern to clipboard"
+          >
+            {copiedPattern ? '✓' : <FaCopy />}
+          </button>
+        </div>
+        <div className={toolOutputStyles.copyCardValue}>{result.pattern}</div>
+      </div>
+
       {/* Warnings panel */}
       {result.warnings && result.warnings.length > 0 && (
         <WarningsPanel warnings={result.warnings} />
@@ -375,7 +417,19 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
         </div>
       </div>
 
-      {/* AI Analysis Section */}
+      {/*
+        AI ANALYSIS SECTION - DISABLED FOR NOW
+        Purpose: Provides AI-powered analysis of matched strings using the OpenAI API
+        Functionality:
+          - Displays "Analyze Matches" button that users can click to get AI insights
+          - When clicked, sends matched substrings, pattern, and input text to /api/test-regex-patterns with action 'analyze'
+          - Returns natural language explanation of what the matches represent
+          - Includes copy button to copy the analysis to clipboard
+          - Requires OPENAI_API_KEY environment variable to be set
+        How to re-enable: Uncomment this entire block and ensure AIAnalysisSection function above is still present
+        Status: Keeping functional code intact (AIAnalysisSection function and all logic) but hiding UI
+      */}
+      {/*
       {result.matches && (
         <AIAnalysisSection
           patternName={patternName}
@@ -385,6 +439,7 @@ export default function RegexTesterOutput({ result, inputText, patternName, patt
           inputText={inputText}
         />
       )}
+      */}
     </div>
   );
 }

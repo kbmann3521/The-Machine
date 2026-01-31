@@ -62,7 +62,16 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
 
   return (
     <div className={styles.regexToolkitContainer}>
-      <div className={styles.testModeToggle}>
+      {/*
+        TEST MODE TOGGLE PANEL - DISABLED FOR NOW
+        Purpose: Allows users to enable 'Test Mode' which auto-generates example text when selecting regex pattern templates
+        Functionality:
+          - When enabled, clicking a template will generate sample input text based on the pattern
+          - Calls /api/test-regex-patterns with action 'generate' to create example text
+        How to re-enable: Uncomment this entire block and ensure setTestMode state is still present above
+        Status: Keeping functional code intact (handleTemplateSelect still references testMode) but hiding UI
+      */}
+      {/* <div className={styles.testModeToggle}>
         <label className={styles.toggleLabel}>
           <input
             type="checkbox"
@@ -80,7 +89,7 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
             ? 'Click a template to auto-generate realistic example text'
             : 'Toggle on to auto-generate example text when selecting templates'}
         </p>
-      </div>
+      </div> */}
 
       <div className={styles.fieldsContainer}>
         <div className={styles.field}>
@@ -115,10 +124,21 @@ export default function RegexToolkit({ config, onConfigChange, result, disabled,
         </div>
       </div>
 
-      <PatternTemplateSelector
+      {/*
+        PATTERN TEMPLATE SELECTOR - DISABLED FOR NOW
+        Purpose: Displays a categorized list of pre-built regex pattern templates (Email, URL, Phone, Order Numbers, etc.)
+        Functionality:
+          - Users can search, browse, and select templates to auto-fill the regex pattern field
+          - Shows template name, description, and category
+          - Calls handleTemplateSelect when a template is clicked
+          - If testMode is enabled, also auto-generates example text for the selected template
+        How to re-enable: Uncomment this component and ensure PatternTemplateSelector import at top is active
+        Status: Keeping functional code intact (handleTemplateSelect still works) but hiding UI
+      */}
+      {/* <PatternTemplateSelector
         onSelectTemplate={handleTemplateSelect}
         selectedTemplateId={selectedTemplateId}
-      />
+      /> */}
     </div>
   )
 }

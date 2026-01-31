@@ -3,13 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const supabase = createClient(supabaseUrl, supabaseKey)
+// Only create client if credentials are available
+let supabase = null
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey)
+}
 
 const DEFAULT_ROBOTS = `User-agent: *
-Allow: /
-
+Allow: /api/sitemap
+Disallow: /admin/
 Disallow: /api/
 Disallow: /.next/
+Disallow: /debug/
 
 Sitemap: https://www.pioneerwebtools.com/api/sitemap`
 
@@ -19,6 +24,15 @@ function RobotsTxt() {
 
 export async function getServerSideProps({ res }) {
   try {
+    // If Supabase isn't configured, use default
+    if (!supabase) {
+      res.setHeader('Content-Type', 'text/plain')
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
+      res.write(DEFAULT_ROBOTS)
+      res.end()
+      return { props: {} }
+    }
+
     // Fetch SEO settings from database
     const { data: seoSettings, error } = await supabase
       .from('seo_settings')

@@ -1,9 +1,58 @@
 import { useState, useRef, useEffect } from 'react'
+import { forwardRef, useImperativeHandle } from 'react'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
-import LineHighlightOverlay from './LineHighlightOverlay'
+import { useOutputToInput } from '../lib/hooks/useOutputToInput'
+import CodeMirrorEditor from './CodeMirrorEditor'
 import styles from '../styles/universal-input.module.css'
 
-export default function UniversalInput({ onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, validationErrors = [], lintingWarnings = [] }) {
+// Tools that should display line numbers in CodeMirror
+const TOOLS_WITH_LINE_NUMBERS = new Set([
+  'js-formatter',           // JavaScript Formatter Suite
+  'json-formatter',         // JSON Formatter
+  'web-playground', // Web Playground
+  'sql-formatter',          // SQL Formatter
+  'xml-formatter',          // XML Formatter
+  'yaml-formatter',         // YAML Formatter
+  'svg-optimizer',          // SVG Optimizer
+  'css-formatter',          // CSS Formatter
+])
+
+// Map tool IDs to their correct language for syntax highlighting
+const getLanguageForTool = (toolId) => {
+  switch (toolId) {
+    case 'json-formatter':
+      return 'json'
+    case 'js-formatter':
+      return 'javascript'
+    case 'css-formatter':
+      return 'css'
+    case 'html-formatter':
+    case 'web-playground':
+      return 'html'
+    case 'xml-formatter':
+      return 'xml'
+    case 'svg-optimizer':
+      return 'svg'
+    case 'yaml-formatter':
+      return 'yaml'
+    case 'sql-formatter':
+      return 'sql'
+    case 'text-toolkit':
+    case 'text-analyzer':
+    case 'find-replace':
+    case 'clean-text':
+    case 'reverse-text':
+    case 'sort-lines':
+    case 'delimiter-transformer':
+      return 'text'
+    default:
+      return 'javascript'
+  }
+}
+
+const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null, imagePreview = null, onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }, ref) => {
+  const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
+
   const getPlaceholder = () => {
     if (!selectedTool) {
       return "Type or paste content here..."
@@ -14,21 +63,26 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     return "Type or paste content here..."
   }
 
-  const [inputText, setInputText] = useState('')
-  const [inputImage, setInputImage] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
+  // Use inputText from props, with local state for immediate updates
+  const [localInputText, setLocalInputText] = useState(inputText)
+  const [localInputImage, setLocalInputImage] = useState(inputImage)
+  const [localImagePreview, setLocalImagePreview] = useState(imagePreview)
   const [charCount, setCharCount] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
   const [exampleIndex, setExampleIndex] = useState({})
+  const [imageError, setImageError] = useState(null)
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
   const startYRef = useRef(0)
   const startHeightRef = useRef(0)
   const isPasteRef = useRef(false)
 
-  // Load saved height from localStorage on mount
+  // Maximum file size: 5MB
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+
+  // Load saved height from localStorage on mount (client-side only)
   useEffect(() => {
     const savedHeight = localStorage.getItem('inputBoxHeight')
     if (savedHeight) {
@@ -36,6 +90,28 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       setInputHeight(height)
     }
   }, [])
+
+  // Auto-save height whenever it changes (debounced via resize end)
+  useEffect(() => {
+    if (!isResizing) {
+      localStorage.setItem('inputBoxHeight', inputHeight.toString())
+    }
+  }, [inputHeight, isResizing])
+
+  // Sync prop value with local state when parent updates inputText
+  useEffect(() => {
+    setLocalInputText(inputText)
+  }, [inputText])
+
+  // Sync prop value with local state when parent updates imagePreview
+  useEffect(() => {
+    setLocalImagePreview(imagePreview)
+  }, [imagePreview])
+
+  // Sync prop value with local state when parent updates inputImage
+  useEffect(() => {
+    setLocalInputImage(inputImage)
+  }, [inputImage])
 
   // Reset example index when tool changes
   useEffect(() => {
@@ -66,8 +142,6 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
 
     const handleMouseUp = () => {
       setIsResizing(false)
-      // Save to localStorage when resize is complete
-      localStorage.setItem('inputBoxHeight', inputHeight.toString())
     }
 
     document.addEventListener('mousemove', handleMouseMove)
@@ -77,10 +151,10 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isResizing, inputHeight])
+  }, [isResizing])
 
   const handleTextChange = (value) => {
-    setInputText(value)
+    setLocalInputText(value)
     setCharCount(value.length)
     const isPaste = isPasteRef.current
     isPasteRef.current = false // Reset after use
@@ -92,18 +166,82 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   }
 
   const handleImageFile = (file) => {
+    // Clear any previous errors
+    setImageError(null)
+
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file')
+      setImageError('Please select a valid image file (JPG, PNG, GIF, WebP, etc.)')
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setImagePreview(e.target.result)
-      setInputImage(file)
-      onImageChange(file, e.target.result)
+    // Check file size
+    if (file.size > MAX_IMAGE_SIZE) {
+      const sizeMB = (MAX_IMAGE_SIZE / (1024 * 1024)).toFixed(0)
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
+      setImageError(`Image file is too large (${fileSizeMB}MB). Maximum allowed size is ${sizeMB}MB.`)
+      return
     }
-    reader.readAsDataURL(file)
+
+    // Log file details for debugging mobile issues
+    console.log('Image file selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified,
+    })
+
+    const reader = new FileReader()
+    let readerTimeout = null
+
+    reader.onload = (e) => {
+      clearTimeout(readerTimeout)
+      try {
+        const result = e.target.result
+        if (!result) {
+          console.error('FileReader result is empty')
+          setImageError('Failed to read image file. Please try again.')
+          return
+        }
+        console.log('Image file read successfully, size:', result.length)
+        setLocalImagePreview(result)
+        setLocalInputImage(file)
+        setImageError(null) // Clear error on success
+        onImageChange(file, result)
+        // Also trigger input change to run prediction for image toolkit detection
+        console.log('Calling onInputChange for image prediction:', { text: localInputText, hasFile: !!file, hasPreview: !!result })
+        onInputChange(localInputText, file, result, false)
+      } catch (err) {
+        console.error('Error processing image file:', err)
+        setImageError('Error processing image file: ' + err.message)
+      }
+    }
+
+    reader.onerror = (err) => {
+      clearTimeout(readerTimeout)
+      console.error('FileReader error:', err)
+      setImageError('Failed to read image file. Please check file permissions and try again.')
+    }
+
+    reader.onabort = () => {
+      clearTimeout(readerTimeout)
+      console.warn('FileReader aborted')
+      setImageError('File reading was cancelled.')
+    }
+
+    // Add timeout for FileReader (some mobile devices may hang)
+    readerTimeout = setTimeout(() => {
+      console.warn('FileReader timeout - image file took too long to read')
+      reader.abort()
+      setImageError('Image loading timed out. File may be too large. Please try with a smaller image.')
+    }, 30000) // 30 second timeout
+
+    try {
+      reader.readAsDataURL(file)
+    } catch (err) {
+      clearTimeout(readerTimeout)
+      console.error('Error starting FileReader:', err)
+      alert('Unable to read file: ' + err.message)
+    }
   }
 
   const handleFileSelect = (e) => {
@@ -132,8 +270,9 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   }
 
   const removeImage = () => {
-    setImagePreview(null)
-    setInputImage(null)
+    setLocalImagePreview(null)
+    setLocalInputImage(null)
+    setImageError(null)
     onImageChange(null, null)
   }
 
@@ -156,7 +295,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
 
     const example = getToolExample(selectedTool.toolId, configOptions, nextIndex)
     if (example) {
-      setInputText(example)
+      setLocalInputText(example)
       setCharCount(example.length)
       setExampleIndex(prev => ({
         ...prev,
@@ -169,15 +308,41 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
   }
 
   const handleClearInput = () => {
-    setInputText('')
+    setLocalInputText('')
     setCharCount(0)
     if (onCompareTextChange) {
       onCompareTextChange('')
     }
-    setInputImage(null)
-    setImagePreview(null)
+    setLocalInputImage(null)
+    setLocalImagePreview(null)
+    setImageError(null)
     onInputChange('', null, null, false)
   }
+
+  // Use the custom hook for "use output as input" functionality
+  const { getOutputToUse, handleUseOutput: hookHandleUseOutput, hasOutput } = useOutputToInput(
+    result,
+    selectedTool,
+    activeToolkitSection,
+    null, // selectedCaseType is no longer used - case variants are selected via chevron menu
+    onInputChange
+  )
+
+  // Wrapper to also update local state
+  const handleUseOutput = () => {
+    const output = getOutputToUse()
+    if (output) {
+      const outputText = typeof output === 'string' ? output : JSON.stringify(output, null, 2)
+      setLocalInputText(outputText)
+      setCharCount(outputText.length)
+    }
+    hookHandleUseOutput()
+  }
+
+  // Expose handleUseOutput to parent via ref
+  useImperativeHandle(ref, () => ({
+    handleUseOutput
+  }), [handleUseOutput])
 
   const getInstructionText = () => {
     if (!selectedTool) return null
@@ -194,7 +359,7 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
       'reverse-text': 'Reverse text characters, words, or lines',
       'regex-tester': 'Test regex patterns with live matching and replacement',
       'csv-json-converter': 'Transform CSV spreadsheet data to JSON format',
-      'markdown-html-formatter': 'Format and convert between Markdown and HTML',
+      'web-playground': 'Format and convert between Markdown and HTML',
       'xml-formatter': 'Validate and format XML with proper structure',
       'yaml-formatter': 'Format YAML configuration files with correct indentation',
       'url-toolkit': 'Parse, validate, normalize, and manipulate URLs with advanced features',
@@ -238,84 +403,111 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
     <div className={styles.container}>
       <div className={styles.inputWrapper}>
         <div className={styles.inputFieldContainer}>
-          <div className={styles.buttonsWrapper}>
-            <button
-              className={styles.uploadImageButton}
-              onClick={openFileDialog}
-              title="Click to upload an image"
-              type="button"
-            >
-              <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              Upload Image
-            </button>
-            <div className={styles.buttonGroup}>
-              {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
-                <button
-                  className={styles.loadExampleButton}
-                  onClick={handleLoadExample}
-                  title="Load example input and see output"
-                  type="button"
-                >
-                  Load Example
-                </button>
-              )}
-              {inputText && (
-                <button
-                  className={styles.clearInputButton}
-                  onClick={handleClearInput}
-                  title="Clear all input and output"
-                  type="button"
-                >
-                  Clear Input
-                </button>
-              )}
-            </div>
-          </div>
-
           <div
-            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${imagePreview ? styles.hasImage : ''} ${isResizing ? styles.resizing : ''}`}
+            className={`${styles.inputField} ${isDragging ? styles.dragging : ''} ${localImagePreview ? styles.hasImage : ''} ${isResizing ? styles.resizing : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             ref={inputFieldRef}
             style={{ height: inputHeight + 'px' }}
           >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="image/*"
-              className={styles.fileInput}
-            />
-            <LineHighlightOverlay
-              inputText={inputText}
-              validationErrors={validationErrors}
-              lintingWarnings={lintingWarnings}
-            />
-            <textarea
-              value={inputText}
-              onChange={(e) => handleTextChange(e.target.value)}
-              onPaste={handlePaste}
-              placeholder={getPlaceholder()}
-              className={styles.simpleTextarea}
-            />
-            <div
-              className={styles.resizeHandle}
-              onMouseDown={handleResizeStart}
-              title="Drag to resize input box"
-            />
+            <div className={styles.toolTextbox}>
+              <div className={styles.toolTextboxHeader}>
+                <div className={styles.headerContent}>
+                  <button
+                    className={styles.uploadImageButton}
+                    onClick={openFileDialog}
+                    title="Click to upload an image"
+                    type="button"
+                  >
+                    <svg className={styles.uploadImageIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span className={styles.buttonText}>Upload Image</span>
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    accept="image/*"
+                    className={styles.fileInput}
+                  />
+                  <div className={styles.headerButtonGroup}>
+                    {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
+                      <button
+                        className={styles.loadExampleButton}
+                        onClick={handleLoadExample}
+                        title="Load example input and see output"
+                        type="button"
+                      >
+                        Load Example
+                      </button>
+                    )}
+                    {localInputText && (
+                      <>
+                        <button
+                          className={styles.clearInputButton}
+                          onClick={handleClearInput}
+                          title="Clear all input and output"
+                          type="button"
+                        >
+                          <span className={styles.buttonText}>Clear Input</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className={styles.toolTextboxEditor}>
+                {imageError && (
+                  <div className={styles.imageErrorMessage}>
+                    <span className={styles.errorIcon}>⚠️</span>
+                    <span className={styles.errorText}>{imageError}</span>
+                  </div>
+                )}
+                {localImagePreview ? (
+                  <div className={styles.centeredImageContainer}>
+                    <img
+                      src={localImagePreview}
+                      alt="uploaded-image"
+                      className={styles.centeredImage}
+                    />
+                    <button
+                      className={styles.removeImageOverlay}
+                      onClick={removeImage}
+                      title="Remove image"
+                      type="button"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <CodeMirrorEditor
+                    value={localInputText}
+                    onChange={handleTextChange}
+                    language={getLanguageForTool(selectedTool?.toolId)}
+                    placeholder={getPlaceholder()}
+                    showLineNumbers={shouldShowLineNumbers}
+                    editorType="input"
+                    highlightingEnabled={isScriptingLanguageTool(selectedTool?.toolId)}
+                    diagnostics={result?.diagnostics || []}
+                    formatMode={result?.optionsApplied?.mode || 'beautify'}
+                    enableLinting={true}
+                  />
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className={styles.detectedToolsInsideInput}>
-          {inputText && predictedTools.length > 0 ? (
+          {(localInputText || localImagePreview) && predictedTools.length > 0 ? (
             predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
-              // Map similarity (0.6-1.0) to opacity (0.5-0.85) for subtler visual difference
-              const opacity = 0.5 + (tool.similarity - 0.6) * 0.583
+              // Map similarity (0.6-1.0) to opacity (0.3-1.0) based on confidence
+              // Lower bound (0.6 similarity) = 30% opacity, upper bound (1.0) = 100% opacity
+              const opacity = 0.3 + (tool.similarity - 0.6) * 1.75
               return (
                 <button
                   key={tool.toolId}
@@ -329,47 +521,35 @@ export default function UniversalInput({ onInputChange, onImageChange, onCompare
                 </button>
               )
             })
-          ) : !inputText ? (
+          ) : !localInputText && !localImagePreview ? (
             <div className={styles.placeholderText}>
               Detected tools will appear here
             </div>
           ) : null}
         </div>
 
-        {imagePreview && (
-          <div className={styles.imagePreview}>
-            <div className={styles.previewHeader}>
-              <span className={styles.previewLabel}>Image attached</span>
-              <button
-                className={styles.removeButton}
-                onClick={removeImage}
-                title="Remove image"
-                type="button"
-              >
-                ✕
-              </button>
-            </div>
-            <img
-              src={imagePreview}
-              alt="preview"
-              className={styles.previewImage}
-            />
-          </div>
-        )}
-
         {selectedTool?.toolId === 'checksum-calculator' && configOptions.compareMode && (
           <div className={styles.compareInputWrapper}>
             <div className={styles.compareInputLabel}>Input B (Compare)</div>
-            <textarea
-              value={compareText || ''}
-              onChange={(e) => handleCompareTextChange(e.target.value)}
-              placeholder="Enter second input to compare checksums..."
-              className={styles.simpleTextarea}
-              style={{ minHeight: '120px' }}
-            />
+            <div className={styles.toolTextbox} style={{ minHeight: '140px' }}>
+              <div className={styles.toolTextboxEditor}>
+                <CodeMirrorEditor
+                  value={compareText || ''}
+                  onChange={handleCompareTextChange}
+                  language={getLanguageForTool(selectedTool?.toolId)}
+                  placeholder="Enter second input to compare checksums..."
+                  showLineNumbers={shouldShowLineNumbers}
+                  editorType="input"
+                  highlightingEnabled={isScriptingLanguageTool(selectedTool?.toolId)}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
     </div>
   )
-}
+})
+
+UniversalInputComponent.displayName = 'UniversalInput'
+export default UniversalInputComponent

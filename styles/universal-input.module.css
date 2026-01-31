@@ -1,13 +1,19 @@
 .container {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
 }
 
 .inputWrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .instructionLabel {
@@ -33,8 +39,10 @@
 .inputFieldContainer {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .buttonsWrapper {
@@ -56,37 +64,38 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  border: 2px solid var(--color-border);
-  border-radius: 6px;
+  border: none;
+  border-radius: 0;
   background-color: var(--color-background-secondary);
-  transition: border-color 0.2s;
+  transition: background-color 0.2s;
   overflow: hidden;
-  height: 255px;
+  flex: 1;
+  min-height: 0;
   z-index: 0;
   background-attachment: fixed;
 }
 
 .inputField:hover {
-  border-color: var(--color-border-hover);
+  background-color: var(--color-background-secondary);
 }
 
 .inputField:focus-within {
-  border-color: #0066cc;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  background-color: var(--color-background-secondary);
+  box-shadow: inset 0 0 0 2px #0066cc;
 }
 
 .inputField.dragging {
-  border-color: #0066cc;
   background-color: rgba(0, 102, 204, 0.08);
+  box-shadow: inset 0 0 0 2px #0066cc;
 }
 
 .inputField.hasImage {
-  border-color: #0066cc;
+  background-color: var(--color-background-secondary);
 }
 
 .inputField.resizing {
-  border-color: #0066cc;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  background-color: var(--color-background-secondary);
+  box-shadow: inset 0 0 0 2px #0066cc;
 }
 
 .simpleTextarea {
@@ -106,53 +115,13 @@
   caret-color: var(--color-text-primary);
 }
 
-.resizeHandle {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 18px;
-  height: 18px;
-  cursor: se-resize;
-  user-select: none;
-  background: none;
-  border: none;
-  padding: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  transition: all 0.2s ease;
-  z-index: 3;
-}
 
-.resizeHandle::after {
-  content: '';
-  width: 12px;
-  height: 12px;
-  background: linear-gradient(135deg,
-    transparent 0%,
-    transparent 45%,
-    var(--color-text-secondary) 45%,
-    var(--color-text-secondary) 100%);
-  border-radius: 0 0 2px 0;
-  transition: all 0.2s ease;
-  opacity: 0.5;
-}
-
-.resizeHandle:hover::after {
-  background: linear-gradient(135deg,
-    transparent 0%,
-    transparent 45%,
-    #0066cc 45%,
-    #0066cc 100%);
-  opacity: 1;
-  box-shadow: -1px -1px 3px rgba(0, 102, 204, 0.3);
-}
 
 .uploadImageButton {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background-color: transparent;
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -162,7 +131,23 @@
   color: var(--color-text-secondary);
   transition: all 0.2s;
   white-space: nowrap;
-  align-self: flex-end;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .uploadImageButton {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    gap: 0;
+  }
+
+  .uploadImageIcon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
 }
 
 .uploadImageButton:hover {
@@ -184,7 +169,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background-color: #0066cc;
   border: 1px solid #0066cc;
   border-radius: 4px;
@@ -194,6 +179,8 @@
   color: #ffffff;
   transition: all 0.2s;
   white-space: nowrap;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .loadExampleButton:hover {
@@ -210,7 +197,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   background-color: var(--color-background-tertiary);
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -220,6 +207,8 @@
   color: var(--color-text-secondary);
   transition: all 0.2s;
   white-space: nowrap;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .clearInputButton:hover {
@@ -232,17 +221,104 @@
   background-color: rgba(239, 83, 80, 0.1);
 }
 
+@media (max-width: 640px) {
+  .clearInputButton {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .clearInputButton::before {
+    content: '✕';
+    font-size: 16px;
+    line-height: 1;
+  }
+}
+
+.buttonText {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  .buttonText {
+    display: none;
+  }
+}
+
+.caseTypeSelect {
+  padding: 4px 8px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+  max-width: 110px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.caseTypeSelect:hover {
+  background-color: var(--color-border);
+  border-color: #0066cc;
+  color: #0066cc;
+}
+
+.caseTypeSelect:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+@media (max-width: 640px) {
+  .caseTypeSelect {
+    max-width: 90px;
+    padding: 5px 6px;
+    font-size: 10px;
+  }
+}
+
+.useOutputButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.useOutputButton:hover {
+  background-color: var(--color-border);
+  border-color: #0066cc;
+  transform: scale(1.05);
+}
+
+.useOutputButton:active {
+  transform: scale(0.95);
+}
+
 .detectedToolsInsideInput {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 12px 12px;
-  background: linear-gradient(135deg, rgba(100, 100, 100, 0.08) 0%, rgba(100, 100, 100, 0.03) 100%);
-  border-top: 2px solid var(--color-border);
-  border-radius: 0 0 6px 6px;
+  padding: 8px 12px;
+  background: var(--color-background-tertiary);
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
   width: 100%;
   box-sizing: border-box;
   animation: slideDown 0.3s ease-out;
+  flex-shrink: 0;
 }
 
 @keyframes slideDown {
@@ -300,8 +376,9 @@
   gap: 6px;
   padding: 10px;
   background-color: var(--color-background-tertiary);
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
 }
 
 .previewHeader {
@@ -347,6 +424,133 @@
   background-color: var(--color-background-secondary);
 }
 
+/* Inline image preview - shows inside the editor area */
+.imageErrorMessage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: rgba(239, 83, 80, 0.1);
+  border-bottom: 1px solid rgba(239, 83, 80, 0.3);
+  color: #ef5350;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  z-index: 10;
+}
+
+.errorIcon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.errorText {
+  flex: 1;
+}
+
+.inlineImagePreview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--color-background-tertiary);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 10;
+}
+
+.inlinePreviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inlinePreviewLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inlineRemoveButton {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.inlineRemoveButton:hover {
+  background-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+
+.inlinePreviewImage {
+  max-width: 100%;
+  max-height: 150px;
+  object-fit: contain;
+  border-radius: 3px;
+  background-color: var(--color-background-secondary);
+}
+
+/* Centered image container - replaces text input when image is present */
+.centeredImageContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.centeredImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+}
+
+.removeImageOverlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s;
+  z-index: 10;
+  line-height: 1;
+}
+
+.removeImageOverlay:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+.removeImageOverlay:active {
+  transform: scale(0.95);
+}
+
 .compareInputWrapper {
   display: flex;
   flex-direction: column;
@@ -354,8 +558,9 @@
   width: 100%;
   padding: 12px;
   background-color: var(--color-background-tertiary);
-  border: 1px dashed var(--color-border);
-  border-radius: 6px;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
 }
 
 .compareInputLabel {
@@ -376,6 +581,74 @@
 .compareInputWrapper .simpleTextarea:focus {
   border-color: #0066cc;
   box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+/* CodeMirror Editor Integration */
+.toolTextbox {
+  border: none;
+  border-radius: 0;
+  background: var(--color-background-secondary);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.toolTextboxHeader {
+  min-height: 51px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-tertiary);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.headerButtonGroup {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.toolTextboxEditor {
+  flex: 1;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.toolTextboxEditor :global(.cm-editor) {
+  height: 100%;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  border-radius: 0;
+}
+
+.toolTextboxEditor :global(.cm-content) {
+  padding: 10px 0;
+  font-family: 'Courier New', monospace;
+  line-height: 1.5;
+}
+
+.toolTextboxEditor :global(.cm-line) {
+  padding: 0 10px;
+}
+
+.toolTextboxEditor :global(.cm-focused) {
+  outline: none;
+}
+
+.toolTextboxEditor :global(.cm-lineNumbers) {
+  min-width: 40px;
 }
 
 @media (max-width: 640px) {

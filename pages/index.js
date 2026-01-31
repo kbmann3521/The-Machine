@@ -1,24 +1,33 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import UniversalInput from '../components/UniversalInput'
+import InputTabs from '../components/InputTabs'
+import dynamic from 'next/dynamic'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import NumericConfig from '../components/NumericConfig'
 import ToolOutputPanel from '../components/ToolOutputPanel'
+import JSEditorInput from '../components/JSEditorInput'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
+import QRCodeGeneratorOutputPanel from '../components/QRCodeGeneratorOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
+import PageFooter from '../components/PageFooter'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
+import ToolDescriptionContent from '../components/ToolDescriptionContent'
 import ValuePropositionCard from '../components/ValuePropositionCard'
-import { FaCircleInfo } from 'react-icons/fa6'
 import { TOOLS, getToolExample } from '../lib/tools'
 import { resizeImage } from '../lib/imageUtils'
-import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema } from '../lib/seoUtils'
+import { generateFAQSchema, generateBreadcrumbSchema, generateSoftwareAppSchema, generatePageMetadata } from '../lib/seoUtils'
 import { withSeoSettings } from '../lib/getSeoSettings'
+import { classifyMarkdownHtmlInput } from '../lib/contentClassifier'
 import styles from '../styles/hub.module.css'
+import configStyles from '../styles/tool-config.module.css'
 
 export default function Home(props) {
+  const router = useRouter()
   const siteName = props?.siteName || 'All-in-One Internet Tools'
   const testTitle = props?.testTitle || 'All-in-One Internet Tools'
   const testDescription = props?.testDescription || 'Paste anything — we\'ll auto-detect the perfect tool'
@@ -34,8 +43,8 @@ export default function Home(props) {
   const [error, setError] = useState(null)
   const [toolLoading, setToolLoading] = useState(false)
   const [inputChangeKey, setInputChangeKey] = useState(0)
-  const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
-  const [activeToolkitSection, setActiveToolkitSection] = useState('wordCounter')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [activeToolkitSection, setActiveToolkitSection] = useState('textAnalyzer')
   const [findReplaceConfig, setFindReplaceConfig] = useState({
     findText: '',
     replaceText: '',
@@ -64,6 +73,11 @@ export default function Home(props) {
     removeTimestamps: false,
     removeDuplicateLines: false,
   })
+  const [delimiterTransformerConfig, setDelimiterTransformerConfig] = useState({
+    delimiter: ' ',
+    mode: 'rows',
+    joinSeparator: ' ',
+  })
   const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
   const [numericConfig, setNumericConfig] = useState({
@@ -73,6 +87,53 @@ export default function Home(props) {
     mode: 'float'
   })
   const [initialToolsLoading, setInitialToolsLoading] = useState(true)
+  const [contentClassification, setContentClassification] = useState(() => classifyMarkdownHtmlInput(''))
+  const [showAnalysisTab, setShowAnalysisTab] = useState(false)
+  const [showRulesTab, setShowRulesTab] = useState(false)
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
+  const [markdownCustomCss, setMarkdownCustomCss] = useState('')
+  const [markdownCustomJs, setMarkdownCustomJs] = useState('')
+  const [cssFormattedOutput, setCssFormattedOutput] = useState(null)
+  const [jsFormattedOutput, setJsFormattedOutput] = useState(null)
+  const [jsFormatterDiagnostics, setJsFormatterDiagnostics] = useState([])
+  const [activeMarkdownInputTab, setActiveMarkdownInputTab] = useState('input')
+  const [markdownInputMode, setMarkdownInputMode] = useState('input') // 'input', 'css', or 'js' - tracks which input mode is active
+  const [cssConfigOptions, setCssConfigOptions] = useState({
+    mode: 'beautify',
+    indentSize: '2',
+    removeComments: true,
+    addAutoprefix: false,
+    browsers: 'last 2 versions',
+    showValidation: true,
+    showLinting: true,
+    showAnalysisTab: false,
+    showRulesTab: false,
+  })
+
+  const [jsConfigOptions, setJsConfigOptions] = useState({
+    mode: 'format',
+    indentSize: '2',
+    useSemicolons: true,
+    singleQuotes: true,
+    trailingComma: 'es5',
+    printWidth: '80',
+    bracketSpacing: true,
+    arrowParens: 'always',
+    showAnalysis: true,
+    showLinting: true,
+    compressCode: false,
+    removeComments: false,
+    removeConsole: false,
+  })
+
+  // When active tab changes, track if it's a content mode (input/css/js) vs options
+  const handleMarkdownInputTabChange = (tabId) => {
+    setActiveMarkdownInputTab(tabId)
+    // Update the mode only if it's a content tab (input, css, or js)
+    if (tabId === 'input' || tabId === 'css' || tabId === 'js') {
+      setMarkdownInputMode(tabId)
+    }
+  }
 
   const debounceTimerRef = useRef(null)
   const selectedToolRef = useRef(null)
@@ -82,6 +143,12 @@ export default function Home(props) {
   const currentInputRef = useRef('')
   const abortControllerRef = useRef(null)
   const abortTimeoutRef = useRef(null)
+  const previousSidebarStateRef = useRef(null) // Track sidebar state when entering fullscreen
+  const [dividerLeftRatio, setDividerLeftRatio] = useState(50) // Track left panel width as percentage
+  const isDraggingRef = useRef(false)
+  const dividerContainerRef = useRef(null)
+  const universalInputRef = useRef(null)
+  const [isDesktop, setIsDesktop] = useState(true)
 
   // Cleanup function for pending timers and requests
   const cleanupPendingRequests = useCallback(() => {
@@ -112,6 +179,49 @@ export default function Home(props) {
     }
   }, [])
 
+  // Handle divider drag move
+  const handleDividerMouseMove = useCallback((e) => {
+    if (!dividerContainerRef.current) return
+
+    const container = dividerContainerRef.current
+    const containerRect = container.getBoundingClientRect()
+    const newLeftRatio = ((e.clientX - containerRect.left) / containerRect.width) * 100
+
+    // Constrain the ratio to reasonable bounds (15% to 85%)
+    const constrainedRatio = Math.max(15, Math.min(85, newLeftRatio))
+    setDividerLeftRatio(constrainedRatio)
+  }, [])
+
+  // Handle divider drag end
+  const handleDividerMouseUp = useCallback(() => {
+    document.body.style.userSelect = ''
+    document.body.style.cursor = ''
+    document.removeEventListener('mousemove', handleDividerMouseMove)
+    document.removeEventListener('mouseup', handleDividerMouseUp)
+  }, [handleDividerMouseMove])
+
+  // Handle divider drag start
+  const handleDividerMouseDown = useCallback(() => {
+    isDraggingRef.current = true
+    document.body.style.userSelect = 'none'
+    document.body.style.cursor = 'col-resize'
+    document.addEventListener('mousemove', handleDividerMouseMove)
+    document.addEventListener('mouseup', handleDividerMouseUp)
+  }, [handleDividerMouseMove, handleDividerMouseUp])
+
+  // Track desktop/mobile breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth > 1024)
+    }
+
+    // Set initial value
+    handleResize()
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -123,6 +233,31 @@ export default function Home(props) {
     selectedToolRef.current = selectedTool
   }, [selectedTool])
 
+  // Auto-exit fullscreen when tool changes
+  useEffect(() => {
+    if (isPreviewFullscreen) {
+      setIsPreviewFullscreen(false)
+    }
+  }, [selectedTool])
+
+  // Auto-collapse sidebar when entering fullscreen on desktop only, auto-expand when exiting
+  useEffect(() => {
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768
+
+    if (isPreviewFullscreen) {
+      // Entering fullscreen on desktop: save current state and collapse
+      if (isDesktop) {
+        previousSidebarStateRef.current = sidebarOpen
+        if (sidebarOpen) {
+          setSidebarOpen(false)
+        }
+      }
+    } else if (previousSidebarStateRef.current !== null) {
+      // Exiting fullscreen: restore previous state
+      setSidebarOpen(previousSidebarStateRef.current)
+      previousSidebarStateRef.current = null
+    }
+  }, [isPreviewFullscreen])
 
   // Fast local classification using heuristics (no API call)
   // Only detects strong signals; backend handles nuanced detection
@@ -268,35 +403,85 @@ export default function Home(props) {
 
   const handleSelectTool = useCallback(
     (tool) => {
-      // Only reset output if tool is actually changing
-      const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
+      // Check if clicking the same tool that's already selected
+      const isAlreadySelected = selectedToolRef.current?.toolId === tool?.toolId
 
-      setSelectedTool(tool)
-      setOutputWarnings([]) // Clear warnings when tool changes
-      selectedToolRef.current = tool  // Update ref for next comparison
-
-      // Initialize config for the selected tool (always, not just on change)
-      const initialConfig = {}
-      if (tool?.configSchema) {
-        tool.configSchema.forEach(field => {
-          initialConfig[field.id] = field.default || ''
-        })
-      }
-      setConfigOptions(initialConfig)
-
-      // Only reset output when switching to a different tool
-      if (toolChanged) {
+      if (isAlreadySelected) {
+        // Deselect the tool
+        setSelectedTool(null)
+        setOutputWarnings([])
+        selectedToolRef.current = null
         setOutputResult(null)
         setError(null)
         setToolLoading(false)
+        router.push('/', undefined, { shallow: true })
+      } else {
+        // Select the new tool
+        // Only reset output if tool is actually changing
+        const toolChanged = selectedToolRef.current?.toolId !== tool?.toolId
+
+        setSelectedTool(tool)
+        setOutputWarnings([]) // Clear warnings when tool changes
+        selectedToolRef.current = tool  // Update ref for next comparison
+
+        // Initialize config for the selected tool (always, not just on change)
+        const initialConfig = {}
+        if (tool?.configSchema) {
+          tool.configSchema.forEach(field => {
+            initialConfig[field.id] = field.default || ''
+          })
+        }
+        setConfigOptions(initialConfig)
+
+        // Update URL with selected tool
+        if (tool?.toolId) {
+          router.push({ query: { tool: tool.toolId } }, undefined, { shallow: true })
+        }
+
+        // Only reset output when switching to a different tool
+        if (toolChanged) {
+          setOutputResult(null)
+          setError(null)
+          setToolLoading(false)
+        }
       }
     },
-    []
+    [router]
   )
+
+  const handleHomeClick = useCallback(() => {
+    setSelectedTool(null)
+    setOutputWarnings([])
+    selectedToolRef.current = null
+    setOutputResult(null)
+    setError(null)
+    setToolLoading(false)
+    router.push('/', undefined, { shallow: true })
+  }, [router])
+
+  // Handle tool selection from URL query parameter
+  useEffect(() => {
+    if (!router.isReady || !router.query.tool || predictedTools.length === 0) return
+
+    const toolId = router.query.tool
+    const tool = predictedTools.find(t => t.toolId === toolId)
+
+    if (tool && selectedToolRef.current?.toolId !== toolId) {
+      handleSelectTool(tool)
+    }
+  }, [router.isReady, router.query.tool, predictedTools, handleSelectTool])
 
   const handleInputChange = useCallback((text, image, preview, isLoadExample) => {
     const isAddition = text.length > previousInputLength
     const isEmpty = !text || text.trim() === ''
+    const hasImage = preview !== null && preview !== undefined
+
+    if (hasImage) {
+      console.log('Image detected in input change:', { text: text.substring(0, 50), hasImage: true, isEmpty, isAddition, isLoadExample })
+    }
+
+    const nextClassification = classifyMarkdownHtmlInput(text)
+    setContentClassification(nextClassification)
 
     // Update the ref to track actual input value (not state, which may lag)
     currentInputRef.current = text
@@ -305,6 +490,16 @@ export default function Home(props) {
     setInputImage(image)
     setImagePreview(preview)
     setPreviousInputLength(text.length)
+
+    // Reset regex tester config to defaults when loading an example
+    if (isLoadExample && selectedTool?.toolId === 'regex-tester') {
+      const defaultConfig = {
+        pattern: '[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
+        flags: 'g',
+        replacement: ''
+      }
+      setConfigOptions(defaultConfig)
+    }
 
     // Increment key to trigger effect on EVERY input change, bypassing batching
     setInputChangeKey(prev => prev + 1)
@@ -321,9 +516,9 @@ export default function Home(props) {
     }
 
     // Only run prediction if text was ADDED, not when deleting
-    // Exception: Always run prediction when loading an example or pasting content
+    // Exception: Always run prediction when loading an example, pasting content, or uploading an image
     // The fourth parameter can be either isPaste or isLoadExample flag
-    if (!isAddition && !isLoadExample) {
+    if (!isAddition && !isLoadExample && !hasImage) {
       setLoading(false)
       return
     }
@@ -407,13 +602,15 @@ export default function Home(props) {
             const predictUrl = `${baseUrl}/api/tools/predict`
 
             try {
+              const predictPayload = {
+                inputText: text,
+                inputImage: preview ? 'image' : null,
+              }
+              console.log('Sending prediction request with payload:', predictPayload)
               response = await fetch(predictUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  inputText: text,
-                  inputImage: preview ? 'image' : null,
-                }),
+                body: JSON.stringify(predictPayload),
                 signal: controller.signal,
                 credentials: 'same-origin',
               })
@@ -478,6 +675,8 @@ export default function Home(props) {
             return
           }
 
+          console.log('Prediction response received with tools:', data.predictedTools.slice(0, 5).map(t => ({ toolId: t.toolId, similarity: t.similarity })))
+
           // Map tools with metadata
           let toolsWithMetadata = data.predictedTools.map(tool => {
             const localToolData = TOOLS[tool.toolId] || {}
@@ -489,6 +688,7 @@ export default function Home(props) {
 
           // Filter out tools with show_in_recommendations = false
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
+          console.log('After filtering, showing tools:', toolsWithMetadata.slice(0, 5).map(t => ({ toolId: t.toolId, name: t.name, similarity: t.similarity })))
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
           // Catch any unexpected errors
@@ -517,7 +717,7 @@ export default function Home(props) {
         console.debug('Unhandled error in predictTools:', err?.message || String(err))
       })
     }, 300)
-  }, [fastLocalClassification, previousInputLength])
+  }, [fastLocalClassification, previousInputLength, selectedTool, setConfigOptions])
 
   const handleImageChange = useCallback((image, preview) => {
     setInputImage(image)
@@ -566,7 +766,7 @@ export default function Home(props) {
             useRegex: findReplaceConfig.useRegex || false,
             matchCase: findReplaceConfig.matchCase || false,
           }
-        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'diff') {
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'textDiff') {
           finalConfig = {
             ...config,
             text2: diffConfig.text2 || '',
@@ -593,6 +793,13 @@ export default function Home(props) {
             removeBlankLines: removeExtrasConfig.removeBlankLines !== false,
             removeTimestamps: removeExtrasConfig.removeTimestamps === true,
             removeDuplicateLines: removeExtrasConfig.removeDuplicateLines === true,
+          }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'delimiterTransformer') {
+          finalConfig = {
+            ...config,
+            delimiter: delimiterTransformerConfig.delimiter ?? ' ',
+            mode: delimiterTransformerConfig.mode ?? 'rows',
+            joinSeparator: delimiterTransformerConfig.joinSeparator ?? ',',
           }
         } else if (tool.toolId === 'checksum-calculator') {
           finalConfig = {
@@ -703,7 +910,7 @@ export default function Home(props) {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig, delimiterTransformerConfig]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -734,32 +941,177 @@ export default function Home(props) {
     }
 
     runTool()
-  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey])
+  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, activeToolkitSection])
 
+  // Helper function to determine if there's output to use
+  const getHasOutputToUse = () => {
+    if (!outputResult) return false
+    if (!selectedTool) return false
+
+    // For Text Toolkit, check specific sections
+    if (selectedTool.toolId === 'text-toolkit' && activeToolkitSection) {
+      const supportedSections = {
+        'slugGenerator': 'slugGenerator',
+        'reverseText': 'reverseText',
+        'removeExtras': 'removeExtras',
+        'sortLines': 'sortLines',
+        'findReplace': 'findReplace',
+        'caseConverter': 'caseConverter',
+        'delimiterTransformer': 'delimiterTransformer'
+      }
+      const key = supportedSections[activeToolkitSection]
+      return key && outputResult[key]
+    }
+
+    // For CSS Formatter, check formatted field
+    if (selectedTool.toolId === 'css-formatter' && outputResult?.formatted) {
+      return true
+    }
+
+    // For Web Playground, check formatted field
+    if (selectedTool.toolId === 'web-playground' && outputResult?.formatted) {
+      return true
+    }
+
+    // For formatters, check formatted or output field
+    const formatterTools = ['sql-formatter', 'json-formatter', 'xml-formatter', 'yaml-formatter', 'js-formatter']
+    if (formatterTools.includes(selectedTool.toolId)) {
+      return !!(outputResult?.formatted || outputResult?.output)
+    }
+
+    // For regular tools, check output field
+    return !!outputResult?.output
+  }
+
+  // Helper function to determine if a tool supports copying output to input
+  const getCanCopyOutput = () => {
+    if (!selectedTool) return false
+
+    // Tools that don't support copying output back to input
+    const nonCopyableTools = [
+      'base-converter',
+      'qr-code-generator',
+      'ip-toolkit',
+      'email-validator',
+      'image-resizer',
+      'image-compressor',
+      'json-to-table'
+    ]
+
+    return !nonCopyableTools.includes(selectedTool.toolId)
+  }
+
+  // Handler for use output button
+  const handleUseOutputClick = () => {
+    if (universalInputRef.current?.handleUseOutput) {
+      universalInputRef.current.handleUseOutput()
+    }
+  }
+
+  // Generate case conversion results for INPUT tab chevron menu
+  // Used by text-toolkit when in caseConverter mode
+  const caseConversionResults = (() => {
+    if (selectedTool?.toolId !== 'text-toolkit' || activeToolkitSection !== 'caseConverter' || !outputResult?.caseConverter) {
+      return []
+    }
+
+    const caseResults = outputResult.caseConverter
+    return [
+      {
+        label: 'UPPERCASE',
+        value: caseResults.uppercase,
+        onSelect: () => handleInputChange(caseResults.uppercase),
+      },
+      {
+        label: 'lowercase',
+        value: caseResults.lowercase,
+        onSelect: () => handleInputChange(caseResults.lowercase),
+      },
+      {
+        label: 'Title Case',
+        value: caseResults.titleCase,
+        onSelect: () => handleInputChange(caseResults.titleCase),
+      },
+      {
+        label: 'Sentence case',
+        value: caseResults.sentenceCase,
+        onSelect: () => handleInputChange(caseResults.sentenceCase),
+      },
+    ]
+  })()
+
+  // Handler for replacing CSS input with formatted CSS output
+  const handleUseCssOutputClick = () => {
+    if (cssFormattedOutput && activeMarkdownInputTab === 'css') {
+      setMarkdownCustomCss(cssFormattedOutput)
+    }
+  }
+
+  // Handler for replacing JS input with formatted JS output
+  const handleUseJsOutputClick = () => {
+    if (jsFormattedOutput && activeMarkdownInputTab === 'js') {
+      setMarkdownCustomJs(jsFormattedOutput)
+    }
+  }
 
   return (
     <>
       <Head>
-        {/* TEST: Hardcoded title and description */}
-        <title>{testTitle}</title>
-        <meta name="description" content={testDescription} />
+        {/* Dynamic meta tags based on selected tool */}
+        {(() => {
+          const metadata = generatePageMetadata({
+            seoSettings: props?.seoSettings || {},
+            title: selectedTool ? selectedTool.name : testTitle,
+            description: selectedTool ? selectedTool.description : testDescription,
+            path: selectedTool ? `/?tool=${selectedTool.toolId}` : '/',
+            tool: selectedTool || null,
+          })
+
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pioneerwebtools.com'
+          const canonicalUrl = metadata.canonical || siteUrl
+
+          return (
+            <>
+              <title>{metadata.title}</title>
+              <meta name="description" content={metadata.description} />
+              {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
+              <link rel="canonical" href={canonicalUrl} />
+
+              {/* Open Graph Tags for social sharing */}
+              <meta property="og:title" content={metadata.openGraph?.title || metadata.title} />
+              <meta property="og:description" content={metadata.openGraph?.description || metadata.description} />
+              <meta property="og:url" content={metadata.openGraph?.url || canonicalUrl} />
+              <meta property="og:type" content={metadata.openGraph?.type || 'website'} />
+              {metadata.openGraph?.image && <meta property="og:image" content={metadata.openGraph.image} />}
+
+              {/* Twitter Card Tags */}
+              <meta name="twitter:card" content={metadata.twitter?.card || 'summary_large_image'} />
+              <meta name="twitter:title" content={metadata.twitter?.title || metadata.title} />
+              <meta name="twitter:description" content={metadata.twitter?.description || metadata.description} />
+              {metadata.twitter?.site && <meta name="twitter:site" content={metadata.twitter.site} />}
+              {metadata.twitter?.creator && <meta name="twitter:creator" content={metadata.twitter.creator} />}
+            </>
+          )
+        })()}
+
+        {/* Schema markup */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateSoftwareAppSchema()),
+            __html: JSON.stringify(generateSoftwareAppSchema(props?.seoSettings || {})),
           }}
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateFAQSchema()),
+            __html: JSON.stringify(generateFAQSchema(props?.seoSettings || {})),
           }}
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(generateBreadcrumbSchema([
-              { name: 'Tools', item: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://your-domain.com'}/` }
+            __html: JSON.stringify(generateBreadcrumbSchema(props?.seoSettings || {}, [
+              { name: 'Tools', path: '/' }
             ])),
           }}
         />
@@ -767,131 +1119,200 @@ export default function Home(props) {
 
       <div className={styles.layout}>
         <div className={styles.header}>
-          <div className={styles.headerContent}>
+          <button
+            className={styles.headerContent}
+            onClick={handleHomeClick}
+            title="Go to home and deselect tool"
+            aria-label="Go to home and deselect tool"
+          >
             <h1>{siteName}</h1>
             <p>Paste anything — we'll auto-detect the perfect tool</p>
-          </div>
+          </button>
           <ThemeToggle />
         </div>
 
-        <div className={`${styles.bodyContainer} ${descriptionSidebarOpen ? styles.sidebarOpenDesktop : ''}`}>
+        <div className={styles.bodyContainer}>
           <ToolSidebar
             predictedTools={predictedTools}
             selectedTool={selectedTool}
             onSelectTool={handleSelectTool}
             loading={loading}
             initialLoading={initialToolsLoading}
+            sidebarOpen={sidebarOpen}
+            onSidebarToggle={setSidebarOpen}
           />
 
           <main className={styles.mainContent}>
             <div className={styles.content}>
-          <div className={styles.toolContainer}>
-            <div className={styles.leftPanel}>
-              <div className={styles.inputSection}>
-                <UniversalInput
-                  onInputChange={handleInputChange}
-                  onImageChange={handleImageChange}
-                  onCompareTextChange={setChecksumCompareText}
-                  compareText={checksumCompareText}
-                  selectedTool={selectedTool}
-                  configOptions={configOptions}
-                  getToolExample={getToolExample}
-                  errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
-                  predictedTools={predictedTools}
-                  onSelectTool={handleSelectTool}
-                  validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
-                  lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
-                />
-              </div>
-
-              {!selectedTool && (
-                <div className={styles.infoCard}>
-                  <ValuePropositionCard />
-                </div>
-              )}
-
-              {selectedTool && selectedTool?.toolId !== 'ip-address-toolkit' && (
-                <>
-                  <div className={styles.toolHeader}>
-                    <div>
-                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
-                      {selectedTool.description && (
-                        <p className={styles.toolDescription}>{selectedTool.description}</p>
-                      )}
+          <div
+            className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}
+            ref={dividerContainerRef}
+            style={!isPreviewFullscreen && isDesktop ? {
+              gridTemplateColumns: `${dividerLeftRatio}% auto 1fr`
+            } : undefined}
+          >
+            <div className={`${styles.leftPanel} ${isPreviewFullscreen ? styles.hidden : ''}`}>
+              <InputTabs
+                selectedTool={selectedTool}
+                inputTabLabel={selectedTool?.toolId === 'web-playground' ? 'HTML' : 'INPUT'}
+                onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
+                infoContent={!selectedTool && <ValuePropositionCard />}
+                tabActions={null}
+                inputTabResults={caseConversionResults}
+                hasOutputToUse={getHasOutputToUse()}
+                onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
+                canCopyOutput={getCanCopyOutput()}
+                useOutputLabel={selectedTool?.toolId === 'web-playground' ? 'Format code' : 'Replace with output'}
+                hasCssOutputToUse={selectedTool?.toolId === 'web-playground' && activeMarkdownInputTab === 'css' && markdownCustomCss && cssFormattedOutput ? true : false}
+                onUseCssOutput={selectedTool?.toolId === 'web-playground' ? () => handleUseCssOutputClick() : null}
+                canCopyCssOutput={true}
+                useCssOutputLabel={selectedTool?.toolId === 'web-playground' ? 'Format code' : 'Replace with output'}
+                hasJsOutputToUse={selectedTool?.toolId === 'web-playground' && activeMarkdownInputTab === 'js' && markdownCustomJs && jsFormattedOutput ? true : false}
+                onUseJsOutput={selectedTool?.toolId === 'web-playground' ? () => handleUseJsOutputClick() : null}
+                canCopyJsOutput={true}
+                useJsOutputLabel={selectedTool?.toolId === 'web-playground' ? 'Format code' : 'Replace with output'}
+                cssContent={selectedTool?.toolId === 'web-playground' ? (
+                  <ToolOutputPanel
+                    result={outputResult}
+                    outputType={selectedTool?.outputType}
+                    loading={toolLoading}
+                    error={error}
+                    toolId={selectedTool?.toolId}
+                    activeToolkitSection={activeToolkitSection}
+                    configOptions={configOptions}
+                    onConfigChange={setConfigOptions}
+                    inputText={inputText}
+                    imagePreview={imagePreview}
+                    warnings={outputWarnings}
+                    onInputUpdate={(text) => handleInputChange(text, null, null, true)}
+                    showAnalysisTab={showAnalysisTab}
+                    onShowAnalysisTabChange={setShowAnalysisTab}
+                    showRulesTab={showRulesTab}
+                    onShowRulesTabChange={setShowRulesTab}
+                    isPreviewFullscreen={isPreviewFullscreen}
+                    onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    renderCssTabOnly={true}
+                    activeMarkdownInputTab={activeMarkdownInputTab}
+                    markdownInputMode={markdownInputMode}
+                    markdownCustomCss={markdownCustomCss}
+                    onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    onCssFormattedOutput={setCssFormattedOutput}
+                    markdownCustomJs={markdownCustomJs}
+                    onMarkdownCustomJsChange={setMarkdownCustomJs}
+                    cssConfigOptions={cssConfigOptions}
+                    onCssConfigChange={setCssConfigOptions}
+                    jsConfigOptions={jsConfigOptions}
+                    onJsConfigChange={setJsConfigOptions}
+                    onJsFormatterDiagnosticsChange={setJsFormatterDiagnostics}
+                  />
+                ) : null}
+                jsContent={selectedTool?.toolId === 'web-playground' ? (
+                  <div style={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    padding: '16px',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      fontSize: '12px',
+                      color: 'var(--color-text-secondary)',
+                      lineHeight: '1.5',
+                      padding: '10px 12px',
+                      backgroundColor: 'rgba(156, 39, 176, 0.08)',
+                      border: '1px solid rgba(156, 39, 176, 0.2)',
+                      borderRadius: '4px',
+                    }}>
+                      Edit JavaScript to add interactivity. Scripts run in the preview with access to the DOM and CSS.
                     </div>
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <FaCircleInfo className={styles.descriptionIcon} />
-                    </button>
+                    <JSEditorInput
+                      value={markdownCustomJs}
+                      onChange={setMarkdownCustomJs}
+                      diagnostics={jsFormatterDiagnostics.filter(d => d.category !== 'lint')}
+                    />
                   </div>
-
-                  <div className={styles.configSection}>
-                    <ToolConfigPanel
-                      tool={selectedTool}
-                      onConfigChange={handleConfigChange}
-                      loading={toolLoading}
-                      onRegenerate={handleRegenerate}
-                      currentConfig={configOptions}
+                ) : null}
+                inputContent={
+                  <div className={styles.inputSection} style={{ overflow: 'hidden', height: '100%' }}>
+                    <UniversalInput
+                      ref={universalInputRef}
+                      inputText={inputText}
+                      inputImage={inputImage}
+                      imagePreview={imagePreview}
+                      onInputChange={handleInputChange}
+                      onImageChange={handleImageChange}
+                      onCompareTextChange={setChecksumCompareText}
+                      compareText={checksumCompareText}
+                      selectedTool={selectedTool}
+                      configOptions={configOptions}
+                      getToolExample={getToolExample}
+                      errorData={selectedTool?.toolId === 'js-formatter' ? outputResult : null}
+                      predictedTools={predictedTools}
+                      onSelectTool={handleSelectTool}
+                      validationErrors={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'error') : []}
+                      lintingWarnings={outputResult?.diagnostics && Array.isArray(outputResult.diagnostics) ? outputResult.diagnostics.filter(d => d.type === 'warning') : []}
                       result={outputResult}
                       activeToolkitSection={activeToolkitSection}
-                      onToolkitSectionChange={setActiveToolkitSection}
-                      findReplaceConfig={findReplaceConfig}
-                      onFindReplaceConfigChange={setFindReplaceConfig}
-                      diffConfig={diffConfig}
-                      onDiffConfigChange={setDiffConfig}
-                      sortLinesConfig={sortLinesConfig}
-                      onSortLinesConfigChange={setSortLinesConfig}
-                      removeExtrasConfig={removeExtrasConfig}
-                      onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                      onSetGeneratedText={handleInputChange}
+                      isPreviewFullscreen={isPreviewFullscreen}
+                      onTogglePreviewFullscreen={setIsPreviewFullscreen}
                     />
-                    {selectedTool?.toolId === 'math-evaluator' && (
-                      <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
-                    )}
                   </div>
-                </>
-              )}
-
-              {selectedTool?.toolId === 'ip-address-toolkit' && (
-                <>
-                  <div className={styles.toolHeader}>
-                    <div>
-                      <h2 className={styles.toolTitle}>{selectedTool.name}</h2>
-                      {selectedTool.description && (
-                        <p className={styles.toolDescription}>{selectedTool.description}</p>
+                }
+                optionsContent={
+                  selectedTool ? (
+                    <div className={styles.configSection}>
+                      <ToolDescriptionContent tool={selectedTool} />
+                    </div>
+                  ) : null
+                }
+                globalOptionsContent={
+                  selectedTool ? (
+                    <div className={styles.configSection}>
+                      <ToolConfigPanel
+                        tool={selectedTool}
+                        onConfigChange={handleConfigChange}
+                        onCssConfigChange={setCssConfigOptions}
+                        loading={toolLoading}
+                        onRegenerate={handleRegenerate}
+                        currentConfig={configOptions}
+                        result={outputResult}
+                        contentClassification={contentClassification}
+                        activeToolkitSection={activeToolkitSection}
+                        onToolkitSectionChange={setActiveToolkitSection}
+                        markdownInputMode={selectedTool?.toolId === 'web-playground' ? 'input' : undefined}
+                        cssConfigOptions={cssConfigOptions}
+                        findReplaceConfig={findReplaceConfig}
+                        onFindReplaceConfigChange={setFindReplaceConfig}
+                        diffConfig={diffConfig}
+                        onDiffConfigChange={setDiffConfig}
+                        sortLinesConfig={sortLinesConfig}
+                        onSortLinesConfigChange={setSortLinesConfig}
+                        removeExtrasConfig={removeExtrasConfig}
+                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                        delimiterTransformerConfig={delimiterTransformerConfig}
+                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                        onSetGeneratedText={handleInputChange}
+                        showAnalysisTab={showAnalysisTab}
+                        onShowAnalysisTabChange={setShowAnalysisTab}
+                        showRulesTab={showRulesTab}
+                        onShowRulesTabChange={setShowRulesTab}
+                      />
+                      {selectedTool?.toolId === 'math-evaluator' && (
+                        <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
                       )}
                     </div>
-                    <button
-                      className={styles.descriptionToggle}
-                      onClick={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-                      aria-label="Toggle tool description"
-                      title="View tool description"
-                    >
-                      <FaCircleInfo className={styles.descriptionIcon} />
-                    </button>
-                  </div>
-
-                  <div className={styles.ipToolkitTipsContainer}>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Single mode:</span>
-                      <span className={styles.tipText}>One IP, IPv6, CIDR or range</span>
-                    </div>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Bulk (2 items):</span>
-                      <span className={styles.tipText}>Side-by-side comparison</span>
-                    </div>
-                    <div className={styles.tipItem}>
-                      <span className={styles.tipLabel}>Bulk (3-7 items):</span>
-                      <span className={styles.tipText}>Aggregate analysis & insights</span>
-                    </div>
-                  </div>
-                </>
-              )}
+                  ) : null
+                }
+                tabOptionsMap={{}}
+              />
             </div>
+
+            <div
+              className={styles.divider}
+              onMouseDown={handleDividerMouseDown}
+              title="Drag to resize panels"
+            />
 
             <div className={styles.rightPanel}>
               <div className={styles.outputSection}>
@@ -903,6 +1324,11 @@ export default function Home(props) {
                   />
                 ) : selectedTool?.toolId === 'email-validator' ? (
                   <EmailValidatorOutputPanel
+                    key={selectedTool?.toolId}
+                    result={outputResult}
+                  />
+                ) : selectedTool?.toolId === 'qr-code-generator' ? (
+                  <QRCodeGeneratorOutputPanel
                     key={selectedTool?.toolId}
                     result={outputResult}
                   />
@@ -921,6 +1347,25 @@ export default function Home(props) {
                     imagePreview={imagePreview}
                     warnings={outputWarnings}
                     onInputUpdate={(text) => handleInputChange(text, null, null, true)}
+                    showAnalysisTab={showAnalysisTab}
+                    onShowAnalysisTabChange={setShowAnalysisTab}
+                    showRulesTab={showRulesTab}
+                    onShowRulesTabChange={setShowRulesTab}
+                    isPreviewFullscreen={isPreviewFullscreen}
+                    onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                    renderCssTabOnly={false}
+                    activeMarkdownInputTab={activeMarkdownInputTab}
+                    markdownInputMode={markdownInputMode}
+                    markdownCustomCss={markdownCustomCss}
+                    onMarkdownCustomCssChange={setMarkdownCustomCss}
+                    markdownCustomJs={markdownCustomJs}
+                    onMarkdownCustomJsChange={setMarkdownCustomJs}
+                    onJsFormattedOutput={setJsFormattedOutput}
+                    cssConfigOptions={cssConfigOptions}
+                    onCssConfigChange={setCssConfigOptions}
+                    jsConfigOptions={jsConfigOptions}
+                    onJsConfigChange={setJsConfigOptions}
+                    onJsFormatterDiagnosticsChange={setJsFormatterDiagnostics}
                   />
                 )}
               </div>
@@ -930,28 +1375,12 @@ export default function Home(props) {
       </main>
         </div>
 
-        <ToolDescriptionSidebar
-          tool={selectedTool}
-          isOpen={descriptionSidebarOpen}
-          onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
-        />
 
-        <footer className={styles.footer}>
-          <div className={styles.footerContent}>
-            <p>© 2024 Pioneer Web Tools. All rights reserved.</p>
-            <Link href="/blog/why-deterministic-internet-tools-are-better-than-ai" className={styles.footerAboutLink}>
-              About
-            </Link>
-          </div>
-        </footer>
+
+        <PageFooter showBackToTools={false} />
       </div>
 
-      {descriptionSidebarOpen && (
-        <div
-          className={styles.sidebarOverlay}
-          onClick={() => setDescriptionSidebarOpen(false)}
-        />
-      )}
+
     </>
   )
 }

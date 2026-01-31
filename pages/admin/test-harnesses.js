@@ -19,8 +19,10 @@ export default function AdminTestHarnesses() {
   const [harnesses, setHarnesses] = useState([])
   const [loading, setLoading] = useState(true)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editPathModalOpen, setEditPathModalOpen] = useState(false)
   const [editingHarness, setEditingHarness] = useState(null)
   const [editSlug, setEditSlug] = useState('')
+  const [editPath, setEditPath] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
 
@@ -114,6 +116,50 @@ export default function AdminTestHarnesses() {
     setEditSlug('')
   }
 
+  const handleEditPathOpen = (harness) => {
+    setEditingHarness(harness)
+    setEditPath(harness.path)
+    setEditPathModalOpen(true)
+  }
+
+  const handleEditPathSave = () => {
+    if (!editPath.trim()) {
+      alert('Path cannot be empty')
+      return
+    }
+
+    try {
+      const stored = localStorage.getItem('testHarnessMetadata')
+      const metadata = stored ? JSON.parse(stored) : {}
+
+      metadata[editingHarness.id] = {
+        ...metadata[editingHarness.id],
+        path: editPath.trim(),
+      }
+
+      localStorage.setItem('testHarnessMetadata', JSON.stringify(metadata))
+
+      const updatedHarnesses = harnesses.map((h) =>
+        h.id === editingHarness.id ? { ...h, path: editPath.trim() } : h
+      )
+      setHarnesses(updatedHarnesses)
+
+      setSuccessMessage('Harness path updated successfully')
+      setTimeout(() => setSuccessMessage(''), 3000)
+      setEditPathModalOpen(false)
+      setEditingHarness(null)
+      setEditPath('')
+    } catch (err) {
+      alert('Failed to save path: ' + err.message)
+    }
+  }
+
+  const handleEditPathCancel = () => {
+    setEditPathModalOpen(false)
+    setEditingHarness(null)
+    setEditPath('')
+  }
+
   if (loading) {
     return (
       <div className={styles.adminContainer}>
@@ -165,6 +211,12 @@ export default function AdminTestHarnesses() {
                         View
                       </Link>
                       <button
+                        onClick={() => handleEditPathOpen(harness)}
+                        className={styles.actionBtn}
+                      >
+                        Edit Path
+                      </button>
+                      <button
                         onClick={() => handleEditOpen(harness)}
                         className={styles.actionBtn}
                       >
@@ -178,6 +230,30 @@ export default function AdminTestHarnesses() {
           </table>
         </div>
       </div>
+
+      {editPathModalOpen && (
+        <div className={styles.modalBackdrop}>
+          <div className={styles.modal}>
+            <div className={styles.modalTitle}>Edit Path</div>
+            <p>Update the path for <strong>{editingHarness?.title}</strong></p>
+            <input
+              type="text"
+              value={editPath}
+              onChange={(e) => setEditPath(e.target.value)}
+              className={styles.modalInput}
+              placeholder="Enter new path"
+            />
+            <div className={styles.modalActions}>
+              <button onClick={handleEditPathCancel} className={styles.secondaryBtn}>
+                Cancel
+              </button>
+              <button onClick={handleEditPathSave} className={`${styles.publishBtn} ${styles.publishBtnFull}`}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {editModalOpen && (
         <div className={styles.modalBackdrop}>

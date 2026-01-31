@@ -1,0 +1,215 @@
+import React from 'react'
+import styles from '../styles/tool-description-content.module.css'
+
+export default function ToolDescriptionContent({ tool }) {
+  if (!tool) {
+    return null
+  }
+
+  const description = tool.detailedDescription || {
+    overview: 'Tool information coming soon.',
+    howtouse: 'Instructions will be available soon.',
+    usecases: [],
+    features: [],
+  }
+
+  // Helper function to render text with paragraph breaks
+  const renderParagraphs = (text) => {
+    if (!text) return null
+    if (Array.isArray(text)) {
+      return text.map((paragraph, idx) => (
+        <p key={idx}>{paragraph}</p>
+      ))
+    }
+    return <p>{text}</p>
+  }
+
+  return (
+    <div className={styles.descriptionContent}>
+      {/* Tool Introduction */}
+      {description.overview && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Tool Introduction</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.overview)}
+          </div>
+        </section>
+      )}
+
+      {/* What This Tool Does */}
+      {description.whatToolDoes && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>What This Tool Does</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.whatToolDoes)}
+          </div>
+        </section>
+      )}
+
+      {/* Why This Tool Exists */}
+      {description.whyExists && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Why This Tool Exists</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.whyExists)}
+          </div>
+        </section>
+      )}
+
+      {/* Common Use Cases */}
+      {description.commonUseCases && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Common Use Cases</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.commonUseCases)}
+          </div>
+        </section>
+      )}
+
+      {/* Deterministic and Predictable Behavior */}
+      {description.deterministic && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Deterministic and Predictable Behavior</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.deterministic)}
+          </div>
+        </section>
+      )}
+
+      {/* Privacy and Data Safety */}
+      {description.privacy && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Privacy and Data Safety</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.privacy)}
+          </div>
+        </section>
+      )}
+
+      {/* Free to Use */}
+      {description.freeToUse && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Free to Use</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.freeToUse)}
+          </div>
+        </section>
+      )}
+
+      {/* Input and Output Expectations */}
+      {description.inputOutput && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Input and Output Expectations</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.inputOutput)}
+          </div>
+        </section>
+      )}
+
+      {/* Who This Tool Is For */}
+      {description.whoFor && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Who This Tool Is For</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.whoFor)}
+          </div>
+        </section>
+      )}
+
+      {/* Reliability and Trust */}
+      {description.reliability && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Reliability and Trust</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.reliability)}
+          </div>
+        </section>
+      )}
+
+      {/* Frequently Asked Questions */}
+      {description.faq && description.faq.length > 0 && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Frequently Asked Questions</h3>
+          <div className={styles.sectionContent}>
+            {description.faq.map((item, idx) => (
+              <div key={idx} style={{ marginBottom: '16px' }}>
+                <strong>{item.question}</strong>
+                <p style={{ marginTop: '8px' }}>{item.answer}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Final Notes */}
+      {description.finalNotes && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Final Notes</h3>
+          <div className={styles.sectionContent}>
+            {renderParagraphs(description.finalNotes)}
+          </div>
+        </section>
+      )}
+
+      {/* Legacy support for old format */}
+      {description.howtouse && !description.whatToolDoes && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>How to Use</h3>
+          <div className={styles.sectionContent}>
+            <ol className={styles.instructionsList}>
+              {Array.isArray(description.howtouse) ? (
+                description.howtouse.map((instruction, idx) => (
+                  <li key={idx}>{instruction}</li>
+                ))
+              ) : (
+                <li>{description.howtouse}</li>
+              )}
+            </ol>
+          </div>
+        </section>
+      )}
+
+      {description.features && description.features.length > 0 && !description.whatToolDoes && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Features</h3>
+          <div className={styles.sectionContent}>
+            <ul className={styles.featuresList}>
+              {description.features.map((feature, idx) => (
+                <li key={idx}>{feature}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {description.usecases && description.usecases.length > 0 && !description.whatToolDoes && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Use Cases</h3>
+          <div className={styles.sectionContent}>
+            <ul className={styles.usecasesList}>
+              {description.usecases.map((usecase, idx) => (
+                <li key={idx}>{usecase}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {description.warnings && description.warnings.length > 0 && (
+        <section className={styles.warningSection}>
+          <h3 className={`${styles.sectionTitle} ${styles.warningTitle}`}>
+            <span className={styles.warningIcon}>⚠</span>
+            <span>Warnings</span>
+          </h3>
+          <div className={`${styles.sectionContent} ${styles.warningContent}`}>
+            <ul className={styles.warningsList}>
+              {description.warnings.map((warning, idx) => (
+                <li key={idx}>{warning}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+    </div>
+  )
+}

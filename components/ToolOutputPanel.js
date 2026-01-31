@@ -1,13 +1,22 @@
-import React, { useState } from 'react'
-import { FaCopy } from 'react-icons/fa6'
+import React, { useState, useRef, useEffect } from 'react'
+import { FaCopy, FaCheck } from 'react-icons/fa6'
 import dynamic from 'next/dynamic'
 import styles from '../styles/tool-output.module.css'
+import UseOutputButton from './UseOutputButton'
 import sqlStyles from '../styles/sql-formatter.module.css'
 import jsStyles from '../styles/js-formatter.module.css'
 import OutputTabs from './OutputTabs'
 import CSVWarningsPanel from './CSVWarningsPanel'
+import MarkdownRenderer from './MarkdownRenderer'
+import HTMLRenderer from './HTMLRenderer'
 import { TOOLS, isScriptingLanguageTool } from '../lib/tools'
 import { colorConverter } from '../lib/tools/colorConverter'
+import { scanSelectorsFromHTML, extractSelectorsFromCSS } from '../lib/tools/selectorScanner'
+import { scopeCss } from '../lib/tools/cssScoper'
+import { extractCssFromHtml } from '../lib/tools/cssExtractor'
+import { extractAndParseCssFromHtml, parseCssToRulesTree } from '../lib/tools/cssParser'
+import { cssFormatter } from '../lib/tools/cssFormatter'
+import { marked } from 'marked'
 import UUIDValidatorOutput, { UUIDValidatorGeneratedOutput, UUIDValidatorBulkOutput } from './UUIDValidatorOutput'
 import URLToolkitOutput from '../lib/tools/URLToolkitOutput'
 
@@ -21,7 +30,10 @@ import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
 import MathEvaluatorResult from './MathEvaluatorResult'
 import ResizeOutput from './ImageToolkit/outputs/ResizeOutput'
 
-export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate }) {
+const CSSEditorInput = dynamic(() => import('./CSSEditorInput'), { ssr: false })
+const MarkdownPreviewWithInspector = dynamic(() => import('./MarkdownPreviewWithInspector'), { ssr: false })
+
+export default function ToolOutputPanel({ result, outputType, loading, error, toolId, activeToolkitSection, configOptions, onConfigChange, inputText, imagePreview, warnings = [], onInputUpdate, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, isPreviewFullscreen, onTogglePreviewFullscreen, renderCssTabOnly = false, activeMarkdownInputTab = 'input', markdownInputMode = 'input', markdownCustomCss: externalMarkdownCss = null, onMarkdownCustomCssChange = null, onCssFormattedOutput = null, markdownCustomJs: externalMarkdownJs = null, onMarkdownCustomJsChange = null, onJsFormattedOutput = null, cssConfigOptions = {}, onCssConfigChange = null, jsConfigOptions = {}, onJsConfigChange = null, onJsFormatterDiagnosticsChange = null }) {
   const toolCategory = TOOLS[toolId]?.category
   const [copied, setCopied] = useState(false)
   const [copiedField, setCopiedField] = useState(null)
@@ -32,9 +44,144 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [cronRunsToLoad, setCronRunsToLoad] = useState(5)
   const [enhancedResult, setEnhancedResult] = useState(null)
+  const [caseConverterCopied, setCaseConverterCopied] = useState({})
+  const [expandedMetric, setExpandedMetric] = useState(null)
+  const [analyzerSearchQuery, setAnalyzerSearchQuery] = useState('')
+  const [internalMarkdownCss, setInternalMarkdownCss] = useState('')
+  // Use external prop if provided (for renderCssTabOnly mode), otherwise use internal state
+  const markdownCustomCss = externalMarkdownCss !== null ? externalMarkdownCss : internalMarkdownCss
+  const setMarkdownCustomCss = onMarkdownCustomCssChange || setInternalMarkdownCss
+  const [internalMarkdownJs, setInternalMarkdownJs] = useState('')
+  // Use external prop if provided (for JS tab), otherwise use internal state
+  const markdownCustomJs = externalMarkdownJs !== null ? externalMarkdownJs : internalMarkdownJs
+  const setMarkdownCustomJs = onMarkdownCustomJsChange || setInternalMarkdownJs
+  const [scannedSelectors, setScannedSelectors] = useState({ tags: [], classes: [], suggestions: [] })
+  const [cssFormatterResult, setCssFormatterResult] = useState(null)
+  const [jsFormatterResult, setJsFormatterResult] = useState(null)
+
+  // Format CSS when markdownCustomCss changes (only for web-playground)
+  React.useEffect(() => {
+    if (toolId === 'web-playground' && markdownCustomCss && markdownCustomCss.trim()) {
+      const formatCss = async () => {
+        try {
+          // Build formatter options from cssConfigOptions
+          const formatterOptions = {
+            mode: cssConfigOptions?.mode || 'beautify',
+            indentSize: cssConfigOptions?.indentSize || '2',
+            removeComments: cssConfigOptions?.removeComments !== false,
+            addAutoprefix: cssConfigOptions?.addAutoprefix === true,
+            browsers: cssConfigOptions?.browsers || 'last 2 versions',
+            showValidation: cssConfigOptions?.showValidation !== false,
+            showLinting: cssConfigOptions?.showLinting !== false,
+          }
+          // Call CSS formatter via API (server-side where PostCSS is available)
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: 'css-formatter',
+              inputText: markdownCustomCss,
+              config: formatterOptions,
+            }),
+          })
+          const { result } = await response.json()
+          setCssFormatterResult(result)
+        } catch (err) {
+          console.error('CSS formatting error:', err)
+          setCssFormatterResult(null)
+        }
+      }
+      formatCss()
+    } else {
+      setCssFormatterResult(null)
+    }
+  }, [markdownCustomCss, toolId, cssConfigOptions])
+
+  // Format JavaScript when markdownCustomJs or jsConfigOptions changes (only for web-playground)
+  React.useEffect(() => {
+    if (toolId === 'web-playground' && markdownCustomJs && markdownCustomJs.trim()) {
+      const formatJs = async () => {
+        try {
+          // Call JavaScript formatter via API with all the config options
+          console.log('[JS Formatter] Config:', jsConfigOptions)
+          const response = await fetch('/api/tools/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId: 'js-formatter',
+              inputText: markdownCustomJs,
+              config: jsConfigOptions,
+            }),
+          })
+          const data = await response.json()
+          console.log('[JS Formatter] Response:', data)
+          console.log('[JS Formatter] Diagnostics:', data.result?.diagnostics)
+          console.log('[JS Formatter] Linting:', data.result?.linting)
+          setJsFormatterResult(data.result || data)
+        } catch (err) {
+          console.error('[JS Formatter] Error:', err)
+          setJsFormatterResult(null)
+        }
+      }
+      formatJs()
+    } else {
+      setJsFormatterResult(null)
+    }
+  }, [markdownCustomJs, toolId, jsConfigOptions])
+
+  // Update parent component with JS formatter diagnostics for editor linting
+  React.useEffect(() => {
+    if (onJsFormatterDiagnosticsChange && jsFormatterResult?.diagnostics) {
+      onJsFormatterDiagnosticsChange(jsFormatterResult.diagnostics)
+    }
+  }, [jsFormatterResult?.diagnostics, onJsFormatterDiagnosticsChange])
+
   // If input is empty, treat as no result - render blank state
   const isInputEmpty = (!inputText || inputText.trim() === '') && !imagePreview
-  const displayResult = isInputEmpty ? null : result
+  // Always show result even if empty/invalid - renders partial output
+  const displayResult = result
+  const isMarkdownFormatter = toolId === 'web-playground'
+
+  // Capture CSS formatted output when on CSS tab
+  React.useEffect(() => {
+    if (isMarkdownFormatter && activeMarkdownInputTab === 'css' && cssFormatterResult?.formatted && onCssFormattedOutput) {
+      onCssFormattedOutput(cssFormatterResult.formatted)
+    }
+  }, [cssFormatterResult?.formatted, activeMarkdownInputTab, isMarkdownFormatter, onCssFormattedOutput])
+
+  // Capture JS formatted output when on JS tab
+  React.useEffect(() => {
+    if (isMarkdownFormatter && activeMarkdownInputTab === 'js' && jsFormatterResult?.formatted && onJsFormattedOutput) {
+      onJsFormattedOutput(jsFormatterResult.formatted)
+    }
+  }, [jsFormatterResult?.formatted, activeMarkdownInputTab, isMarkdownFormatter, onJsFormattedOutput])
+
+  const enableHtmlPreview = isMarkdownFormatter
+    ? configOptions?.enableHtml === true
+    : true
+  const enableGfmFeatures = isMarkdownFormatter
+    ? configOptions?.enableGfm !== false
+    : true
+
+  const shouldRenderMarkdownFormatterAsHtml = (formatterResult) => {
+    if (!formatterResult) return false
+    if (formatterResult.appliedConversion === 'html') {
+      return true
+    }
+    if (formatterResult.appliedConversion === 'markdown') {
+      return false
+    }
+    return formatterResult.contentMode === 'html'
+  }
+
+  const handleInsertSelector = (selector) => {
+    // Insert selector template at the end of the CSS
+    const selectorTemplate = `${selector} {
+
+}\n`
+    const newText = markdownCustomCss ? markdownCustomCss + '\n' + selectorTemplate : selectorTemplate
+    setMarkdownCustomCss(newText)
+  }
 
   const handleDialectChange = (dialect) => {
     if (onConfigChange) {
@@ -62,6 +209,38 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     // Add declaration to the output and set it as new input to clear the lint warning
     const newInput = xmlDeclaration + (xmlWithoutDeclaration || '')
     onInputUpdate(newInput)
+  }
+
+  // Phase 6(E): Handle applying CSS edits from the preview inspector to the source
+  // The CSS passed here is the ENTIRE mutated stylesheet (not just new rules)
+  // We replace the entire input with this to preserve cascade and rule structure
+  const handleApplyCSSStagedEdits = (editedCSS) => {
+    if (!onInputUpdate || !editedCSS) return
+    // Replace the entire CSS with the mutated version (preserves source structure)
+    onInputUpdate(editedCSS)
+  }
+
+  // Handle editing embedded CSS in HTML - update the <style> block content
+  const handleEmbeddedCssChange = (newEmbeddedCss) => {
+    if (!onInputUpdate || !inputText) return
+
+    // Replace the first <style> block content with the new CSS
+    // This assumes all embedded CSS is in one block (simplified for now)
+    const updatedHtml = inputText.replace(
+      /<style[^>]*>([\s\S]*?)<\/style>/i,
+      `<style>\n${newEmbeddedCss}\n</style>`
+    )
+
+    onInputUpdate(updatedHtml)
+  }
+
+  const handleSourceChange = ({ source, newContent }) => {
+    if (!onInputUpdate) return
+    // Only update the main input for HTML/Markdown changes, not CSS changes
+    // CSS changes are handled via onCssChange callback
+    if (source === 'html' || source === 'markdown') {
+      onInputUpdate(newContent)
+    }
   }
 
   const renderValidationErrorsUnified = (errors, sectionTitle = 'Input Validation Errors (prevents formatting)') => {
@@ -113,8 +292,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       'slugGenerator': 'slugGenerator',
       'reverseText': 'reverseText',
       'removeExtras': 'removeExtras',
-      'whitespaceVisualizer': 'whitespaceVisualizer',
       'sortLines': 'sortLines',
+      'delimiterTransformer': 'delimiterTransformer',
     }
     return keyMap[section]
   }
@@ -144,13 +323,81 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
   }, [activeToolkitSection, previousToolkitSection, toolId])
 
+  // Scan selectors from canonical HTML for markdown formatter
+  // This ensures consistent selector detection across both Markdown and HTML modes
+  const emptySelectorState = React.useMemo(() => ({
+    tags: [],
+    classes: [],
+    suggestions: { structure: [], headings: [], text: [], code: [] }
+  }), [])
+
+  React.useEffect(() => {
+    if (toolId !== 'web-playground') {
+      setScannedSelectors(emptySelectorState)
+      return
+    }
+
+    if (!displayResult?.formatted || typeof displayResult.formatted !== 'string') {
+      setScannedSelectors(emptySelectorState)
+      return
+    }
+
+    const formattedOutput = displayResult.formatted
+    const selectorHtmlFlag = isMarkdownFormatter
+      ? shouldRenderMarkdownFormatterAsHtml(displayResult)
+      : isHtmlContent(formattedOutput)
+    let htmlForSelectors = ''
+
+    if (selectorHtmlFlag) {
+      htmlForSelectors = formattedOutput
+    } else {
+      try {
+        htmlForSelectors = marked.parse(formattedOutput)
+      } catch (error) {
+        console.warn('Failed to convert markdown to HTML for selector scanning:', error)
+        htmlForSelectors = ''
+      }
+    }
+
+    if (htmlForSelectors) {
+      // Scan HTML for tag and class selectors
+      const htmlSelectors = scanSelectorsFromHTML(htmlForSelectors)
+
+      // Also extract and scan CSS from embedded <style> tags
+      const embeddedCss = extractCssFromHtml(htmlForSelectors)
+      const cssSelectors = embeddedCss ? extractSelectorsFromCSS(embeddedCss) : { tags: [], classes: [], suggestions: { structure: [], headings: [], text: [], code: [] } }
+
+      // Merge HTML and CSS selectors
+      const mergedTags = Array.from(new Set([...htmlSelectors.tags, ...cssSelectors.tags])).sort()
+      const mergedClasses = Array.from(new Set([...htmlSelectors.classes, ...cssSelectors.classes])).sort()
+
+      // Regenerate suggestions from merged selectors
+      const { structure, headings, text, code } = htmlSelectors.suggestions
+      const mergedSuggestions = {
+        structure: Array.from(new Set([...structure, ...(cssSelectors.suggestions.structure || [])])).sort(),
+        headings: Array.from(new Set([...headings, ...(cssSelectors.suggestions.headings || [])])).sort(),
+        text: Array.from(new Set([...text, ...(cssSelectors.suggestions.text || [])])).sort(),
+        code: Array.from(new Set([...code, ...(cssSelectors.suggestions.code || [])])).sort(),
+      }
+
+      setScannedSelectors({
+        tags: mergedTags,
+        classes: mergedClasses,
+        suggestions: mergedSuggestions,
+      })
+    } else {
+      setScannedSelectors(emptySelectorState)
+    }
+  }, [toolId, displayResult?.formatted, emptySelectorState])
+
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
-    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines'].includes(activeToolkitSection) &&
+    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
-  // Show blank tabs when no result
-  if (!displayResult) {
+  // Show blank tabs when no result (but skip for markdown formatter - it has its own rendering)
+  // Skip for web-playground entirely - it handles empty states with empty preview rendering
+  if (!displayResult && toolId !== 'web-playground') {
     const waitingMessage = isInputEmpty ? 'Waiting for input...' : ''
     const blankTabs = [
       {
@@ -187,10 +434,10 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         textToCopy = displayResult.reverseText
       } else if (activeToolkitSection === 'removeExtras' && displayResult.removeExtras) {
         textToCopy = displayResult.removeExtras
-      } else if (activeToolkitSection === 'whitespaceVisualizer' && displayResult.whitespaceVisualizer) {
-        textToCopy = displayResult.whitespaceVisualizer
       } else if (activeToolkitSection === 'sortLines' && displayResult.sortLines) {
         textToCopy = displayResult.sortLines
+      } else if (activeToolkitSection === 'delimiterTransformer' && displayResult.delimiterTransformer) {
+        textToCopy = displayResult.delimiterTransformer
       }
     }
 
@@ -1811,9 +2058,16 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       primaryTabContent = displayResult.obfuscated
     }
 
-    // Add primary tab FIRST - only show if isWellFormed is true
+    // Check for validation errors first
+    let hasValidationErrors = false
+    if (displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error' && d.category !== 'lint')
+      hasValidationErrors = validationErrors.length > 0
+    }
+
+    // Add primary tab FIRST - only show if isWellFormed is true AND no validation errors
     if (primaryTabId && primaryTabContent) {
-      if (displayResult.isWellFormed) {
+      if (displayResult.isWellFormed && !hasValidationErrors) {
         if (typeof primaryTabContent === 'string' && primaryTabContent.trim()) {
           tabs.push({
             id: primaryTabId,
@@ -1822,39 +2076,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             contentType: 'code',
           })
         }
-      } else {
-        // Show error message when code is not well-formed
-        const errorContent = (
-          <div style={{ padding: '16px' }}>
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'rgba(239, 83, 80, 0.1)',
-              border: '1px solid rgba(239, 83, 80, 0.3)',
-              borderRadius: '4px',
-              color: '#ef5350',
-              fontSize: '13px',
-              marginBottom: '12px',
-            }}>
-              Cannot format because code contains errors. Showing original code.
-            </div>
-            <pre style={{
-              backgroundColor: 'var(--color-background-tertiary)',
-              padding: '12px',
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-            }}>
-              <code>{primaryTabContent}</code>
-            </pre>
-          </div>
-        )
-        tabs.push({
-          id: primaryTabId,
-          label: 'Output',
-          content: errorContent,
-          contentType: 'component',
-        })
       }
     }
 
@@ -1866,7 +2087,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -1935,7 +2156,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
@@ -2000,7 +2220,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintingWarnings.map((warning, idx) => (
                 <div
@@ -2104,6 +2324,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Add JSON tab - shows input, output, and diagnostics only
+    const jsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted || displayResult.minified || displayResult.obfuscated,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      analysis: displayResult.analysis,
+      optionsApplied: {
+        mode: displayResult.optionsApplied?.mode,
+        indentSize: displayResult.optionsApplied?.indentSize,
+      },
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(jsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
+
     if (tabs.length === 0) return null
 
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
@@ -2140,7 +2380,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2233,7 +2473,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintingWarnings.map((warning, idx) => (
                 <div
@@ -2277,24 +2517,1023 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Add JSON tab - shows input, output, and diagnostics only
+    const yamlJsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      optionsApplied: {
+        mode: displayResult.optionsApplied?.mode,
+        indentSize: displayResult.optionsApplied?.indentSize,
+      },
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(yamlJsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
+
     if (tabs.length === 0) return null
 
     return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
   }
 
+  // Helper to detect if content is HTML or Markdown
+  const isHtmlContent = (content) => {
+    if (!content || typeof content !== 'string') return false
+    // Simple check: if content contains HTML-like tags, it's likely HTML
+    return /<[a-z][\w\s="'/:.-]*>/i.test(content.trim())
+  }
+
   const renderMarkdownFormatterOutput = () => {
-    if (!displayResult || typeof displayResult !== 'object') return null
+    // Helper to remove .pwt-markdown-preview prefix from selectors
+    const cleanSelector = (selector) => {
+      if (typeof selector === 'string' && selector.startsWith('.pwt-markdown-preview ')) {
+        return selector.replace('.pwt-markdown-preview ', '')
+      }
+      return selector
+    }
+
+    // If CSS mode is active, show CSS formatter output tabs
+    // OUTPUT and JSON are always shown (persistent)
+    // FORMATTED, VALIDATION, and LINTING are conditional on having CSS input
+    if (!renderCssTabOnly && markdownInputMode === 'css') {
+      const cssOutputTabs = []
+
+      // Add OUTPUT tab - always visible (persistent preview)
+      // Show rendered preview with HTML/Markdown and CSS applied
+      if (displayResult && displayResult.formatted) {
+        // Don't scope here - MarkdownPreviewWithInspector handles scoping internally
+        // Use the actual content classification from formatter result
+        let isHtml = displayResult.contentMode === 'html'
+        if (displayResult.appliedConversion === 'html') {
+          isHtml = true
+        } else if (displayResult.appliedConversion === 'markdown') {
+          isHtml = false
+        }
+
+        // Extract embedded CSS from HTML
+        const embeddedRules = isHtml
+          ? extractAndParseCssFromHtml(displayResult.formatted)
+          : []
+
+
+        // Parse custom CSS with proper origin tracking
+        const customCssRules = markdownCustomCss && markdownCustomCss.trim()
+          ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
+          : []
+
+        // Offset CSS tab rules' ruleIndex by embedded rules count
+        const customCssRulesWithOffset = customCssRules.map(rule => ({
+          ...rule,
+          ruleIndex: rule.ruleIndex + embeddedRules.length
+        }))
+
+        const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
+
+        cssOutputTabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: (
+            <MarkdownPreviewWithInspector
+              isHtml={isHtml}
+              content={inputText}
+              customCss={markdownCustomCss}
+              customJs={markdownCustomJs}
+              rulesTree={mergedRulesForDisplay}
+              allowHtml={enableHtmlPreview}
+              enableGfm={enableGfmFeatures}
+              isFullscreen={isPreviewFullscreen}
+              onToggleFullscreen={onTogglePreviewFullscreen}
+              onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+              onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+              onHtmlChange={handleEmbeddedCssChange}
+              onSourceChange={handleSourceChange}
+              allowScripts={true}
+              allowIframes={true}
+            />
+          ),
+          contentType: 'component',
+        })
+      } else {
+        // No HTML/Markdown to render yet
+        // For web-playground, show empty preview instead of waiting message
+        if (isMarkdownFormatter) {
+          cssOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: (
+              <MarkdownPreviewWithInspector
+                isHtml={true}
+                content=""
+                customCss={markdownCustomCss}
+                customJs={markdownCustomJs}
+                rulesTree={[]}
+                allowHtml={enableHtmlPreview}
+                enableGfm={enableGfmFeatures}
+                isFullscreen={isPreviewFullscreen}
+                onToggleFullscreen={onTogglePreviewFullscreen}
+                onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+                onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+                onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
+                allowScripts={true}
+                allowIframes={true}
+              />
+            ),
+            contentType: 'component',
+          })
+        } else {
+          cssOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: 'Waiting for input...',
+            contentType: 'text',
+          })
+        }
+      }
+
+      // Only add FORMATTED, VALIDATION, and LINTING tabs if there's CSS input
+      if (markdownCustomCss && markdownCustomCss.trim()) {
+        // Add FORMATTED tab - show the formatted CSS code
+        if (cssFormatterResult) {
+          const isEmptyFormatted = cssFormatterResult.formatted === '' || cssFormatterResult.formatted.trim() === ''
+
+          if (isEmptyFormatted) {
+            // Show a helpful message for empty formatted CSS
+            cssOutputTabs.push({
+              id: 'formatted',
+              label: 'FORMATTED',
+              content: (
+                <div style={{
+                  padding: '24px 16px',
+                  textAlign: 'center',
+                  color: 'var(--color-text-secondary)',
+                  fontSize: '13px',
+                  lineHeight: '1.6',
+                }}>
+                  <div style={{ marginBottom: '8px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
+                    ✓ Formatted CSS is empty
+                  </div>
+                  <div>
+                    The CSS rules have no declarations or resulted in no output after formatting.
+                  </div>
+                </div>
+              ),
+              contentType: 'component',
+            })
+          } else {
+            // Show the formatted CSS code normally
+            cssOutputTabs.push({
+              id: 'formatted',
+              label: 'FORMATTED',
+              content: cssFormatterResult.formatted,
+              contentType: 'code',
+              language: 'css',
+            })
+          }
+        } else {
+          // Show placeholder when CSS formatter is running
+          cssOutputTabs.push({
+            id: 'formatted',
+            label: 'FORMATTED',
+            content: 'Waiting for CSS...',
+            contentType: 'text',
+          })
+        }
+
+        // Add VALIDATION tab
+        if (cssFormatterResult && cssConfigOptions?.showValidation !== false) {
+          const validationErrors = (cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics))
+            ? cssFormatterResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+            : []
+
+          if (validationErrors.length > 0) {
+            cssOutputTabs.push({
+              id: 'validation',
+              label: `Validation (${validationErrors.length})`,
+              content: (
+                <div>
+                  <div style={{
+                    marginBottom: '16px',
+                    padding: '12px',
+                    backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                    border: '1px solid rgba(239, 83, 80, 0.3)',
+                    borderRadius: '4px',
+                    color: '#ef5350',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                  }}>
+                    {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+                  </div>
+                  {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
+                </div>
+              ),
+              contentType: 'component',
+            })
+          } else {
+            cssOutputTabs.push({
+              id: 'validation',
+              label: 'Validation (✓)',
+              content: (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '16px',
+                  backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                  border: '1px solid rgba(102, 187, 106, 0.3)',
+                  borderRadius: '4px',
+                  color: '#66bb6a',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}>
+                  Valid CSS
+                </div>
+              ),
+              contentType: 'component',
+            })
+          }
+        }
+
+        // Add LINTING tab
+        if (cssFormatterResult && cssConfigOptions?.showLinting && cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics)) {
+          const lintingWarnings = cssFormatterResult.diagnostics.filter(d => d.category === 'lint')
+          const isCssValid = cssFormatterResult.isWellFormed !== false
+
+          let lintingLabel = 'Linting'
+          let lintingContent = null
+
+          if (!isCssValid) {
+            lintingLabel = 'Linting (⊘)'
+            lintingContent = (
+              <div style={{
+                padding: '16px',
+                backgroundColor: 'rgba(158, 158, 158, 0.1)',
+                border: '1px solid rgba(158, 158, 158, 0.3)',
+                borderRadius: '4px',
+                color: '#9e9e9e',
+                fontSize: '13px',
+                fontWeight: '500',
+                textAlign: 'center',
+              }}>
+                Linting skipped because CSS is not valid.
+              </div>
+            )
+          } else if (lintingWarnings.length === 0) {
+            lintingLabel = 'Linting (✓)'
+            lintingContent = (
+              <div style={{
+                padding: '16px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+                textAlign: 'center',
+              }}>
+                ✓ No linting warnings found
+              </div>
+            )
+          } else {
+            lintingLabel = `Linting (${lintingWarnings.length})`
+            lintingContent = (
+              <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {lintingWarnings.map((warning, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                        border: '1px solid rgba(255, 167, 38, 0.2)',
+                        borderRadius: '4px',
+                        borderLeft: '3px solid #ffa726',
+                      }}
+                    >
+                      <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                        ⚠️ Warning {idx + 1}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                        {warning.message}
+                      </div>
+                      {warning.line && (
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                          Line {warning.line}{warning.column ? `, Column ${warning.column}` : ''}
+                        </div>
+                      )}
+                      {warning.rule && (
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                          Rule: <code style={{ fontFamily: 'monospace', fontSize: '9px' }}>{warning.rule}</code>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+
+          cssOutputTabs.push({
+            id: 'linting',
+            label: lintingLabel,
+            content: lintingContent,
+            contentType: 'component',
+          })
+        }
+      }
+
+      // Add JSON tab (always show - persistent)
+      cssOutputTabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: cssFormatterResult ? JSON.stringify(cssFormatterResult, null, 2) : '{}',
+        contentType: 'json',
+      })
+
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={cssOutputTabs} analysisData={cssFormatterResult?.analysis} sourceText={markdownCustomCss} showCopyButton={true} showAnalysisTab={cssConfigOptions?.showAnalysisTab || false} onShowAnalysisTabChange={(val) => onCssConfigChange?.({ ...cssConfigOptions, showAnalysisTab: val })} showRulesTab={cssConfigOptions?.showRulesTab || false} onShowRulesTabChange={(val) => onCssConfigChange?.({ ...cssConfigOptions, showRulesTab: val })} isPreviewFullscreen={isPreviewFullscreen} onTogglePreviewFullscreen={onTogglePreviewFullscreen} />
+    }
+
+    // If JS mode is active, show JavaScript formatter output tabs
+    // OUTPUT and JSON are always shown (persistent)
+    // FORMATTED, VALIDATION, and LINTING are conditional on having JS input
+    if (!renderCssTabOnly && markdownInputMode === 'js') {
+
+      // Build JS formatter output tabs
+      const jsOutputTabs = []
+
+      // Add OUTPUT tab - always visible (persistent preview)
+      // Show rendered preview with HTML, CSS, and JS all applied
+      if (displayResult && displayResult.formatted) {
+        // Determine if content is HTML or Markdown
+        let isHtml = displayResult.contentMode === 'html'
+        if (displayResult.appliedConversion === 'html') {
+          isHtml = true
+        } else if (displayResult.appliedConversion === 'markdown') {
+          isHtml = false
+        }
+
+        // Extract CSS rules from HTML
+        const embeddedRules = isHtml
+          ? extractAndParseCssFromHtml(displayResult.formatted)
+          : []
+
+        // Parse custom CSS
+        const customCssRules = markdownCustomCss && markdownCustomCss.trim()
+          ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
+          : []
+
+        // Offset CSS tab rules
+        const customCssRulesWithOffset = customCssRules.map(rule => ({
+          ...rule,
+          ruleIndex: rule.ruleIndex + embeddedRules.length
+        }))
+
+        const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
+
+        // Add OUTPUT tab - rendered preview with HTML, CSS, and JS all applied
+        jsOutputTabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: (
+            <MarkdownPreviewWithInspector
+              isHtml={isHtml}
+              content={inputText}
+              customCss={markdownCustomCss}
+              customJs={markdownCustomJs}
+              rulesTree={mergedRulesForDisplay}
+              allowHtml={enableHtmlPreview}
+              enableGfm={enableGfmFeatures}
+              isFullscreen={isPreviewFullscreen}
+              onToggleFullscreen={onTogglePreviewFullscreen}
+              onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+              onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+              onHtmlChange={handleEmbeddedCssChange}
+              onSourceChange={handleSourceChange}
+              allowScripts={true}
+              allowIframes={true}
+            />
+          ),
+          contentType: 'component',
+        })
+      } else {
+        // No HTML/Markdown content - show blank OUTPUT tab
+        // For web-playground, show empty preview instead of waiting message
+        if (isMarkdownFormatter) {
+          jsOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: (
+              <MarkdownPreviewWithInspector
+                isHtml={true}
+                content=""
+                customCss={markdownCustomCss}
+                customJs={markdownCustomJs}
+                rulesTree={[]}
+                allowHtml={enableHtmlPreview}
+                enableGfm={enableGfmFeatures}
+                isFullscreen={isPreviewFullscreen}
+                onToggleFullscreen={onTogglePreviewFullscreen}
+                onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+                onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+                onHtmlChange={handleEmbeddedCssChange}
+                onSourceChange={handleSourceChange}
+                allowScripts={true}
+                allowIframes={true}
+              />
+            ),
+            contentType: 'component',
+          })
+        } else {
+          jsOutputTabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: 'Waiting for input...',
+            contentType: 'text',
+          })
+        }
+      }
+
+      // Only add FORMATTED, VALIDATION, and LINTING tabs if there's JS input
+      if (markdownCustomJs && markdownCustomJs.trim()) {
+        // Add FORMATTED tab - the beautified JS code
+        jsOutputTabs.push({
+          id: 'formatted',
+          label: 'FORMATTED',
+          content: jsFormatterResult?.formatted || markdownCustomJs,
+          contentType: 'code',
+          language: 'javascript',
+        })
+
+        // Add VALIDATION tab
+        const validationErrors = (jsFormatterResult?.diagnostics && Array.isArray(jsFormatterResult.diagnostics))
+          ? jsFormatterResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+          : []
+
+        if (validationErrors.length > 0) {
+          jsOutputTabs.push({
+            id: 'validation',
+            label: `Validation (${validationErrors.length})`,
+            content: (
+              <div>
+                <div style={{
+                  marginBottom: '16px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(239, 83, 80, 0.1)',
+                  border: '1px solid rgba(239, 83, 80, 0.3)',
+                  borderRadius: '4px',
+                  color: '#ef5350',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                }}>
+                  ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+                </div>
+                {renderValidationErrorsUnified(validationErrors, 'JavaScript Syntax Errors')}
+              </div>
+            ),
+            contentType: 'component',
+          })
+        } else {
+          // No syntax errors - show success message
+          jsOutputTabs.push({
+            id: 'validation',
+            label: 'Validation (✓)',
+            content: (
+              <div style={{
+                textAlign: 'center',
+                padding: '16px',
+                backgroundColor: 'rgba(102, 187, 106, 0.1)',
+                border: '1px solid rgba(102, 187, 106, 0.3)',
+                borderRadius: '4px',
+                color: '#66bb6a',
+                fontSize: '13px',
+                fontWeight: '500',
+              }}>
+                ✓ Valid JavaScript
+              </div>
+            ),
+            contentType: 'component',
+          })
+        }
+
+        // Add LINTING tab
+        const lintingWarnings = (jsFormatterResult?.diagnostics && Array.isArray(jsFormatterResult.diagnostics))
+          ? jsFormatterResult.diagnostics.filter(d => d.category === 'lint')
+          : []
+        const isValid = jsFormatterResult?.isWellFormed !== false
+
+        let lintingLabel = 'Linting'
+        let lintingContent = null
+
+        if (!isValid && jsFormatterResult) {
+          lintingLabel = 'Linting (⊘)'
+          lintingContent = (
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'rgba(158, 158, 158, 0.1)',
+              border: '1px solid rgba(158, 158, 158, 0.3)',
+              borderRadius: '4px',
+              color: '#9e9e9e',
+              fontSize: '13px',
+              fontWeight: '500',
+              textAlign: 'center',
+            }}>
+              Linting skipped (syntax errors present)
+            </div>
+          )
+        } else if (lintingWarnings.length === 0) {
+          lintingLabel = 'Linting (✓)'
+          lintingContent = (
+            <div style={{
+              padding: '16px',
+              backgroundColor: 'rgba(102, 187, 106, 0.1)',
+              border: '1px solid rgba(102, 187, 106, 0.3)',
+              borderRadius: '4px',
+              color: '#66bb6a',
+              fontSize: '13px',
+              fontWeight: '500',
+              textAlign: 'center',
+            }}>
+              ✓ No linting warnings found
+            </div>
+          )
+        } else {
+          lintingLabel = `Linting (${lintingWarnings.length})`
+          lintingContent = (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {lintingWarnings.map((warning, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '12px',
+                      backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                      border: '1px solid rgba(255, 167, 38, 0.2)',
+                      borderRadius: '4px',
+                      borderLeft: '3px solid #ffa726',
+                    }}
+                  >
+                    <div style={{ fontSize: '12px', color: '#ffa726', marginBottom: '4px', fontWeight: '600' }}>
+                      ⚠️ {warning.message}
+                    </div>
+                    {warning.line && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
+                        Line {warning.line}{warning.column ? `, Column ${warning.column}` : ''}
+                      </div>
+                    )}
+                    {(warning.ruleId || warning.rule) && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginBottom: '2px' }}>
+                        Rule: {warning.ruleId || warning.rule}
+                      </div>
+                    )}
+                    {warning.category && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        Category: {warning.category}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        jsOutputTabs.push({
+          id: 'linting',
+          label: lintingLabel,
+          content: lintingContent,
+          contentType: 'component',
+        })
+      }
+
+      // Add JSON tab (always show - persistent)
+      jsOutputTabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: jsFormatterResult ? JSON.stringify(jsFormatterResult, null, 2) : '{}',
+        contentType: 'json',
+      })
+
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={jsOutputTabs}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    // If renderCssTabOnly is true, return only the CSS editor (even with no HTML/MD input)
+    if (renderCssTabOnly) {
+      return (
+        <div style={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          padding: '16px',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--color-text-secondary)',
+            lineHeight: '1.5',
+            padding: '10px 12px',
+            backgroundColor: 'rgba(33, 150, 243, 0.08)',
+            border: '1px solid rgba(33, 150, 243, 0.2)',
+            borderRadius: '4px',
+          }}>
+            Edit CSS to style the preview. Selectors like <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'rgba(33, 150, 243, 0.15)', padding: '2px 4px', borderRadius: '2px' }}>h1</code>, <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'rgba(33, 150, 243, 0.15)', padding: '2px 4px', borderRadius: '2px' }}>p</code>, etc. are auto-scoped.
+          </div>
+
+          <div style={{
+            padding: '12px',
+            backgroundColor: 'var(--color-background-secondary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '4px',
+            fontSize: '12px',
+          }}>
+            {(scannedSelectors.suggestions &&
+              typeof scannedSelectors.suggestions === 'object' &&
+              !Array.isArray(scannedSelectors.suggestions) &&
+              (scannedSelectors.suggestions.structure?.length > 0 ||
+               scannedSelectors.suggestions.headings?.length > 0 ||
+               scannedSelectors.suggestions.text?.length > 0 ||
+               scannedSelectors.suggestions.code?.length > 0)
+            ) ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {/* Structure Category */}
+                {scannedSelectors.suggestions.structure?.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Structure
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {scannedSelectors.suggestions.structure.map((selector, idx) => {
+                        const cleanedSelector = cleanSelector(selector)
+                        return (
+                        <button
+                          key={`structure-${idx}`}
+                          onClick={() => handleInsertSelector(cleanedSelector)}
+                          title={`Click to insert "${cleanedSelector}" selector`}
+                          style={{
+                            padding: '4px 6px',
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            color: '#4caf50',
+                            border: '1px solid rgba(76, 175, 80, 0.5)',
+                            borderRadius: '3px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.3)'
+                            e.target.style.borderColor = 'rgba(76, 175, 80, 0.7)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.2)'
+                            e.target.style.borderColor = 'rgba(76, 175, 80, 0.5)'
+                          }}
+                        >
+                          {cleanedSelector}
+                        </button>
+                      )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Headings Category */}
+                {scannedSelectors.suggestions.headings?.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Headings
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {scannedSelectors.suggestions.headings.map((selector, idx) => {
+                        const cleanedSelector = cleanSelector(selector)
+                        return (
+                        <button
+                          key={`headings-${idx}`}
+                          onClick={() => handleInsertSelector(cleanedSelector)}
+                          title={`Click to insert "${cleanedSelector}" selector`}
+                          style={{
+                            padding: '4px 6px',
+                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                            color: '#2196f3',
+                            border: '1px solid rgba(33, 150, 243, 0.5)',
+                            borderRadius: '3px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                            e.target.style.borderColor = 'rgba(33, 150, 243, 0.7)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.2)'
+                            e.target.style.borderColor = 'rgba(33, 150, 243, 0.5)'
+                          }}
+                        >
+                          {cleanedSelector}
+                        </button>
+                      )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Text Category */}
+                {scannedSelectors.suggestions.text?.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Text
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {scannedSelectors.suggestions.text.map((selector, idx) => {
+                        const cleanedSelector = cleanSelector(selector)
+                        return (
+                        <button
+                          key={`text-${idx}`}
+                          onClick={() => handleInsertSelector(cleanedSelector)}
+                          title={`Click to insert "${cleanedSelector}" selector`}
+                          style={{
+                            padding: '4px 6px',
+                            backgroundColor: 'rgba(156, 39, 176, 0.2)',
+                            color: '#9c27b0',
+                            border: '1px solid rgba(156, 39, 176, 0.5)',
+                            borderRadius: '3px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.3)'
+                            e.target.style.borderColor = 'rgba(156, 39, 176, 0.7)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.2)'
+                            e.target.style.borderColor = 'rgba(156, 39, 176, 0.5)'
+                          }}
+                        >
+                          {cleanedSelector}
+                        </button>
+                      )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Code Category */}
+                {scannedSelectors.suggestions.code?.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Code
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {scannedSelectors.suggestions.code.map((selector, idx) => {
+                        const cleanedSelector = cleanSelector(selector)
+                        return (
+                        <button
+                          key={`code-${idx}`}
+                          onClick={() => handleInsertSelector(cleanedSelector)}
+                          title={`Click to insert "${cleanedSelector}" selector`}
+                          style={{
+                            padding: '4px 6px',
+                            backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                            color: '#ff9800',
+                            border: '1px solid rgba(255, 152, 0, 0.5)',
+                            borderRadius: '3px',
+                            fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.3)'
+                            e.target.style.borderColor = 'rgba(255, 152, 0, 0.7)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.2)'
+                            e.target.style.borderColor = 'rgba(255, 152, 0, 0.5)'
+                          }}
+                        >
+                          {cleanedSelector}
+                        </button>
+                      )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span style={{ color: 'var(--color-text-secondary)', fontSize: '11px', fontStyle: 'italic' }}>
+                No selectors detected yet
+              </span>
+            )}
+          </div>
+
+          <div style={{ flex: 1, minHeight: 0, border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
+            <CSSEditorInput
+              value={markdownCustomCss}
+              onChange={setMarkdownCustomCss}
+              diagnostics={cssFormatterResult?.diagnostics || []}
+            />
+          </div>
+        </div>
+      )
+    }
+
+    // Always render output tabs even if displayResult is empty/null - show what we can
+
+    // If no displayResult yet (input is empty), render with empty content
+    if (!displayResult) {
+      const tabs = []
+
+      // Always show OUTPUT tab with empty preview
+      tabs.push({
+        id: 'output',
+        label: 'OUTPUT',
+        content: (
+          <MarkdownPreviewWithInspector
+            isHtml={true}
+            content=""
+            customCss={markdownCustomCss}
+            customJs={markdownCustomJs}
+            rulesTree={[]}
+            allowHtml={enableHtmlPreview}
+            enableGfm={enableGfmFeatures}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={onTogglePreviewFullscreen}
+            onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+            onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+            onHtmlChange={handleEmbeddedCssChange}
+            onSourceChange={handleSourceChange}
+            allowScripts={true}
+            allowIframes={true}
+          />
+        ),
+        contentType: 'component',
+      })
+
+      return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    }
+
     const tabs = []
 
-    // Add primary output tab - always show formatted result unless hideOutput is set
-    if (displayResult.formatted !== undefined) {
+    // Detect if the formatted output is HTML or Markdown using formatter metadata
+    // For web-playground, use the actual content classification from the formatter
+    // This ensures markdown renders as markdown even if pasted in the HTML tab
+    // IMPORTANT: Check appliedConversion first - it determines actual output format after conversion
+    const isConversionApplied = displayResult?.appliedConversion && displayResult.appliedConversion !== 'none'
+    let isHtml = isMarkdownFormatter && displayResult
+      ? displayResult.contentMode === 'html'
+      : displayResult?.formatted ? isHtmlContent(displayResult.formatted) : true
+
+    // Override based on conversion that was applied
+    if (displayResult?.appliedConversion === 'html') {
+      isHtml = true  // Conversion to HTML was applied, output is definitely HTML
+    } else if (displayResult?.appliedConversion === 'markdown') {
+      isHtml = false  // Conversion to Markdown was applied, output is definitely Markdown
+    }
+
+    // Rendered tab - shows the formatted content rendered as HTML (this will be OUTPUT tab - first)
+    // Always try to render output, even if malformed - render what we can
+    let renderTab = null
+    if (displayResult?.formatted) {
+      // Use MarkdownPreviewWithInspector for all modes to ensure consistent CSS extraction and application
+      // This component handles both HTML mode (extracts <style> tags) and Markdown mode
+      // Extract embedded CSS from HTML (marked with origin: 'html')
+      const embeddedRules = isHtml
+        ? extractAndParseCssFromHtml(displayResult.formatted)
+        : []
+
+      // Parse customCss with origin: 'css'
+      const customCssRules = markdownCustomCss && markdownCustomCss.trim()
+        ? parseCssToRulesTree(markdownCustomCss, { origin: 'css', containerId: 'css-tab' })
+        : []
+
+      // Offset CSS tab rules' ruleIndex by embedded rules count
+      // This ensures globally unique ruleIndex across all sources
+      // IMPORTANT: Must apply this offset regardless of which tab is active
+      // to maintain stable cascade detection (render layer, not editor layer)
+      const customCssRulesWithOffset = customCssRules.map(rule => ({
+        ...rule,
+        ruleIndex: rule.ruleIndex + embeddedRules.length
+      }))
+
+      // Merge: embedded rules first, then customCss rules
+      const mergedRulesForDisplay = [...embeddedRules, ...customCssRulesWithOffset]
+
+      renderTab = {
+        id: 'output',
+        label: 'OUTPUT',
+        content: (
+          <MarkdownPreviewWithInspector
+            isHtml={isHtml}
+            content={displayResult.formatted}
+            customCss={markdownCustomCss}
+            customJs={markdownCustomJs}
+            rulesTree={mergedRulesForDisplay}
+            allowHtml={enableHtmlPreview}
+            enableGfm={enableGfmFeatures}
+            isFullscreen={isPreviewFullscreen}
+            onToggleFullscreen={onTogglePreviewFullscreen}
+            onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+            onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+            onHtmlChange={handleEmbeddedCssChange}
+            onSourceChange={handleSourceChange}
+            allowScripts={true}
+            allowIframes={true}
+          />
+        ),
+        contentType: 'component',
+      }
+      tabs.push(renderTab)
+    } else if (!renderTab && !displayResult?.formatted) {
+      // If we have a displayResult but no rendered content, show empty preview or error
+      // For web-playground, show empty preview rendering
+      if (isMarkdownFormatter) {
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: (
+            <MarkdownPreviewWithInspector
+              isHtml={true}
+              content=""
+              customCss={markdownCustomCss}
+              customJs={markdownCustomJs}
+              rulesTree={[]}
+              allowHtml={enableHtmlPreview}
+              enableGfm={enableGfmFeatures}
+              isFullscreen={isPreviewFullscreen}
+              onToggleFullscreen={onTogglePreviewFullscreen}
+              onCssChange={(newCss) => setMarkdownCustomCss(newCss)}
+              onJsChange={(newJs) => onMarkdownCustomJsChange?.(newJs)}
+              onHtmlChange={handleEmbeddedCssChange}
+              onSourceChange={handleSourceChange}
+              allowScripts={true}
+              allowIframes={true}
+            />
+          ),
+          contentType: 'component',
+        })
+      } else {
+        tabs.push({
+          id: 'output',
+          label: 'OUTPUT',
+          content: displayResult?.error || 'Processing output...',
+          contentType: displayResult?.error ? 'text' : 'text',
+        })
+      }
+    }
+
+    // Add formatted code tab - shows the beautified source code
+    if (displayResult?.formatted !== undefined) {
       tabs.push({
         id: 'formatted',
-        label: 'OUTPUT',
+        label: 'FORMATTED',
         content: displayResult.formatted,
         contentType: 'code',
+        language: isHtml ? 'markup' : 'markdown',
       })
-    } else if (displayResult.error) {
+    } else if (displayResult?.error) {
       // Show error message in OUTPUT tab if formatting failed
       tabs.push({
         id: 'formatted',
@@ -2315,17 +3554,28 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ),
         contentType: 'component',
       })
+    } else if (isMarkdownFormatter) {
+      // For web-playground, always show FORMATTED tab even if empty
+      tabs.push({
+        id: 'formatted',
+        label: 'FORMATTED',
+        content: displayResult?.formatted || '',
+        contentType: 'code',
+        language: isHtml ? 'markup' : 'markdown',
+      })
     }
 
     // Validation tab - show if enabled
-    if (displayResult.showValidation !== false) {
-      const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+    // Check the server response for validation setting
+    const shouldShowValidation = displayResult?.showValidation !== false
+    if (shouldShowValidation) {
+      const validationErrors = (displayResult?.diagnostics && Array.isArray(displayResult?.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
         : []
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2354,12 +3604,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -2377,11 +3626,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Linting tab - show if enabled and content is valid
-    if (displayResult.showLinting !== false) {
-      const lintingWarnings = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+    // Check the server response for linting setting
+    const shouldShowLinting = displayResult?.showLinting !== false
+    if (shouldShowLinting) {
+      const lintingWarnings = (displayResult?.diagnostics && Array.isArray(displayResult?.diagnostics))
         ? displayResult.diagnostics.filter(d => d.category === 'lint')
         : []
-      const isValid = displayResult.isWellFormed !== false
+      const isValid = displayResult?.isWellFormed !== false
 
       let lintingLabel = 'Linting'
       let lintingContent = null
@@ -2421,7 +3672,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintingWarnings.map((warning, idx) => (
                 <div
@@ -2465,17 +3716,342 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+
+
+    // CSS Editor tab - allows users to customize markdown rendering styles
+    // Skip if we're rendering CSS tab only in the InputTabs (renderCssTabOnly mode)
+    // Also skip for web-playground since CSS is handled in the input tabs
+    if (!renderCssTabOnly && displayResult.formatted && displayResult.isWellFormed !== false && toolId !== 'web-playground') {
+      tabs.push({
+        id: 'css',
+        label: 'CSS',
+        content: (
+          <div style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}>
+            <div style={{
+              fontSize: '12px',
+              color: 'var(--color-text-secondary)',
+              lineHeight: '1.5',
+              marginBottom: '4px',
+            }}>
+              💡 <strong>Preview Styling:</strong> Edit CSS to customize how the markdown appears in the preview. Selectors like <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'var(--color-background-secondary)', padding: '2px 4px', borderRadius: '2px' }}>h1</code>, <code style={{ fontFamily: 'monospace', fontSize: '11px', backgroundColor: 'var(--color-background-secondary)', padding: '2px 4px', borderRadius: '2px' }}>p</code>, etc. are automatically scoped to the preview.
+            </div>
+
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'var(--color-background-secondary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              fontSize: '12px',
+            }}>
+              <div style={{ marginBottom: '12px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
+                📍 Suggested Selectors:
+              </div>
+
+              {scannedSelectors.suggestions && (
+                typeof scannedSelectors.suggestions === 'object' &&
+                !Array.isArray(scannedSelectors.suggestions) &&
+                (scannedSelectors.suggestions.structure?.length > 0 ||
+                 scannedSelectors.suggestions.headings?.length > 0 ||
+                 scannedSelectors.suggestions.text?.length > 0 ||
+                 scannedSelectors.suggestions.code?.length > 0)
+              ) ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Structure Category */}
+                  {scannedSelectors.suggestions.structure?.length > 0 && (
+                    <div>
+                      <div style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        color: 'var(--color-text-secondary)',
+                        marginBottom: '4px',
+                      letterSpacing: '0.5px',
+                    }}>
+                      Structure
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {scannedSelectors.suggestions.structure.map((selector, idx) => {
+                          const cleanedSelector = cleanSelector(selector)
+                          return (
+                          <button
+                            key={`structure-${idx}`}
+                            onClick={() => handleInsertSelector(cleanedSelector)}
+                            title={`Click to insert "${cleanedSelector}" selector`}
+                            style={{
+                              padding: '4px 6px',
+                              backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                              color: '#4caf50',
+                              border: '1px solid rgba(76, 175, 80, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.3)'
+                              e.target.style.borderColor = 'rgba(76, 175, 80, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(76, 175, 80, 0.2)'
+                              e.target.style.borderColor = 'rgba(76, 175, 80, 0.5)'
+                            }}
+                          >
+                            {cleanedSelector}
+                          </button>
+                        )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Headings Category */}
+                  {scannedSelectors.suggestions.headings?.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Headings
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {scannedSelectors.suggestions.headings.map((selector, idx) => {
+                          const cleanedSelector = cleanSelector(selector)
+                          return (
+                          <button
+                            key={`headings-${idx}`}
+                            onClick={() => handleInsertSelector(cleanedSelector)}
+                            title={`Click to insert "${cleanedSelector}" selector`}
+                            style={{
+                              padding: '4px 6px',
+                              backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                              color: '#2196f3',
+                              border: '1px solid rgba(33, 150, 243, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.3)'
+                              e.target.style.borderColor = 'rgba(33, 150, 243, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(33, 150, 243, 0.2)'
+                              e.target.style.borderColor = 'rgba(33, 150, 243, 0.5)'
+                            }}
+                          >
+                            {cleanedSelector}
+                          </button>
+                        )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Text Category */}
+                  {scannedSelectors.suggestions.text?.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Text
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {scannedSelectors.suggestions.text.map((selector, idx) => {
+                          const cleanedSelector = cleanSelector(selector)
+                          return (
+                          <button
+                            key={`text-${idx}`}
+                            onClick={() => handleInsertSelector(cleanedSelector)}
+                            title={`Click to insert "${cleanedSelector}" selector`}
+                            style={{
+                              padding: '4px 6px',
+                              backgroundColor: 'rgba(156, 39, 176, 0.2)',
+                              color: '#9c27b0',
+                              border: '1px solid rgba(156, 39, 176, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.3)'
+                              e.target.style.borderColor = 'rgba(156, 39, 176, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(156, 39, 176, 0.2)'
+                              e.target.style.borderColor = 'rgba(156, 39, 176, 0.5)'
+                            }}
+                          >
+                            {cleanedSelector}
+                          </button>
+                        )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Code Category */}
+                  {scannedSelectors.suggestions.code?.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      fontSize: '9px',
+                      fontWeight: '700',
+                      textTransform: 'uppercase',
+                      color: 'var(--color-text-secondary)',
+                      letterSpacing: '0.5px',
+                      minWidth: '60px',
+                    }}>
+                      Code
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {scannedSelectors.suggestions.code.map((selector, idx) => {
+                          const cleanedSelector = cleanSelector(selector)
+                          return (
+                          <button
+                            key={`code-${idx}`}
+                            onClick={() => handleInsertSelector(cleanedSelector)}
+                            title={`Click to insert "${cleanedSelector}" selector`}
+                            style={{
+                              padding: '4px 6px',
+                              backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                              color: '#ff9800',
+                              border: '1px solid rgba(255, 152, 0, 0.5)',
+                              borderRadius: '3px',
+                              fontSize: '10px',
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.3)'
+                              e.target.style.borderColor = 'rgba(255, 152, 0, 0.7)'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = 'rgba(255, 152, 0, 0.2)'
+                              e.target.style.borderColor = 'rgba(255, 152, 0, 0.5)'
+                            }}
+                          >
+                            {cleanedSelector}
+                          </button>
+                        )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <span style={{ color: 'var(--color-text-secondary)', fontSize: '11px', fontStyle: 'italic' }}>
+                  No selectors detected yet
+                </span>
+              )}
+            </div>
+
+            <div style={{ flex: 1, minHeight: '200px', border: '1px solid var(--color-border)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+              <CSSEditorInput
+                value={markdownCustomCss}
+                onChange={setMarkdownCustomCss}
+                diagnostics={cssFormatterResult?.diagnostics || []}
+              />
+            </div>
+            <div style={{
+              fontSize: '11px',
+              color: 'var(--color-text-secondary)',
+              lineHeight: '1.6',
+              padding: '8px',
+              backgroundColor: 'var(--color-background-secondary)',
+              borderRadius: '4px',
+            }}>
+              <strong>Selectors like</strong> <code style={{ fontFamily: 'monospace', fontSize: '10px' }}>h1</code>, <code style={{ fontFamily: 'monospace', fontSize: '10px' }}>p</code>, <code style={{ fontFamily: 'monospace', fontSize: '10px' }}>a</code> <strong>are automatically scoped to the preview</strong>
+            </div>
+          </div>
+        ),
+        contentType: 'component',
+      })
+    }
+
+    // Add JSON tab - shows input, output, and diagnostics only
+    if (isMarkdownFormatter || displayResult) {
+      const mdJsonWithInputOutput = {
+        input: inputText,
+        output: displayResult?.formatted,
+        isWellFormed: displayResult?.isWellFormed,
+        diagnostics: displayResult?.diagnostics || [],
+        optionsApplied: {
+          showValidation: displayResult?.optionsApplied?.showValidation,
+          showLinting: displayResult?.optionsApplied?.showLinting,
+        },
+      }
+      tabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: JSON.stringify(mdJsonWithInputOutput, null, 2),
+        contentType: 'code',
+        language: 'json',
+      })
+    }
+
     if (tabs.length === 0) return null
 
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    return (
+      <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    )
   }
 
   const renderCssFormatterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') return null
     const tabs = []
 
-    // Add primary output tab FIRST - always show formatted result (or error message if not available)
-    if (displayResult.formatted) {
+    // Check if CSS is valid
+    const isValid = displayResult.isWellFormed !== false
+    const validationErrors = (displayResult.diagnostics && Array.isArray(displayResult.diagnostics))
+      ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
+      : []
+
+    // Add primary output tab FIRST
+    // If CSS is invalid, show validation errors instead of formatted output
+    if (!isValid && validationErrors.length > 0) {
+      tabs.push({
+        id: 'formatted',
+        label: 'OUTPUT',
+        content: (
+          <div>
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+              fontWeight: '500',
+            }}>
+              {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+            </div>
+            {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
+          </div>
+        ),
+        contentType: 'component',
+      })
+    } else if (displayResult.formatted) {
+      // Show formatted CSS if validation passed
       tabs.push({
         id: 'formatted',
         label: 'OUTPUT',
@@ -2513,7 +4089,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2524,7 +4100,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               fontSize: '13px',
               fontWeight: '500',
             }}>
-              ✗ {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
+              {validationErrors.length} Error{validationErrors.length !== 1 ? 's' : ''} Found
             </div>
             {renderValidationErrorsUnified(validationErrors, 'CSS Validation Errors')}
           </div>
@@ -2539,15 +4115,14 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         tabs.push({
           id: 'validation',
-          label: 'Validation (✓)',
+          label: 'Validation',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -2555,7 +4130,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 fontSize: '13px',
                 fontWeight: '500',
               }}>
-                ✓ Valid CSS
+                Valid CSS
               </div>
             </div>
           ),
@@ -2607,7 +4182,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       } else {
         lintingLabel = `Linting (${lintingWarnings.length})`
         lintingContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {lintingWarnings.map((warning, idx) => (
                 <div
@@ -2651,9 +4226,31 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
-    if (tabs.length === 0) return null
+    // Always show at least one tab, even if no output yet
+    // If nothing was added to tabs, add a placeholder
+    if (tabs.length === 0) {
+      tabs.push({
+        id: 'output',
+        label: 'OUTPUT',
+        content: displayResult?.error ? (
+          <div style={{ padding: '16px' }}>
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(239, 83, 80, 0.1)',
+              border: '1px solid rgba(239, 83, 80, 0.3)',
+              borderRadius: '4px',
+              color: '#ef5350',
+              fontSize: '13px',
+            }}>
+              {displayResult.error}
+            </div>
+          </div>
+        ) : 'Waiting for input...',
+        contentType: displayResult?.error ? 'component' : 'text',
+      })
+    }
 
-    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} showCopyButton={true} />
+    return <OutputTabs toolCategory={toolCategory} toolId={toolId} tabs={tabs} analysisData={displayResult?.analysis} sourceText={inputText} showCopyButton={true} onApplyEdits={handleApplyCSSStagedEdits} showAnalysisTab={showAnalysisTab} onShowAnalysisTabChange={onShowAnalysisTabChange} showRulesTab={showRulesTab} onShowRulesTabChange={onShowRulesTabChange} isPreviewFullscreen={isPreviewFullscreen} onTogglePreviewFullscreen={onTogglePreviewFullscreen} />
   }
 
   const renderSqlFormatterOutput = () => {
@@ -2677,7 +4274,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div style={{ padding: '0px' }}>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -2768,7 +4365,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -2926,6 +4523,26 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         contentType: 'code',
       })
     }
+
+    // Add JSON tab - shows input, output, and diagnostics only
+    const sqlJsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      analysis: displayResult.analysis,
+      optionsApplied: {
+        language: displayResult.optionsApplied?.language,
+        showLinting: displayResult.optionsApplied?.showLinting,
+      },
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(sqlJsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
 
     if (tabs.length === 0) return null
 
@@ -3269,8 +4886,15 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     const tabs = []
 
-    // Add primary output tab first - only show if validation passed
-    if (displayResult.formatted && !displayResult.hideOutput) {
+    // Check for validation errors first
+    let hasValidationErrors = false
+    if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
+      const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+      hasValidationErrors = validationErrors.length > 0
+    }
+
+    // Add primary output tab first - only show if validation passed AND no validation errors
+    if (displayResult.formatted && !displayResult.hideOutput && !hasValidationErrors) {
       tabs.push({
         id: 'formatted',
         label: 'Output',
@@ -3285,7 +4909,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -3314,12 +4938,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           label: 'Validation (✓)',
           content: (
             <div style={{
-              padding: '16px',
               textAlign: 'center',
               color: 'var(--color-text-secondary)',
             }}>
               <div style={{
-                padding: '12px',
+                padding: '16px',
                 backgroundColor: 'rgba(102, 187, 106, 0.1)',
                 border: '1px solid rgba(102, 187, 106, 0.3)',
                 borderRadius: '4px',
@@ -3523,10 +5146,12 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
     if (displayResult.showValidation && displayResult.diagnostics && Array.isArray(displayResult.diagnostics)) {
       const validationErrors = displayResult.diagnostics.filter(d => d.type === 'error')
+      const primaryErrors = validationErrors.filter(e => e.primary !== false) // Show primary and errors without flag
+      const secondaryErrors = validationErrors.filter(e => e.secondary === true)
 
       if (validationErrors.length > 0) {
         const validationContent = (
-          <div style={{ padding: '16px' }}>
+          <div style={{ paddingLeft: '0px' }}>
             <div style={{
               marginBottom: '16px',
               padding: '12px',
@@ -3537,15 +5162,37 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               fontSize: '13px',
               fontWeight: '500',
             }}>
-              ✗ {validationErrors.length} XML Error{validationErrors.length !== 1 ? 's' : ''} Found
+              ✗ {primaryErrors.length} XML Error{primaryErrors.length !== 1 ? 's' : ''} Found
+              {secondaryErrors.length > 0 && ` (+${secondaryErrors.length} related)`}
             </div>
-            {renderValidationErrorsUnified(validationErrors, 'Input Validation Errors (prevents formatting)')}
+            {renderValidationErrorsUnified(primaryErrors, 'Primary Errors')}
+
+            {secondaryErrors.length > 0 && (
+              <details style={{ marginTop: '16px' }}>
+                <summary style={{
+                  cursor: 'pointer',
+                  padding: '12px',
+                  backgroundColor: 'rgba(239, 83, 80, 0.05)',
+                  border: '1px solid rgba(239, 83, 80, 0.15)',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#ef5350',
+                  userSelect: 'none',
+                }}>
+                  📋 Show related errors ({secondaryErrors.length})
+                </summary>
+                <div style={{ marginTop: '12px' }}>
+                  {renderValidationErrorsUnified(secondaryErrors, 'Related Issues (may be caused by primary error above)')}
+                </div>
+              </details>
+            )}
           </div>
         )
 
         tabs.push({
           id: 'validation',
-          label: `Validation (${validationErrors.length})`,
+          label: `Validation (${primaryErrors.length}${secondaryErrors.length > 0 ? `+${secondaryErrors.length}` : ''})`,
           content: validationContent,
           contentType: 'component',
         })
@@ -3695,6 +5342,22 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       })
     }
 
+    // Add JSON tab - shows input, output, and diagnostics only
+    const xmlJsonWithInputOutput = {
+      input: inputText,
+      output: displayResult.formatted,
+      isWellFormed: displayResult.isWellFormed,
+      diagnostics: displayResult.diagnostics || [],
+      lintWarnings: displayResult.lintWarnings || [],
+      validation: displayResult.validation,
+    }
+    tabs.push({
+      id: 'json',
+      label: 'JSON',
+      content: JSON.stringify(xmlJsonWithInputOutput, null, 2),
+      contentType: 'code',
+      language: 'json',
+    })
 
     if (tabs.length === 0) {
       return null
@@ -4636,27 +6299,6 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
 
       case 'text-toolkit':
-        // Word Counter
-        if (section === 'wordCounter' && result.wordCounter && typeof result.wordCounter === 'object') {
-          return [
-            { label: 'Word Count', value: String(result.wordCounter.wordCount || 0) },
-            { label: 'Character Count', value: String(result.wordCounter.characterCount || 0) },
-            { label: 'Character Count (no spaces)', value: String(result.wordCounter.characterCountNoSpaces || 0) },
-            { label: 'Sentence Count', value: String(result.wordCounter.sentenceCount || 0) },
-            { label: 'Line Count', value: String(result.wordCounter.lineCount || 0) },
-            { label: 'Paragraph Count', value: String(result.wordCounter.paragraphCount || 0) },
-          ].filter(f => f.value !== undefined && f.value !== null)
-        }
-        // Word Frequency
-        if (section === 'wordFrequency' && result.wordFrequency && typeof result.wordFrequency === 'object') {
-          const fields = []
-          if (result.wordFrequency.totalUniqueWords !== undefined) fields.push({ label: 'Total Unique Words', value: String(result.wordFrequency.totalUniqueWords) })
-          if (result.wordFrequency.totalWords !== undefined) fields.push({ label: 'Total Words', value: String(result.wordFrequency.totalWords) })
-          if (result.wordFrequency.frequency && typeof result.wordFrequency.frequency === 'object') {
-            fields.push({ label: 'Frequency Map', value: JSON.stringify(result.wordFrequency.frequency, null, 2) })
-          }
-          return fields.filter(f => f.value !== undefined && f.value !== null)
-        }
         // Text Analyzer
         if (section === 'textAnalyzer' && result.textAnalyzer && typeof result.textAnalyzer === 'object') {
           const analyzerFields = []
@@ -4664,14 +6306,19 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             analyzerFields.push({ label: 'Readability Level', value: result.textAnalyzer.readability.readabilityLevel })
             analyzerFields.push({ label: 'Flesch Reading Ease', value: String(result.textAnalyzer.readability.fleschReadingEase) })
             analyzerFields.push({ label: 'Flesch-Kincaid Grade', value: String(result.textAnalyzer.readability.fleschKincaidGrade) })
+            analyzerFields.push({ label: 'Gunning Fog Index', value: String((result.textAnalyzer.statistics?.gunningFogIndex || 0).toFixed(1)) })
+            analyzerFields.push({ label: 'SMOG Index', value: String((result.textAnalyzer.statistics?.smogIndex || 0).toFixed(1)) })
           }
           if (result.textAnalyzer.statistics) {
             analyzerFields.push({ label: 'Words', value: String(result.textAnalyzer.statistics.words) })
             analyzerFields.push({ label: 'Characters', value: String(result.textAnalyzer.statistics.characters) })
             analyzerFields.push({ label: 'Sentences', value: String(result.textAnalyzer.statistics.sentences) })
-            analyzerFields.push({ label: 'Lines', value: String(result.textAnalyzer.statistics.lines) })
-            analyzerFields.push({ label: 'Avg Word Length', value: String((result.textAnalyzer.statistics.averageWordLength || 0).toFixed(2)) })
-            analyzerFields.push({ label: 'Avg Words per Sentence', value: String((result.textAnalyzer.statistics.averageWordsPerSentence || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Paragraphs', value: String(result.textAnalyzer.statistics.paragraphs || 0) })
+            analyzerFields.push({ label: 'Avg Word Length', value: String((result.textAnalyzer.statistics.avgWordLength || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Avg Words per Sentence', value: String((result.textAnalyzer.statistics.avgWordsPerSentence || 0).toFixed(2)) })
+            analyzerFields.push({ label: 'Lexical Density', value: String((result.textAnalyzer.statistics.lexicalDensity || 0).toFixed(2)) + '%' })
+            analyzerFields.push({ label: 'Stop Words %', value: String((result.textAnalyzer.statistics.stopWordsPercent || 0).toFixed(1)) + '%' })
+            analyzerFields.push({ label: 'Est. Read Time', value: String(result.textAnalyzer.statistics.estimatedReadTimeMinutes || 0) + ' min' })
           }
           return analyzerFields.filter(f => f.value !== undefined && f.value !== null)
         }
@@ -5511,118 +7158,143 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'text-toolkit': {
         const tabs = []
 
-        if (activeToolkitSection === 'wordCounter' && displayResult?.wordCounter) {
-          // Word Counter - show structured fields as main output, plus JSON
-          tabs.push({
-            id: 'output',
-            label: 'OUTPUT',
-            content: renderStructuredOutput(),
-            contentType: 'component'
-          })
-          tabs.push({
-            id: 'json',
-            label: 'JSON',
-            content: JSON.stringify(displayResult.wordCounter, null, 2),
-            contentType: 'json'
-          })
-        } else if (activeToolkitSection === 'wordFrequency' && displayResult?.wordFrequency) {
-          // Word Frequency - show copy cards for each word, plus JSON
-          const wordFreqData = displayResult.wordFrequency
-          const frequencyViewContent = (
-            <div className={styles.wordFrequencyView}>
-              {wordFreqData.totalUniqueWords !== undefined && (
-                <div className={styles.frequencyHeader}>
-                  <div className={styles.frequencyStat}>
-                    <span className={styles.frequencyLabel}>Total Unique Words</span>
-                    <span className={styles.frequencyValue}>{wordFreqData.totalUniqueWords}</span>
+        if (activeToolkitSection === 'textAnalyzer' && displayResult?.textAnalyzer) {
+          // Text Analyzer - show comprehensive metrics in table layout
+          const analyzerData = displayResult.textAnalyzer
+
+          // Define tiers with metrics
+          const stats = analyzerData.statistics
+          const readable = analyzerData.readability
+
+          const tiers = [
+            {
+              id: 'tier1',
+              metrics: [
+                { label: 'Words', value: stats.words },
+                { label: 'Characters', value: stats.characters },
+                { label: 'Characters (no spaces)', value: stats.charactersNoSpaces },
+                { label: 'Sentences', value: stats.sentences },
+                { label: 'Paragraphs', value: stats.paragraphs },
+                { label: 'Estimated read time', value: `${stats.estimatedReadTimeMinutes} min` },
+                { label: 'Readability level', value: readable.readabilityLevel },
+                { label: 'Flesch Reading Ease', value: readable.fleschReadingEase },
+                { label: 'Flesch-Kincaid Grade', value: readable.fleschKincaidGrade },
+              ]
+            },
+            {
+              id: 'tier2',
+              metrics: [
+                { label: 'Average words per sentence', value: (stats.avgWordsPerSentence || 0).toFixed(2) },
+                { label: 'Average word length', value: (stats.avgWordLength || 0).toFixed(2) },
+                { label: 'Average syllables per word', value: (stats.avgSyllablesPerWord || 0).toFixed(2) },
+                { label: 'Longest sentence', value: `${stats.longestSentenceLength} words`, expandable: true, expandContent: stats.longestSentence ? (<div><strong>Text:</strong><pre style={{ margin: '8px 0', padding: '8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px', fontSize: '11px', maxHeight: '200px', overflow: 'auto' }}>{stats.longestSentence.substring(0, 500)}{stats.longestSentence.length > 500 ? '...' : ''}</pre></div>) : null },
+                { label: 'Shortest sentence', value: `${stats.shortestSentenceLength} words`, expandable: true, expandContent: stats.shortestSentence ? (<div><strong>Text:</strong><pre style={{ margin: '8px 0', padding: '8px', backgroundColor: 'var(--color-background-tertiary)', borderRadius: '4px', fontSize: '11px' }}>{stats.shortestSentence}</pre></div>) : null },
+                { label: 'Median sentence length', value: `${stats.medianSentenceLength} words` },
+              ]
+            },
+            {
+              id: 'tier3',
+              metrics: [
+                { label: 'Unique word count', value: stats.uniqueWordsFreq?.length || 0 },
+                { label: 'Type-token ratio', value: (stats.typeTokenRatio || 0).toFixed(4) },
+                { label: 'Lexical density', value: `${(stats.lexicalDensity || 0).toFixed(2)}%` },
+                { label: 'Content density', value: `${(stats.contentDensity || 0).toFixed(2)}%` },
+                { label: 'Stop words %', value: `${(stats.stopWordsPercent || 0).toFixed(1)}%` },
+                { label: 'Stop words count', value: `${stats.stopWordsCount} (${(stats.stopWordsPercent || 0).toFixed(1)}%)`, expandable: true, expandContent: stats.stopWordsList && stats.stopWordsList.length > 0 ? (<div><strong>Examples:</strong><div style={{ marginTop: '8px', fontSize: '12px', lineHeight: '1.5' }}>{stats.stopWordsList.slice(0, 20).join(', ')}{stats.stopWordsList.length > 20 ? '...' : ''}</div></div>) : null },
+              ]
+            },
+            {
+              id: 'tier4',
+              metrics: [
+                { label: 'Gunning Fog Index', value: (stats.gunningFogIndex || 0).toFixed(1) },
+                { label: 'SMOG Index', value: (stats.smogIndex || 0).toFixed(1) },
+                { label: 'Coleman-Liau Index', value: (stats.colemanLiauIndex || 0).toFixed(1) },
+                { label: 'Automated Readability Index', value: (stats.automatedReadabilityIndex || 0).toFixed(1) },
+              ]
+            },
+            {
+              id: 'tier5',
+              metrics: [
+                { label: 'Longest word', value: stats.longestWord || 'N/A' },
+                { label: 'Shortest word', value: stats.shortestWord || 'N/A' },
+                { label: 'Min word length', value: stats.minWordLength },
+                { label: 'Max word length', value: stats.maxWordLength },
+                { label: 'Median word length', value: stats.medianWordLength },
+              ]
+            },
+            {
+              id: 'tier6',
+              metrics: [
+                { label: 'Top keywords', value: `${stats.topKeywords?.length || 0} keywords`, expandable: true, expandContent: stats.topKeywords && stats.topKeywords.length > 0 ? (<table className={styles.frequencyTable}><thead><tr><th>Keyword</th><th style={{ textAlign: 'right' }}>Count</th><th style={{ textAlign: 'right' }}>%</th></tr></thead><tbody>{stats.topKeywords.map((item, i) => (<tr key={i}><td className={styles.frequencyTableWord}>{item.word}</td><td className={styles.frequencyTableCount}>{item.count || 0}</td><td className={styles.frequencyTablePercent}>{(item.percent || 0).toFixed(1)}%</td></tr>))}</tbody></table>) : null },
+                { label: 'Unique words frequency', value: `${stats.uniqueWordsFreq?.length || 0} unique`, expandable: true, expandContent: stats.uniqueWordsFreq && stats.uniqueWordsFreq.length > 0 ? (<table className={styles.frequencyTable}><thead><tr><th>Word</th><th style={{ textAlign: 'right' }}>Count</th><th style={{ textAlign: 'right' }}>%</th></tr></thead><tbody>{stats.uniqueWordsFreq.slice(0, 15).map((item, i) => { const count = item.count || 0; const percent = stats.words ? ((count / stats.words) * 100).toFixed(1) : '0'; return (<tr key={i}><td className={styles.frequencyTableWord}>{item.word}</td><td className={styles.frequencyTableCount}>{count}</td><td className={styles.frequencyTablePercent}>{percent}%</td></tr>); })}</tbody></table>) : null },
+              ]
+            },
+            {
+              id: 'tier7',
+              metrics: [
+                { label: 'Uppercase count', value: stats.uppercase },
+                { label: 'Lowercase count', value: stats.lowercase },
+                { label: 'Digits', value: stats.digits },
+                { label: 'Punctuation', value: stats.punctuation },
+                { label: 'Whitespace', value: stats.whitespace, expandable: true, expandContent: (<div><strong>Whitespace Visualization:</strong><div className={styles.whitespaceVisualization}>{stats.whitespaceSafeText || 'No whitespace'}</div><div style={{ marginTop: '12px' }}><strong>Whitespace Breakdown:</strong><div style={{ marginTop: '8px', fontSize: '12px' }}>• Spaces: {stats.spaceCount || 0}<br />• Tabs: {stats.tabCount || 0}<br />• Newlines: {stats.newlineCount || 0}</div></div></div>) },
+                { label: 'Spaces', value: stats.spaceCount || 0 },
+                { label: 'Tabs', value: stats.tabCount || 0 },
+                { label: 'Newlines', value: stats.newlineCount || 0 },
+              ]
+            },
+          ]
+
+          // Filter tiers based on search
+          const filteredTiers = tiers.map(tier => ({
+            ...tier,
+            metrics: tier.metrics.filter(m => m.label.toLowerCase().includes(analyzerSearchQuery.toLowerCase()))
+          })).filter(t => t.metrics.length > 0)
+
+          const MetricRow = ({ metric }) => (
+            <div className={styles.analyzerMetricRow}>
+              <div
+                className={styles.analyzerMetricHeader}
+                onClick={() => metric.expandable && setExpandedMetric(expandedMetric === metric.label ? null : metric.label)}
+                style={{ cursor: metric.expandable ? 'pointer' : 'default' }}
+              >
+                <div className={styles.analyzerMetricLabel}>{metric.label.toLowerCase()} - {metric.value}</div>
+                {metric.expandable && (
+                  <div className={styles.analyzerMetricExpander}>
+                    {expandedMetric === metric.label ? '▼' : '▶'}
                   </div>
-                  <div className={styles.frequencyStat}>
-                    <span className={styles.frequencyLabel}>Total Words</span>
-                    <span className={styles.frequencyValue}>{wordFreqData.totalWords}</span>
-                  </div>
-                </div>
-              )}
-              <div className={styles.frequencyCardsContainer}>
-                {wordFreqData.frequency && Array.isArray(wordFreqData.frequency) && wordFreqData.frequency.length > 0 ? (
-                  wordFreqData.frequency.map((item, idx) => (
-                    <div key={idx} className={styles.frequencyCard}>
-                      <div className={styles.frequencyCardHeader}>
-                        <span className={styles.frequencyCardWord}>{item.word}</span>
-                        <span className={styles.frequencyCardCount}>{item.count}</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.noData}>No frequency data available</div>
                 )}
               </div>
-            </div>
-          )
-          tabs.push({
-            id: 'output',
-            label: 'OUTPUT',
-            content: frequencyViewContent,
-            contentType: 'component'
-          })
-          tabs.push({
-            id: 'json',
-            label: 'JSON',
-            content: JSON.stringify(displayResult.wordFrequency, null, 2),
-            contentType: 'json'
-          })
-        } else if (activeToolkitSection === 'textAnalyzer' && displayResult?.textAnalyzer) {
-          // Text Analyzer - show cards for readability and statistics, plus JSON
-          const analyzerData = displayResult.textAnalyzer
-          const analyzerViewContent = (
-            <div className={styles.textAnalyzerView}>
-              {analyzerData.readability && (
-                <div className={styles.analyzerSection}>
-                  <h3 className={styles.analyzerSectionTitle}>Readability</h3>
-                  <div className={styles.analyzerCardsGrid}>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Reading Level</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.readability.readabilityLevel}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Flesch Reading Ease</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschReadingEase}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Flesch-Kincaid Grade</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.readability.fleschKincaidGrade}</span>
-                    </div>
-                  </div>
+              {metric.expandable && expandedMetric === metric.label && metric.expandContent && (
+                <div className={styles.analyzerMetricDetail}>
+                  {metric.expandContent}
                 </div>
               )}
-              {analyzerData.statistics && (
-                <div className={styles.analyzerSection}>
-                  <h3 className={styles.analyzerSectionTitle}>Text Statistics</h3>
-                  <div className={styles.analyzerCardsGrid}>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Words</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.words}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Characters</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.characters}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Sentences</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.sentences}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Lines</span>
-                      <span className={styles.analyzerCardValue}>{analyzerData.statistics.lines}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Avg Word Length</span>
-                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordLength || 0).toFixed(2)}</span>
-                    </div>
-                    <div className={styles.analyzerCard}>
-                      <span className={styles.analyzerCardLabel}>Avg Words per Sentence</span>
-                      <span className={styles.analyzerCardValue}>{(analyzerData.statistics.averageWordsPerSentence || 0).toFixed(2)}</span>
-                    </div>
+            </div>
+          )
+
+          const analyzerViewContent = (
+            <div className={styles.analyzerTableContainer}>
+              <div className={styles.analyzerSearchContainer}>
+                <input
+                  type="text"
+                  placeholder="Search metrics..."
+                  value={analyzerSearchQuery}
+                  onChange={(e) => setAnalyzerSearchQuery(e.target.value)}
+                  className={styles.analyzerSearchInput}
+                />
+              </div>
+
+              {filteredTiers.length > 0 ? (
+                filteredTiers.map(tier => (
+                  <div key={tier.id}>
+                    {tier.metrics.map((metric, idx) => (
+                      <MetricRow key={idx} metric={metric} />
+                    ))}
                   </div>
+                ))
+              ) : (
+                <div style={{ padding: '16px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                  No metrics match your search
                 </div>
               )}
             </div>
@@ -5642,31 +7314,59 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         } else if (activeToolkitSection === 'caseConverter' && displayResult?.caseConverter) {
           // Case Converter - show friendly view, plus JSON
           const caseConverterData = displayResult.caseConverter
+
+          const handleCaseConverterCopy = (key, value) => {
+            navigator.clipboard.writeText(value).catch((err) => {
+              // Fallback for older browsers
+              const textarea = document.createElement('textarea')
+              textarea.value = value
+              textarea.style.position = 'fixed'
+              textarea.style.opacity = '0'
+              document.body.appendChild(textarea)
+              textarea.select()
+              try {
+                document.execCommand('copy')
+              } catch (e) {
+                console.error('Copy failed:', e)
+              }
+              document.body.removeChild(textarea)
+            })
+            setCaseConverterCopied(prev => ({ ...prev, [key]: true }))
+            setTimeout(() => {
+              setCaseConverterCopied(prev => ({ ...prev, [key]: false }))
+            }, 2000)
+          }
+
+          const CaseConverterCopyCard = ({ label, value }) => (
+            <div className={styles.copyCard}>
+              <div className={styles.copyCardHeader}>
+                <span className={styles.copyCardLabel}>{label}</span>
+                <button
+                  type="button"
+                  className="copy-action"
+                  onClick={() => handleCaseConverterCopy(label, value)}
+                  title="Copy to clipboard"
+                >
+                  {caseConverterCopied[label] ? <FaCheck /> : <FaCopy />}
+                </button>
+              </div>
+              <div className={styles.copyCardValue}>{value}</div>
+            </div>
+          )
+
           const friendlyViewContent = (
             <div className={styles.caseConverterView}>
               {caseConverterData.uppercase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Uppercase</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.uppercase}</div>
-                </div>
+                <CaseConverterCopyCard label="Uppercase" value={caseConverterData.uppercase} />
               )}
               {caseConverterData.lowercase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Lowercase</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.lowercase}</div>
-                </div>
+                <CaseConverterCopyCard label="Lowercase" value={caseConverterData.lowercase} />
               )}
               {caseConverterData.titleCase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Title Case</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.titleCase}</div>
-                </div>
+                <CaseConverterCopyCard label="Title Case" value={caseConverterData.titleCase} />
               )}
               {caseConverterData.sentenceCase && (
-                <div className={styles.caseConverterCard}>
-                  <div className={styles.caseConverterLabel}>Sentence Case</div>
-                  <div className={styles.caseConverterOutput}>{caseConverterData.sentenceCase}</div>
-                </div>
+                <CaseConverterCopyCard label="Sentence Case" value={caseConverterData.sentenceCase} />
               )}
             </div>
           )
@@ -5682,6 +7382,67 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             content: JSON.stringify(displayResult.caseConverter, null, 2),
             contentType: 'json'
           })
+        } else if (activeToolkitSection === 'textDiff' && displayResult?.textDiff) {
+          // Diff Checker - show friendly view with differences highlighted, plus JSON
+          const diffData = displayResult.textDiff
+
+          const DiffRow = ({ lineNum, text1, text2, isIdentical }) => {
+            const hasDifference = text1 !== text2
+            return (
+              <div className={styles.diffRow} style={{ backgroundColor: hasDifference ? 'rgba(239, 83, 80, 0.08)' : 'transparent' }}>
+                <div className={styles.diffLineNum}>{lineNum}</div>
+                <div className={styles.diffColumn}>
+                  <div className={styles.diffColumnLabel}>Input A</div>
+                  <div className={styles.diffColumnContent} style={{ color: hasDifference ? '#ef5350' : 'inherit' }}>{text1}</div>
+                </div>
+                <div className={styles.diffColumn}>
+                  <div className={styles.diffColumnLabel}>Input B</div>
+                  <div className={styles.diffColumnContent} style={{ color: hasDifference ? '#ef5350' : 'inherit' }}>{text2}</div>
+                </div>
+              </div>
+            )
+          }
+
+          const friendlyViewContent = (
+            <div className={styles.diffCheckerView}>
+              <div className={styles.diffSummary}>
+                <div className={styles.diffSummaryItem}>
+                  <span className={styles.diffSummaryLabel}>Input A Lines:</span>
+                  <span className={styles.diffSummaryValue}>{diffData.text1Lines}</span>
+                </div>
+                <div className={styles.diffSummaryItem}>
+                  <span className={styles.diffSummaryLabel}>Input B Lines:</span>
+                  <span className={styles.diffSummaryValue}>{diffData.text2Lines}</span>
+                </div>
+                <div className={styles.diffSummaryItem}>
+                  <span className={styles.diffSummaryLabel}>Status:</span>
+                  <span className={styles.diffSummaryValue} style={{ color: diffData.identical ? '#4caf50' : '#ef5350', fontWeight: 600 }}>
+                    {diffData.identical ? '✓ Identical' : `${diffData.differences.length} Difference${diffData.differences.length !== 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              </div>
+              {!diffData.identical && diffData.differences.length > 0 && (
+                <div className={styles.diffTable}>
+                  {diffData.differences.map((diff, idx) => (
+                    <DiffRow key={idx} lineNum={diff.line} text1={diff.text1} text2={diff.text2} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+
+          tabs.push({
+            id: 'output',
+            label: 'OUTPUT',
+            content: friendlyViewContent,
+            contentType: 'component'
+          })
+          tabs.push({
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult.textDiff, null, 2),
+            contentType: 'json'
+          })
         } else {
           // Text-based toolkit sections
           const textContent = displayResult?.[activeToolkitSection]
@@ -5693,7 +7454,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               contentType: 'text'
             })
             // Add JSON tab for slug generator, reverse text, and clean text
-            if (['slugGenerator', 'reverseText', 'removeExtras'].includes(activeToolkitSection)) {
+            if (['slugGenerator', 'reverseText', 'removeExtras', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection)) {
               tabs.push({
                 id: 'json',
                 label: 'JSON',
@@ -5726,7 +7487,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderJsFormatterOutput()
       case 'css-formatter':
         return renderCssFormatterOutput()
-      case 'markdown-html-formatter':
+      case 'web-playground':
         return renderMarkdownFormatterOutput()
       case 'sql-formatter':
         return renderSqlFormatterOutput()
@@ -5858,12 +7619,11 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             label: 'Warnings (✓)',
             content: (
               <div style={{
-                padding: '16px',
                 textAlign: 'center',
                 color: 'var(--color-text-secondary)',
               }}>
                 <div style={{
-                  padding: '12px',
+                  padding: '16px',
                   backgroundColor: 'rgba(102, 187, 106, 0.1)',
                   border: '1px solid rgba(102, 187, 106, 0.3)',
                   borderRadius: '4px',

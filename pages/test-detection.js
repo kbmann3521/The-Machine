@@ -25,7 +25,7 @@ const DEFAULT_TEST_CASES = [
     input: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiJ9.sig',
     expected: 'jwt-decoder',
   },
-  { input: '# Hello\n<div>hi</div>', expected: 'markdown-html-formatter' },
+  { input: '# Hello\n<div>hi</div>', expected: 'web-playground' },
   { input: '(5 + 3) * 12 / 4', expected: 'math-evaluator' },
   { input: 'pdf', expected: 'mime-type-lookup' },
   { input: '1234567.89123', expected: 'number-formatter' },
