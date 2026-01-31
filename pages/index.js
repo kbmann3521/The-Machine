@@ -1037,6 +1037,61 @@ export default function Home(props) {
         value: caseResults.sentenceCase,
         onSelect: () => handleInputChange(caseResults.sentenceCase),
       },
+      {
+        label: 'rAnDoM CaSe',
+        value: caseResults.randomCase,
+        onSelect: () => handleInputChange(caseResults.randomCase),
+      },
+      {
+        label: 'aLtErNaTiNg CaSe',
+        value: caseResults.alternatingCase,
+        onSelect: () => handleInputChange(caseResults.alternatingCase),
+      },
+      {
+        label: 'iNVERSE cASE',
+        value: caseResults.inverseCase,
+        onSelect: () => handleInputChange(caseResults.inverseCase),
+      },
+      {
+        label: 'camelCase',
+        value: caseResults.camelCase,
+        onSelect: () => handleInputChange(caseResults.camelCase),
+      },
+      {
+        label: 'PascalCase',
+        value: caseResults.pascalCase,
+        onSelect: () => handleInputChange(caseResults.pascalCase),
+      },
+      {
+        label: 'snake_case',
+        value: caseResults.snakeCase,
+        onSelect: () => handleInputChange(caseResults.snakeCase),
+      },
+      {
+        label: 'kebab-case',
+        value: caseResults.kebabCase,
+        onSelect: () => handleInputChange(caseResults.kebabCase),
+      },
+      {
+        label: 'CONSTANT_CASE',
+        value: caseResults.constantCase,
+        onSelect: () => handleInputChange(caseResults.constantCase),
+      },
+      {
+        label: 'dot.case',
+        value: caseResults.dotCase,
+        onSelect: () => handleInputChange(caseResults.dotCase),
+      },
+      {
+        label: 'path/case',
+        value: caseResults.pathCase,
+        onSelect: () => handleInputChange(caseResults.pathCase),
+      },
+      {
+        label: 'Train-Case',
+        value: caseResults.trainCase,
+        onSelect: () => handleInputChange(caseResults.trainCase),
+      },
     ]
   })()
 

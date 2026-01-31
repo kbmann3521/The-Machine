@@ -233,7 +233,7 @@ export default function InputTabs({
                         {/* Show results list if available (for tools with multiple results like case converter) */}
                         {inputTabResults && inputTabResults.length > 0 ? (
                           <>
-                            <div style={{ padding: '8px 12px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid var(--color-border)' }}>
+                            <div style={{ padding: '8px 12px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', letterSpacing: '0.5px', borderBottom: '1px solid var(--color-border)' }}>
                               Replace with output
                             </div>
                             {inputTabResults.map((result, idx) => (

@@ -7354,20 +7354,39 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
             </div>
           )
 
+          // Map property keys to friendly labels
+          const caseLabels = {
+            uppercase: 'Uppercase',
+            lowercase: 'Lowercase',
+            titleCase: 'Title Case',
+            sentenceCase: 'Sentence Case',
+            randomCase: 'Random Case',
+            alternatingCase: 'Alternating Case',
+            inverseCase: 'Inverse Case',
+            camelCase: 'Camel Case',
+            pascalCase: 'Pascal Case',
+            snakeCase: 'Snake Case',
+            kebabCase: 'Kebab Case',
+            constantCase: 'Constant Case',
+            dotCase: 'Dot Case',
+            pathCase: 'Path Case',
+            trainCase: 'Train Case',
+          }
+
           const friendlyViewContent = (
             <div className={styles.caseConverterView}>
-              {caseConverterData.uppercase && (
-                <CaseConverterCopyCard label="Uppercase" value={caseConverterData.uppercase} />
-              )}
-              {caseConverterData.lowercase && (
-                <CaseConverterCopyCard label="Lowercase" value={caseConverterData.lowercase} />
-              )}
-              {caseConverterData.titleCase && (
-                <CaseConverterCopyCard label="Title Case" value={caseConverterData.titleCase} />
-              )}
-              {caseConverterData.sentenceCase && (
-                <CaseConverterCopyCard label="Sentence Case" value={caseConverterData.sentenceCase} />
-              )}
+              {Object.entries(caseConverterData).map(([key, value]) => {
+                if (value && caseLabels[key]) {
+                  return (
+                    <CaseConverterCopyCard
+                      key={key}
+                      label={caseLabels[key]}
+                      value={value}
+                    />
+                  )
+                }
+                return null
+              })}
             </div>
           )
           tabs.push({
