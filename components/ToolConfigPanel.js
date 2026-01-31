@@ -941,10 +941,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         <Phase2Controls
           onConfigChange={onConfigChange}
           safetyFlags={result?.safetyFlags}
+          currentConfig={currentConfig}
         />
       )}
 
-      {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' && (
+      {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' ? (
         <div>
           {tool.toolId === 'regex-tester' && (
             <RegexToolkit
@@ -1274,6 +1275,10 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               </div>
             )
           })()}
+        </div>
+      ) : (
+        <div className={styles.placeholder}>
+          This tool has no configuration options.
         </div>
       )}
 
