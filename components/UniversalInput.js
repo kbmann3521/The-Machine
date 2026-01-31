@@ -72,7 +72,6 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
   const [inputHeight, setInputHeight] = useState(255)
   const [isResizing, setIsResizing] = useState(false)
   const [exampleIndex, setExampleIndex] = useState({})
-  const [selectedCaseType, setSelectedCaseType] = useState('lowercase')
   const [imageError, setImageError] = useState(null)
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
@@ -325,7 +324,7 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
     result,
     selectedTool,
     activeToolkitSection,
-    selectedCaseType,
+    null, // selectedCaseType is no longer used - case variants are selected via chevron menu
     onInputChange
   )
 
@@ -456,19 +455,6 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
                         >
                           <span className={styles.buttonText}>Clear Input</span>
                         </button>
-                        {activeToolkitSection === 'caseConverter' && getOutputToUse() && (
-                          <select
-                            className={styles.caseTypeSelect}
-                            value={selectedCaseType}
-                            onChange={(e) => setSelectedCaseType(e.target.value)}
-                            title="Select case type to use"
-                          >
-                            <option value="uppercase">UPPERCASE</option>
-                            <option value="lowercase">lowercase</option>
-                            <option value="titleCase">Title Case</option>
-                            <option value="sentenceCase">Sentence case</option>
-                          </select>
-                        )}
                       </>
                     )}
                   </div>

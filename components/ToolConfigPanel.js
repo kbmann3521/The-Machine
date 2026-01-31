@@ -945,7 +945,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
         />
       )}
 
-      {tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit' ? (
+      {(tool.configSchema && tool.configSchema.length > 0 && tool.toolId !== 'text-toolkit') || tool.toolId === 'text-toolkit' ? (
         <div>
           {tool.toolId === 'regex-tester' && (
             <RegexToolkit
@@ -1145,8 +1145,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 )
               }
 
-              // Only show CSS options when CSS tab is active
-              if (markdownInputMode === 'css') {
+              // Show CSS options for both CSS tab and HTML tab (for validation/linting toggles)
+              if (markdownInputMode === 'css' || markdownInputMode === 'input') {
                 return (
                   <div className={styles.fieldsContainer}>
                     {cssSchema.map(field => {
@@ -1156,6 +1156,11 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                         if (cssConfigOptions[conditionField] !== conditionValue) {
                           return null
                         }
+                      }
+
+                      // For HTML tab (input mode), only show validation/linting toggles
+                      if (markdownInputMode === 'input' && !['showValidation', 'showLinting'].includes(field.id)) {
+                        return null
                       }
 
                       const renderedField = renderCssField(field)

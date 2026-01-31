@@ -2706,7 +2706,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         }
 
         // Add VALIDATION tab
-        if (cssFormatterResult && cssFormatterResult.showValidation !== false) {
+        if (cssFormatterResult && cssConfigOptions?.showValidation !== false) {
           const validationErrors = (cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics))
             ? cssFormatterResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
             : []
@@ -2758,7 +2758,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         }
 
         // Add LINTING tab
-        if (cssFormatterResult && cssFormatterResult.showLinting && cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics)) {
+        if (cssFormatterResult && cssConfigOptions?.showLinting && cssFormatterResult.diagnostics && Array.isArray(cssFormatterResult.diagnostics)) {
           const lintingWarnings = cssFormatterResult.diagnostics.filter(d => d.category === 'lint')
           const isCssValid = cssFormatterResult.isWellFormed !== false
 
@@ -3525,7 +3525,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Add formatted code tab - shows the beautified source code
-    if (displayResult.formatted !== undefined) {
+    if (displayResult?.formatted !== undefined) {
       tabs.push({
         id: 'formatted',
         label: 'FORMATTED',
@@ -3533,7 +3533,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         contentType: 'code',
         language: isHtml ? 'markup' : 'markdown',
       })
-    } else if (displayResult.error) {
+    } else if (displayResult?.error) {
       // Show error message in OUTPUT tab if formatting failed
       tabs.push({
         id: 'formatted',
@@ -3554,10 +3554,21 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         ),
         contentType: 'component',
       })
+    } else if (isMarkdownFormatter) {
+      // For web-playground, always show FORMATTED tab even if empty
+      tabs.push({
+        id: 'formatted',
+        label: 'FORMATTED',
+        content: displayResult?.formatted || '',
+        contentType: 'code',
+        language: isHtml ? 'markup' : 'markdown',
+      })
     }
 
     // Validation tab - show if enabled
-    if (displayResult?.showValidation !== false) {
+    // Check the server response for validation setting
+    const shouldShowValidation = displayResult?.showValidation !== false
+    if (shouldShowValidation) {
       const validationErrors = (displayResult?.diagnostics && Array.isArray(displayResult?.diagnostics))
         ? displayResult.diagnostics.filter(d => d.type === 'error' && d.category === 'syntax')
         : []
@@ -3615,7 +3626,9 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Linting tab - show if enabled and content is valid
-    if (displayResult?.showLinting !== false) {
+    // Check the server response for linting setting
+    const shouldShowLinting = displayResult?.showLinting !== false
+    if (shouldShowLinting) {
       const lintingWarnings = (displayResult?.diagnostics && Array.isArray(displayResult?.diagnostics))
         ? displayResult.diagnostics.filter(d => d.category === 'lint')
         : []
@@ -3975,23 +3988,25 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     }
 
     // Add JSON tab - shows input, output, and diagnostics only
-    const mdJsonWithInputOutput = {
-      input: inputText,
-      output: displayResult.formatted,
-      isWellFormed: displayResult.isWellFormed,
-      diagnostics: displayResult.diagnostics || [],
-      optionsApplied: {
-        showValidation: displayResult.optionsApplied?.showValidation,
-        showLinting: displayResult.optionsApplied?.showLinting,
-      },
+    if (isMarkdownFormatter || displayResult) {
+      const mdJsonWithInputOutput = {
+        input: inputText,
+        output: displayResult?.formatted,
+        isWellFormed: displayResult?.isWellFormed,
+        diagnostics: displayResult?.diagnostics || [],
+        optionsApplied: {
+          showValidation: displayResult?.optionsApplied?.showValidation,
+          showLinting: displayResult?.optionsApplied?.showLinting,
+        },
+      }
+      tabs.push({
+        id: 'json',
+        label: 'JSON',
+        content: JSON.stringify(mdJsonWithInputOutput, null, 2),
+        contentType: 'code',
+        language: 'json',
+      })
     }
-    tabs.push({
-      id: 'json',
-      label: 'JSON',
-      content: JSON.stringify(mdJsonWithInputOutput, null, 2),
-      contentType: 'code',
-      language: 'json',
-    })
 
     if (tabs.length === 0) return null
 

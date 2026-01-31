@@ -39,6 +39,7 @@ export default function InputTabs({
   onUseOutput = null,
   canCopyOutput = true,
   useOutputLabel = 'Replace with output',
+  inputTabResults = [], // Array of { label: string, value: string, onSelect: function }
   hasCssOutputToUse = false,
   onUseCssOutput = null,
   canCopyCssOutput = true,
@@ -229,7 +230,27 @@ export default function InputTabs({
                     </button>
                     {showUseOutputMenu && (
                       <div className={styles.useOutputMenu}>
-                        {!canCopyOutput ? (
+                        {/* Show results list if available (for tools with multiple results like case converter) */}
+                        {inputTabResults && inputTabResults.length > 0 ? (
+                          <>
+                            <div style={{ padding: '8px 12px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid var(--color-border)' }}>
+                              Replace with output
+                            </div>
+                            {inputTabResults.map((result, idx) => (
+                              <button
+                                key={idx}
+                                className={styles.useOutputMenuButton}
+                                onClick={() => {
+                                  result.onSelect()
+                                  setShowUseOutputMenu(false)
+                                }}
+                                type="button"
+                              >
+                                {result.label}
+                              </button>
+                            ))}
+                          </>
+                        ) : !canCopyOutput ? (
                           <div className={styles.useOutputMenuDisabled}>
                             This output can't be copied
                           </div>
