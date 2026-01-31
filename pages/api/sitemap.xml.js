@@ -25,6 +25,17 @@ export default function handler(req, res) {
     xml += '  </url>\n'
   })
 
+  // Add standalone tool pages
+  const standalonePages = ['text-toolkit', 'web-playground']
+  standalonePages.forEach(page => {
+    xml += '  <url>\n'
+    xml += `    <loc>${siteUrl}/${page}</loc>\n`
+    xml += `    <lastmod>${today}</lastmod>\n`
+    xml += '    <changefreq>monthly</changefreq>\n'
+    xml += '    <priority>0.9</priority>\n'
+    xml += '  </url>\n'
+  })
+
   xml += '</urlset>'
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8')

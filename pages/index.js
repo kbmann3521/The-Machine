@@ -14,6 +14,7 @@ import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
 import QRCodeGeneratorOutputPanel from '../components/QRCodeGeneratorOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
+import PageFooter from '../components/PageFooter'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
 import ToolDescriptionContent from '../components/ToolDescriptionContent'
 import ValuePropositionCard from '../components/ValuePropositionCard'
@@ -1007,6 +1008,38 @@ export default function Home(props) {
     }
   }
 
+  // Generate case conversion results for INPUT tab chevron menu
+  // Used by text-toolkit when in caseConverter mode
+  const caseConversionResults = (() => {
+    if (selectedTool?.toolId !== 'text-toolkit' || activeToolkitSection !== 'caseConverter' || !outputResult?.caseConverter) {
+      return []
+    }
+
+    const caseResults = outputResult.caseConverter
+    return [
+      {
+        label: 'UPPERCASE',
+        value: caseResults.uppercase,
+        onSelect: () => handleInputChange(caseResults.uppercase),
+      },
+      {
+        label: 'lowercase',
+        value: caseResults.lowercase,
+        onSelect: () => handleInputChange(caseResults.lowercase),
+      },
+      {
+        label: 'Title Case',
+        value: caseResults.titleCase,
+        onSelect: () => handleInputChange(caseResults.titleCase),
+      },
+      {
+        label: 'Sentence case',
+        value: caseResults.sentenceCase,
+        onSelect: () => handleInputChange(caseResults.sentenceCase),
+      },
+    ]
+  })()
+
   // Handler for replacing CSS input with formatted CSS output
   const handleUseCssOutputClick = () => {
     if (cssFormattedOutput && activeMarkdownInputTab === 'css') {
@@ -1125,6 +1158,7 @@ export default function Home(props) {
                 onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
                 infoContent={!selectedTool && <ValuePropositionCard />}
                 tabActions={null}
+                inputTabResults={caseConversionResults}
                 hasOutputToUse={getHasOutputToUse()}
                 onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
                 canCopyOutput={getCanCopyOutput()}
@@ -1343,14 +1377,7 @@ export default function Home(props) {
 
 
 
-        <footer className={styles.footer}>
-          <div className={styles.footerContent}>
-            <p>© 2024 Pioneer Web Tools. All rights reserved.</p>
-            <Link href="/blog/how-we-make-tools" className={styles.footerAboutLink}>
-              About
-            </Link>
-          </div>
-        </footer>
+        <PageFooter showBackToTools={false} />
       </div>
 
 
