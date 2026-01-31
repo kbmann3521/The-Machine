@@ -1482,6 +1482,41 @@
   }
 }
 
+/* Flash animation for options icon on tool selection */
+@keyframes colorFlash {
+  0% {
+    color: var(--color-text-secondary, #666);
+  }
+  12.5% {
+    color: #0066cc;
+  }
+  25% {
+    color: #0066cc;
+  }
+  37.5% {
+    color: var(--color-text-secondary, #666);
+  }
+  50% {
+    color: var(--color-text-secondary, #666);
+  }
+  62.5% {
+    color: #0066cc;
+  }
+  75% {
+    color: #0066cc;
+  }
+  87.5% {
+    color: var(--color-text-secondary, #666);
+  }
+  100% {
+    color: var(--color-text-secondary, #666);
+  }
+}
+
+.settingsIconFlash {
+  animation: colorFlash 2s ease-in-out 1;
+}
+
 /* Mobile: Increase output container height even more */
 @media (max-width: 480px) {
   .tab {

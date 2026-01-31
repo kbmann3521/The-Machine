@@ -56,6 +56,7 @@ export default function InputTabs({
   const [showUseOutputMenu, setShowUseOutputMenu] = useState(false)
   const [showUseCssOutputMenu, setShowUseCssOutputMenu] = useState(false)
   const [showUseJsOutputMenu, setShowUseJsOutputMenu] = useState(false)
+  const [showSettingsFlash, setShowSettingsFlash] = useState(false)
   const optionsDropdownRef = useRef(null)
   const globalOptionsRef = useRef(null)
   const useOutputMenuRef = useRef(null)
@@ -74,6 +75,20 @@ export default function InputTabs({
       onActiveTabChange(userSelectedTabId)
     }
   }, [userSelectedTabId, onActiveTabChange])
+
+  // Trigger settings icon flash when tool is selected
+  useEffect(() => {
+    if (selectedTool && globalOptionsContent) {
+      setShowSettingsFlash(true)
+
+      // Reset flash state after animation completes
+      const timer = setTimeout(() => {
+        setShowSettingsFlash(false)
+      }, 2000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [selectedTool?.toolId, globalOptionsContent])
 
   // Build tab configuration
   const tabConfig = [
@@ -373,7 +388,7 @@ export default function InputTabs({
                   title="Global options"
                   aria-label="Global options"
                 >
-                  <span className={styles.settingsIcon}>⚙</span>
+                  <span className={`${styles.settingsIcon} ${showSettingsFlash ? styles.settingsIconFlash : ''}`}>⚙</span>
                 </button>
 
                 {/* Global options modal */}
