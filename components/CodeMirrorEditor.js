@@ -101,12 +101,44 @@ const syntaxDark = HighlightStyle.define([
 // In dark mode: both input and output editors use darker background to match preview
 function createDynamicTheme(editorType = 'input', isDarkMode = false) {
   const root = document.documentElement
-  const vars = {
-    backgroundSecondary: getComputedStyle(root).getPropertyValue('--color-background-secondary').trim(),
-    backgroundTertiary: getComputedStyle(root).getPropertyValue('--color-background-tertiary').trim(),
-    textPrimary: getComputedStyle(root).getPropertyValue('--color-text-primary').trim(),
-    textSecondary: getComputedStyle(root).getPropertyValue('--color-text-secondary').trim(),
-    border: getComputedStyle(root).getPropertyValue('--color-border').trim(),
+
+  // Hardcode colors to ensure they're available immediately on page load
+  // This prevents CSS variable read delays that cause flashing
+  const colors = {
+    dark: {
+      backgroundSecondary: '#2d2d2d',
+      backgroundTertiary: '#3a3a3a',
+      textPrimary: '#e4e4e4',
+      textSecondary: '#a8a8a8',
+      border: '#404040',
+    },
+    light: {
+      backgroundSecondary: '#ffffff',
+      backgroundTertiary: '#f5f5f5',
+      textPrimary: '#333',
+      textSecondary: '#666',
+      border: '#e0e0e0',
+    }
+  }
+
+  const colorSet = isDarkMode ? colors.dark : colors.light
+
+  // Try to get from computed styles as fallback, but use hardcoded values as primary
+  let vars = colorSet
+  try {
+    const computed = {
+      backgroundSecondary: getComputedStyle(root).getPropertyValue('--color-background-secondary').trim(),
+      backgroundTertiary: getComputedStyle(root).getPropertyValue('--color-background-tertiary').trim(),
+      textPrimary: getComputedStyle(root).getPropertyValue('--color-text-primary').trim(),
+      textSecondary: getComputedStyle(root).getPropertyValue('--color-text-secondary').trim(),
+      border: getComputedStyle(root).getPropertyValue('--color-border').trim(),
+    }
+    // Only use computed if all values are present
+    if (computed.backgroundSecondary && computed.textPrimary) {
+      vars = computed
+    }
+  } catch (e) {
+    // Silently fall back to hardcoded colors
   }
 
   // In dark mode, all editors get darker background to match output preview
@@ -341,6 +373,14 @@ export default function CodeMirrorEditor({
     // Determine if dark mode is active
     const isDarkMode = theme === 'dark'
 
+    // Force background color immediately on the container element
+    // This prevents gray flash before theme extensions apply
+    if (isDarkMode) {
+      editorRef.current.style.backgroundColor = '#1a1a1a'
+    } else {
+      editorRef.current.style.backgroundColor = '#ffffff'
+    }
+
     // Create linter if diagnostics are available and linting is enabled
     let linterExtensions = []
     if (enableLinting && diagnostics && diagnostics.length > 0) {
@@ -432,6 +472,18 @@ export default function CodeMirrorEditor({
       viewRef.current = null
     }
   }, [readOnly, showLineNumbers, theme, editorType, language, highlightingEnabled])
+
+  // Update container background color when theme changes
+  useEffect(() => {
+    if (!editorRef.current) return
+
+    const isDarkMode = theme === 'dark'
+    if (isDarkMode) {
+      editorRef.current.style.backgroundColor = '#1a1a1a'
+    } else {
+      editorRef.current.style.backgroundColor = '#ffffff'
+    }
+  }, [theme])
 
   // Update theme when theme context changes
   useEffect(() => {

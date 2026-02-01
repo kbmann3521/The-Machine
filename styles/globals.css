@@ -376,6 +376,41 @@ input[type="file"] {
 
 /* Copy card styles moved to tool-output.module.css as .copyCard, .copyCardHeader, .copyCardLabel, .copyCardValue */
 
+/* CodeMirror 6 Dark Mode Override - Force dark background immediately on load */
+/* This prevents the gray flash that happens before theme extensions apply */
+.cm-editor {
+  background-color: #1a1a1a !important;
+  color: #e4e4e4 !important;
+}
+
+.cm-editor .cm-content {
+  background-color: #1a1a1a !important;
+}
+
+.cm-editor .cm-gutters {
+  background-color: transparent !important;
+  border-right: 1px solid #404040 !important;
+}
+
+.cm-editor .cm-activeLineGutter {
+  background-color: transparent !important;
+}
+
+/* Light mode override */
+:root[data-theme="light"] .cm-editor {
+  background-color: #ffffff !important;
+  color: #333 !important;
+}
+
+:root[data-theme="light"] .cm-editor .cm-content {
+  background-color: #ffffff !important;
+}
+
+:root[data-theme="light"] .cm-editor .cm-gutters {
+  background-color: transparent !important;
+  border-right: 1px solid #e0e0e0 !important;
+}
+
 /* Color Picker Input Override */
 /* Strip browser default styling for clean appearance in both light and dark modes */
 input[type="color"] {
