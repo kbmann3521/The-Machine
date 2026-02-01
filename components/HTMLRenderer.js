@@ -155,8 +155,7 @@ const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJ
       background: #ffffff;
       color: #000000;
       padding: 16px;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: auto;
     }
   </style>
 </head>
@@ -203,7 +202,7 @@ const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJ
         display: 'block',
         backgroundColor: '#ffffff',
       }}
-      sandbox={`${allowScripts ? 'allow-scripts' : ''} allow-forms ${allowIframes ? 'allow-popups allow-modals' : ''}`}
+      sandbox={`allow-same-origin ${allowScripts ? 'allow-scripts' : ''} allow-forms ${allowIframes ? 'allow-popups allow-modals' : ''}`}
       title="HTML Preview"
     />
   )

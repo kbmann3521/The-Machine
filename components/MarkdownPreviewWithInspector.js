@@ -2141,6 +2141,7 @@ export default function MarkdownPreviewWithInspector({
 
     return (
       <div
+        className="pwt-preview"
         ref={isFullscreen ? undefined : previewContainerRef}
         {...dataAttrs}
         style={{
