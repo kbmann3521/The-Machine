@@ -389,7 +389,6 @@ input[type="file"] {
 
 .cm-editor .cm-gutters {
   background-color: transparent !important;
-  border-right: 1px solid #404040 !important;
 }
 
 .cm-editor .cm-activeLineGutter {
@@ -408,7 +407,6 @@ input[type="file"] {
 
 :root[data-theme="light"] .cm-editor .cm-gutters {
   background-color: transparent !important;
-  border-right: 1px solid #e0e0e0 !important;
 }
 
 /* Color Picker Input Override */
