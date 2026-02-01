@@ -1095,6 +1095,20 @@ export default function Home(props) {
     ]
   })()
 
+  // Generate base64 converter format results for INPUT tab chevron menu
+  const base64ConversionResults = (() => {
+    if (selectedTool?.toolId !== 'base64-converter' || !outputResult?.formats) {
+      return []
+    }
+
+    const formats = outputResult.formats
+    return Object.entries(formats).map(([label, value]) => ({
+      label,
+      value,
+      onSelect: () => handleInputChange(value),
+    }))
+  })()
+
   // Handler for replacing CSS input with formatted CSS output
   const handleUseCssOutputClick = () => {
     if (cssFormattedOutput && activeMarkdownInputTab === 'css') {
@@ -1213,7 +1227,7 @@ export default function Home(props) {
                 onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
                 infoContent={!selectedTool && <ValuePropositionCard />}
                 tabActions={null}
-                inputTabResults={caseConversionResults}
+                inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : caseConversionResults}
                 hasOutputToUse={getHasOutputToUse()}
                 onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
                 canCopyOutput={getCanCopyOutput()}

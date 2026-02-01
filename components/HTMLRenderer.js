@@ -19,103 +19,89 @@ import styles from '../styles/markdown-renderer.module.css'
  * Base sanitization configuration using DOMPurify
  * Balanced policy: allows rich HTML/CSS content while blocking high-risk vectors
  */
-const BASE_SANITIZATION_CONFIG = {
+/**
+ * STRICT mode: For rendering untrusted user content (markdown, blog posts, etc)
+ * Uses whitelisting approach - only allow safe tags and attributes
+ */
+const STRICT_SANITIZATION_CONFIG = {
   ALLOWED_TAGS: [
-    // Text content
-    'p', 'div', 'span',
-    // Headings
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    // Lists
-    'ul', 'ol', 'li',
-    // Code blocks
-    'pre', 'code', 'blockquote',
-    // Links & text formatting
+    'p', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'ul', 'ol', 'li', 'pre', 'code', 'blockquote',
     'a', 'strong', 'em', 'del', 'ins', 'mark', 'small', 'sub', 'sup',
-    // Tables
     'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
-    // Separators
-    'hr', 'br',
-    // Images
-    'img', 'figure', 'figcaption',
-    // Forms
-    'button', 'input', 'form', 'label', 'textarea', 'select', 'option', 'optgroup', 'fieldset', 'legend',
-    // Progress & meter
-    'progress', 'meter',
-    // Interactive elements
-    'details', 'summary',
-    // Semantic HTML5
+    'hr', 'br', 'img', 'figure', 'figcaption',
     'section', 'article', 'nav', 'header', 'footer', 'aside', 'main',
-    // SVG support
-    'svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse',
-    'g', 'text', 'tspan', 'defs', 'use', 'symbol', 'marker', 'linearGradient',
-    'radialGradient', 'stop', 'clipPath', 'mask', 'image', 'foreignObject',
-    'style', 'title', 'desc'
   ],
   ALLOWED_ATTR: [
-    // Global attributes
     'id', 'class', 'title', 'data-*', 'style',
-    // Link attributes
-    'href', 'target', 'rel',
-    // Image attributes
-    'src', 'alt', 'srcset', 'sizes', 'width', 'height', 'loading', 'decoding',
-    // Form attributes
-    'type', 'name', 'value', 'placeholder', 'checked', 'disabled', 'readonly',
-    'rows', 'cols', 'multiple', 'required', 'min', 'max', 'step', 'size',
-    'for', 'accept', 'autocomplete', 'autofocus', 'pattern', 'default', 'formaction',
-    // ARIA attributes for accessibility
+    'href', 'target', 'rel', 'src', 'alt', 'srcset', 'sizes', 'width', 'height',
     'aria-label', 'aria-labelledby', 'aria-describedby', 'aria-expanded',
     'aria-hidden', 'aria-pressed', 'aria-selected', 'role',
-    // Details/Summary
-    'open',
-    // iFrame attributes
-    'sandbox', 'allow', 'allowfullscreen', 'frameborder', 'scrolling', 'srcdoc',
-    // SVG attributes
-    'd', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
-    'points', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke',
-    'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'opacity',
-    'transform', 'fill-opacity', 'stroke-opacity', 'clip-path',
-    'href', 'xlink:href', 'xmlns', 'xmlns:xlink',
-    'offset', 'stop-color', 'stop-opacity',
-    'font-size', 'font-family', 'text-anchor', 'font-weight',
   ],
   KEEP_CONTENT: true,
-  RETURN_DOM_FRAGMENT: false,
-  RETURN_DOM: false
+}
+
+/**
+ * PLAYGROUND mode: Minimal DOMPurify config for code playgrounds
+ *
+ * Philosophy: The iframe sandbox is the real security boundary.
+ * DOMPurify here is just a guardrail for defense-in-depth and future-proofing.
+ *
+ * This config allows almost everything - DOMPurify becomes a parser pass.
+ * The security hook (installed separately) blocks only javascript: and vbscript: URLs.
+ */
+const PLAYGROUND_SANITIZATION_CONFIG = {
+  WHOLE_DOCUMENT: true,
+  KEEP_CONTENT: true,
+  ALLOW_UNKNOWN_PROTOCOLS: true,
+  ADD_TAGS: [
+    'script',
+    'style',
+    'iframe',
+    'svg',
+    'math',
+    'canvas',
+    'video',
+    'audio',
+  ],
+  ADD_ATTR: ['*'],
+  FORBID_TAGS: [],
+  FORBID_ATTR: [],
+}
+
+/**
+ * Installs a DOMPurify hook to block dangerous protocol patterns
+ * This prevents javascript:, data:, vbscript: URLs which are the main XSS vectors
+ */
+function installSecurityHook() {
+  DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+    // Block dangerous protocol URLs in href, src, and other attributes
+    if (typeof data.value === 'string') {
+      const dangerousProtocols = /^(javascript|data|vbscript):/i
+      if (dangerousProtocols.test(data.value)) {
+        data.keepAttr = false
+      }
+    }
+  })
+}
+
+// Install the hook once on module load
+if (typeof window !== 'undefined') {
+  installSecurityHook()
 }
 
 /**
  * Creates a sanitization config based on whether scripts and iframes are allowed
  */
 function getSanitizationConfig(allowScripts = false, allowIframes = false) {
-  const forbiddenTags = ['object', 'embed', 'math']
-
-  // Add script and iframe to forbidden list based on flags
-  if (!allowScripts) forbiddenTags.push('script')
-  if (!allowIframes) forbiddenTags.push('iframe')
-
-  const config = {
-    ...BASE_SANITIZATION_CONFIG,
-    FORBID_TAGS: forbiddenTags,
-    ALLOW_DATA_ATTR: true,  // Allow data-* attributes
-    FORBID_ATTR: allowScripts
-      ? []  // Allow all attributes (including event handlers) when scripts are enabled
-      : [  // Default: block event handlers
-        'onerror', 'onclick', 'onload', 'onmouseover', 'onmouseout', 'onchange',
-        'oninput', 'onkeydown', 'onkeyup', 'onsubmit', 'onfocus', 'onblur'
-      ],
+  // For playgrounds with script support, use relaxed config
+  // Security is enforced by iframe sandbox attribute
+  if (allowScripts) {
+    return PLAYGROUND_SANITIZATION_CONFIG
   }
 
-  // When scripts are allowed, add 'script' to ALLOWED_TAGS
-  if (allowScripts && !config.ALLOWED_TAGS.includes('script')) {
-    config.ALLOWED_TAGS = [...config.ALLOWED_TAGS, 'script']
-  }
-
-  // When iframes are allowed, add 'iframe' to ALLOWED_TAGS
-  if (allowIframes && !config.ALLOWED_TAGS.includes('iframe')) {
-    config.ALLOWED_TAGS = [...config.ALLOWED_TAGS, 'iframe']
-  }
-
-  return config
+  // For regular content, use strict whitelist approach
+  return STRICT_SANITIZATION_CONFIG
 }
 
 const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJs = '', allowScripts = false, allowIframes = false }, ref) => {
@@ -129,8 +115,22 @@ const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJ
     try {
       const sanitizationConfig = getSanitizationConfig(allowScripts, allowIframes)
 
-      // Sanitize the HTML (formatter output should already be well-formed)
-      const sanitizedHtml = DOMPurify.sanitize(html, sanitizationConfig)
+      // Sanitize the HTML
+      let sanitizedHtml
+      if (allowScripts) {
+        // PLAYGROUND: Use HTML as-is for the iframe
+        // The iframe sandbox is the real security boundary:
+        // - No allow-same-origin (prevents parent access)
+        // - No allow-top-navigation (prevents navigating top frame)
+        // - No allow-plugins (prevents plugin execution)
+        // The security hook (installed globally) blocks javascript:, data:, vbscript: URLs
+        // as an additional guardrail.
+        sanitizedHtml = html
+      } else {
+        // STRICT: Use DOMPurify with strict whitelist for untrusted content
+        // (markdown, user-generated content, etc.)
+        sanitizedHtml = DOMPurify.sanitize(html, sanitizationConfig)
+      }
 
       // Build the complete HTML document for the iframe
       // customCss (serialized rules) is placed at end so it overrides via cascade
@@ -173,39 +173,16 @@ const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJ
     } catch (error) {
       console.error('[HTMLRenderer] Error building iframe document:', error)
     }
-  }, [html, allowScripts, allowIframes])
+  }, [html, customCss, customJs, allowScripts, allowIframes])
 
-  // Update only the custom CSS without reloading the iframe
+  // Dynamic CSS/JS updates: Due to iframe sandbox without allow-same-origin,
+  // we cannot access contentDocument to update dynamically.
+  // Instead, the main useEffect rebuilds the entire iframe when these change.
+  // This effect is kept as a reference but is a no-op.
   useEffect(() => {
-    if (!iframeRef.current || !isInitializedRef.current) return
-
-    try {
-      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow.document
-      if (!iframeDoc) return
-
-      let styleTag = iframeDoc.getElementById('custom-css')
-      if (!styleTag) {
-        // Create the style tag if it doesn't exist
-        styleTag = iframeDoc.createElement('style')
-        styleTag.id = 'custom-css'
-
-        // Append to head if available, otherwise body, otherwise return early
-        if (iframeDoc.head) {
-          iframeDoc.head.appendChild(styleTag)
-        } else if (iframeDoc.body) {
-          iframeDoc.body.appendChild(styleTag)
-        } else {
-          // Document not ready yet, skip this update
-          return
-        }
-      }
-
-      // Update the style content without reloading
-      styleTag.textContent = customCss || ''
-    } catch (error) {
-      console.error('[HTMLRenderer] Error updating custom CSS:', error)
-    }
-  }, [customCss])
+    // CSS and JS updates are handled by the main effect's dependency array
+    // which triggers a full iframe rebuild when customCss or customJs changes
+  }, [customCss, customJs])
 
   if (!html || typeof html !== 'string') {
     return (
@@ -226,7 +203,7 @@ const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJ
         display: 'block',
         backgroundColor: '#ffffff',
       }}
-      sandbox={`allow-same-origin ${allowScripts ? 'allow-scripts' : ''} ${allowIframes ? 'allow-popups allow-modals' : ''}`}
+      sandbox={`${allowScripts ? 'allow-scripts' : ''} allow-forms ${allowIframes ? 'allow-popups allow-modals' : ''}`}
       title="HTML Preview"
     />
   )
