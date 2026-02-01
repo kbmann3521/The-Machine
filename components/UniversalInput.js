@@ -495,6 +495,7 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
                     diagnostics={result?.diagnostics || []}
                     formatMode={result?.optionsApplied?.mode || 'beautify'}
                     enableLinting={true}
+                    _debugDiagnostics={result?.diagnostics}
                   />
                 )}
               </div>

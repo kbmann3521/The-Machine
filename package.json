@@ -67,6 +67,7 @@
     "node-sql-parser": "^5.3.13",
     "normalize-url": "^8.0.0",
     "openai": "^6.9.1",
+    "parse5": "^8.0.0",
     "pretty-data": "^0.40.0",
     "punycode": "^2.3.1",
     "qrcode": "^1.5.4",

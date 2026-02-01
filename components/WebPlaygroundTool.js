@@ -238,6 +238,11 @@ export default function WebPlaygroundTool() {
       }
 
       const data = await response.json()
+      console.log('[WebPlaygroundTool] API Response:', {
+        hasDiagnostics: !!data.result?.diagnostics,
+        diagnosticCount: data.result?.diagnostics?.length,
+        firstDiagnostic: data.result?.diagnostics?.[0],
+      })
       setOutputResult(data.result || null)
       setError(null)
     } catch (err) {

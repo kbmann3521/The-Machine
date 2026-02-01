@@ -458,18 +458,34 @@ export default function CodeMirrorEditor({
 
   // Update linting when diagnostics or formatMode changes
   useEffect(() => {
-    if (!viewRef.current || !enableLinting) return
+    if (!viewRef.current || !enableLinting) {
+      console.log('[CodeMirrorEditor] Linter update skipped:', {
+        hasView: !!viewRef.current,
+        enableLinting,
+        diagnosticCount: diagnostics?.length
+      })
+      return
+    }
 
     const updateKey = `${diagnostics?.length ?? 0}-${formatMode}`
 
+    console.log('[CodeMirrorEditor] Updating linter:', {
+      diagnosticCount: diagnostics?.length,
+      formatMode,
+      updateKey,
+      previousKey: lastLinterUpdateRef.current,
+    })
+
     // Skip if we just updated with the same params
     if (lastLinterUpdateRef.current === updateKey) {
+      console.log('[CodeMirrorEditor] Skipping linter update - same as previous')
       return
     }
 
     // Create new linter with updated diagnostics
     let linterExtensions = []
     if (diagnostics && diagnostics.length > 0) {
+      console.log('[CodeMirrorEditor] Creating formatter linter with', diagnostics.length, 'diagnostics')
       const formatter = createFormatterLinter(diagnostics, {
         shouldSuppressInMinifyMode: true,
         formatMode,
