@@ -2134,10 +2134,10 @@ export default function MarkdownPreviewWithInspector({
     if (forcedStates.focus) dataAttrs['data-force-focus'] = 'true'
     if (forcedStates.active) dataAttrs['data-force-active'] = 'true'
 
-    // For HTML mode with iframe: keep original style tags (they're sandboxed in iframe)
-    // Iframe provides natural CSS isolation, so no scoping needed
-    // For Markdown mode: pass content as-is (inspector will handle scoping)
-    const contentToRender = content
+    // For HTML mode: REMOVE embedded <style> tags so inspector-filtered CSS is the only source
+    // This allows disabling properties to actually remove them visually
+    // For Markdown mode: pass content as-is (no embedded styles to worry about)
+    const contentToRender = isHtml ? removeStyleTagsFromHtml(content) : content
 
     return (
       <div
