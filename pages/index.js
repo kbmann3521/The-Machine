@@ -515,13 +515,8 @@ export default function Home(props) {
       setLoading(false)
     }
 
-    // Only run prediction if text was ADDED, not when deleting
-    // Exception: Always run prediction when loading an example, pasting content, or uploading an image
-    // The fourth parameter can be either isPaste or isLoadExample flag
-    if (!isAddition && !isLoadExample && !hasImage) {
-      setLoading(false)
-      return
-    }
+    // Always run prediction on any input change (with debounce)
+    // Empty input will just show default tools
 
     debounceTimerRef.current = setTimeout(() => {
       // Clean up any existing abort controller from previous request
