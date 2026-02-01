@@ -1681,7 +1681,7 @@
 
 .globalOptionsHeader {
   flex-shrink: 0;
-  padding: 6px 16px;
+  padding: 5px 12px;
   background-color: var(--color-background-secondary, #f9f9f9);
   border-bottom: 1px solid var(--color-border, #ddd);
   display: flex;
@@ -1692,7 +1692,7 @@
 .globalOptionsTitle {
   margin: 0;
   padding: 0;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--color-text-primary);
   text-transform: uppercase;
@@ -1704,9 +1704,9 @@
   background: none;
   border: none;
   color: var(--color-text-secondary, #666);
-  font-size: 24px;
+  font-size: 16px;
   line-height: 1;
-  padding: 4px 8px;
+  padding: 2px 4px;
   cursor: pointer;
   transition: color 0.2s;
   flex-shrink: 0;

@@ -666,8 +666,8 @@ function RuleInspector({
     )
 
 
-    // Phase 7F: Show highlight button when no direct matches (regardless of properties)
-    const shouldShowHighlight = affectedNodes.length === 0
+    // Phase 7F: Always show highlight button so users can inspect any selector
+    const shouldShowHighlight = true
     const isHighlighted = highlightedSelector === selectedRule?.selector
 
     return (

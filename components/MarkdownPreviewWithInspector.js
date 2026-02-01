@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react'
+import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react'
 import { FaChevronDown } from 'react-icons/fa6'
 import { computeRuleImpact } from '../lib/tools/ruleImpactAnalysis'
 import { findAllMergeableGroups } from '../lib/tools/mergeSelectors'
@@ -168,6 +168,7 @@ export default function MarkdownPreviewWithInspector({
   const fullscreenContainerRef = useRef(null)
   const htmlRendererRef = useRef(null)
   const applyChangesDebounceRef = useRef(null)
+  const savedPreviewScrollRef = useRef(0)
 
   // Preview settings
   const [viewportWidth, setViewportWidth] = useState(1024)
@@ -1099,6 +1100,13 @@ export default function MarkdownPreviewWithInspector({
   const handleTogglePropertyDisabled = (ruleIndex, property, isAddedProperty = false) => {
     const disabledKey = isAddedProperty ? `${ruleIndex}::ADDED::${property}` : `${ruleIndex}-${property}`
 
+    // Save scroll position before state change that will trigger re-render
+    const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
+    if (containerRef?.current) {
+      // For DOM-based preview (Markdown), save scrollTop of preview container
+      savedPreviewScrollRef.current = containerRef.current.scrollTop || 0
+    }
+
     // Disabled properties are UI-only state for what-if simulation
     // They should NOT modify the CSS source, only the preview rendering
     setDisabledProperties(prev => {
@@ -1731,6 +1739,12 @@ export default function MarkdownPreviewWithInspector({
 
   // Remove a property from a rule
   const handleRemoveProperty = (ruleIndex, selector, property) => {
+    // Save scroll position before property removal triggers re-render
+    const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
+    if (containerRef?.current) {
+      savedPreviewScrollRef.current = containerRef.current.scrollTop || 0
+    }
+
     // Create mutated rules without this property
     const mutatedRules = JSON.parse(JSON.stringify(effectiveRulesTree))
 
@@ -2123,6 +2137,20 @@ export default function MarkdownPreviewWithInspector({
 
     return css
   }
+
+  // Restore preview scroll position after DOM updates from property changes
+  useLayoutEffect(() => {
+    const containerRef = isFullscreen ? fullscreenContainerRef : previewContainerRef
+    if (containerRef?.current && savedPreviewScrollRef.current > 0) {
+      // Use requestAnimationFrame to ensure DOM has fully updated
+      requestAnimationFrame(() => {
+        if (containerRef.current) {
+          containerRef.current.scrollTop = savedPreviewScrollRef.current
+          savedPreviewScrollRef.current = 0 // Reset after restore
+        }
+      })
+    }
+  }, [disabledProperties, addedProperties, isFullscreen]) // Restore when these update
 
   const renderPreviewContent = () => {
     const previewClass = '.pwt-preview'

@@ -107,12 +107,33 @@ function getSanitizationConfig(allowScripts = false, allowIframes = false) {
 const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJs = '', allowScripts = false, allowIframes = false }, ref) => {
   const iframeRef = ref || useRef(null)
   const isInitializedRef = useRef(false)
+  const savedScrollRef = useRef(0)
+  const savedTabRef = useRef(null)
 
   // Build the complete iframe document with all CSS and HTML (only on html change)
   useEffect(() => {
     if (!iframeRef.current || !html) return
 
     try {
+      // Save scroll position and active tab before rebuilding iframe
+      try {
+        savedScrollRef.current = iframeRef.current.contentWindow?.scrollY || 0
+
+        // Save active tab by checking for active nav button
+        try {
+          const activeBtn = iframeRef.current.contentDocument?.querySelector('.nav-btn.active')
+          if (activeBtn) {
+            savedTabRef.current = activeBtn.getAttribute('data-tab')
+          }
+        } catch (e) {
+          // If unable to find active tab, leave it as null to default to first tab
+        }
+      } catch (e) {
+        // Fallback if contentWindow is not accessible
+        savedScrollRef.current = 0
+        savedTabRef.current = null
+      }
+
       const sanitizationConfig = getSanitizationConfig(allowScripts, allowIframes)
 
       // Sanitize the HTML
@@ -168,6 +189,28 @@ const HTMLRenderer = forwardRef(({ html, className = '', customCss = '', customJ
 
       // Set iframe content using srcdoc
       iframeRef.current.srcdoc = iframeDoc
+
+      // Restore scroll position and active tab after iframe loads new content
+      const handleLoad = () => {
+        try {
+          if (iframeRef.current?.contentWindow) {
+            // Restore scroll position
+            if (savedScrollRef.current > 0) {
+              iframeRef.current.contentWindow.scrollTo(0, savedScrollRef.current)
+            }
+
+            // Restore active tab if we had one saved
+            if (savedTabRef.current && iframeRef.current.contentWindow.switchTab) {
+              iframeRef.current.contentWindow.switchTab(savedTabRef.current)
+            }
+          }
+        } catch (e) {
+          // Ignore if unable to scroll or switch tab (different origin, etc)
+        }
+      }
+
+      // Use onload to restore scroll after new content loads
+      iframeRef.current.onload = handleLoad
       isInitializedRef.current = true
     } catch (error) {
       console.error('[HTMLRenderer] Error building iframe document:', error)

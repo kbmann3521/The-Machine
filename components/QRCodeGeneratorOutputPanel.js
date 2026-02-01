@@ -156,6 +156,7 @@ export default function QRCodeGeneratorOutputPanel({ result }) {
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: '500',
+                color: 'var(--color-text-primary)',
               }}
             >
               Copy Data URL
@@ -192,6 +193,7 @@ export default function QRCodeGeneratorOutputPanel({ result }) {
                   cursor: 'pointer',
                   fontSize: '14px',
                   fontWeight: '500',
+                  color: 'var(--color-text-primary)',
                 }}
               >
                 Copy SVG
