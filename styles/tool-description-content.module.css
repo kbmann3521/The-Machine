@@ -98,3 +98,32 @@
 .warningsList li:last-child {
   margin-bottom: 0;
 }
+
+.standalonePageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--color-bg-secondary, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.standalonePageSection p {
+  margin: 0;
+  padding: 0;
+}
+
+.standalonePageLink {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-primary, #0066cc);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.standalonePageLink:hover {
+  color: var(--color-primary-hover, #0052a3);
+  text-decoration: underline;
+}

@@ -210,6 +210,40 @@ export default function ToolDescriptionContent({ tool }) {
           </div>
         </section>
       )}
+
+      {/* Link to Standalone Page */}
+      {(() => {
+        const standalonePages = [
+          'base64-converter',
+          'color-converter',
+          'email-validator',
+          'http-header-parser',
+          'json-formatter',
+          'jwt-decoder',
+          'regex-tester',
+          'sql-formatter',
+          'text-toolkit',
+          'time-normalizer',
+          'unit-converter',
+          'uuid-validator',
+          'web-playground'
+        ]
+        const toolId = tool.toolId || tool.id
+        const hasStandalonePage = standalonePages.includes(toolId)
+
+        if (hasStandalonePage) {
+          return (
+            <section className={styles.standalonePageSection}>
+              <p>
+                <a href={`/${toolId}`} className={styles.standalonePageLink}>
+                  Open {tool.name} in dedicated page →
+                </a>
+              </p>
+            </section>
+          )
+        }
+        return null
+      })()}
     </div>
   )
 }
