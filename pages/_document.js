@@ -38,6 +38,15 @@ export default function Document() {
 
         {/* Performance: Enable resource hints for smoother navigation */}
         <link rel="prefetch" href="/api/tools/run" />
+
+        {/* Google Analytics */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-VZT6NP6H28"></script>
+        <script dangerouslySetInnerHTML={{__html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-VZT6NP6H28');
+        `}} />
       </Head>
       <body>
         <Main />
