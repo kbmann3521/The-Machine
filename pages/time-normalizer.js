@@ -12,7 +12,7 @@ export default function TimeNormalizerPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Time Normalizer - Parse, Normalize & Convert Dates Between Timezones',
+    title: 'Time Normalizer | Parse, Normalize & Convert Dates Between Timezones',
     description: 'Free online time normalizer supporting Unix timestamps, ISO 8601, and human-readable dates. Auto-detect date formats, normalize to standard formats, and convert between 30+ timezones. Deterministic, rule-based processing with no data retention.',
     path: '/time-normalizer',
   })

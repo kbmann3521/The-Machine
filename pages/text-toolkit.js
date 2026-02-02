@@ -12,7 +12,7 @@ export default function TextToolkitPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Text Toolkit - Analyze, Transform & Clean Text Online',
+    title: 'Text Toolkit | Analyze, Transform & Clean Text Online',
     description: 'Free online text toolkit with readability analysis, case conversion, find & replace, text diffing, line sorting, slug generation, PDF text cleaning, and more. Deterministic, rule-based text processing with no AI, no data retention.',
     path: '/text-toolkit',
   })

@@ -12,7 +12,7 @@ export default function WebPlaygroundPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Web Playground - Format & Validate HTML, Markdown, CSS & JavaScript',
+    title: 'Web Playground | Format & Validate HTML, Markdown, CSS & JavaScript',
     description: 'Free, deterministic web playground for validating, formatting, and converting HTML, Markdown, CSS, and JavaScript. Check syntax errors, validate accessibility, detect semantic issues, and beautify code with rule-based processing.',
     path: '/web-playground',
   })

@@ -12,7 +12,7 @@ export default function JsonFormatterPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'JSON Formatter - Format, Validate & Transform JSON Online',
+    title: 'JSON Formatter | Format, Validate & Transform JSON Online',
     description: 'Free online JSON formatter with beautification, minification, validation, sorting, flattening, and conversion to YAML/CSV/XML. Validate JSON syntax, format with custom indentation, extract data with JSONPath, and more. Deterministic, rule-based processing with no data retention.',
     path: '/json-formatter',
   })

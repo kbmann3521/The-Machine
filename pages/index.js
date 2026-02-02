@@ -1136,7 +1136,7 @@ export default function Home(props) {
 
           return (
             <>
-              <title>{metadata.title}</title>
+              <title>{selectedTool ? metadata.title : 'Pioneer Web Tools | Free, Deterministic, Private'}</title>
               <meta name="description" content={metadata.description} />
               {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
               <link rel="canonical" href={canonicalUrl} />

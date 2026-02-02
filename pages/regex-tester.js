@@ -12,7 +12,7 @@ export default function RegexTesterPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Regex Tester - Test, Debug & Explain Regular Expressions Online',
+    title: 'Regex Tester | Test, Debug & Explain Regular Expressions Online',
     description: 'Free online regex tester with real-time matching, pattern explanation, capture groups, replacements, and warnings. Debug JavaScript regex patterns with visual highlighting and detailed diagnostics. Test email, URL, phone patterns. Deterministic, rule-based processing with no data retention.',
     path: '/regex-tester',
   })

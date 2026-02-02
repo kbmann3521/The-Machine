@@ -12,7 +12,7 @@ export default function SqlFormatterPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'SQL Formatter - Format, Beautify & Validate SQL Queries Online',
+    title: 'SQL Formatter | Format, Beautify & Validate SQL Queries Online',
     description: 'Free online SQL formatter and beautifier supporting multiple SQL dialects (MySQL, PostgreSQL, T-SQL, SQLite). Format, minify, validate, and beautify SQL queries with customizable indentation and syntax highlighting. Deterministic, rule-based processing with no data retention.',
     path: '/sql-formatter',
   })

@@ -12,7 +12,7 @@ export default function UuidValidatorPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'UUID Validator - Generate, Validate & Analyze UUIDs',
+    title: 'UUID Validator | Generate, Validate & Analyze UUIDs',
     description: 'Free online UUID validator and generator supporting versions 1, 3, 4, 5, and 7. Validate UUID format, identify version and variant, generate random or time-based UUIDs, and bulk validate lists. Deterministic, rule-based processing with no data retention.',
     path: '/uuid-validator',
   })

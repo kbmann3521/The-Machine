@@ -12,7 +12,7 @@ export default function HttpHeaderParserPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'HTTP Header Parser - Validate, Analyze & Debug HTTP Headers',
+    title: 'HTTP Header Parser | Validate, Analyze & Debug HTTP Headers',
     description: 'Free online HTTP header parser with security analysis, validation, and performance insights. Analyze request/response headers, detect vulnerabilities, simulate cache behavior, and export in multiple formats. Deterministic, rule-based processing with no data retention.',
     path: '/http-header-parser',
   })

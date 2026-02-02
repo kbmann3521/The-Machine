@@ -12,7 +12,7 @@ export default function ColorConverterPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Color Converter - Convert Between RGB, HEX, HSL, CMYK & More',
+    title: 'Color Converter | Convert Between RGB, HEX, HSL, CMYK & More',
     description: 'Free online color converter supporting 10+ formats (HEX, RGB, HSL, CMYK, LAB, LCH, HSV, XYZ). Convert colors, compare with Delta-E, generate gradients, simulate color blindness, and export palettes. Deterministic, rule-based processing with no data retention.',
     path: '/color-converter',
   })

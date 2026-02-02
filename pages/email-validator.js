@@ -12,7 +12,7 @@ export default function EmailValidatorPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Email Validator - Validate Email Addresses with Detailed Analysis',
+    title: 'Email Validator | Validate Email Addresses with Detailed Analysis',
     description: 'Free online email validator with RFC 5322 compliance checking, format analysis, DNS verification, and detailed diagnostics. Validate single emails or bulk lists with actionable feedback. Deterministic, rule-based processing with no data retention.',
     path: '/email-validator',
   })

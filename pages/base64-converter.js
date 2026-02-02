@@ -12,7 +12,7 @@ export default function Base64ConverterPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Base64 Converter - Encode & Decode with Auto-Detection',
+    title: 'Base64 Converter | Encode & Decode with Auto-Detection',
     description: 'Free online Base64 encoder and decoder with auto-detection, URL-safe variants, MIME encoding, and metadata analysis. Encode text to Base64, decode Base64 strings, and view compression ratios. Deterministic, rule-based processing with no data retention.',
     path: '/base64-converter',
   })
