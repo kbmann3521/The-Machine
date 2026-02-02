@@ -12,8 +12,8 @@ export default function WebPlaygroundPage(props) {
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'Web Playground - Validate, Format & Convert HTML & Markdown',
-    description: 'Free online HTML and Markdown validator, formatter, and converter. Check syntax errors, accessibility issues, validate semantic structure, and beautify code. Convert between HTML and Markdown with deterministic, rule-based processing.',
+    title: 'Web Playground - Format & Validate HTML, Markdown, CSS & JavaScript',
+    description: 'Free, deterministic web playground for validating, formatting, and converting HTML, Markdown, CSS, and JavaScript. Check syntax errors, validate accessibility, detect semantic issues, and beautify code with rule-based processing.',
     path: '/web-playground',
   })
 
@@ -44,7 +44,7 @@ export default function WebPlaygroundPage(props) {
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
             "name": "Web Playground",
-            "description": "Free online HTML and Markdown validator, formatter, linter, and converter. Validates syntax, accessibility, and semantic structure. Converts between formats with beautification or minification options.",
+            "description": "Free, deterministic web playground for validating, formatting, and converting HTML, Markdown, CSS, and JavaScript with syntax checking, accessibility linting, and beautification.",
             "applicationCategory": "DeveloperTool",
             "operatingSystem": "Web",
             "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/web-playground`,
@@ -60,14 +60,15 @@ export default function WebPlaygroundPage(props) {
               "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
             },
             "featureList": [
-              "HTML syntax validation",
-              "Markdown syntax validation",
+              "HTML syntax validation and beautification",
+              "Markdown validation and formatting",
+              "CSS formatting, validation, and linting",
+              "JavaScript formatting and analysis",
               "Accessibility linting and checking",
               "Semantic structure validation",
               "Deprecated tag detection",
               "HTML to Markdown conversion",
               "Markdown to HTML conversion",
-              "Code beautification",
               "Code minification",
               "GitHub Flavored Markdown support",
               "Auto-detection of input type",

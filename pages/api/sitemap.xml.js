@@ -26,7 +26,21 @@ export default function handler(req, res) {
   })
 
   // Add standalone tool pages
-  const standalonePages = ['text-toolkit', 'web-playground']
+  const standalonePages = [
+    'base64-converter',
+    'color-converter',
+    'email-validator',
+    'http-header-parser',
+    'json-formatter',
+    'jwt-decoder',
+    'regex-tester',
+    'sql-formatter',
+    'text-toolkit',
+    'time-normalizer',
+    'unit-converter',
+    'uuid-validator',
+    'web-playground'
+  ]
   standalonePages.forEach(page => {
     xml += '  <url>\n'
     xml += `    <loc>${siteUrl}/${page}</loc>\n`
