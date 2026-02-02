@@ -130,8 +130,8 @@ export default function InputTabs({
     })
   }
 
-  // Show ABOUT tab with info content when no tool is selected
-  if (!selectedTool && infoContent) {
+  // Show ABOUT tab with info content always (after DESCRIPTION tab)
+  if (infoContent) {
     tabConfig.push({
       id: 'about',
       label: 'ABOUT',
@@ -388,6 +388,7 @@ export default function InputTabs({
                   title="Global options"
                   aria-label="Global options"
                 >
+                  <span className={styles.optionsLabel}>Options</span>
                   <span className={`${styles.settingsIcon} ${showSettingsFlash ? styles.settingsIconFlash : ''}`}>⚙</span>
                 </button>
 

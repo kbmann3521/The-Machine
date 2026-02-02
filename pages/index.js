@@ -1220,7 +1220,7 @@ export default function Home(props) {
                 selectedTool={selectedTool}
                 inputTabLabel={selectedTool?.toolId === 'web-playground' ? 'HTML' : 'INPUT'}
                 onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
-                infoContent={!selectedTool && <ValuePropositionCard />}
+                infoContent={<ValuePropositionCard />}
                 tabActions={null}
                 inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : caseConversionResults}
                 hasOutputToUse={getHasOutputToUse()}

@@ -1770,6 +1770,29 @@
   transition: all 0.2s ease;
   font-size: 14px;
   font-weight: 600;
+  gap: 6px;
+}
+
+/* Show Options label on desktop only */
+@media (min-width: 992px) {
+  .tabSettingsButton {
+    width: auto;
+    padding: 0 8px;
+  }
+}
+
+.optionsLabel {
+  display: none;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Show label on desktop only */
+@media (min-width: 992px) {
+  .optionsLabel {
+    display: inline;
+  }
 }
 
 .tabSettingsButton:hover {
