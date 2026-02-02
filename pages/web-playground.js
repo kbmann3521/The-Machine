@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Script from 'next/script'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
 import WebPlaygroundTool from '../components/WebPlaygroundTool'
@@ -33,50 +34,52 @@ export default function WebPlaygroundPage(props) {
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
         <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/web-playground` || 'https://www.pioneerwebtools.com/web-playground'} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              "name": "Web Playground",
-              "description": "Free online HTML and Markdown validator, formatter, linter, and converter. Validates syntax, accessibility, and semantic structure. Converts between formats with beautification or minification options.",
-              "applicationCategory": "DeveloperTool",
-              "operatingSystem": "Web",
-              "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/web-playground`,
-              "isAccessibleForFree": true,
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
-              },
-              "publisher": {
-                "@type": "Organization",
-                "name": siteName,
-                "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
-              },
-              "featureList": [
-                "HTML syntax validation",
-                "Markdown syntax validation",
-                "Accessibility linting and checking",
-                "Semantic structure validation",
-                "Deprecated tag detection",
-                "HTML to Markdown conversion",
-                "Markdown to HTML conversion",
-                "Code beautification",
-                "Code minification",
-                "GitHub Flavored Markdown support",
-                "Auto-detection of input type",
-                "Deterministic, rule-based processing"
-              ],
-              "audience": {
-                "@type": "Audience",
-                "audienceType": "Developers"
-              }
-            })
-          }}
-        />
       </Head>
+
+      <Script
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Web Playground",
+            "description": "Free online HTML and Markdown validator, formatter, linter, and converter. Validates syntax, accessibility, and semantic structure. Converts between formats with beautification or minification options.",
+            "applicationCategory": "DeveloperTool",
+            "operatingSystem": "Web",
+            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/web-playground`,
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": siteName,
+              "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
+            },
+            "featureList": [
+              "HTML syntax validation",
+              "Markdown syntax validation",
+              "Accessibility linting and checking",
+              "Semantic structure validation",
+              "Deprecated tag detection",
+              "HTML to Markdown conversion",
+              "Markdown to HTML conversion",
+              "Code beautification",
+              "Code minification",
+              "GitHub Flavored Markdown support",
+              "Auto-detection of input type",
+              "Deterministic, rule-based processing"
+            ],
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Developers"
+            }
+          })
+        }}
+      />
 
       {/* Header */}
       <div className={styles.header}>
