@@ -51,7 +51,7 @@ const getLanguageForTool = (toolId) => {
   }
 }
 
-const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null, imagePreview = null, onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null }, ref) => {
+const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null, imagePreview = null, onInputChange, onImageChange, onCompareTextChange, compareText = '', selectedTool, configOptions = {}, getToolExample, errorData = null, predictedTools = [], onSelectTool, result = null, activeToolkitSection = null, isPreviewFullscreen = false, onTogglePreviewFullscreen = null, standalone = false }, ref) => {
   const shouldShowLineNumbers = selectedTool && TOOLS_WITH_LINE_NUMBERS.has(selectedTool.toolId)
 
   const getPlaceholder = () => {
@@ -586,31 +586,33 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
           </div>
         </div>
 
-        <div className={styles.detectedToolsInsideInput}>
-          {(localInputText || localImagePreview) && predictedTools.length > 0 ? (
-            predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
-              // Map similarity (0.6-1.0) to opacity (0.3-1.0) based on confidence
-              // Lower bound (0.6 similarity) = 30% opacity, upper bound (1.0) = 100% opacity
-              const opacity = 0.3 + (tool.similarity - 0.6) * 1.75
-              return (
-                <button
-                  key={tool.toolId}
-                  className={styles.detectedToolButton}
-                  style={{ opacity }}
-                  onClick={() => onSelectTool(tool)}
-                  type="button"
-                  title={`Switch to ${tool.name}`}
-                >
-                  {tool.name}
-                </button>
-              )
-            })
-          ) : !localInputText && !localImagePreview ? (
-            <div className={styles.placeholderText}>
-              Detected tools will appear here
-            </div>
-          ) : null}
-        </div>
+        {!standalone && (
+          <div className={styles.detectedToolsInsideInput}>
+            {(localInputText || localImagePreview) && predictedTools.length > 0 ? (
+              predictedTools.filter(tool => tool.similarity >= 0.6).map(tool => {
+                // Map similarity (0.6-1.0) to opacity (0.3-1.0) based on confidence
+                // Lower bound (0.6 similarity) = 30% opacity, upper bound (1.0) = 100% opacity
+                const opacity = 0.3 + (tool.similarity - 0.6) * 1.75
+                return (
+                  <button
+                    key={tool.toolId}
+                    className={styles.detectedToolButton}
+                    style={{ opacity }}
+                    onClick={() => onSelectTool(tool)}
+                    type="button"
+                    title={`Switch to ${tool.name}`}
+                  >
+                    {tool.name}
+                  </button>
+                )
+              })
+            ) : !localInputText && !localImagePreview ? (
+              <div className={styles.placeholderText}>
+                Detected tools will appear here
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {selectedTool?.toolId === 'checksum-calculator' && configOptions.compareMode && (
           <div className={styles.compareInputWrapper}>

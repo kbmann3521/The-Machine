@@ -29,6 +29,7 @@ import MIMETypeLookupOutput from './MIMETypeLookupOutput'
 import TimeNormalizerOutputPanel from './TimeNormalizerOutputPanel'
 import MathEvaluatorResult from './MathEvaluatorResult'
 import ResizeOutput from './ImageToolkit/outputs/ResizeOutput'
+import EmailValidatorOutputPanel from './EmailValidatorOutputPanel'
 
 const CSSEditorInput = dynamic(() => import('./CSSEditorInput'), { ssr: false })
 const MarkdownPreviewWithInspector = dynamic(() => import('./MarkdownPreviewWithInspector'), { ssr: false })
@@ -7578,6 +7579,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderCaesarCipherOutput()
       case 'cron-tester':
         return renderCronTesterOutput()
+      case 'email-validator':
+        return <EmailValidatorOutputPanel result={displayResult} />
       case 'csv-json-converter': {
         // CSV to JSON/SQL/JS/TS output - show format-specific tab only
         const tabs = []

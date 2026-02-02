@@ -2,19 +2,19 @@ import Head from 'next/head'
 import Script from 'next/script'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
-import JwtDecoderTool from '../components/JwtDecoderTool'
+import SqlFormatterTool from '../components/SqlFormatterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
 
-export default function JwtDecoderPage(props) {
+export default function SqlFormatterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'JWT Decoder - Decode, Analyze & Verify JSON Web Tokens',
-    description: 'Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity. Check expiration, view claims, and debug authentication flows. Deterministic, rule-based processing with no data retention.',
-    path: '/jwt-decoder',
+    title: 'SQL Formatter - Format, Beautify & Validate SQL Queries Online',
+    description: 'Free online SQL formatter and beautifier supporting multiple SQL dialects (MySQL, PostgreSQL, T-SQL, SQLite). Format, minify, validate, and beautify SQL queries with customizable indentation and syntax highlighting. Deterministic, rule-based processing with no data retention.',
+    path: '/sql-formatter',
   })
 
   const containerStyle = {
@@ -33,7 +33,7 @@ export default function JwtDecoderPage(props) {
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
-        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/jwt-decoder` || 'https://www.pioneerwebtools.com/jwt-decoder'} />
+        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/sql-formatter` || 'https://www.pioneerwebtools.com/sql-formatter'} />
       </Head>
       <Script
         type="application/ld+json"
@@ -42,11 +42,11 @@ export default function JwtDecoderPage(props) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "JWT Decoder",
-            "description": "Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity.",
+            "name": "SQL Formatter",
+            "description": "Free online SQL formatter and beautifier supporting multiple SQL dialects. Format, minify, validate, and beautify SQL queries with customizable indentation.",
             "applicationCategory": "DeveloperTool",
             "operatingSystem": "Web",
-            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/jwt-decoder`,
+            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/sql-formatter`,
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -59,18 +59,16 @@ export default function JwtDecoderPage(props) {
               "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
             },
             "featureList": [
-              "Decode JWT header, payload, and signature",
-              "Display all token claims and their values",
-              "Show token issue time (iat), expiration (exp), and not-before (nbf) timestamps",
-              "Automatic expiration validation with clear status",
-              "Manual signature verification using RSA, HMAC, and other algorithms",
-              "JWKS support for automated signature verification",
-              "Validate token structure (3 parts separated by dots)",
-              "Display algorithm and key information from header",
-              "Visual indicators for signature verification status",
-              "JSON output for easy integration",
-              "Support for JWE token decryption",
-              "OAuth 2.0 and OpenID Connect token inspection",
+              "Beautify SQL with proper indentation",
+              "Minify SQL to reduce file size",
+              "Support for multiple SQL dialects",
+              "Syntax validation and error detection",
+              "Customizable formatting options",
+              "Case transformation (uppercase, lowercase, mixed)",
+              "Comment preservation and formatting",
+              "Multi-line statement handling",
+              "Copy formatted SQL to clipboard",
+              "Line number display",
               "Deterministic, rule-based processing",
               "Runs entirely in your browser"
             ],
@@ -91,7 +89,7 @@ export default function JwtDecoderPage(props) {
           aria-label="Go to home"
         >
           <h1>{siteName}</h1>
-          <p>JWT Decoder</p>
+          <p>SQL Formatter</p>
         </button>
         <ThemeToggle />
       </div>
@@ -100,7 +98,7 @@ export default function JwtDecoderPage(props) {
       <div className={styles.bodyContainer} style={{ flex: 1, display: 'flex' }}>
         <main className={styles.mainContent}>
           <div className={styles.content}>
-            <JwtDecoderTool />
+            <SqlFormatterTool />
           </div>
         </main>
       </div>

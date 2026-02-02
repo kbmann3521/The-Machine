@@ -2,19 +2,19 @@ import Head from 'next/head'
 import Script from 'next/script'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
-import JwtDecoderTool from '../components/JwtDecoderTool'
+import Base64ConverterTool from '../components/Base64ConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
 
-export default function JwtDecoderPage(props) {
+export default function Base64ConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'JWT Decoder - Decode, Analyze & Verify JSON Web Tokens',
-    description: 'Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity. Check expiration, view claims, and debug authentication flows. Deterministic, rule-based processing with no data retention.',
-    path: '/jwt-decoder',
+    title: 'Base64 Converter - Encode & Decode with Auto-Detection',
+    description: 'Free online Base64 encoder and decoder with auto-detection, URL-safe variants, MIME encoding, and metadata analysis. Encode text to Base64, decode Base64 strings, and view compression ratios. Deterministic, rule-based processing with no data retention.',
+    path: '/base64-converter',
   })
 
   const containerStyle = {
@@ -33,7 +33,7 @@ export default function JwtDecoderPage(props) {
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
-        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/jwt-decoder` || 'https://www.pioneerwebtools.com/jwt-decoder'} />
+        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/base64-converter` || 'https://www.pioneerwebtools.com/base64-converter'} />
       </Head>
       <Script
         type="application/ld+json"
@@ -42,11 +42,11 @@ export default function JwtDecoderPage(props) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "JWT Decoder",
-            "description": "Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity.",
+            "name": "Base64 Converter",
+            "description": "Free online Base64 encoder and decoder with auto-detection, URL-safe variants, MIME encoding, and metadata analysis.",
             "applicationCategory": "DeveloperTool",
             "operatingSystem": "Web",
-            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/jwt-decoder`,
+            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/base64-converter`,
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -59,18 +59,16 @@ export default function JwtDecoderPage(props) {
               "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
             },
             "featureList": [
-              "Decode JWT header, payload, and signature",
-              "Display all token claims and their values",
-              "Show token issue time (iat), expiration (exp), and not-before (nbf) timestamps",
-              "Automatic expiration validation with clear status",
-              "Manual signature verification using RSA, HMAC, and other algorithms",
-              "JWKS support for automated signature verification",
-              "Validate token structure (3 parts separated by dots)",
-              "Display algorithm and key information from header",
-              "Visual indicators for signature verification status",
-              "JSON output for easy integration",
-              "Support for JWE token decryption",
-              "OAuth 2.0 and OpenID Connect token inspection",
+              "Auto-detection of encode vs decode mode",
+              "Standard Base64 encoding with multiple variants",
+              "URL-safe Base64 encoding variant",
+              "MIME-style line-wrapped Base64",
+              "Variants with and without padding",
+              "Multiple character encodings (UTF-8, UTF-16, ASCII)",
+              "Auto-fixes missing padding on decode",
+              "Comprehensive metadata and analysis",
+              "Compression ratio calculation",
+              "Copy individual variants to clipboard",
               "Deterministic, rule-based processing",
               "Runs entirely in your browser"
             ],
@@ -91,7 +89,7 @@ export default function JwtDecoderPage(props) {
           aria-label="Go to home"
         >
           <h1>{siteName}</h1>
-          <p>JWT Decoder</p>
+          <p>Base64 Converter</p>
         </button>
         <ThemeToggle />
       </div>
@@ -100,7 +98,7 @@ export default function JwtDecoderPage(props) {
       <div className={styles.bodyContainer} style={{ flex: 1, display: 'flex' }}>
         <main className={styles.mainContent}>
           <div className={styles.content}>
-            <JwtDecoderTool />
+            <Base64ConverterTool />
           </div>
         </main>
       </div>

@@ -2,19 +2,19 @@ import Head from 'next/head'
 import Script from 'next/script'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
-import JwtDecoderTool from '../components/JwtDecoderTool'
+import RegexTesterTool from '../components/RegexTesterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
 
-export default function JwtDecoderPage(props) {
+export default function RegexTesterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'JWT Decoder - Decode, Analyze & Verify JSON Web Tokens',
-    description: 'Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity. Check expiration, view claims, and debug authentication flows. Deterministic, rule-based processing with no data retention.',
-    path: '/jwt-decoder',
+    title: 'Regex Tester - Test, Debug & Explain Regular Expressions Online',
+    description: 'Free online regex tester with real-time matching, pattern explanation, capture groups, replacements, and warnings. Debug JavaScript regex patterns with visual highlighting and detailed diagnostics. Test email, URL, phone patterns. Deterministic, rule-based processing with no data retention.',
+    path: '/regex-tester',
   })
 
   const containerStyle = {
@@ -33,7 +33,7 @@ export default function JwtDecoderPage(props) {
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
-        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/jwt-decoder` || 'https://www.pioneerwebtools.com/jwt-decoder'} />
+        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/regex-tester` || 'https://www.pioneerwebtools.com/regex-tester'} />
       </Head>
       <Script
         type="application/ld+json"
@@ -42,11 +42,11 @@ export default function JwtDecoderPage(props) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "JWT Decoder",
-            "description": "Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity.",
+            "name": "Regex Tester",
+            "description": "Free online regex tester with real-time matching, pattern explanation, capture groups, replacements, and warnings. Debug JavaScript regex patterns with visual highlighting.",
             "applicationCategory": "DeveloperTool",
             "operatingSystem": "Web",
-            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/jwt-decoder`,
+            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/regex-tester`,
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -59,18 +59,17 @@ export default function JwtDecoderPage(props) {
               "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
             },
             "featureList": [
-              "Decode JWT header, payload, and signature",
-              "Display all token claims and their values",
-              "Show token issue time (iat), expiration (exp), and not-before (nbf) timestamps",
-              "Automatic expiration validation with clear status",
-              "Manual signature verification using RSA, HMAC, and other algorithms",
-              "JWKS support for automated signature verification",
-              "Validate token structure (3 parts separated by dots)",
-              "Display algorithm and key information from header",
-              "Visual indicators for signature verification status",
-              "JSON output for easy integration",
-              "Support for JWE token decryption",
-              "OAuth 2.0 and OpenID Connect token inspection",
+              "Real-time regex matching and highlighting",
+              "Pattern explanation with human-readable breakdown",
+              "Regex warnings for common mistakes",
+              "Capture group extraction with details",
+              "Match position and length information",
+              "Find-and-replace preview",
+              "All standard JavaScript regex flags (g, i, m, s, u, y)",
+              "Syntax error detection",
+              "Match count and detailed match information",
+              "Pattern template library",
+              "Visual match highlighting",
               "Deterministic, rule-based processing",
               "Runs entirely in your browser"
             ],
@@ -91,7 +90,7 @@ export default function JwtDecoderPage(props) {
           aria-label="Go to home"
         >
           <h1>{siteName}</h1>
-          <p>JWT Decoder</p>
+          <p>Regex Tester</p>
         </button>
         <ThemeToggle />
       </div>
@@ -100,7 +99,7 @@ export default function JwtDecoderPage(props) {
       <div className={styles.bodyContainer} style={{ flex: 1, display: 'flex' }}>
         <main className={styles.mainContent}>
           <div className={styles.content}>
-            <JwtDecoderTool />
+            <RegexTesterTool />
           </div>
         </main>
       </div>

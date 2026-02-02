@@ -2,19 +2,19 @@ import Head from 'next/head'
 import Script from 'next/script'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
-import JwtDecoderTool from '../components/JwtDecoderTool'
+import UuidValidatorTool from '../components/UuidValidatorTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
 
-export default function JwtDecoderPage(props) {
+export default function UuidValidatorPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'JWT Decoder - Decode, Analyze & Verify JSON Web Tokens',
-    description: 'Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity. Check expiration, view claims, and debug authentication flows. Deterministic, rule-based processing with no data retention.',
-    path: '/jwt-decoder',
+    title: 'UUID Validator - Generate, Validate & Analyze UUIDs',
+    description: 'Free online UUID validator and generator supporting versions 1, 3, 4, 5, and 7. Validate UUID format, identify version and variant, generate random or time-based UUIDs, and bulk validate lists. Deterministic, rule-based processing with no data retention.',
+    path: '/uuid-validator',
   })
 
   const containerStyle = {
@@ -33,7 +33,7 @@ export default function JwtDecoderPage(props) {
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
-        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/jwt-decoder` || 'https://www.pioneerwebtools.com/jwt-decoder'} />
+        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/uuid-validator` || 'https://www.pioneerwebtools.com/uuid-validator'} />
       </Head>
       <Script
         type="application/ld+json"
@@ -42,11 +42,11 @@ export default function JwtDecoderPage(props) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "JWT Decoder",
-            "description": "Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity.",
+            "name": "UUID Validator",
+            "description": "Free online UUID validator and generator supporting versions 1, 3, 4, 5, and 7. Validate UUID format, identify version and variant, generate random or time-based UUIDs.",
             "applicationCategory": "DeveloperTool",
             "operatingSystem": "Web",
-            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/jwt-decoder`,
+            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/uuid-validator`,
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -59,18 +59,16 @@ export default function JwtDecoderPage(props) {
               "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
             },
             "featureList": [
-              "Decode JWT header, payload, and signature",
-              "Display all token claims and their values",
-              "Show token issue time (iat), expiration (exp), and not-before (nbf) timestamps",
-              "Automatic expiration validation with clear status",
-              "Manual signature verification using RSA, HMAC, and other algorithms",
-              "JWKS support for automated signature verification",
-              "Validate token structure (3 parts separated by dots)",
-              "Display algorithm and key information from header",
-              "Visual indicators for signature verification status",
-              "JSON output for easy integration",
-              "Support for JWE token decryption",
-              "OAuth 2.0 and OpenID Connect token inspection",
+              "Validate UUID format and structure",
+              "Identify UUID version (1, 3, 4, 5, 7)",
+              "Detect RFC 4122 variant compliance",
+              "Normalize input (auto-add hyphens, remove URN prefix)",
+              "Show multiple output formats (hex, base64, binary, URN)",
+              "Extract metadata (timestamp, node, clock sequence)",
+              "Detect common copy/paste errors",
+              "Generate UUIDs (v1, v4, v7)",
+              "Bulk validation from CSV or list",
+              "Copy individual formats to clipboard",
               "Deterministic, rule-based processing",
               "Runs entirely in your browser"
             ],
@@ -91,7 +89,7 @@ export default function JwtDecoderPage(props) {
           aria-label="Go to home"
         >
           <h1>{siteName}</h1>
-          <p>JWT Decoder</p>
+          <p>UUID Validator</p>
         </button>
         <ThemeToggle />
       </div>
@@ -100,7 +98,7 @@ export default function JwtDecoderPage(props) {
       <div className={styles.bodyContainer} style={{ flex: 1, display: 'flex' }}>
         <main className={styles.mainContent}>
           <div className={styles.content}>
-            <JwtDecoderTool />
+            <UuidValidatorTool />
           </div>
         </main>
       </div>

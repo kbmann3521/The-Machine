@@ -450,6 +450,7 @@ export default function TextToolkitTool() {
                 activeToolkitSection={activeToolkitSection}
                 isPreviewFullscreen={isPreviewFullscreen}
                 onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                standalone={true}
               />
             </div>
           }

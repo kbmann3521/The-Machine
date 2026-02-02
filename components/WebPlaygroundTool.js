@@ -364,6 +364,7 @@ export default function WebPlaygroundTool() {
                 activeToolkitSection={null}
                 isPreviewFullscreen={isPreviewFullscreen}
                 onTogglePreviewFullscreen={setIsPreviewFullscreen}
+                standalone={true}
               />
             </div>
           }

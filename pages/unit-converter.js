@@ -2,19 +2,19 @@ import Head from 'next/head'
 import Script from 'next/script'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
-import JwtDecoderTool from '../components/JwtDecoderTool'
+import UnitConverterTool from '../components/UnitConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
 import styles from '../styles/hub.module.css'
 
-export default function JwtDecoderPage(props) {
+export default function UnitConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
-    title: 'JWT Decoder - Decode, Analyze & Verify JSON Web Tokens',
-    description: 'Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity. Check expiration, view claims, and debug authentication flows. Deterministic, rule-based processing with no data retention.',
-    path: '/jwt-decoder',
+    title: 'Unit Converter - Convert Between Hundreds of Units Instantly',
+    description: 'Free online unit converter supporting distance, weight, volume, temperature, speed, time, and more. Convert between metric, imperial, and other unit systems instantly. Deterministic, rule-based processing with no data retention.',
+    path: '/unit-converter',
   })
 
   const containerStyle = {
@@ -33,7 +33,7 @@ export default function JwtDecoderPage(props) {
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
-        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/jwt-decoder` || 'https://www.pioneerwebtools.com/jwt-decoder'} />
+        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/unit-converter` || 'https://www.pioneerwebtools.com/unit-converter'} />
       </Head>
       <Script
         type="application/ld+json"
@@ -42,11 +42,11 @@ export default function JwtDecoderPage(props) {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "JWT Decoder",
-            "description": "Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity.",
+            "name": "Unit Converter",
+            "description": "Free online unit converter supporting distance, weight, volume, temperature, speed, time, and more. Convert between metric, imperial, and other unit systems instantly.",
             "applicationCategory": "DeveloperTool",
             "operatingSystem": "Web",
-            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/jwt-decoder`,
+            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/unit-converter`,
             "isAccessibleForFree": true,
             "offers": {
               "@type": "Offer",
@@ -59,24 +59,23 @@ export default function JwtDecoderPage(props) {
               "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
             },
             "featureList": [
-              "Decode JWT header, payload, and signature",
-              "Display all token claims and their values",
-              "Show token issue time (iat), expiration (exp), and not-before (nbf) timestamps",
-              "Automatic expiration validation with clear status",
-              "Manual signature verification using RSA, HMAC, and other algorithms",
-              "JWKS support for automated signature verification",
-              "Validate token structure (3 parts separated by dots)",
-              "Display algorithm and key information from header",
-              "Visual indicators for signature verification status",
-              "JSON output for easy integration",
-              "Support for JWE token decryption",
-              "OAuth 2.0 and OpenID Connect token inspection",
+              "Convert 100+ units across multiple categories",
+              "Distance, length, and area conversions",
+              "Weight and mass conversions",
+              "Volume and liquid capacity conversions",
+              "Temperature conversions with scale support",
+              "Speed and velocity conversions",
+              "Time and duration conversions",
+              "Energy and power conversions",
+              "Pressure conversions",
+              "Auto-detection of input units",
+              "Real-time conversion results",
               "Deterministic, rule-based processing",
               "Runs entirely in your browser"
             ],
             "audience": {
               "@type": "Audience",
-              "audienceType": "Developers"
+              "audienceType": "Developers and Everyone"
             }
           })
         }}
@@ -91,7 +90,7 @@ export default function JwtDecoderPage(props) {
           aria-label="Go to home"
         >
           <h1>{siteName}</h1>
-          <p>JWT Decoder</p>
+          <p>Unit Converter</p>
         </button>
         <ThemeToggle />
       </div>
@@ -100,7 +99,7 @@ export default function JwtDecoderPage(props) {
       <div className={styles.bodyContainer} style={{ flex: 1, display: 'flex' }}>
         <main className={styles.mainContent}>
           <div className={styles.content}>
-            <JwtDecoderTool />
+            <UnitConverterTool />
           </div>
         </main>
       </div>
