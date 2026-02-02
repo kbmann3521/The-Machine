@@ -33,46 +33,49 @@ export default function TextToolkitPage(props) {
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
         <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/text-toolkit` || 'https://www.pioneerwebtools.com/text-toolkit'} />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            "name": "Text Toolkit",
-            "description": "Free online text analysis and transformation tool with readability scoring, case conversion, find & replace, text diffing, slug generation, line sorting, and advanced text cleaning. Deterministic, rule-based processing with no AI or data retention.",
-            "applicationCategory": "DeveloperTool",
-            "operatingSystem": "Web",
-            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/text-toolkit`,
-            "isAccessibleForFree": true,
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "USD"
-            },
-            "publisher": {
-              "@type": "Organization",
-              "name": siteName,
-              "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
-            },
-            "featureList": [
-              "Readability analysis with grade level estimation",
-              "Word and character counting",
-              "Case transformations",
-              "URL slug generation",
-              "Find and replace with regex support",
-              "Text comparison and diff",
-              "Line sorting with deduplication",
-              "Delimiter transformation",
-              "PDF text cleaning",
-              "Invisible character detection",
-              "Deterministic, rule-based processing",
-              "Runs entirely in your browser"
-            ],
-            "audience": {
-              "@type": "Audience",
-              "audienceType": "Developers"
-            }
-          })}
-        </script>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "Text Toolkit",
+              "description": "Free online text analysis and transformation tool with readability scoring, case conversion, find & replace, text diffing, slug generation, line sorting, and advanced text cleaning. Deterministic, rule-based processing with no AI or data retention.",
+              "applicationCategory": "DeveloperTool",
+              "operatingSystem": "Web",
+              "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/text-toolkit`,
+              "isAccessibleForFree": true,
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": siteName,
+                "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
+              },
+              "featureList": [
+                "Readability analysis with grade level estimation",
+                "Word and character counting",
+                "Case transformations",
+                "URL slug generation",
+                "Find and replace with regex support",
+                "Text comparison and diff",
+                "Line sorting with deduplication",
+                "Delimiter transformation",
+                "PDF text cleaning",
+                "Invisible character detection",
+                "Deterministic, rule-based processing",
+                "Runs entirely in your browser"
+              ],
+              "audience": {
+                "@type": "Audience",
+                "audienceType": "Developers"
+              }
+            })
+          }}
+        />
       </Head>
 
       {/* Header */}
