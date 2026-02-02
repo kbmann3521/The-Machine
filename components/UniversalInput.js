@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { forwardRef, useImperativeHandle } from 'react'
+import { createPortal } from 'react-dom'
 import { isScriptingLanguageTool, getToolExampleCount } from '../lib/tools'
 import { useOutputToInput } from '../lib/hooks/useOutputToInput'
 import CodeMirrorEditor from './CodeMirrorEditor'
@@ -73,8 +74,11 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
   const [isResizing, setIsResizing] = useState(false)
   const [exampleIndex, setExampleIndex] = useState({})
   const [imageError, setImageError] = useState(null)
+  const [showExampleDropdown, setShowExampleDropdown] = useState(false)
   const fileInputRef = useRef(null)
   const inputFieldRef = useRef(null)
+  const exampleDropdownRef = useRef(null)
+  const examplePortalRef = useRef(null)
   const startYRef = useRef(0)
   const startHeightRef = useRef(0)
   const isPasteRef = useRef(false)
@@ -122,6 +126,23 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
       }))
     }
   }, [selectedTool?.toolId])
+
+  // Close example dropdown when clicking outside
+  useEffect(() => {
+    if (!showExampleDropdown) return
+
+    const handleClickOutside = (e) => {
+      const isClickInButton = exampleDropdownRef.current && exampleDropdownRef.current.contains(e.target)
+      const isClickInPortal = examplePortalRef.current && examplePortalRef.current.contains(e.target)
+
+      if (!isClickInButton && !isClickInPortal) {
+        setShowExampleDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showExampleDropdown])
 
   // Handle resize start
   const handleResizeStart = (e) => {
@@ -286,6 +307,24 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
     }
   }
 
+  const handleLoadExampleByIndex = (exampleNum) => {
+    if (!selectedTool || !getToolExample) return
+
+    const example = getToolExample(selectedTool.toolId, configOptions, exampleNum)
+    if (example) {
+      setLocalInputText(example)
+      setCharCount(example.length)
+      setExampleIndex(prev => ({
+        ...prev,
+        [selectedTool.toolId]: exampleNum
+      }))
+      // Pass true as fourth parameter to indicate this is a "load example" action
+      // This ensures prediction always runs, even if the example is shorter than previous input
+      onInputChange(example, null, null, true)
+      setShowExampleDropdown(false)
+    }
+  }
+
   const handleLoadExample = () => {
     if (!selectedTool || !getToolExample) return
 
@@ -293,18 +332,7 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
     const totalExamples = getToolExampleCount(selectedTool.toolId, configOptions)
     const nextIndex = (currentIndex + 1) % totalExamples
 
-    const example = getToolExample(selectedTool.toolId, configOptions, nextIndex)
-    if (example) {
-      setLocalInputText(example)
-      setCharCount(example.length)
-      setExampleIndex(prev => ({
-        ...prev,
-        [selectedTool.toolId]: nextIndex
-      }))
-      // Pass true as fourth parameter to indicate this is a "load example" action
-      // This ensures prediction always runs, even if the example is shorter than previous input
-      onInputChange(example, null, null, true)
-    }
+    handleLoadExampleByIndex(nextIndex)
   }
 
   const handleClearInput = () => {
@@ -436,14 +464,69 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
                   />
                   <div className={styles.headerButtonGroup}>
                     {selectedTool && getToolExample && getToolExample(selectedTool.toolId, configOptions) && (
-                      <button
-                        className={styles.loadExampleButton}
-                        onClick={handleLoadExample}
-                        title="Load example input and see output"
-                        type="button"
-                      >
-                        Load Example
-                      </button>
+                      <div ref={exampleDropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
+                        <button
+                          className={styles.loadExampleButton}
+                          onClick={() => setShowExampleDropdown(!showExampleDropdown)}
+                          title="Load example input and see output"
+                          type="button"
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', paddingRight: '6px' }}
+                        >
+                          Load Example
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginLeft: '2px' }}>
+                            <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                        {showExampleDropdown && typeof window !== 'undefined' && createPortal(
+                          <div
+                            ref={examplePortalRef}
+                            style={{
+                              position: 'fixed',
+                              top: exampleDropdownRef.current ? exampleDropdownRef.current.getBoundingClientRect().bottom + 4 : 0,
+                              left: exampleDropdownRef.current ? exampleDropdownRef.current.getBoundingClientRect().left : 0,
+                              backgroundColor: 'var(--color-background-tertiary)',
+                              border: '1px solid var(--color-border)',
+                              borderRadius: '4px',
+                              minWidth: '130px',
+                              zIndex: 99999,
+                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {Array.from({ length: getToolExampleCount(selectedTool.toolId, configOptions) }).map((_, idx) => (
+                              <button
+                                key={idx}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleLoadExampleByIndex(idx)
+                                }}
+                                style={{
+                                  display: 'block',
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  backgroundColor: exampleIndex[selectedTool.toolId] === idx ? 'rgba(0, 102, 204, 0.1)' : 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '12px',
+                                  textAlign: 'left',
+                                  color: 'var(--color-text-primary)',
+                                  transition: 'background-color 0.2s',
+                                }}
+                                onMouseOver={(e) => {
+                                  e.target.style.backgroundColor = 'rgba(0, 102, 204, 0.08)'
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.backgroundColor = exampleIndex[selectedTool.toolId] === idx ? 'rgba(0, 102, 204, 0.1)' : 'transparent'
+                                }}
+                                type="button"
+                              >
+                                Example {idx + 1}
+                              </button>
+                            ))}
+                          </div>,
+                          document.body
+                        )}
+                      </div>
                     )}
                     {localInputText && (
                       <>
