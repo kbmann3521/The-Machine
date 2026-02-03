@@ -33,15 +33,20 @@ export default function handler(req, res) {
     'css-formatter',
     'email-validator',
     'http-header-parser',
+    'js-formatter',
     'json-formatter',
     'jwt-decoder',
     'regex-tester',
     'sql-formatter',
+    'svg-optimizer',
     'text-toolkit',
     'time-normalizer',
     'unit-converter',
+    'url-toolkit',
     'uuid-validator',
-    'web-playground'
+    'web-playground',
+    'xml-formatter',
+    'yaml-formatter'
   ]
   standalonePages.forEach(page => {
     xml += '  <url>\n'
