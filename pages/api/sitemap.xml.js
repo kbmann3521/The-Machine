@@ -27,6 +27,7 @@ export default function handler(req, res) {
 
   // Add standalone tool pages
   const standalonePages = [
+    'base-converter',
     'base64-converter',
     'color-converter',
     'css-formatter',
