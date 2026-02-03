@@ -29,6 +29,7 @@ export default function handler(req, res) {
   const standalonePages = [
     'base64-converter',
     'color-converter',
+    'css-formatter',
     'email-validator',
     'http-header-parser',
     'json-formatter',
