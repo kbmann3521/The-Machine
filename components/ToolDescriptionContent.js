@@ -222,19 +222,39 @@ export default function ToolDescriptionContent({ tool, isStandaloneMode = false 
       {/* Link to Home Page or Standalone Page */}
       {(() => {
         const standalonePages = [
+          'ascii-unicode-converter',
+          'base-converter',
           'base64-converter',
+          'caesar-cipher',
+          'checksum-calculator',
           'color-converter',
+          'cron-tester',
+          'csv-json-converter',
+          'css-formatter',
           'email-validator',
+          'file-size-converter',
           'http-header-parser',
+          'http-status-lookup',
+          'image-toolkit',
+          'ip-address-toolkit',
+          'js-formatter',
           'json-formatter',
           'jwt-decoder',
+          'math-evaluator',
+          'mime-type-lookup',
+          'number-formatter',
+          'qr-code-generator',
           'regex-tester',
           'sql-formatter',
+          'svg-optimizer',
           'text-toolkit',
           'time-normalizer',
           'unit-converter',
+          'url-toolkit',
           'uuid-validator',
-          'web-playground'
+          'web-playground',
+          'xml-formatter',
+          'yaml-formatter'
         ]
         const toolId = tool.toolId || tool.id
         const hasStandalonePage = standalonePages.includes(toolId)
