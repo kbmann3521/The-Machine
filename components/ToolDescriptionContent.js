@@ -1,7 +1,8 @@
 import React from 'react'
+import Link from 'next/link'
 import styles from '../styles/tool-description-content.module.css'
 
-export default function ToolDescriptionContent({ tool }) {
+export default function ToolDescriptionContent({ tool, isStandaloneMode = false }) {
   if (!tool) {
     return null
   }
@@ -26,10 +27,17 @@ export default function ToolDescriptionContent({ tool }) {
 
   return (
     <div className={styles.descriptionContent}>
+      {/* Tool Title Header - Only on standalone pages */}
+      {isStandaloneMode && (
+        <div className={styles.toolHeader}>
+          <h1 className={styles.toolName}>{tool.name}</h1>
+        </div>
+      )}
+
       {/* Tool Introduction */}
       {description.overview && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Tool Introduction</h3>
+          <h2 className={styles.sectionTitle}>Tool Introduction</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.overview)}
           </div>
@@ -39,7 +47,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* What This Tool Does */}
       {description.whatToolDoes && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>What This Tool Does</h3>
+          <h2 className={styles.sectionTitle}>What This Tool Does</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.whatToolDoes)}
           </div>
@@ -49,7 +57,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Why This Tool Exists */}
       {description.whyExists && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Why This Tool Exists</h3>
+          <h2 className={styles.sectionTitle}>Why This Tool Exists</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.whyExists)}
           </div>
@@ -59,7 +67,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Common Use Cases */}
       {description.commonUseCases && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Common Use Cases</h3>
+          <h2 className={styles.sectionTitle}>Common Use Cases</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.commonUseCases)}
           </div>
@@ -69,7 +77,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Deterministic and Predictable Behavior */}
       {description.deterministic && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Deterministic and Predictable Behavior</h3>
+          <h2 className={styles.sectionTitle}>Deterministic and Predictable Behavior</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.deterministic)}
           </div>
@@ -79,7 +87,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Privacy and Data Safety */}
       {description.privacy && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Privacy and Data Safety</h3>
+          <h2 className={styles.sectionTitle}>Privacy and Data Safety</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.privacy)}
           </div>
@@ -89,7 +97,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Free to Use */}
       {description.freeToUse && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Free to Use</h3>
+          <h2 className={styles.sectionTitle}>Free to Use</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.freeToUse)}
           </div>
@@ -99,7 +107,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Input and Output Expectations */}
       {description.inputOutput && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Input and Output Expectations</h3>
+          <h2 className={styles.sectionTitle}>Input and Output Expectations</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.inputOutput)}
           </div>
@@ -109,7 +117,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Who This Tool Is For */}
       {description.whoFor && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Who This Tool Is For</h3>
+          <h2 className={styles.sectionTitle}>Who This Tool Is For</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.whoFor)}
           </div>
@@ -119,7 +127,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Reliability and Trust */}
       {description.reliability && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Reliability and Trust</h3>
+          <h2 className={styles.sectionTitle}>Reliability and Trust</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.reliability)}
           </div>
@@ -129,7 +137,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Frequently Asked Questions */}
       {description.faq && description.faq.length > 0 && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Frequently Asked Questions</h3>
+          <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
           <div className={styles.sectionContent}>
             {description.faq.map((item, idx) => (
               <div key={idx} style={{ marginBottom: '16px' }}>
@@ -144,7 +152,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Final Notes */}
       {description.finalNotes && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Final Notes</h3>
+          <h2 className={styles.sectionTitle}>Final Notes</h2>
           <div className={styles.sectionContent}>
             {renderParagraphs(description.finalNotes)}
           </div>
@@ -154,7 +162,7 @@ export default function ToolDescriptionContent({ tool }) {
       {/* Legacy support for old format */}
       {description.howtouse && !description.whatToolDoes && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>How to Use</h3>
+          <h2 className={styles.sectionTitle}>How to Use</h2>
           <div className={styles.sectionContent}>
             <ol className={styles.instructionsList}>
               {Array.isArray(description.howtouse) ? (
@@ -171,7 +179,7 @@ export default function ToolDescriptionContent({ tool }) {
 
       {description.features && description.features.length > 0 && !description.whatToolDoes && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Features</h3>
+          <h2 className={styles.sectionTitle}>Features</h2>
           <div className={styles.sectionContent}>
             <ul className={styles.featuresList}>
               {description.features.map((feature, idx) => (
@@ -184,7 +192,7 @@ export default function ToolDescriptionContent({ tool }) {
 
       {description.usecases && description.usecases.length > 0 && !description.whatToolDoes && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Use Cases</h3>
+          <h2 className={styles.sectionTitle}>Use Cases</h2>
           <div className={styles.sectionContent}>
             <ul className={styles.usecasesList}>
               {description.usecases.map((usecase, idx) => (
@@ -197,10 +205,10 @@ export default function ToolDescriptionContent({ tool }) {
 
       {description.warnings && description.warnings.length > 0 && (
         <section className={styles.warningSection}>
-          <h3 className={`${styles.sectionTitle} ${styles.warningTitle}`}>
+          <h2 className={`${styles.sectionTitle} ${styles.warningTitle}`}>
             <span className={styles.warningIcon}>⚠</span>
             <span>Warnings</span>
-          </h3>
+          </h2>
           <div className={`${styles.sectionContent} ${styles.warningContent}`}>
             <ul className={styles.warningsList}>
               {description.warnings.map((warning, idx) => (
@@ -211,7 +219,7 @@ export default function ToolDescriptionContent({ tool }) {
         </section>
       )}
 
-      {/* Link to Standalone Page */}
+      {/* Link to Home Page or Standalone Page */}
       {(() => {
         const standalonePages = [
           'base64-converter',
@@ -231,7 +239,15 @@ export default function ToolDescriptionContent({ tool }) {
         const toolId = tool.toolId || tool.id
         const hasStandalonePage = standalonePages.includes(toolId)
 
-        if (hasStandalonePage) {
+        if (isStandaloneMode) {
+          return (
+            <section className={styles.explorationSection}>
+              <p>
+                Interested in exploring other tools? Check out the <Link href="/" className={styles.explorationLink}>main page</Link> to discover more utilities.
+              </p>
+            </section>
+          )
+        } else if (hasStandalonePage) {
           return (
             <section className={styles.standalonePageSection}>
               <p>

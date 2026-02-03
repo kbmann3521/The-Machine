@@ -232,7 +232,7 @@ export default function UuidValidatorTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={uuidValidatorTool} />}
+          optionsContent={<ToolDescriptionContent tool={uuidValidatorTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

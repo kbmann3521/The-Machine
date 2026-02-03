@@ -28,8 +28,8 @@ import configStyles from '../styles/tool-config.module.css'
 
 export default function Home(props) {
   const router = useRouter()
-  const siteName = props?.siteName || 'All-in-One Internet Tools'
-  const testTitle = props?.testTitle || 'All-in-One Internet Tools'
+  const siteName = props?.siteName || 'Pioneer Web Tools'
+  const testTitle = props?.testTitle || 'Pioneer Web Tools'
   const testDescription = props?.testDescription || 'Paste anything — we\'ll auto-detect the perfect tool'
   const [inputText, setInputText] = useState('')
   const [inputImage, setInputImage] = useState(null)
@@ -1189,7 +1189,7 @@ export default function Home(props) {
             title="Go to home and deselect tool"
             aria-label="Go to home and deselect tool"
           >
-            <h1>{siteName}</h1>
+            <h3>{siteName}</h3>
             <p>Paste anything — we'll auto-detect the perfect tool</p>
           </button>
           <ThemeToggle />
@@ -1456,8 +1456,8 @@ export async function getServerSideProps() {
 
   return {
     props: {
-      siteName: seoSettings?.site_name || 'All-in-One Internet Tools',
-      testTitle: seoSettings?.default_title || 'All-in-One Internet Tools',
+      siteName: seoSettings?.site_name || 'Pioneer Web Tools',
+      testTitle: seoSettings?.default_title || 'Pioneer Web Tools',
       testDescription: seoSettings?.default_description || 'Paste anything — we\'ll auto-detect the perfect tool',
       seoSettings: seoSettings || {},
     },

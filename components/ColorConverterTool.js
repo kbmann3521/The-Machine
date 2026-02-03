@@ -235,7 +235,7 @@ export default function ColorConverterTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={colorConverterTool} />}
+          optionsContent={<ToolDescriptionContent tool={colorConverterTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

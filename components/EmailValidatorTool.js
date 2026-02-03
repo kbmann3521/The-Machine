@@ -230,7 +230,7 @@ export default function EmailValidatorTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={emailValidatorTool} />}
+          optionsContent={<ToolDescriptionContent tool={emailValidatorTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

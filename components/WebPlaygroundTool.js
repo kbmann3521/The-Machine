@@ -314,7 +314,7 @@ export default function WebPlaygroundTool() {
           onActiveTabChange={handleMarkdownInputTabChange}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={webPlaygroundTool} />}
+          optionsContent={<ToolDescriptionContent tool={webPlaygroundTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

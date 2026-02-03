@@ -230,7 +230,7 @@ export default function JwtDecoderTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={jwtDecoderTool} />}
+          optionsContent={<ToolDescriptionContent tool={jwtDecoderTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

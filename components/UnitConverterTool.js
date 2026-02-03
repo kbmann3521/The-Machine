@@ -205,7 +205,7 @@ export default function UnitConverterTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={unitConverterTool} />}
+          optionsContent={<ToolDescriptionContent tool={unitConverterTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

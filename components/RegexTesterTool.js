@@ -234,7 +234,7 @@ export default function RegexTesterTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={regexTesterTool} />}
+          optionsContent={<ToolDescriptionContent tool={regexTesterTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

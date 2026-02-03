@@ -208,7 +208,7 @@ export default function SqlFormatterTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={sqlFormatterTool} />}
+          optionsContent={<ToolDescriptionContent tool={sqlFormatterTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

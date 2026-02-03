@@ -399,7 +399,7 @@ export default function TextToolkitTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={textToolkitTool} />}
+          optionsContent={<ToolDescriptionContent tool={textToolkitTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

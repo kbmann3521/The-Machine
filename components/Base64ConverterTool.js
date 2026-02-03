@@ -234,7 +234,7 @@ export default function Base64ConverterTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={base64ConverterTool} />}
+          optionsContent={<ToolDescriptionContent tool={base64ConverterTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

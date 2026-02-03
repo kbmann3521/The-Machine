@@ -225,7 +225,7 @@ export default function TimeNormalizerTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={timeNormalizerTool} />}
+          optionsContent={<ToolDescriptionContent tool={timeNormalizerTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel

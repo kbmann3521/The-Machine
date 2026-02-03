@@ -232,7 +232,7 @@ export default function HttpHeaderParserTool() {
           onActiveTabChange={() => {}}
           infoContent={null}
           tabActions={null}
-          optionsContent={<ToolDescriptionContent tool={httpHeaderParserTool} />}
+          optionsContent={<ToolDescriptionContent tool={httpHeaderParserTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
               <ToolConfigPanel
