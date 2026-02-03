@@ -532,8 +532,8 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                 {unit && <span className={styles.sliderUnit}>{unit}</span>}
               </div>
             </div>
-            {isImageToolkit && isDimensionField && config.scalePercent !== 100 && (
-              <div className={styles.sliderHint}>
+            {isImageToolkit && isDimensionField && (
+              <div className={styles.sliderHint} style={{ visibility: config.scalePercent !== 100 ? 'visible' : 'hidden' }}>
                 Scale mode active ({config.scalePercent}%). Adjust scale slider to change dimensions.
               </div>
             )}

@@ -1,0 +1,124 @@
+import Head from 'next/head'
+import Script from 'next/script'
+import ThemeToggle from '../components/ThemeToggle'
+import PageFooter from '../components/PageFooter'
+import CsvJsonConverterTool from '../components/CsvJsonConverterTool'
+import { withSeoSettings } from '../lib/getSeoSettings'
+import { generatePageMetadata } from '../lib/seoUtils'
+import styles from '../styles/hub.module.css'
+
+export default function CsvJsonConverterPage(props) {
+  const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const metadata = generatePageMetadata({
+    seoSettings: props?.seoSettings || {},
+    title: 'CSV to JSON Converter | Convert CSV to JSON, SQL, JavaScript & More Online',
+    description: 'Free online CSV to JSON converter with support for SQL, JavaScript, and TypeScript output. Auto-detect delimiters and headers, convert data types, normalize headers. Handle any CSV format with intelligent parsing. Deterministic, rule-based conversion with no data retention.',
+    path: '/csv-json-converter',
+  })
+
+  const containerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+  }
+
+  const handleHomeClick = () => {
+    window.location.href = '/'
+  }
+
+  return (
+    <div className={styles.layout} style={containerStyle}>
+      <Head>
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+        {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
+        <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/csv-json-converter` || 'https://www.pioneerwebtools.com/csv-json-converter'} />
+      </Head>
+      <Script
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "CSV to JSON Converter",
+            "description": "Free online CSV to JSON converter with multiple output formats including SQL, JavaScript, and TypeScript.",
+            "applicationCategory": "DeveloperTool",
+            "operatingSystem": "Web",
+            "url": `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/csv-json-converter`,
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": siteName,
+              "url": props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'
+            },
+            "featureList": [
+              "Convert CSV to multiple formats: JSON, JSONL, SQL, JavaScript, TypeScript",
+              "Auto-detect delimiter (comma, semicolon, tab)",
+              "Auto-detect header row (determines if first row is headers or data)",
+              "Manual header/data mode selector",
+              "Automatic data type conversion (numbers, booleans, null)",
+              "Whitespace trimming and blank row removal",
+              "Header normalization (original, camelCase, snake_case)",
+              "Intelligent header detection based on data patterns",
+              "Strict mode for error handling",
+              "Support for multiple input delimiters",
+              "Deterministic, rule-based conversion",
+              "Runs entirely in your browser"
+            ],
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Developers"
+            }
+          })
+        }}
+      />
+
+      {/* Header */}
+      <div className={styles.header}>
+        <button
+          className={styles.headerContent}
+          onClick={handleHomeClick}
+          title="Go to home"
+          aria-label="Go to home"
+        >
+          <h1>{siteName}</h1>
+          <p>CSV to JSON Converter</p>
+        </button>
+        <ThemeToggle />
+      </div>
+
+      {/* Main Content Area */}
+      <div className={styles.bodyContainer} style={{ flex: 1, display: 'flex' }}>
+        <main className={styles.mainContent}>
+          <div className={styles.content}>
+            <CsvJsonConverterTool />
+          </div>
+        </main>
+      </div>
+
+      {/* Footer */}
+      <PageFooter showBackToTools={true} />
+    </div>
+  )
+}
+
+export async function getStaticProps() {
+  const result = await withSeoSettings({
+    siteName: null,
+  })
+
+  return {
+    props: {
+      ...result.props,
+      siteName: result.props.seoSettings?.site_name || 'Pioneer Web Tools',
+    },
+    revalidate: 3600,
+  }
+}

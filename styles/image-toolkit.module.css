@@ -165,6 +165,7 @@
   font-family: 'Courier New', monospace;
   font-size: 12px;
   background-color: var(--color-background-secondary, #f5f5f5);
+  color: var(--color-text-primary, #fff);
 }
 
 .copyButton {
