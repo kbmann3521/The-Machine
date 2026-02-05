@@ -137,8 +137,22 @@ export default function EmailValidatorOutputPanel({ result }) {
             borderRadius: '4px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG SCORE</div>
+            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG DELIVERABILITY</div>
             <div style={{ fontSize: '18px', fontWeight: '600', color: '#4caf50' }}>{result.averageDeliverabilityScore}</div>
+          </div>
+        )}
+
+        {result.averageIdentityScore !== undefined && (
+          <div style={{
+            padding: '12px',
+            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+            border: '1px solid rgba(156, 39, 176, 0.3)',
+            borderRadius: '4px',
+            textAlign: 'center',
+          }}>
+            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG CAMPAIGN READINESS</div>
+            <div style={{ fontSize: '16px', fontWeight: '600', color: '#9c27b0' }}>{result.averageCampaignReadiness}</div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>{result.averageIdentityScore}</div>
           </div>
         )}
       </div>
@@ -178,8 +192,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                   </span>
                 </div>
 
-                {/* Status label */}
-                <div style={{ marginBottom: '8px' }}>
+                {/* Status and Campaign Readiness */}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
                   <span style={{
                     display: 'inline-block',
                     padding: '2px 8px',
@@ -192,6 +206,24 @@ export default function EmailValidatorOutputPanel({ result }) {
                   }}>
                     {emailResult.valid ? '✓ Valid' : emailResult.isDisposable ? '✗ Invalid (Disposable domain)' : emailResult.hasSyntaxError ? '✗ Invalid (Syntax error)' : '✗ Invalid'}
                   </span>
+
+                  {emailResult.campaignReadiness && (
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '2px 8px',
+                      backgroundColor: emailResult.campaignReadiness === 'Excellent' ? 'rgba(76, 175, 80, 0.15)' :
+                                      emailResult.campaignReadiness === 'Good' ? 'rgba(33, 150, 243, 0.15)' :
+                                      emailResult.campaignReadiness === 'Risky' ? 'rgba(255, 152, 0, 0.15)' : 'rgba(239, 83, 80, 0.15)',
+                      color: emailResult.campaignReadiness === 'Excellent' ? '#4caf50' :
+                             emailResult.campaignReadiness === 'Good' ? '#2196f3' :
+                             emailResult.campaignReadiness === 'Risky' ? '#ff9800' : '#ef5350',
+                      borderRadius: '3px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                    }}>
+                      Campaign: {emailResult.campaignReadiness}
+                    </span>
+                  )}
                 </div>
 
                 {/* Issues and flags */}
@@ -242,6 +274,71 @@ export default function EmailValidatorOutputPanel({ result }) {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Campaign Readiness (Identity Score) Panel */}
+                {emailResult.identityScore !== undefined && (
+                  <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '10px', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Campaign Readiness
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '20px', fontWeight: '700', color: emailResult.campaignReadiness === 'Excellent' ? '#4caf50' : emailResult.campaignReadiness === 'Good' ? '#2196f3' : emailResult.campaignReadiness === 'Risky' ? '#ff9800' : '#ef5350' }}>
+                        {emailResult.identityScore}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                        / {emailResult.campaignReadiness}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', lineHeight: '1.4', marginBottom: '8px' }}>
+                      Identity-based score for email campaign suitability (0–100)
+                    </div>
+
+                    {/* Score Breakdown */}
+                    {emailResult.identityBreakdown && emailResult.identityBreakdown.length > 0 && (
+                      <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '3px', border: '1px solid rgba(156, 39, 176, 0.1)' }}>
+                        <div style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                          Score Breakdown
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {emailResult.identityBreakdown.map((item, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '10px', color: 'var(--color-text-secondary)', paddingBottom: idx < emailResult.identityBreakdown.length - 1 ? '4px' : '0px', borderBottom: idx < emailResult.identityBreakdown.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none' }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
+                                  {item.label}
+                                </div>
+                                <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
+                                  {item.description}
+                                </div>
+                              </div>
+                              <div style={{ fontWeight: '700', marginLeft: '8px', textAlign: 'right', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                                {item.points > 0 ? '+' : ''}{item.points}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '2px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '11px' }}>
+                          <span>Total</span>
+                          <span style={{ color: '#9c27b0' }}>{emailResult.identityScore}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {emailResult.identitySignals && (emailResult.identitySignals.positive.length > 0 || emailResult.identitySignals.negative.length > 0) && (
+                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
+                        {emailResult.identitySignals.positive.length > 0 && (
+                          <div style={{ marginBottom: '4px' }}>
+                            <strong style={{ color: '#4caf50' }}>✓ Positive:</strong> {emailResult.identitySignals.positive.join(', ')}
+                          </div>
+                        )}
+                        {emailResult.identitySignals.negative.length > 0 && (
+                          <div>
+                            <strong style={{ color: '#ef5350' }}>✗ Negative:</strong> {emailResult.identitySignals.negative.join(', ')}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -304,8 +401,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                       </div>
                     </div>
 
-                    {/* Combined Grade Panel (Upgrade #1) */}
-                    {emailResult.combinedGrade && (
+                    {/* Combined Grade Panel - HIDDEN FOR NOW */}
+                    {false && emailResult.combinedGrade && (
                       <div style={{ padding: '10px', backgroundColor: emailResult.combinedGrade === 'Invalid' ? 'rgba(239, 83, 80, 0.05)' : 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: emailResult.combinedGrade === 'Invalid' ? '1px solid rgba(239, 83, 80, 0.2)' : '1px solid rgba(156, 39, 176, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                           Overall Grade
@@ -541,9 +638,18 @@ export default function EmailValidatorOutputPanel({ result }) {
                               Domain exists: {dnsData[emailResult.email].domainExists ? 'Yes' : 'No'}
                             </span>
                           </div>
+
+                          {dnsData[emailResult.email].mailHostType && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', padding: '6px', backgroundColor: dnsData[emailResult.email].mailHostType === 'mx' ? 'rgba(76, 175, 80, 0.1)' : dnsData[emailResult.email].mailHostType === 'fallback' ? 'rgba(255, 152, 0, 0.1)' : 'rgba(239, 83, 80, 0.1)', borderRadius: '3px' }}>
+                              <span style={{ color: dnsData[emailResult.email].mailHostType === 'mx' ? '#4caf50' : dnsData[emailResult.email].mailHostType === 'fallback' ? '#ff9800' : '#ef5350', fontWeight: '600' }}>
+                                {dnsData[emailResult.email].mailHostType === 'mx' ? '✓ Mail Server Type: MX' : dnsData[emailResult.email].mailHostType === 'fallback' ? '⚠ Mail Server Type: Fallback (A/AAAA)' : '✗ No Mail Server'}
+                              </span>
+                            </div>
+                          )}
+
                           {dnsData[emailResult.email].mxRecords && dnsData[emailResult.email].mxRecords.length > 0 && dnsData[emailResult.email].mxRecords.some(mx => mx.hostname) ? (
-                            <div>
-                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px' }}>MX Records:</div>
+                            <div style={{ marginTop: '4px' }}>
+                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>MX Records:</div>
                               <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {dnsData[emailResult.email].mxRecords.map((mx, mxIdx) => (
                                   <div key={mxIdx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
@@ -552,9 +658,35 @@ export default function EmailValidatorOutputPanel({ result }) {
                                 ))}
                               </div>
                             </div>
+                          ) : dnsData[emailResult.email].aRecords && dnsData[emailResult.email].aRecords.length > 0 ? (
+                            <div style={{ marginTop: '4px' }}>
+                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                                A Records (Fallback):
+                              </div>
+                              <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {dnsData[emailResult.email].aRecords.map((rec, idx) => (
+                                  <div key={idx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                    {rec.address}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : dnsData[emailResult.email].aaaaRecords && dnsData[emailResult.email].aaaaRecords.length > 0 ? (
+                            <div style={{ marginTop: '4px' }}>
+                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                                AAAA Records (Fallback):
+                              </div>
+                              <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {dnsData[emailResult.email].aaaaRecords.map((rec, idx) => (
+                                  <div key={idx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                    {rec.address}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           ) : (
-                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                              No MX records (may use A records)
+                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                              No mail server records found (MX, A, or AAAA)
                             </div>
                           )}
                         </>
@@ -594,15 +726,15 @@ export default function EmailValidatorOutputPanel({ result }) {
           <div>✓ Server-side delivery probability</div>
           <div>✓ MX record validity</div>
           <div>✓ Provider reputation (Gmail, Outlook, Yahoo)</div>
-          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Trustworthiness Scoring (0-100):</div>
-          <div>✓ Username pattern analysis (gibberish detection)</div>
-          <div>✓ Role-based email flagging</div>
-          <div>✓ Human-like pattern recognition</div>
-          <div>✓ Suspicious TLD detection</div>
-          <div>✓ Disposable domain flagging</div>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Campaign Readiness / Identity Score (0-100):</div>
+          <div>✓ Measures identity-based vs expressive/narrative patterns</div>
+          <div>✓ Personal name detection</div>
+          <div>✓ Role-based email scoring</div>
+          <div>✓ Structure and simplicity analysis</div>
+          <div>✓ Detects abusive/hateful/adult content penalties</div>
           <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Enterprise Features:</div>
           <div>✓ Combined letter grade (A+ to F)</div>
-          <div>✓ Human likelihood labels (very likely human → bot)</div>
+          <div>✓ Brand impersonation detection</div>
           <div>✓ Business email provider detection</div>
           <div>✓ TLD quality classification (high/low trust)</div>
           <div>✓ Username semantic analysis (names, brand impersonation, offensive terms)</div>
