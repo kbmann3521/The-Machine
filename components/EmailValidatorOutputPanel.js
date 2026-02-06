@@ -2,6 +2,46 @@ import React, { useState, useRef } from 'react'
 import styles from '../styles/tool-output.module.css'
 import OutputTabs from './OutputTabs'
 
+function calculateDnsRecordPenalties(dnsRecord) {
+  const penalties = []
+  let totalPenalty = 0
+
+  if (!dnsRecord) {
+    return { penalties, totalPenalty }
+  }
+
+  // Mail server records penalty
+  if (dnsRecord.mailHostType === 'none') {
+    // No MX, A, or AAAA records - cannot receive mail
+    penalties.push({ label: 'No Mail Server Records', points: -100, description: 'Missing MX/A/AAAA records (cannot receive email)' })
+    totalPenalty += 100
+  } else if (dnsRecord.mailHostType === 'fallback') {
+    // Has A/AAAA but no MX - fallback delivery
+    penalties.push({ label: 'No MX Records (Fallback Only)', points: -25, description: 'Using A/AAAA fallback instead of MX records' })
+    totalPenalty += 25
+  }
+
+  // SPF penalty
+  if (!dnsRecord.spfRecord) {
+    penalties.push({ label: 'No SPF Record', points: -5, description: 'Missing SPF authentication' })
+    totalPenalty += 5
+  }
+
+  // DKIM penalty
+  if (!dnsRecord.dkimRecords || dnsRecord.dkimRecords.length === 0) {
+    penalties.push({ label: 'No DKIM Records', points: -5, description: 'Missing DKIM signing' })
+    totalPenalty += 5
+  }
+
+  // DMARC penalty
+  if (!dnsRecord.dmarcRecord) {
+    penalties.push({ label: 'No DMARC Policy', points: -10, description: 'Missing DMARC authentication policy' })
+    totalPenalty += 10
+  }
+
+  return { penalties, totalPenalty }
+}
+
 export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
   const dnsDebounceTimerRef = useRef(null)
@@ -224,21 +264,35 @@ export default function EmailValidatorOutputPanel({ result }) {
                   </span>
 
                   {emailResult.campaignReadiness && (
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '2px 8px',
-                      backgroundColor: emailResult.campaignReadiness === 'Excellent' ? 'rgba(76, 175, 80, 0.15)' :
-                                      emailResult.campaignReadiness === 'Good' ? 'rgba(33, 150, 243, 0.15)' :
-                                      emailResult.campaignReadiness === 'Risky' ? 'rgba(255, 152, 0, 0.15)' : 'rgba(239, 83, 80, 0.15)',
-                      color: emailResult.campaignReadiness === 'Excellent' ? '#4caf50' :
-                             emailResult.campaignReadiness === 'Good' ? '#2196f3' :
-                             emailResult.campaignReadiness === 'Risky' ? '#ff9800' : '#ef5350',
-                      borderRadius: '3px',
-                      fontSize: '11px',
-                      fontWeight: '600',
-                    }}>
-                      Campaign: {emailResult.campaignReadiness}
-                    </span>
+                    (() => {
+                      const dnsRecord = dnsData[emailResult.email]
+                      const { totalPenalty: dnsTotalPenalty } = calculateDnsRecordPenalties(dnsRecord)
+                      const adjustedScore = Math.max(0, Math.min(100, emailResult.identityScore - dnsTotalPenalty))
+
+                      let readinessLevel = 'Poor'
+                      if (adjustedScore >= 80) readinessLevel = 'Excellent'
+                      else if (adjustedScore >= 60) readinessLevel = 'Good'
+                      else if (adjustedScore >= 40) readinessLevel = 'Risky'
+                      else readinessLevel = 'Poor'
+
+                      return (
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '2px 8px',
+                          backgroundColor: readinessLevel === 'Excellent' ? 'rgba(76, 175, 80, 0.15)' :
+                                          readinessLevel === 'Good' ? 'rgba(33, 150, 243, 0.15)' :
+                                          readinessLevel === 'Risky' ? 'rgba(255, 152, 0, 0.15)' : 'rgba(239, 83, 80, 0.15)',
+                          color: readinessLevel === 'Excellent' ? '#4caf50' :
+                                 readinessLevel === 'Good' ? '#2196f3' :
+                                 readinessLevel === 'Risky' ? '#ff9800' : '#ef5350',
+                          borderRadius: '3px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                        }}>
+                          Campaign: {readinessLevel}
+                        </span>
+                      )
+                    })()
                   )}
                 </div>
 
@@ -301,17 +355,34 @@ export default function EmailValidatorOutputPanel({ result }) {
                     <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Campaign Readiness
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '20px', fontWeight: '700', color: emailResult.campaignReadiness === 'Excellent' ? '#4caf50' : emailResult.campaignReadiness === 'Good' ? '#2196f3' : emailResult.campaignReadiness === 'Risky' ? '#ff9800' : '#ef5350' }}>
-                        {emailResult.identityScore}
-                      </span>
-                      <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                        / {emailResult.campaignReadiness}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', lineHeight: '1.4', marginBottom: '8px' }}>
-                      Identity-based score for email campaign suitability (0–100)
-                    </div>
+                    {(() => {
+                      const dnsRecord = dnsData[emailResult.email]
+                      const { totalPenalty: dnsTotalPenalty } = calculateDnsRecordPenalties(dnsRecord)
+                      const adjustedScore = Math.max(0, Math.min(100, emailResult.identityScore - dnsTotalPenalty))
+
+                      // Determine campaign readiness based on adjusted score
+                      let readinessLevel = 'Poor'
+                      if (adjustedScore >= 80) readinessLevel = 'Excellent'
+                      else if (adjustedScore >= 60) readinessLevel = 'Good'
+                      else if (adjustedScore >= 40) readinessLevel = 'Risky'
+                      else readinessLevel = 'Poor'
+
+                      return (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '20px', fontWeight: '700', color: readinessLevel === 'Excellent' ? '#4caf50' : readinessLevel === 'Good' ? '#2196f3' : readinessLevel === 'Risky' ? '#ff9800' : '#ef5350' }}>
+                              {adjustedScore}
+                            </span>
+                            <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                              / {readinessLevel}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', lineHeight: '1.4', marginBottom: '8px' }}>
+                            Identity-based score for email campaign suitability (0–100)
+                          </div>
+                        </>
+                      )
+                    })()}
 
                     {/* Score Breakdown */}
                     {emailResult.identityBreakdown && emailResult.identityBreakdown.length > 0 && (
@@ -320,25 +391,36 @@ export default function EmailValidatorOutputPanel({ result }) {
                           Score Breakdown
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {emailResult.identityBreakdown.map((item, idx) => (
-                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '10px', color: 'var(--color-text-secondary)', paddingBottom: idx < emailResult.identityBreakdown.length - 1 ? '4px' : '0px', borderBottom: idx < emailResult.identityBreakdown.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none' }}>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
-                                  {item.label}
+                          {(() => {
+                            const dnsRecord = dnsData[emailResult.email]
+                            const { penalties: dnsPenalties, totalPenalty: dnsTotalPenalty } = calculateDnsRecordPenalties(dnsRecord)
+                            const allBreakdownItems = [...(emailResult.identityBreakdown || []), ...dnsPenalties]
+                            const adjustedScore = Math.max(0, Math.min(100, emailResult.identityScore - dnsTotalPenalty))
+
+                            return (
+                              <>
+                                {allBreakdownItems.map((item, idx) => (
+                                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '10px', color: 'var(--color-text-secondary)', paddingBottom: idx < allBreakdownItems.length - 1 ? '4px' : '0px', borderBottom: idx < allBreakdownItems.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none' }}>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontWeight: '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
+                                        {item.label}
+                                      </div>
+                                      <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
+                                        {item.description}
+                                      </div>
+                                    </div>
+                                    <div style={{ fontWeight: '700', marginLeft: '8px', textAlign: 'right', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                                      {item.points > 0 ? '+' : ''}{item.points}
+                                    </div>
+                                  </div>
+                                ))}
+                                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '2px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '11px' }}>
+                                  <span>Total</span>
+                                  <span style={{ color: '#9c27b0' }}>{adjustedScore}</span>
                                 </div>
-                                <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
-                                  {item.description}
-                                </div>
-                              </div>
-                              <div style={{ fontWeight: '700', marginLeft: '8px', textAlign: 'right', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
-                                {item.points > 0 ? '+' : ''}{item.points}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '2px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '11px' }}>
-                          <span>Total</span>
-                          <span style={{ color: '#9c27b0' }}>{emailResult.identityScore}</span>
+                              </>
+                            )
+                          })()}
                         </div>
                       </div>
                     )}
@@ -360,8 +442,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                   </div>
                 )}
 
-                {/* Dual Score Panels: Deliverability + Trustworthiness */}
-                {emailResult.deliverabilityScore !== undefined && emailResult.trustworthinessScore !== undefined && (
+                {/* Dual Score Panels: Deliverability + Trustworthiness - HIDDEN */}
+                {false && emailResult.deliverabilityScore !== undefined && emailResult.trustworthinessScore !== undefined && (
                   <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
                     {/* Two-column score layout */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
@@ -432,8 +514,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                       </div>
                     )}
 
-                    {/* Human Likelihood Label (Upgrade #2) */}
-                    {emailResult.humanLikelihood && (
+                    {/* Human Likelihood Label - HIDDEN */}
+                    {false && emailResult.humanLikelihood && (
                       <div style={{
                         padding: '10px',
                         backgroundColor: emailResult.humanLikelihood === 'Invalid' ? 'rgba(239, 83, 80, 0.05)' : emailResult.humanLikelihood.includes('abusive') ? 'rgba(244, 67, 54, 0.05)' : emailResult.humanLikelihood.includes('organization') ? 'rgba(0, 150, 136, 0.05)' : 'rgba(255, 152, 0, 0.05)',
@@ -705,6 +787,59 @@ export default function EmailValidatorOutputPanel({ result }) {
                               No mail server records found (MX, A, or AAAA)
                             </div>
                           )}
+
+                          {/* SPF Record */}
+                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
+                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                              SPF Record:
+                            </div>
+                            {dnsData[emailResult.email].spfRecord ? (
+                              <div style={{ marginLeft: '20px', fontSize: '10px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                                ✓ {dnsData[emailResult.email].spfRecord}
+                              </div>
+                            ) : (
+                              <div style={{ marginLeft: '20px', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                ✗ No SPF record found
+                              </div>
+                            )}
+                          </div>
+
+                          {/* DMARC Record */}
+                          <div style={{ marginTop: '8px' }}>
+                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                              DMARC Record:
+                            </div>
+                            {dnsData[emailResult.email].dmarcRecord ? (
+                              <div style={{ marginLeft: '20px', fontSize: '10px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                                ✓ {dnsData[emailResult.email].dmarcRecord}
+                              </div>
+                            ) : (
+                              <div style={{ marginLeft: '20px', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                ✗ No DMARC record found
+                              </div>
+                            )}
+                          </div>
+
+                          {/* DKIM Records */}
+                          <div style={{ marginTop: '8px' }}>
+                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                              DKIM Records:
+                            </div>
+                            {dnsData[emailResult.email].dkimRecords && dnsData[emailResult.email].dkimRecords.length > 0 ? (
+                              <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {dnsData[emailResult.email].dkimRecords.map((record, idx) => (
+                                  <div key={idx} style={{ fontSize: '10px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                                    <div style={{ fontWeight: '600', marginBottom: '3px' }}>✓ Selector: {record.selector}</div>
+                                    <div>{record.value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ marginLeft: '20px', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                ✗ No DKIM records found (checked selectors: default, k1, selector1, selector2, google, sendgrid, postmark)
+                              </div>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
