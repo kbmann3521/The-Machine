@@ -48,7 +48,6 @@ export default function EmailValidatorTool() {
   const [configOptions, setConfigOptions] = useState({})
 
   // Refs
-  const debounceTimerRef = useRef(null)
   const abortControllerRef = useRef(null)
   const abortTimeoutRef = useRef(null)
   const loadingTimerRef = useRef(null)
@@ -114,15 +113,8 @@ export default function EmailValidatorTool() {
       return
     }
 
-    // Clear debounce timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-
-    // Debounce execution
-    debounceTimerRef.current = setTimeout(() => {
-      executeTool(text)
-    }, 300)
+    // Execute immediately
+    executeTool(text)
   }, [])
 
   // Execute the email-validator tool

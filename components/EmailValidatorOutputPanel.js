@@ -1,63 +1,79 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import styles from '../styles/tool-output.module.css'
 import OutputTabs from './OutputTabs'
 
 export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
+  const dnsDebounceTimerRef = useRef(null)
 
-  // Fetch DNS data for valid emails
+  // Fetch DNS data for valid emails with 3-second debounce
   React.useEffect(() => {
     if (!result || !result.results) return
 
-    const fetchDnsData = async () => {
-      const newDnsData = {}
-
-      for (const emailResult of result.results) {
-        if (emailResult.valid) {
-          try {
-            const domain = emailResult.email.split('@')[1]
-            if (domain) {
-              const controller = new AbortController()
-              const timeout = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-              try {
-                const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
-                const dnsUrl = `${baseUrl}/api/tools/email-validator-dns`
-
-                const response = await fetch(dnsUrl, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ domain }),
-                  signal: controller.signal,
-                  credentials: 'same-origin',
-                })
-                clearTimeout(timeout)
-
-                if (response.ok) {
-                  const data = await response.json()
-                  newDnsData[emailResult.email] = data
-                } else {
-                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-                }
-              } catch (fetchError) {
-                clearTimeout(timeout)
-                if (fetchError.name === 'AbortError') {
-                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
-                } else {
-                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-                }
-              }
-            }
-          } catch (error) {
-            newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-          }
-        }
-      }
-
-      setDnsData(newDnsData)
+    // Clear any existing debounce timer
+    if (dnsDebounceTimerRef.current) {
+      clearTimeout(dnsDebounceTimerRef.current)
     }
 
-    fetchDnsData()
+    // Debounce DNS fetches by 1 second
+    dnsDebounceTimerRef.current = setTimeout(() => {
+      const fetchDnsData = async () => {
+        const newDnsData = {}
+
+        for (const emailResult of result.results) {
+          if (emailResult.valid) {
+            try {
+              const domain = emailResult.email.split('@')[1]
+              if (domain) {
+                const controller = new AbortController()
+                const timeout = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+                try {
+                  const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+                  const dnsUrl = `${baseUrl}/api/tools/email-validator-dns`
+
+                  const response = await fetch(dnsUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain }),
+                    signal: controller.signal,
+                    credentials: 'same-origin',
+                  })
+                  clearTimeout(timeout)
+
+                  if (response.ok) {
+                    const data = await response.json()
+                    newDnsData[emailResult.email] = data
+                  } else {
+                    newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                  }
+                } catch (fetchError) {
+                  clearTimeout(timeout)
+                  if (fetchError.name === 'AbortError') {
+                    newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
+                  } else {
+                    newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                  }
+                }
+              }
+            } catch (error) {
+              newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+            }
+          }
+        }
+
+        setDnsData(newDnsData)
+      }
+
+      fetchDnsData()
+    }, 1000)
+
+    // Cleanup on unmount
+    return () => {
+      if (dnsDebounceTimerRef.current) {
+        clearTimeout(dnsDebounceTimerRef.current)
+      }
+    }
   }, [result])
 
   if (!result) {
