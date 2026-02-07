@@ -82,12 +82,11 @@ function calculateDnsRecordPenalties(dnsRecord) {
     return { penalties, totalPenalty }
   }
 
-  // Mail server records penalty
-  if (dnsRecord.mailHostType === 'none') {
-    // No MX, A, or AAAA records - cannot receive mail
-    penalties.push({ label: 'No Mail Server Records', points: -100, description: 'Missing MX/A/AAAA records (cannot receive email)' })
-    totalPenalty += 100
-  } else if (dnsRecord.mailHostType === 'fallback') {
+  // NOTE: If mailHostType === 'none', email is invalid (no mail server records at all)
+  // This is not a DHS penalty; it's a prerequisite failure.
+  // Frontend handles this by not calculating Campaign Readiness score.
+
+  if (dnsRecord.mailHostType === 'fallback') {
     // Has A/AAAA but no MX - fallback delivery
     penalties.push({ label: 'No MX Records (Fallback Only)', points: -25, description: 'Using A/AAAA fallback instead of MX records' })
     totalPenalty += 25
@@ -360,46 +359,49 @@ export default function EmailValidatorOutputPanel({ result }) {
               <div key={idx} style={{
                 padding: '12px 14px',
                 backgroundColor: 'var(--color-background-tertiary)',
-                border: `1px solid ${dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.3)' : emailResult.valid ? 'rgba(76, 175, 80, 0.3)' : 'rgba(239, 83, 80, 0.3)'}`,
+                border: `1px solid ${!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.3)' : 'rgba(76, 175, 80, 0.3)'}`,
                 borderRadius: '4px',
-                borderLeft: `3px solid ${dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : emailResult.valid ? '#4caf50' : '#ef5350'}`,
+                borderLeft: `3px solid ${!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : '#4caf50'}`,
               }}>
-                {/* Email header with status and copy button */}
+                {/* Email header with status */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ color: dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : emailResult.valid ? '#4caf50' : '#ef5350', fontSize: '14px', flexShrink: 0 }}>
-                    {dnsData[emailResult.email]?.mailHostType === 'none' ? '✗' : emailResult.valid ? '✓' : '✗'}
+                  <span style={{ color: !emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : '#4caf50', fontSize: '14px', flexShrink: 0 }}>
+                    {!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '✗' : '✓'}
                   </span>
                   <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500', wordBreak: 'break-all', overflowWrap: 'break-word', minWidth: 0 }}>
                     {emailResult.email}
                   </span>
                 </div>
 
-                {/* Status and Campaign Readiness */}
+                {/* Status badge */}
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
                   <span style={{
                     display: 'inline-block',
                     padding: '2px 8px',
-                    backgroundColor: dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.15)' : emailResult.valid ? 'rgba(76, 175, 80, 0.15)' : 'rgba(239, 83, 80, 0.15)',
-                    color: dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : emailResult.valid ? '#4caf50' : '#ef5350',
+                    backgroundColor: !emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.15)' : 'rgba(76, 175, 80, 0.15)',
+                    color: !emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : '#4caf50',
                     borderRadius: '3px',
                     fontSize: '11px',
                     fontWeight: '600',
                     textTransform: 'uppercase',
                   }}>
-                    {dnsData[emailResult.email]?.mailHostType === 'none' ? '✗ Invalid (No mail server records)' : emailResult.valid ? '✓ Valid' : emailResult.isDisposable ? '✗ Invalid (Disposable domain)' : emailResult.hasSyntaxError ? '✗ Invalid (Syntax error)' : '✗ Invalid'}
+                    {!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '✗ Invalid' : '✓ Valid'}
                   </span>
 
-                  {emailResult.campaignReadiness && dnsData[emailResult.email]?.mailHostType !== 'none' && (
+                  {emailResult.campaignReadiness && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && emailResult.valid && (
                     (() => {
                       const dnsRecord = dnsData[emailResult.email]
-                      const { penalties: dnsPenalties } = calculateDnsRecordPenalties(dnsRecord)
-                      const allBreakdownItems = [...(emailResult.identityBreakdown || []), ...dnsPenalties]
-                      const adjustedScore = Math.max(0, Math.min(100, allBreakdownItems.reduce((sum, item) => sum + item.points, 0)))
+                      const { totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
+
+                      const dhsScore = emailResult.dhsScore || 75
+                      const lcsCap = emailResult.lcsCap || 100
+                      const adjustedDHS = Math.max(0, Math.min(100, dhsScore - dnsTotalAdjustment))
+                      const adjustedScore = Math.min(adjustedDHS, lcsCap)
 
                       let readinessLevel = 'Poor'
-                      if (adjustedScore >= 80) readinessLevel = 'Excellent'
-                      else if (adjustedScore >= 60) readinessLevel = 'Good'
-                      else if (adjustedScore >= 40) readinessLevel = 'Risky'
+                      if (adjustedScore >= 85) readinessLevel = 'Excellent'
+                      else if (adjustedScore >= 70) readinessLevel = 'Good'
+                      else if (adjustedScore >= 50) readinessLevel = 'Risky'
                       else readinessLevel = 'Poor'
 
                       return (
@@ -423,82 +425,84 @@ export default function EmailValidatorOutputPanel({ result }) {
                   )}
                 </div>
 
-                {/* Issues and flags */}
-                {(dnsData[emailResult.email]?.mailHostType === 'none' || (dnsData[emailResult.email]?.mailHostType !== 'none' && (emailResult.issues?.length > 0 || emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation))) && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {(emailResult.issues?.length > 0 || dnsData[emailResult.email]?.mailHostType === 'none') && (
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: '600', color: '#ef5350', marginBottom: '4px' }}>Issues:</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          {dnsData[emailResult.email]?.mailHostType === 'none' && (
-                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                              • This domain has no mail server records (MX/A/AAAA). Email cannot be delivered.
-                            </div>
-                          )}
-                          {emailResult.issues?.map((issue, issueIdx) => (
-                            <div key={issueIdx} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                              • {issue}
-                            </div>
-                          ))}
+                {/* Invalid emails: Show ONLY issues, nothing else */}
+                {(!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none') && (
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: '600', color: '#ef5350', marginBottom: '4px' }}>Issues:</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      {dnsData[emailResult.email]?.mailHostType === 'none' && (
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • This domain has no mail server records (MX/A/AAAA). Email cannot be delivered.
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {emailResult.issues?.map((issue, issueIdx) => (
+                        <div key={issueIdx} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • {issue}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                    {dnsData[emailResult.email]?.mailHostType !== 'none' && (emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0) && (
-                      <div>
-                        <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
-                          ⚠ Warnings:
+                {/* Valid emails: Show warnings and details */}
+                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0) && (
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
+                      ⚠ Warnings:
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      {emailResult.roleBasedEmail && (
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • Role-based email (may not be a real user account)
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          {emailResult.roleBasedEmail && (
-                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                              • Role-based email (may not be a real user account)
-                            </div>
-                          )}
-                          {emailResult.isDisposable && (
-                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                              • Disposable/temporary email domain detected
-                            </div>
-                          )}
-                          {emailResult.hasBadReputation && (
-                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                              • Domain has poor reputation or is on blocklist
-                            </div>
-                          )}
-                          {emailResult.usernameHeuristics?.map((heuristic, hIdx) => (
-                            <div key={`uh-${hIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                              • Username: {heuristic}
-                            </div>
-                          ))}
-                          {emailResult.domainHeuristics?.map((heuristic, dhIdx) => (
-                            <div key={`dh-${dhIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                              • Domain: {heuristic}
-                            </div>
-                          ))}
+                      )}
+                      {emailResult.hasBadReputation && (
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • Domain has poor reputation or is on blocklist
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {emailResult.usernameHeuristics?.map((heuristic, hIdx) => (
+                        <div key={`uh-${hIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • Username: {heuristic}
+                        </div>
+                      ))}
+                      {emailResult.domainHeuristics?.map((heuristic, dhIdx) => (
+                        <div key={`dh-${dhIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • Domain: {heuristic}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
 
-                {/* Campaign Readiness (Identity Score) Panel */}
-                {emailResult.identityScore !== undefined && dnsData[emailResult.email]?.mailHostType !== 'none' && (
+                {/* Campaign Readiness (Identity Score) Panel - Only show for valid emails */}
+                {emailResult.identityScore !== undefined && emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (
                   <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '10px', marginBottom: '10px' }}>
                     <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Campaign Readiness
                     </div>
                     {(() => {
                       const dnsRecord = dnsData[emailResult.email]
-                      const { penalties: dnsPenalties } = calculateDnsRecordPenalties(dnsRecord)
-                      const allBreakdownItems = [...(emailResult.identityBreakdown || []), ...dnsPenalties]
-                      const adjustedScore = Math.max(0, Math.min(100, allBreakdownItems.reduce((sum, item) => sum + item.points, 0)))
+                      const { penalties: dnsPenalties, totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
+
+                      // ===== SINGLE SOURCE OF TRUTH: Use backend-calculated values directly =====
+                      // These are authoritative values from calculateIdentityScore() backend
+                      const dhsScore = emailResult.dhsScore || 75  // Domain Health Score (infrastructure)
+                      const lcsScore = emailResult.lcsScore || 100 // Local-Part Credibility Score (identity)
+
+                      // Apply DNS adjustments to DHS only
+                      const adjustedDHS = Math.max(0, Math.min(100, dhsScore - dnsTotalAdjustment))
+
+                      // Final score = min(adjusted DHS, LCS)
+                      // This ensures bad identity cannot be rescued by good domain
+                      const adjustedScore = Math.min(adjustedDHS, lcsScore)
 
                       // Determine campaign readiness based on adjusted score
                       let readinessLevel = 'Poor'
-                      if (adjustedScore >= 80) readinessLevel = 'Excellent'
-                      else if (adjustedScore >= 60) readinessLevel = 'Good'
-                      else if (adjustedScore >= 40) readinessLevel = 'Risky'
+                      if (adjustedScore >= 85) readinessLevel = 'Excellent'
+                      else if (adjustedScore >= 70) readinessLevel = 'Good'
+                      else if (adjustedScore >= 50) readinessLevel = 'Risky'
                       else readinessLevel = 'Poor'
 
                       return (
@@ -527,52 +531,134 @@ export default function EmailValidatorOutputPanel({ result }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           {(() => {
                             const dnsRecord = dnsData[emailResult.email]
-                            const { penalties: dnsPenalties } = calculateDnsRecordPenalties(dnsRecord)
-                            const allBreakdownItems = [...(emailResult.identityBreakdown || []), ...dnsPenalties]
+                            const { penalties: dnsPenalties, totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
 
-                            // Calculate total from breakdown items
-                            const adjustedScore = Math.max(0, Math.min(100, allBreakdownItems.reduce((sum, item) => sum + item.points, 0)))
+                            // ===== SINGLE SOURCE OF TRUTH (breakdown section): Same values as above =====
+                            // Ensures displayed scores match final calculation
+                            const dhsScore = emailResult.dhsScore || 75
+                            const lcsScore = emailResult.lcsScore || 100
+                            const adjustedDHS = Math.max(0, Math.min(100, dhsScore - dnsTotalAdjustment))
+                            const adjustedScore = Math.min(adjustedDHS, lcsScore)
+
+                            // Reorganize breakdown:
+                            // 1. Update DHS header to show final adjusted value
+                            // 2. Merge DNS items into DHS section so everything is visible
+                            // 3. Update final score description to show actual values
+                            const breakdownWithDns = [...(emailResult.identityBreakdown || [])]
+
+                            // Find indices for DHS header, separator before LCS, and final score
+                            let dhsSectionIndex = -1
+                            let separatorBeforeLcsIndex = -1
+                            let finalScoreIndex = -1
+
+                            for (let i = 0; i < breakdownWithDns.length; i++) {
+                              if (breakdownWithDns[i].isSectionHeader && breakdownWithDns[i].label.startsWith('Domain Health Score')) {
+                                dhsSectionIndex = i
+                              }
+                              if (breakdownWithDns[i].isSectionHeader && breakdownWithDns[i].label.startsWith('Local-Part Credibility Score')) {
+                                separatorBeforeLcsIndex = i - 1
+                              }
+                              if (breakdownWithDns[i].label === 'Final Campaign Readiness Score') {
+                                finalScoreIndex = i
+                              }
+                            }
+
+                            // STEP 1: Insert DNS penalties into DHS section (before the separator that precedes LCS)
+                            // This must happen BEFORE we update indices
+                            if (dhsSectionIndex >= 0 && separatorBeforeLcsIndex >= 0 && dnsPenalties.length > 0) {
+                              breakdownWithDns.splice(separatorBeforeLcsIndex, 0, ...dnsPenalties)
+                              // Adjust finalScoreIndex if it comes after the insertion point
+                              if (finalScoreIndex >= separatorBeforeLcsIndex) {
+                                finalScoreIndex += dnsPenalties.length
+                              }
+                            }
+
+                            // STEP 2: Update DHS header to show final adjusted value
+                            if (dhsSectionIndex >= 0) {
+                              breakdownWithDns[dhsSectionIndex] = {
+                                ...breakdownWithDns[dhsSectionIndex],
+                                points: adjustedDHS  // Show final adjusted DHS in header
+                              }
+                            }
+
+                            // STEP 3: Update final score description to show actual values
+                            if (finalScoreIndex >= 0) {
+                              breakdownWithDns[finalScoreIndex] = {
+                                ...breakdownWithDns[finalScoreIndex],
+                                points: adjustedScore,  // Ensure points is the final score, not a delta
+                                description: `min(Domain Health Score (${Math.round(adjustedDHS)}), Local-Part Credibility Score (${lcsScore}))`,
+                                isFinalScore: true  // Flag to render without +/- prefix
+                              }
+                            }
 
                             return (
                               <>
-                                {allBreakdownItems.map((item, idx) => (
-                                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: item.isSubItem ? '10px' : '11px', color: 'var(--color-text-secondary)', paddingBottom: idx < allBreakdownItems.length - 1 ? '4px' : '0px', borderBottom: idx < allBreakdownItems.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none', paddingLeft: item.isSubItem ? '24px' : '0px' }}>
-                                    <div style={{ flex: 1 }}>
-                                      <div style={{ fontWeight: item.isSubItem ? '400' : '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
-                                        {item.label}
+                                {breakdownWithDns.map((item, idx) => {
+                                  // Skip separators and headers
+                                  if (item.isSeparator) {
+                                    return <div key={idx} style={{ height: '8px' }} />
+                                  }
+
+                                  if (item.isSectionHeader) {
+                                    return (
+                                      <div key={idx} style={{ marginTop: idx > 0 ? '8px' : '0px', marginBottom: '4px', paddingBottom: '4px', borderBottom: '1px solid rgba(156, 39, 176, 0.2)' }}>
+                                        <div style={{ fontSize: '10px', fontWeight: '700', color: '#9c27b0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                          {item.label}: {Math.round(item.points)}
+                                        </div>
+                                        {item.description && <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{item.description}</div>}
                                       </div>
-                                      <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px', display: item.description ? 'block' : 'none' }}>
-                                        {item.description}
+                                    )
+                                  }
+
+                                  if (item.isCapNote) {
+                                    return (
+                                      <div key={idx} style={{ padding: '6px', backgroundColor: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.2)', borderRadius: '3px', marginTop: '4px' }}>
+                                        <div style={{ fontSize: '10px', fontWeight: '600', color: '#ff9800' }}>
+                                          {item.label}
+                                        </div>
+                                        <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                                          {item.description}
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+
+                                  if (item.isFinalScore) {
+                                    return (
+                                      <div key={idx} style={{ padding: '6px 0', marginTop: '4px', paddingTop: '6px', borderTop: '1px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: '600', color: '#9c27b0' }}>
+                                        <div style={{ flex: 1 }}>
+                                          <div>{item.label}</div>
+                                          <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px', fontWeight: '400' }}>
+                                            {item.description}
+                                          </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right', whiteSpace: 'nowrap', marginLeft: '8px' }}>
+                                          {Math.round(item.points)}
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+
+                                  return (
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: item.isSubItem ? '10px' : '11px', color: 'var(--color-text-secondary)', paddingBottom: idx < breakdownWithDns.length - 1 ? '4px' : '0px', borderBottom: idx < breakdownWithDns.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none', paddingLeft: item.isSubItem ? '24px' : '0px' }}>
+                                      <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: item.isSubItem ? '400' : '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
+                                          {item.label}
+                                        </div>
+                                        <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px', display: item.description ? 'block' : 'none' }}>
+                                          {item.description}
+                                        </div>
+                                      </div>
+                                      <div style={{ fontWeight: '700', marginLeft: '8px', textAlign: 'right', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)', whiteSpace: 'nowrap', display: item.points !== 0 ? 'block' : 'none' }}>
+                                        {item.points > 0 ? '+' : ''}{item.points}
                                       </div>
                                     </div>
-                                    <div style={{ fontWeight: '700', marginLeft: '8px', textAlign: 'right', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)', whiteSpace: 'nowrap', display: item.points !== 0 ? 'block' : 'none' }}>
-                                      {item.points > 0 ? '+' : ''}{item.points}
-                                    </div>
-                                  </div>
-                                ))}
-                                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '2px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '11px' }}>
-                                  <span>Total</span>
-                                  <span style={{ color: '#9c27b0' }}>{adjustedScore}</span>
-                                </div>
+                                  )
+                                })}
                               </>
                             )
                           })()}
                         </div>
-                      </div>
-                    )}
-
-                    {emailResult.identitySignals && (emailResult.identitySignals.positive.length > 0 || emailResult.identitySignals.negative.length > 0) && (
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>
-                        {emailResult.identitySignals.positive.length > 0 && (
-                          <div style={{ marginBottom: '4px' }}>
-                            <strong style={{ color: '#4caf50' }}>✓ Positive:</strong> {emailResult.identitySignals.positive.join(', ')}
-                          </div>
-                        )}
-                        {emailResult.identitySignals.negative.length > 0 && (
-                          <div>
-                            <strong style={{ color: '#ef5350' }}>✗ Negative:</strong> {emailResult.identitySignals.negative.join(', ')}
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -855,8 +941,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                   </div>
                 )}
 
-                {/* Domain Analysis */}
-                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && (
+                {/* Domain Analysis - Only for valid emails */}
+                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (
                   <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
                     <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
                       DOMAIN ANALYSIS
