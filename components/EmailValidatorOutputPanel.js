@@ -76,21 +76,21 @@ function calculateDnsRecordPenalties(dnsRecord) {
       const mxProvider = getMxProvider(primaryMx.hostname)
 
       if (mxProvider) {
-        // Major managed provider - small risk reduction
-        penalties.push({ label: 'MX Provider Quality', points: -5, description: `Mail routed through ${mxProvider} (managed provider) — more reliable` })
-        totalPenalty += 5
+        // Major managed provider - small risk reduction (bonus)
+        penalties.push({ label: 'MX Provider Quality', points: -3, description: `Mail routed through ${mxProvider} (managed provider) — more reliable` })
+        totalPenalty -= 3
       } else {
-        // Unknown/bare infrastructure - small risk increase
+        // Unknown/bare infrastructure - small risk increase (penalty)
         penalties.push({ label: 'Custom Mail Infrastructure', points: 5, description: 'Self-hosted or custom mail server — potentially less stable' })
-        totalPenalty -= 5 // Subtract bonus instead (increases risk)
+        totalPenalty += 5
       }
     }
 
     // Check MX redundancy
     if (dnsRecord.mxRecords.length >= 2) {
       // Multiple MX records indicate mature, redundant setup
-      penalties.push({ label: 'MX Redundancy', points: -4, description: 'Multiple MX records configured — redundant, mature mail setup' })
-      totalPenalty += 4
+      penalties.push({ label: 'MX Redundancy', points: -2, description: 'Multiple MX records configured — redundant, mature mail setup' })
+      totalPenalty += 2
     }
   }
 
@@ -126,8 +126,8 @@ function calculateDnsRecordPenalties(dnsRecord) {
     // Check for DMARC reporting configuration
     if (hasDmarcReporting(dnsRecord.dmarcRecord)) {
       // Domain has reporting configured - shows they monitor abuse
-      penalties.push({ label: 'DMARC Reporting', points: -4, description: 'DMARC reporting configured (rua/ruf) — domain monitors authentication failures' })
-      totalPenalty += 4
+      penalties.push({ label: 'DMARC Reporting', points: -3, description: 'DMARC reporting configured (rua/ruf) — domain monitors authentication failures' })
+      totalPenalty += 3
     }
   }
 
@@ -136,6 +136,19 @@ function calculateDnsRecordPenalties(dnsRecord) {
 
 export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
+
+  // Merge DNS data into results for JSON output
+  const mergedResult = React.useMemo(() => {
+    if (!result) return result
+
+    return {
+      ...result,
+      results: result.results.map(emailResult => ({
+        ...emailResult,
+        dnsRecord: dnsData[emailResult.email] || undefined
+      }))
+    }
+  }, [result, dnsData])
 
   // Fetch DNS data for valid emails immediately (no debounce)
   React.useEffect(() => {
@@ -965,7 +978,7 @@ export default function EmailValidatorOutputPanel({ result }) {
     {
       id: 'json',
       label: 'JSON',
-      content: JSON.stringify(result, null, 2),
+      content: JSON.stringify(mergedResult, null, 2),
       contentType: 'json',
     },
   ]
