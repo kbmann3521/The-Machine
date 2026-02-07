@@ -167,16 +167,123 @@ export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
   const dnsAbortControllerRef = React.useRef(null)
 
-  // Merge DNS data into results for JSON output
+  // Merge DNS data into results for JSON output and update valid flags/stats based on DNS
   const mergedResult = React.useMemo(() => {
     if (!result) return result
 
+    // Update individual results with DNS data and recalculated valid status
+    const updatedResults = result.results.map(emailResult => {
+      const dnsRecord = dnsData[emailResult.email]
+      const isInvalidByDns = dnsRecord?.mailHostType === 'none'
+      const isActuallyValid = emailResult.valid && !emailResult.isDisposable && !isInvalidByDns
+
+      // Calculate adjusted DHS based on DNS penalties
+      let adjustedDhs = emailResult.dhsScore || 75
+      let finalIdentityScore = emailResult.identityScore || 0
+
+      if (isActuallyValid && dnsRecord) {
+        const { totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
+        adjustedDhs = Math.max(0, Math.min(100, adjustedDhs - dnsTotalAdjustment))
+        const lcsScore = emailResult.lcsScore || 100
+        finalIdentityScore = Math.min(adjustedDhs, lcsScore)
+      }
+
+      // Ensure no-mailserver issue is in the issues array
+      let issues = emailResult.issues || []
+      if (isInvalidByDns && !issues.includes('This domain has no mail server records (MX/A/AAAA). Email cannot be delivered.')) {
+        issues = [...issues, 'This domain has no mail server records (MX/A/AAAA). Email cannot be delivered.']
+      }
+
+      return {
+        ...emailResult,
+        valid: isActuallyValid,
+        isInvalid: !isActuallyValid || emailResult.isDisposable,
+        identityScore: finalIdentityScore,
+        dhsScore: adjustedDhs,
+        issues,
+        dnsRecord: dnsRecord || undefined
+      }
+    })
+
+    // Recalculate summary stats for JSON output (using adjusted identity scores)
+    const validCount = updatedResults.filter(r => r.valid).length
+    const invalidCount = updatedResults.length - validCount
+
+    const validEmailsForAverage = updatedResults.filter(r => r.valid)
+    let newAverageIdentityScore = undefined
+    let newAverageCampaignReadiness = undefined
+
+    if (validEmailsForAverage.length > 0) {
+      newAverageIdentityScore = Math.round(
+        validEmailsForAverage.reduce((sum, r) => sum + r.identityScore, 0) / validEmailsForAverage.length
+      )
+
+      if (newAverageIdentityScore >= 85) newAverageCampaignReadiness = 'Excellent'
+      else if (newAverageIdentityScore >= 70) newAverageCampaignReadiness = 'Good'
+      else if (newAverageIdentityScore >= 50) newAverageCampaignReadiness = 'Risky'
+      else newAverageCampaignReadiness = 'Poor'
+    }
+
     return {
       ...result,
-      results: result.results.map(emailResult => ({
+      valid: validCount,
+      invalid: invalidCount,
+      averageIdentityScore: newAverageIdentityScore,
+      averageCampaignReadiness: newAverageCampaignReadiness,
+      results: updatedResults
+    }
+  }, [result, dnsData])
+
+  // Recalculate stats based on DNS data
+  // An email is invalid if: backend says invalid OR disposable OR no mail server records
+  const recalculatedStats = React.useMemo(() => {
+    if (!result || !result.results) return null
+
+    const updatedResults = result.results.map(emailResult => {
+      const dnsRecord = dnsData[emailResult.email]
+      const isInvalidByDns = dnsRecord?.mailHostType === 'none'
+      const isActuallyValid = emailResult.valid && !emailResult.isDisposable && !isInvalidByDns
+
+      // Calculate adjusted DHS based on DNS penalties
+      let adjustedIdentityScore = emailResult.identityScore || 0
+      if (isActuallyValid && dnsRecord) {
+        const { totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
+        const adjustedDhs = Math.max(0, Math.min(100, (emailResult.dhsScore || 75) - dnsTotalAdjustment))
+        const lcsScore = emailResult.lcsScore || 100
+        adjustedIdentityScore = Math.min(adjustedDhs, lcsScore)
+      }
+
+      return {
         ...emailResult,
-        dnsRecord: dnsData[emailResult.email] || undefined
-      }))
+        isActuallyValid,
+        adjustedIdentityScore
+      }
+    })
+
+    const validCount = updatedResults.filter(r => r.isActuallyValid).length
+    const invalidCount = updatedResults.length - validCount
+
+    // Recalculate average only for actually valid emails (using adjusted scores)
+    const validEmailsForAverage = updatedResults.filter(r => r.isActuallyValid)
+    let newAverageIdentityScore = undefined
+    let newAverageCampaignReadiness = undefined
+
+    if (validEmailsForAverage.length > 0) {
+      newAverageIdentityScore = Math.round(
+        validEmailsForAverage.reduce((sum, r) => sum + r.adjustedIdentityScore, 0) / validEmailsForAverage.length
+      )
+
+      if (newAverageIdentityScore >= 85) newAverageCampaignReadiness = 'Excellent'
+      else if (newAverageIdentityScore >= 70) newAverageCampaignReadiness = 'Good'
+      else if (newAverageIdentityScore >= 50) newAverageCampaignReadiness = 'Risky'
+      else newAverageCampaignReadiness = 'Poor'
+    }
+
+    return {
+      valid: validCount,
+      invalid: invalidCount,
+      averageIdentityScore: newAverageIdentityScore,
+      averageCampaignReadiness: newAverageCampaignReadiness
     }
   }, [result, dnsData])
 
@@ -284,8 +391,8 @@ export default function EmailValidatorOutputPanel({ result }) {
           borderRadius: '4px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>TOTAL</div>
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#4caf50' }}>{result.total}</div>
+          <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>TOTAL</div>
+          <div style={{ fontSize: '20px', fontWeight: '600', color: '#4caf50' }}>{result.total}</div>
         </div>
 
         <div style={{
@@ -295,8 +402,8 @@ export default function EmailValidatorOutputPanel({ result }) {
           borderRadius: '4px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>VALID</div>
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#4caf50' }}>{result.valid}</div>
+          <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>VALID</div>
+          <div style={{ fontSize: '20px', fontWeight: '600', color: '#4caf50' }}>{recalculatedStats?.valid ?? result.valid}</div>
         </div>
 
         <div style={{
@@ -306,8 +413,8 @@ export default function EmailValidatorOutputPanel({ result }) {
           borderRadius: '4px',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>INVALID</div>
-          <div style={{ fontSize: '18px', fontWeight: '600', color: '#ef5350' }}>{result.invalid}</div>
+          <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>INVALID</div>
+          <div style={{ fontSize: '20px', fontWeight: '600', color: '#ef5350' }}>{recalculatedStats?.invalid ?? result.invalid}</div>
         </div>
 
         {result.mailcheckerAvailable && (
@@ -318,12 +425,12 @@ export default function EmailValidatorOutputPanel({ result }) {
             borderRadius: '4px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>MAILCHECKER</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#2196f3' }}>Active</div>
+            <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>MAILCHECKER</div>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: '#2196f3' }}>Active</div>
           </div>
         )}
 
-        {result.averageIdentityScore !== undefined && (
+        {recalculatedStats?.averageIdentityScore !== undefined && (
           <div style={{
             padding: '12px',
             backgroundColor: 'rgba(156, 39, 176, 0.1)',
@@ -331,9 +438,9 @@ export default function EmailValidatorOutputPanel({ result }) {
             borderRadius: '4px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG CAMPAIGN READINESS</div>
-            <div style={{ fontSize: '16px', fontWeight: '600', color: '#9c27b0' }}>{result.averageCampaignReadiness}</div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>{result.averageIdentityScore}</div>
+            <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG CAMPAIGN READINESS</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: '#9c27b0' }}>{recalculatedStats.averageCampaignReadiness}</div>
+            <div style={{ fontSize: '15px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>{recalculatedStats.averageIdentityScore}</div>
           </div>
         )}
       </div>
@@ -342,7 +449,7 @@ export default function EmailValidatorOutputPanel({ result }) {
       {result.results && result.results.length > 0 && (
         <div>
           <div style={{
-            fontSize: '12px',
+            fontSize: '14px',
             fontWeight: '600',
             color: 'var(--color-text-secondary)',
             marginBottom: '12px',
@@ -365,10 +472,10 @@ export default function EmailValidatorOutputPanel({ result }) {
               }}>
                 {/* Email header with status */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ color: !emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : '#4caf50', fontSize: '14px', flexShrink: 0 }}>
+                  <span style={{ color: !emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : '#4caf50', fontSize: '16px', flexShrink: 0 }}>
                     {!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '✗' : '✓'}
                   </span>
-                  <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500', wordBreak: 'break-all', overflowWrap: 'break-word', minWidth: 0 }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '15px', fontWeight: '500', wordBreak: 'break-all', overflowWrap: 'break-word', minWidth: 0 }}>
                     {emailResult.email}
                   </span>
                 </div>
@@ -381,7 +488,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     backgroundColor: !emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.15)' : 'rgba(76, 175, 80, 0.15)',
                     color: !emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : '#4caf50',
                     borderRadius: '3px',
-                    fontSize: '11px',
+                    fontSize: '13px',
                     fontWeight: '600',
                     textTransform: 'uppercase',
                   }}>
@@ -428,15 +535,15 @@ export default function EmailValidatorOutputPanel({ result }) {
                 {/* Invalid emails: Show ONLY issues, nothing else */}
                 {(!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none') && (
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '600', color: '#ef5350', marginBottom: '4px' }}>Issues:</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#ef5350', marginBottom: '4px' }}>Issues:</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                       {dnsData[emailResult.email]?.mailHostType === 'none' && (
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • This domain has no mail server records (MX/A/AAAA). Email cannot be delivered.
                         </div>
                       )}
                       {emailResult.issues?.map((issue, issueIdx) => (
-                        <div key={issueIdx} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                        <div key={issueIdx} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • {issue}
                         </div>
                       ))}
@@ -447,27 +554,27 @@ export default function EmailValidatorOutputPanel({ result }) {
                 {/* Valid emails: Show warnings and details */}
                 {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0) && (
                   <div>
-                    <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
                       ⚠ Warnings:
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                       {emailResult.roleBasedEmail && (
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Role-based email (may not be a real user account)
                         </div>
                       )}
                       {emailResult.hasBadReputation && (
-                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Domain has poor reputation or is on blocklist
                         </div>
                       )}
                       {emailResult.usernameHeuristics?.map((heuristic, hIdx) => (
-                        <div key={`uh-${hIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                        <div key={`uh-${hIdx}`} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Username: {heuristic}
                         </div>
                       ))}
                       {emailResult.domainHeuristics?.map((heuristic, dhIdx) => (
-                        <div key={`dh-${dhIdx}`} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                        <div key={`dh-${dhIdx}`} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Domain: {heuristic}
                         </div>
                       ))}
@@ -479,7 +586,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                 {/* Campaign Readiness (Identity Score) Panel - Only show for valid emails */}
                 {emailResult.identityScore !== undefined && emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (
                   <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '10px', marginBottom: '10px' }}>
-                    <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Campaign Readiness
                     </div>
                     {(() => {
@@ -508,14 +615,14 @@ export default function EmailValidatorOutputPanel({ result }) {
                       return (
                         <>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '20px', fontWeight: '700', color: readinessLevel === 'Excellent' ? '#4caf50' : readinessLevel === 'Good' ? '#2196f3' : readinessLevel === 'Risky' ? '#ff9800' : '#ef5350' }}>
+                            <span style={{ fontSize: '22px', fontWeight: '700', color: readinessLevel === 'Excellent' ? '#4caf50' : readinessLevel === 'Good' ? '#2196f3' : readinessLevel === 'Risky' ? '#ff9800' : '#ef5350' }}>
                               {adjustedScore}
                             </span>
-                            <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                            <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                               / {readinessLevel}
                             </span>
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', lineHeight: '1.4', marginBottom: '8px' }}>
+                          <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.4', marginBottom: '8px' }}>
                             Identity-based score for email campaign suitability (0–100)
                           </div>
                         </>
@@ -602,10 +709,10 @@ export default function EmailValidatorOutputPanel({ result }) {
                                   if (item.isSectionHeader) {
                                     return (
                                       <div key={idx} style={{ marginTop: idx > 0 ? '8px' : '0px', marginBottom: '4px', paddingBottom: '4px', borderBottom: '1px solid rgba(156, 39, 176, 0.2)' }}>
-                                        <div style={{ fontSize: '10px', fontWeight: '700', color: '#9c27b0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#9c27b0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                           {item.label}: {Math.round(item.points)}
                                         </div>
-                                        {item.description && <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{item.description}</div>}
+                                        {item.description && <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{item.description}</div>}
                                       </div>
                                     )
                                   }
@@ -613,10 +720,10 @@ export default function EmailValidatorOutputPanel({ result }) {
                                   if (item.isCapNote) {
                                     return (
                                       <div key={idx} style={{ padding: '6px', backgroundColor: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.2)', borderRadius: '3px', marginTop: '4px' }}>
-                                        <div style={{ fontSize: '10px', fontWeight: '600', color: '#ff9800' }}>
+                                        <div style={{ fontSize: '12px', fontWeight: '600', color: '#ff9800' }}>
                                           {item.label}
                                         </div>
-                                        <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                                           {item.description}
                                         </div>
                                       </div>
@@ -625,10 +732,10 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                                   if (item.isFinalScore) {
                                     return (
-                                      <div key={idx} style={{ padding: '6px 0', marginTop: '4px', paddingTop: '6px', borderTop: '1px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: '600', color: '#9c27b0' }}>
+                                      <div key={idx} style={{ padding: '6px 0', marginTop: '4px', paddingTop: '6px', borderTop: '1px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#9c27b0' }}>
                                         <div style={{ flex: 1 }}>
                                           <div>{item.label}</div>
-                                          <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px', fontWeight: '400' }}>
+                                          <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '1px', fontWeight: '400' }}>
                                             {item.description}
                                           </div>
                                         </div>
@@ -640,12 +747,12 @@ export default function EmailValidatorOutputPanel({ result }) {
                                   }
 
                                   return (
-                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: item.isSubItem ? '10px' : '11px', color: 'var(--color-text-secondary)', paddingBottom: idx < breakdownWithDns.length - 1 ? '4px' : '0px', borderBottom: idx < breakdownWithDns.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none', paddingLeft: item.isSubItem ? '24px' : '0px' }}>
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: item.isSubItem ? '12px' : '13px', color: 'var(--color-text-secondary)', paddingBottom: idx < breakdownWithDns.length - 1 ? '4px' : '0px', borderBottom: idx < breakdownWithDns.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none', paddingLeft: item.isSubItem ? '24px' : '0px' }}>
                                       <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: item.isSubItem ? '400' : '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
                                           {item.label}
                                         </div>
-                                        <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px', display: item.description ? 'block' : 'none' }}>
+                                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '1px', display: item.description ? 'block' : 'none' }}>
                                           {item.description}
                                         </div>
                                       </div>
@@ -944,10 +1051,10 @@ export default function EmailValidatorOutputPanel({ result }) {
                 {/* Domain Analysis - Only for valid emails */}
                 {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (
                   <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
                       DOMAIN ANALYSIS
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '14px' }}>
                       {dnsData[emailResult.email] ? (
                         <>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -961,7 +1068,7 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                           {dnsData[emailResult.email].mailHostType && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', padding: '6px', backgroundColor: dnsData[emailResult.email].mailHostType === 'mx' ? 'rgba(76, 175, 80, 0.1)' : dnsData[emailResult.email].mailHostType === 'fallback' ? 'rgba(255, 152, 0, 0.1)' : 'rgba(239, 83, 80, 0.1)', borderRadius: '3px' }}>
-                              <span style={{ color: dnsData[emailResult.email].mailHostType === 'mx' ? '#4caf50' : dnsData[emailResult.email].mailHostType === 'fallback' ? '#ff9800' : '#ef5350', fontWeight: '600' }}>
+                              <span style={{ color: dnsData[emailResult.email].mailHostType === 'mx' ? '#4caf50' : dnsData[emailResult.email].mailHostType === 'fallback' ? '#ff9800' : '#ef5350', fontWeight: '600', fontSize: '14px' }}>
                                 {dnsData[emailResult.email].mailHostType === 'mx' ? '✓ Mail Server Type: MX' : dnsData[emailResult.email].mailHostType === 'fallback' ? '⚠ Mail Server Type: Fallback (A/AAAA)' : '✗ No Mail Server'}
                               </span>
                             </div>
@@ -969,10 +1076,10 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                           {dnsData[emailResult.email].mxRecords && dnsData[emailResult.email].mxRecords.length > 0 && dnsData[emailResult.email].mxRecords.some(mx => mx.hostname) ? (
                             <div style={{ marginTop: '4px' }}>
-                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>MX Records:</div>
+                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600', fontSize: '14px' }}>MX Records:</div>
                               <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {dnsData[emailResult.email].mxRecords.map((mx, mxIdx) => (
-                                  <div key={mxIdx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                  <div key={mxIdx} style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                                     [{mx.priority}] {mx.hostname}
                                   </div>
                                 ))}
@@ -980,12 +1087,12 @@ export default function EmailValidatorOutputPanel({ result }) {
                             </div>
                           ) : dnsData[emailResult.email].aRecords && dnsData[emailResult.email].aRecords.length > 0 ? (
                             <div style={{ marginTop: '4px' }}>
-                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600', fontSize: '14px' }}>
                                 A Records (Fallback):
                               </div>
                               <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {dnsData[emailResult.email].aRecords.map((rec, idx) => (
-                                  <div key={idx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                  <div key={idx} style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                                     {rec.address}
                                   </div>
                                 ))}
@@ -993,34 +1100,34 @@ export default function EmailValidatorOutputPanel({ result }) {
                             </div>
                           ) : dnsData[emailResult.email].aaaaRecords && dnsData[emailResult.email].aaaaRecords.length > 0 ? (
                             <div style={{ marginTop: '4px' }}>
-                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                              <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600', fontSize: '14px' }}>
                                 AAAA Records (Fallback):
                               </div>
                               <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 {dnsData[emailResult.email].aaaaRecords.map((rec, idx) => (
-                                  <div key={idx} style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                                  <div key={idx} style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                                     {rec.address}
                                   </div>
                                 ))}
                               </div>
                             </div>
                           ) : (
-                            <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                            <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
                               No mail server records found (MX, A, or AAAA)
                             </div>
                           )}
 
                           {/* SPF Record */}
                           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--color-border)' }}>
-                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600', fontSize: '14px' }}>
                               SPF Record:
                             </div>
                             {dnsData[emailResult.email].spfRecord ? (
-                              <div style={{ marginLeft: '20px', fontSize: '10px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                              <div style={{ marginLeft: '20px', fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
                                 ✓ {dnsData[emailResult.email].spfRecord}
                               </div>
                             ) : (
-                              <div style={{ marginLeft: '20px', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                              <div style={{ marginLeft: '20px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                                 ✗ No SPF record found
                               </div>
                             )}
@@ -1028,22 +1135,22 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                           {/* DMARC Record */}
                           <div style={{ marginTop: '8px' }}>
-                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
+                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600', fontSize: '14px' }}>
                               DMARC Record:
                             </div>
                             {dnsData[emailResult.email].dmarcRecord ? (
-                              <div style={{ marginLeft: '20px', fontSize: '10px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                              <div style={{ marginLeft: '20px', fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
                                 ✓ {dnsData[emailResult.email].dmarcRecord}
                               </div>
                             ) : (
-                              <div style={{ marginLeft: '20px', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
+                              <div style={{ marginLeft: '20px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                                 ✗ No DMARC record found
                               </div>
                             )}
                           </div>
                         </>
                       ) : (
-                        <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
                           Loading DNS data...
                         </div>
                       )}
@@ -1062,34 +1169,33 @@ export default function EmailValidatorOutputPanel({ result }) {
         backgroundColor: 'rgba(33, 150, 243, 0.05)',
         border: '1px solid rgba(33, 150, 243, 0.2)',
         borderRadius: '4px',
-        fontSize: '12px',
+        fontSize: '14px',
         color: 'var(--color-text-secondary)',
       }}>
         <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-primary)' }}>Features & Scoring System:</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px' }}>
-          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Validation:</div>
-          <div>✓ RFC-like syntax validation</div>
-          <div>✓ Disposable domain detection</div>
-          <div>✓ Role-based email detection</div>
-          <div>✓ ICANN TLD validation</div>
-          <div>✓ DNS MX record lookup</div>
-          <div>✓ Domain existence verification</div>
-          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Deliverability Scoring (0-100):</div>
-          <div>✓ Server-side delivery probability</div>
-          <div>✓ MX record validity</div>
-          <div>✓ Provider reputation (Gmail, Outlook, Yahoo)</div>
-          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Campaign Readiness / Identity Score (0-100):</div>
-          <div>✓ Measures identity-based vs expressive/narrative patterns</div>
-          <div>✓ Personal name detection</div>
-          <div>✓ Role-based email scoring</div>
-          <div>✓ Structure and simplicity analysis</div>
-          <div>✓ Detects abusive/hateful/adult content penalties</div>
-          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px' }}>Enterprise Features:</div>
-          <div>✓ Combined letter grade (A+ to F)</div>
-          <div>✓ Brand impersonation detection</div>
-          <div>✓ Business email provider detection</div>
-          <div>✓ TLD quality classification (high/low trust)</div>
-          <div>✓ Username semantic analysis (names, brand impersonation, offensive terms)</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px', fontSize: '14px' }}>Validation:</div>
+          <div style={{ fontSize: '13px' }}>✓ RFC-like syntax validation</div>
+          <div style={{ fontSize: '13px' }}>✓ Disposable domain detection</div>
+          <div style={{ fontSize: '13px' }}>✓ Role-based email detection</div>
+          <div style={{ fontSize: '13px' }}>✓ ICANN TLD validation</div>
+          <div style={{ fontSize: '13px' }}>✓ DNS MX/A/AAAA record lookup</div>
+          <div style={{ fontSize: '13px' }}>✓ Domain existence verification</div>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px', fontSize: '14px' }}>Campaign Readiness / Identity Score (0-100):</div>
+          <div style={{ fontSize: '13px' }}>✓ Domain Health Score (infrastructure & maturity)</div>
+          <div style={{ fontSize: '13px' }}>✓ Local-Part Credibility Score (username quality)</div>
+          <div style={{ fontSize: '13px' }}>✓ Personal name detection</div>
+          <div style={{ fontSize: '13px' }}>✓ Role-based email scoring</div>
+          <div style={{ fontSize: '13px' }}>✓ DNS penalties (SPF, DMARC, MX redundancy)</div>
+          <div style={{ fontSize: '13px' }}>✓ Provider reputation (Gmail, Outlook, Yahoo, etc.)</div>
+          <div style={{ fontSize: '13px' }}>✓ TLD quality classification (high/low trust)</div>
+          <div style={{ fontSize: '13px' }}>✓ Structure and simplicity analysis</div>
+          <div style={{ fontSize: '13px' }}>✓ Detects abusive/hateful/adult content penalties</div>
+          <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px', fontSize: '14px' }}>Advanced Detection:</div>
+          <div style={{ fontSize: '13px' }}>✓ Brand impersonation detection</div>
+          <div style={{ fontSize: '13px' }}>✓ Phishing risk assessment</div>
+          <div style={{ fontSize: '13px' }}>✓ Business email provider detection</div>
+          <div style={{ fontSize: '13px' }}>✓ Username semantic analysis (names, offensive terms)</div>
         </div>
       </div>
     </div>
