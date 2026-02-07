@@ -160,11 +160,41 @@ function calculateDnsRecordPenalties(dnsRecord) {
     }
   }
 
+  // SUBDOMAIN MAIL SANITY CHECK
+  // Check if this is a subdomain (has parent domain) and if mail infra is inherited
+  if (dnsRecord.parentDomain) {
+    const parentDomain = dnsRecord.parentDomain
+    let inheritedSignals = []
+
+    // Check if MX records are inherited from parent (subdomain has no explicit MX)
+    if ((!dnsRecord.mxRecords || dnsRecord.mxRecords.length === 0) && parentDomain.mxRecords && parentDomain.mxRecords.length > 0) {
+      inheritedSignals.push('MX')
+    }
+
+    // Check if SPF is inherited (no explicit SPF on subdomain but exists on parent)
+    if (!dnsRecord.spfRecord && parentDomain.spfRecord) {
+      inheritedSignals.push('SPF')
+    }
+
+    // Check if DMARC is inherited (no explicit DMARC on subdomain but exists on parent)
+    if (!dnsRecord.dmarcRecord && parentDomain.dmarcRecord) {
+      inheritedSignals.push('DMARC')
+    }
+
+    if (inheritedSignals.length > 0) {
+      // Mail infrastructure inherited from parent - minor penalty
+      const inheritedList = inheritedSignals.join(', ')
+      penalties.push({ label: 'Mail Inherited from Parent', points: -5, description: `${inheritedList} records inherited from parent domain (${parentDomain.domain}) — less mature subdomain setup` })
+      totalPenalty += 5
+    }
+  }
+
   return { penalties, totalPenalty }
 }
 
 export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
+  const [loadingEmails, setLoadingEmails] = useState(new Set())
   const dnsAbortControllerRef = React.useRef(null)
 
   // Merge DNS data into results for JSON output and update valid flags/stats based on DNS
@@ -180,12 +210,49 @@ export default function EmailValidatorOutputPanel({ result }) {
       // Calculate adjusted DHS based on DNS penalties
       let adjustedDhs = emailResult.dhsScore || 75
       let finalIdentityScore = emailResult.identityScore || 0
+      let dnsPenalties = []
 
       if (isActuallyValid && dnsRecord) {
-        const { totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
+        const { penalties, totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
+        dnsPenalties = penalties
         adjustedDhs = Math.max(0, Math.min(100, adjustedDhs - dnsTotalAdjustment))
         const lcsScore = emailResult.lcsScore || 100
         finalIdentityScore = Math.min(adjustedDhs, lcsScore)
+      }
+
+      // Reconstruct identityBreakdown with adjusted scores and DNS penalties (no separators)
+      let updatedIdentityBreakdown = []
+      if (emailResult.identityBreakdown && emailResult.identityBreakdown.length > 0) {
+        // Filter out separators and update DHS/final score headers
+        updatedIdentityBreakdown = emailResult.identityBreakdown
+          .filter(item => !item.isSeparator && item.label !== '')
+          .map(item => {
+            // Update DHS header to show adjusted value
+            if (item.isSectionHeader && item.label.startsWith('Domain Health Score')) {
+              return {
+                ...item,
+                points: adjustedDhs,
+                description: `Infrastructure & domain maturity (adjusted: ${adjustedDhs})`
+              }
+            }
+            // Update final score to show adjusted value
+            if (item.label === 'Final Campaign Readiness Score') {
+              return {
+                ...item,
+                points: finalIdentityScore,
+                description: `min(Domain Health Score (${adjustedDhs}), Local-Part Credibility Score (${emailResult.lcsScore || 100}))`
+              }
+            }
+            return item
+          })
+
+        // Insert DNS penalties before the LCS section
+        if (dnsPenalties.length > 0) {
+          const lcsIndex = updatedIdentityBreakdown.findIndex(item => item.isSectionHeader && item.label.startsWith('Local-Part'))
+          if (lcsIndex > 0) {
+            updatedIdentityBreakdown.splice(lcsIndex, 0, ...dnsPenalties)
+          }
+        }
       }
 
       // Ensure no-mailserver issue is in the issues array
@@ -200,6 +267,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         isInvalid: !isActuallyValid || emailResult.isDisposable,
         identityScore: finalIdentityScore,
         dhsScore: adjustedDhs,
+        identityBreakdown: updatedIdentityBreakdown.length > 0 ? updatedIdentityBreakdown : emailResult.identityBreakdown,
         issues,
         dnsRecord: dnsRecord || undefined
       }
@@ -299,51 +367,61 @@ export default function EmailValidatorOutputPanel({ result }) {
       }
 
       const fetchDnsData = async () => {
+        const validEmails = result.results.filter(emailResult => emailResult.valid)
+
+        // Initialize loading state for all valid emails
+        setLoadingEmails(new Set(validEmails.map(e => e.email)))
+
         const newDnsData = {}
         const abortController = new AbortController()
         dnsAbortControllerRef.current = abortController
 
         // Create promises for each domain lookup
-        const dnsPromises = result.results
-          .filter(emailResult => emailResult.valid)
-          .map(async (emailResult) => {
-            const domain = emailResult.email.split('@')[1]
-            if (!domain) return
+        const dnsPromises = validEmails.map(async (emailResult) => {
+          const domain = emailResult.email.split('@')[1]
+          if (!domain) return
+
+          try {
+            const timeoutId = setTimeout(() => abortController.abort(), 8000) // 8 second timeout
 
             try {
-              const timeoutId = setTimeout(() => abortController.abort(), 8000) // 8 second timeout
+              const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+              const dnsUrl = `${baseUrl}/api/tools/email-validator-dns`
 
-              try {
-                const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
-                const dnsUrl = `${baseUrl}/api/tools/email-validator-dns`
+              const response = await fetch(dnsUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ domain }),
+                signal: abortController.signal,
+                credentials: 'same-origin',
+              })
+              clearTimeout(timeoutId)
 
-                const response = await fetch(dnsUrl, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ domain }),
-                  signal: abortController.signal,
-                  credentials: 'same-origin',
-                })
-                clearTimeout(timeoutId)
-
-                if (response.ok) {
-                  const data = await response.json()
-                  newDnsData[emailResult.email] = data
-                } else {
-                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-                }
-              } catch (fetchError) {
-                clearTimeout(timeoutId)
-                if (fetchError.name === 'AbortError') {
-                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
-                } else {
-                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-                }
+              if (response.ok) {
+                const data = await response.json()
+                newDnsData[emailResult.email] = data
+              } else {
+                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
               }
-            } catch (error) {
-              newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+            } catch (fetchError) {
+              clearTimeout(timeoutId)
+              if (fetchError.name === 'AbortError') {
+                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
+              } else {
+                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+              }
             }
+          } catch (error) {
+            newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+          }
+
+          // Remove this email from loading state once its DNS data arrives
+          setLoadingEmails(prev => {
+            const updated = new Set(prev)
+            updated.delete(emailResult.email)
+            return updated
           })
+        })
 
         // Wait for all DNS lookups to complete (even partial)
         await Promise.all(dnsPromises).catch(() => {}) // Ignore any errors, we handled them individually
@@ -462,7 +540,53 @@ export default function EmailValidatorOutputPanel({ result }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {result.results.map((emailResult, idx) => (
+            {result.results.map((emailResult, idx) => {
+              // Invalid emails render immediately (no DNS lookup needed)
+              const isInvalidEmail = !emailResult.valid || emailResult.isDisposable
+
+              // Valid emails only render after DNS data arrives
+              const hasDnsData = dnsData[emailResult.email] !== undefined
+              const shouldShowLoader = !isInvalidEmail && !hasDnsData
+
+              if (shouldShowLoader) {
+                return (
+                  <div key={idx} style={{
+                    padding: '16px 14px',
+                    backgroundColor: 'var(--color-background-tertiary)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '4px',
+                    borderLeft: '3px solid rgba(156, 39, 176, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    minHeight: '60px',
+                  }}>
+                    {/* Modern spinner */}
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      border: '2px solid rgba(156, 39, 176, 0.2)',
+                      borderTopColor: '#9c27b0',
+                      animation: 'spin 0.8s linear infinite',
+                    }} />
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}>
+                      <div style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
+                        {emailResult.email}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                        Resolving DNS records...
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+
+              return (
               <div key={idx} style={{
                 padding: '12px 14px',
                 backgroundColor: 'var(--color-background-tertiary)',
@@ -1158,7 +1282,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                   </div>
                 )}
               </div>
-            ))}
+            )
+            })}
           </div>
         </div>
       )}
