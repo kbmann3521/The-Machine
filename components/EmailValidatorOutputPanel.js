@@ -30,23 +30,45 @@ function getMxProvider(mxHostname) {
   const hostname = mxHostname.toLowerCase()
 
   // Major managed providers (enterprise-grade)
-  if (hostname.includes('aspmx.l.google.com') || hostname.includes('aspmx.google.com') || hostname.includes('googlemail.com')) {
+  // Google (Gmail, Google Workspace)
+  if (hostname.includes('gmail-smtp-in') || hostname.includes('aspmx.l.google.com') || hostname.includes('aspmx.google.com') || hostname.includes('googlemail.com') || hostname.includes('.google.com')) {
     return 'google'
   }
+  // Microsoft (Outlook, Hotmail, Office 365)
   if (hostname.includes('protection.outlook.com') || hostname.includes('outlook.com') || hostname.includes('mail.protection.outlook.com')) {
     return 'microsoft'
   }
+  // Yahoo/AOL
   if (hostname.includes('yahoodns.net') || hostname.includes('mxlogic.net')) {
     return 'yahoo'
   }
+  // Apple (iCloud)
+  if (hostname.includes('mail.icloud.com') || hostname.includes('.apple.com')) {
+    return 'apple'
+  }
+  // Zoho
   if (hostname.includes('zoho.com')) {
     return 'zoho'
   }
-  if (hostname.includes('protonmail') || hostname.includes('pmg.mail.proton')) {
+  // ProtonMail
+  if (hostname.includes('protonmail') || hostname.includes('pmg.mail.proton') || hostname.includes('protonmail.ch')) {
     return 'proton'
   }
+  // Fastmail
   if (hostname.includes('fastmail.com') || hostname.includes('messagingengine.com')) {
     return 'fastmail'
+  }
+  // Amazon (Amazon SES, Amazon Workspace)
+  if (hostname.includes('amazon-smtp') || hostname.includes('amazonses.com') || hostname.includes('inbound-smtp') || hostname.includes('bounce.amazonaws.com')) {
+    return 'amazon'
+  }
+  // SendGrid
+  if (hostname.includes('sendgrid.net') || hostname.includes('sendgrid.com')) {
+    return 'sendgrid'
+  }
+  // Mailgun
+  if (hostname.includes('mailgun.org') || hostname.includes('mailgun.com')) {
+    return 'mailgun'
   }
 
   return null
@@ -76,21 +98,29 @@ function calculateDnsRecordPenalties(dnsRecord) {
       const mxProvider = getMxProvider(primaryMx.hostname)
 
       if (mxProvider) {
-        // Major managed provider - small risk reduction (bonus)
-        penalties.push({ label: 'MX Provider Quality', points: -3, description: `Mail routed through ${mxProvider} (managed provider) — more reliable` })
+        // Major managed provider - small bonus (reduces risk)
+        penalties.push({ label: 'MX Provider Quality', points: 3, description: `Mail routed through ${mxProvider} (managed provider) — more reliable` })
         totalPenalty -= 3
       } else {
-        // Unknown/bare infrastructure - small risk increase (penalty)
-        penalties.push({ label: 'Custom Mail Infrastructure', points: 5, description: 'Self-hosted or custom mail server — potentially less stable' })
-        totalPenalty += 5
+        // Check if it looks like a custom/self-hosted setup (mail.domain.com pattern)
+        const isLikelyCustom = primaryMx.hostname.startsWith('mail.') ||
+                               primaryMx.hostname.includes(`mail.${dnsRecord.domain}`) ||
+                               /^mail\d*\./.test(primaryMx.hostname)
+
+        if (isLikelyCustom) {
+          // Self-hosted mail server - penalty (increases risk)
+          penalties.push({ label: 'Custom Mail Infrastructure', points: -5, description: 'Self-hosted mail server — potentially less stable' })
+          totalPenalty += 5
+        }
+        // Otherwise: unknown provider but could be legitimate hosted - don't penalize
       }
     }
 
     // Check MX redundancy
     if (dnsRecord.mxRecords.length >= 2) {
-      // Multiple MX records indicate mature, redundant setup
-      penalties.push({ label: 'MX Redundancy', points: -2, description: 'Multiple MX records configured — redundant, mature mail setup' })
-      totalPenalty += 2
+      // Multiple MX records indicate mature, redundant setup - small bonus
+      penalties.push({ label: 'MX Redundancy', points: 2, description: 'Multiple MX records configured — redundant, mature mail setup' })
+      totalPenalty -= 2
     }
   }
 
@@ -110,24 +140,24 @@ function calculateDnsRecordPenalties(dnsRecord) {
     const dmarcPolicy = extractDmarcPolicy(dnsRecord.dmarcRecord)
 
     if (dmarcPolicy === 'reject') {
-      // Strong enforcement - small bonus
-      penalties.push({ label: 'DMARC Policy: Reject', points: -5, description: 'Strict DMARC enforcement (p=reject) — strong authentication' })
-      totalPenalty += 5
+      // Strong enforcement - bonus
+      penalties.push({ label: 'DMARC Policy: Reject', points: 5, description: 'Strict DMARC enforcement (p=reject) — strong authentication' })
+      totalPenalty -= 5
     } else if (dmarcPolicy === 'quarantine') {
       // Moderate enforcement - neutral
       penalties.push({ label: 'DMARC Policy: Quarantine', points: 0, description: 'Moderate DMARC enforcement (p=quarantine) — takes spoofing seriously' })
       totalPenalty += 0
     } else if (dmarcPolicy === 'none') {
-      // Weak enforcement - mild risk
-      penalties.push({ label: 'DMARC Policy: None', points: 5, description: 'Weak DMARC enforcement (p=none) — monitoring only, not enforced' })
-      totalPenalty -= 5
+      // Weak enforcement - mild penalty
+      penalties.push({ label: 'DMARC Policy: None', points: -5, description: 'Weak DMARC enforcement (p=none) — monitoring only, not enforced' })
+      totalPenalty += 5
     }
 
     // Check for DMARC reporting configuration
     if (hasDmarcReporting(dnsRecord.dmarcRecord)) {
-      // Domain has reporting configured - shows they monitor abuse
-      penalties.push({ label: 'DMARC Reporting', points: -3, description: 'DMARC reporting configured (rua/ruf) — domain monitors authentication failures' })
-      totalPenalty += 3
+      // Domain has reporting configured - maturity signal
+      penalties.push({ label: 'DMARC Monitoring', points: 3, description: 'Domain receives and monitors authentication failure reports (rua/ruf) — shows mature security practices' })
+      totalPenalty -= 3
     }
   }
 
@@ -136,6 +166,7 @@ function calculateDnsRecordPenalties(dnsRecord) {
 
 export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
+  const dnsAbortControllerRef = React.useRef(null)
 
   // Merge DNS data into results for JSON output
   const mergedResult = React.useMemo(() => {
@@ -150,20 +181,31 @@ export default function EmailValidatorOutputPanel({ result }) {
     }
   }, [result, dnsData])
 
-  // Fetch DNS data for valid emails immediately (no debounce)
+  // Fetch DNS data for valid emails with debounce (500ms wait after changes stop)
   React.useEffect(() => {
     if (!result || !result.results) return
 
-    const fetchDnsData = async () => {
-      const newDnsData = {}
+    // Debounce: wait 500ms before starting lookups to avoid repeated requests while typing
+    const debounceTimer = setTimeout(() => {
+      // Abort any previous in-flight requests
+      if (dnsAbortControllerRef.current) {
+        dnsAbortControllerRef.current.abort()
+      }
 
-      for (const emailResult of result.results) {
-        if (emailResult.valid) {
-          try {
+      const fetchDnsData = async () => {
+        const newDnsData = {}
+        const abortController = new AbortController()
+        dnsAbortControllerRef.current = abortController
+
+        // Create promises for each domain lookup
+        const dnsPromises = result.results
+          .filter(emailResult => emailResult.valid)
+          .map(async (emailResult) => {
             const domain = emailResult.email.split('@')[1]
-            if (domain) {
-              const controller = new AbortController()
-              const timeout = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+            if (!domain) return
+
+            try {
+              const timeoutId = setTimeout(() => abortController.abort(), 8000) // 8 second timeout
 
               try {
                 const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
@@ -173,10 +215,10 @@ export default function EmailValidatorOutputPanel({ result }) {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ domain }),
-                  signal: controller.signal,
+                  signal: abortController.signal,
                   credentials: 'same-origin',
                 })
-                clearTimeout(timeout)
+                clearTimeout(timeoutId)
 
                 if (response.ok) {
                   const data = await response.json()
@@ -185,24 +227,32 @@ export default function EmailValidatorOutputPanel({ result }) {
                   newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
                 }
               } catch (fetchError) {
-                clearTimeout(timeout)
+                clearTimeout(timeoutId)
                 if (fetchError.name === 'AbortError') {
                   newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
                 } else {
                   newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
                 }
               }
+            } catch (error) {
+              newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
             }
-          } catch (error) {
-            newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-          }
+          })
+
+        // Wait for all DNS lookups to complete (even partial)
+        await Promise.all(dnsPromises).catch(() => {}) // Ignore any errors, we handled them individually
+
+        // Only update state if this request wasn't aborted
+        if (!abortController.signal.aborted) {
+          setDnsData(newDnsData)
         }
       }
 
-      setDnsData(newDnsData)
-    }
+      fetchDnsData()
+    }, 500) // Wait 500ms after result changes before fetching DNS
 
-    fetchDnsData()
+    // Cleanup: clear debounce timer when result changes again
+    return () => clearTimeout(debounceTimer)
   }, [result])
 
   if (!result) {
@@ -274,19 +324,6 @@ export default function EmailValidatorOutputPanel({ result }) {
           </div>
         )}
 
-        {result.averageDeliverabilityScore !== undefined && (
-          <div style={{
-            padding: '12px',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            border: '1px solid rgba(76, 175, 80, 0.3)',
-            borderRadius: '4px',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG DELIVERABILITY</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: '#4caf50' }}>{result.averageDeliverabilityScore}</div>
-          </div>
-        )}
-
         {result.averageIdentityScore !== undefined && (
           <div style={{
             padding: '12px',
@@ -355,8 +392,9 @@ export default function EmailValidatorOutputPanel({ result }) {
                   {emailResult.campaignReadiness && dnsData[emailResult.email]?.mailHostType !== 'none' && (
                     (() => {
                       const dnsRecord = dnsData[emailResult.email]
-                      const { totalPenalty: dnsTotalPenalty } = calculateDnsRecordPenalties(dnsRecord)
-                      const adjustedScore = Math.max(0, Math.min(100, emailResult.identityScore - dnsTotalPenalty))
+                      const { penalties: dnsPenalties } = calculateDnsRecordPenalties(dnsRecord)
+                      const allBreakdownItems = [...(emailResult.identityBreakdown || []), ...dnsPenalties]
+                      const adjustedScore = Math.max(0, Math.min(100, allBreakdownItems.reduce((sum, item) => sum + item.points, 0)))
 
                       let readinessLevel = 'Poor'
                       if (adjustedScore >= 80) readinessLevel = 'Excellent'
@@ -452,8 +490,9 @@ export default function EmailValidatorOutputPanel({ result }) {
                     </div>
                     {(() => {
                       const dnsRecord = dnsData[emailResult.email]
-                      const { totalPenalty: dnsTotalPenalty } = calculateDnsRecordPenalties(dnsRecord)
-                      const adjustedScore = Math.max(0, Math.min(100, emailResult.identityScore - dnsTotalPenalty))
+                      const { penalties: dnsPenalties } = calculateDnsRecordPenalties(dnsRecord)
+                      const allBreakdownItems = [...(emailResult.identityBreakdown || []), ...dnsPenalties]
+                      const adjustedScore = Math.max(0, Math.min(100, allBreakdownItems.reduce((sum, item) => sum + item.points, 0)))
 
                       // Determine campaign readiness based on adjusted score
                       let readinessLevel = 'Poor'
@@ -488,9 +527,11 @@ export default function EmailValidatorOutputPanel({ result }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           {(() => {
                             const dnsRecord = dnsData[emailResult.email]
-                            const { penalties: dnsPenalties, totalPenalty: dnsTotalPenalty } = calculateDnsRecordPenalties(dnsRecord)
+                            const { penalties: dnsPenalties } = calculateDnsRecordPenalties(dnsRecord)
                             const allBreakdownItems = [...(emailResult.identityBreakdown || []), ...dnsPenalties]
-                            const adjustedScore = Math.max(0, Math.min(100, emailResult.identityScore - dnsTotalPenalty))
+
+                            // Calculate total from breakdown items
+                            const adjustedScore = Math.max(0, Math.min(100, allBreakdownItems.reduce((sum, item) => sum + item.points, 0)))
 
                             return (
                               <>
