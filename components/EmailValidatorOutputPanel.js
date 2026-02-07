@@ -461,64 +461,73 @@ export default function EmailValidatorOutputPanel({ result }) {
   const renderEmailValidationContent = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Summary stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' }}>
         <div style={{
-          padding: '12px',
-          backgroundColor: 'rgba(76, 175, 80, 0.1)',
-          border: '1px solid rgba(76, 175, 80, 0.3)',
-          borderRadius: '4px',
+          padding: '10px 12px',
+          backgroundColor: 'var(--color-background-secondary)',
+          border: '1px solid var(--color-border)',
+          borderLeft: '3px solid var(--color-text-primary)',
+          borderRadius: '6px',
+          transition: 'all 0.2s ease',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>TOTAL</div>
-          <div style={{ fontSize: '20px', fontWeight: '600', color: '#4caf50' }}>{result.total}</div>
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-secondary)', marginBottom: '4px', letterSpacing: '0.3px' }}>Total</div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{result.total}</div>
         </div>
 
         <div style={{
-          padding: '12px',
-          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          padding: '10px 12px',
+          backgroundColor: 'rgba(76, 175, 80, 0.08)',
           border: '1px solid rgba(76, 175, 80, 0.3)',
-          borderRadius: '4px',
+          borderLeft: '3px solid #4caf50',
+          borderRadius: '6px',
+          transition: 'all 0.2s ease',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>VALID</div>
-          <div style={{ fontSize: '20px', fontWeight: '600', color: '#4caf50' }}>{recalculatedStats?.valid ?? result.valid}</div>
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#4caf50', marginBottom: '4px', letterSpacing: '0.3px' }}>Valid</div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#4caf50' }}>{recalculatedStats?.valid ?? result.valid}</div>
         </div>
 
         <div style={{
-          padding: '12px',
-          backgroundColor: 'rgba(239, 83, 80, 0.1)',
-          border: '1px solid rgba(239, 83, 80, 0.3)',
-          borderRadius: '4px',
+          padding: '10px 12px',
+          backgroundColor: 'rgba(244, 67, 54, 0.08)',
+          border: '1px solid rgba(244, 67, 54, 0.3)',
+          borderLeft: '3px solid #f44336',
+          borderRadius: '6px',
+          transition: 'all 0.2s ease',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>INVALID</div>
-          <div style={{ fontSize: '20px', fontWeight: '600', color: '#ef5350' }}>{recalculatedStats?.invalid ?? result.invalid}</div>
+          <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#f44336', marginBottom: '4px', letterSpacing: '0.3px' }}>Invalid</div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: '#f44336' }}>{recalculatedStats?.invalid ?? result.invalid}</div>
         </div>
 
         {result.mailcheckerAvailable && (
           <div style={{
-            padding: '12px',
-            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            padding: '10px 12px',
+            backgroundColor: 'rgba(33, 150, 243, 0.08)',
             border: '1px solid rgba(33, 150, 243, 0.3)',
-            borderRadius: '4px',
+            borderLeft: '3px solid #2196f3',
+            borderRadius: '6px',
+            transition: 'all 0.2s ease',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>MAILCHECKER</div>
-            <div style={{ fontSize: '15px', fontWeight: '600', color: '#2196f3' }}>Active</div>
+            <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#2196f3', marginBottom: '4px', letterSpacing: '0.3px' }}>Mailchecker</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#2196f3' }}>Active</div>
           </div>
         )}
 
         {recalculatedStats?.averageIdentityScore !== undefined && (
           <div style={{
-            padding: '12px',
-            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+            padding: '10px 12px',
+            backgroundColor: 'rgba(156, 39, 176, 0.08)',
             border: '1px solid rgba(156, 39, 176, 0.3)',
-            borderRadius: '4px',
+            borderLeft: '3px solid #9c27b0',
+            borderRadius: '6px',
+            transition: 'all 0.2s ease',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>AVG CAMPAIGN READINESS</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: '#9c27b0' }}>{recalculatedStats.averageCampaignReadiness}</div>
-            <div style={{ fontSize: '15px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>{recalculatedStats.averageIdentityScore}</div>
+            <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#9c27b0', marginBottom: '4px', letterSpacing: '0.3px' }}>Avg Score</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#9c27b0' }}>{recalculatedStats.averageIdentityScore}</div>
           </div>
         )}
       </div>
