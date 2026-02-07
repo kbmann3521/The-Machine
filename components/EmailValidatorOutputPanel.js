@@ -2,6 +2,56 @@ import React, { useState, useRef } from 'react'
 import styles from '../styles/tool-output.module.css'
 import OutputTabs from './OutputTabs'
 
+function extractDmarcPolicy(dmarcRecord) {
+  if (!dmarcRecord) return null
+
+  // Extract p= value from DMARC record
+  // Example: v=DMARC1; p=reject; rua=mailto:...
+  const policyMatch = dmarcRecord.match(/p=([a-z]+)/i)
+  if (policyMatch && policyMatch[1]) {
+    return policyMatch[1].toLowerCase()
+  }
+  return null
+}
+
+function hasDmarcReporting(dmarcRecord) {
+  if (!dmarcRecord) return false
+
+  // Check for rua= (aggregate reports) or ruf= (forensic reports)
+  const hasRua = /rua=/i.test(dmarcRecord)
+  const hasRuf = /ruf=/i.test(dmarcRecord)
+
+  return hasRua || hasRuf
+}
+
+function getMxProvider(mxHostname) {
+  if (!mxHostname) return null
+
+  const hostname = mxHostname.toLowerCase()
+
+  // Major managed providers (enterprise-grade)
+  if (hostname.includes('aspmx.l.google.com') || hostname.includes('aspmx.google.com') || hostname.includes('googlemail.com')) {
+    return 'google'
+  }
+  if (hostname.includes('protection.outlook.com') || hostname.includes('outlook.com') || hostname.includes('mail.protection.outlook.com')) {
+    return 'microsoft'
+  }
+  if (hostname.includes('yahoodns.net') || hostname.includes('mxlogic.net')) {
+    return 'yahoo'
+  }
+  if (hostname.includes('zoho.com')) {
+    return 'zoho'
+  }
+  if (hostname.includes('protonmail') || hostname.includes('pmg.mail.proton')) {
+    return 'proton'
+  }
+  if (hostname.includes('fastmail.com') || hostname.includes('messagingengine.com')) {
+    return 'fastmail'
+  }
+
+  return null
+}
+
 function calculateDnsRecordPenalties(dnsRecord) {
   const penalties = []
   let totalPenalty = 0
@@ -19,6 +69,29 @@ function calculateDnsRecordPenalties(dnsRecord) {
     // Has A/AAAA but no MX - fallback delivery
     penalties.push({ label: 'No MX Records (Fallback Only)', points: -25, description: 'Using A/AAAA fallback instead of MX records' })
     totalPenalty += 25
+  } else if (dnsRecord.mailHostType === 'mx' && dnsRecord.mxRecords && dnsRecord.mxRecords.length > 0) {
+    // Check MX provider quality
+    const primaryMx = dnsRecord.mxRecords[0]
+    if (primaryMx && primaryMx.hostname) {
+      const mxProvider = getMxProvider(primaryMx.hostname)
+
+      if (mxProvider) {
+        // Major managed provider - small risk reduction
+        penalties.push({ label: 'MX Provider Quality', points: -5, description: `Mail routed through ${mxProvider} (managed provider) — more reliable` })
+        totalPenalty += 5
+      } else {
+        // Unknown/bare infrastructure - small risk increase
+        penalties.push({ label: 'Custom Mail Infrastructure', points: 5, description: 'Self-hosted or custom mail server — potentially less stable' })
+        totalPenalty -= 5 // Subtract bonus instead (increases risk)
+      }
+    }
+
+    // Check MX redundancy
+    if (dnsRecord.mxRecords.length >= 2) {
+      // Multiple MX records indicate mature, redundant setup
+      penalties.push({ label: 'MX Redundancy', points: -4, description: 'Multiple MX records configured — redundant, mature mail setup' })
+      totalPenalty += 4
+    }
   }
 
   // SPF penalty
@@ -27,16 +100,35 @@ function calculateDnsRecordPenalties(dnsRecord) {
     totalPenalty += 5
   }
 
-  // DKIM penalty
-  if (!dnsRecord.dkimRecords || dnsRecord.dkimRecords.length === 0) {
-    penalties.push({ label: 'No DKIM Records', points: -5, description: 'Missing DKIM signing' })
-    totalPenalty += 5
-  }
-
-  // DMARC penalty
+  // DMARC policy strength scoring
   if (!dnsRecord.dmarcRecord) {
+    // No DMARC at all - significant risk
     penalties.push({ label: 'No DMARC Policy', points: -10, description: 'Missing DMARC authentication policy' })
     totalPenalty += 10
+  } else {
+    // Extract policy from DMARC record
+    const dmarcPolicy = extractDmarcPolicy(dnsRecord.dmarcRecord)
+
+    if (dmarcPolicy === 'reject') {
+      // Strong enforcement - small bonus
+      penalties.push({ label: 'DMARC Policy: Reject', points: -5, description: 'Strict DMARC enforcement (p=reject) — strong authentication' })
+      totalPenalty += 5
+    } else if (dmarcPolicy === 'quarantine') {
+      // Moderate enforcement - neutral
+      penalties.push({ label: 'DMARC Policy: Quarantine', points: 0, description: 'Moderate DMARC enforcement (p=quarantine) — takes spoofing seriously' })
+      totalPenalty += 0
+    } else if (dmarcPolicy === 'none') {
+      // Weak enforcement - mild risk
+      penalties.push({ label: 'DMARC Policy: None', points: 5, description: 'Weak DMARC enforcement (p=none) — monitoring only, not enforced' })
+      totalPenalty -= 5
+    }
+
+    // Check for DMARC reporting configuration
+    if (hasDmarcReporting(dnsRecord.dmarcRecord)) {
+      // Domain has reporting configured - shows they monitor abuse
+      penalties.push({ label: 'DMARC Reporting', points: -4, description: 'DMARC reporting configured (rua/ruf) — domain monitors authentication failures' })
+      totalPenalty += 4
+    }
   }
 
   return { penalties, totalPenalty }
@@ -44,76 +136,60 @@ function calculateDnsRecordPenalties(dnsRecord) {
 
 export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
-  const dnsDebounceTimerRef = useRef(null)
 
-  // Fetch DNS data for valid emails with 3-second debounce
+  // Fetch DNS data for valid emails immediately (no debounce)
   React.useEffect(() => {
     if (!result || !result.results) return
 
-    // Clear any existing debounce timer
-    if (dnsDebounceTimerRef.current) {
-      clearTimeout(dnsDebounceTimerRef.current)
-    }
+    const fetchDnsData = async () => {
+      const newDnsData = {}
 
-    // Debounce DNS fetches by 1 second
-    dnsDebounceTimerRef.current = setTimeout(() => {
-      const fetchDnsData = async () => {
-        const newDnsData = {}
+      for (const emailResult of result.results) {
+        if (emailResult.valid) {
+          try {
+            const domain = emailResult.email.split('@')[1]
+            if (domain) {
+              const controller = new AbortController()
+              const timeout = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
-        for (const emailResult of result.results) {
-          if (emailResult.valid) {
-            try {
-              const domain = emailResult.email.split('@')[1]
-              if (domain) {
-                const controller = new AbortController()
-                const timeout = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+              try {
+                const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
+                const dnsUrl = `${baseUrl}/api/tools/email-validator-dns`
 
-                try {
-                  const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
-                  const dnsUrl = `${baseUrl}/api/tools/email-validator-dns`
+                const response = await fetch(dnsUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ domain }),
+                  signal: controller.signal,
+                  credentials: 'same-origin',
+                })
+                clearTimeout(timeout)
 
-                  const response = await fetch(dnsUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ domain }),
-                    signal: controller.signal,
-                    credentials: 'same-origin',
-                  })
-                  clearTimeout(timeout)
-
-                  if (response.ok) {
-                    const data = await response.json()
-                    newDnsData[emailResult.email] = data
-                  } else {
-                    newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-                  }
-                } catch (fetchError) {
-                  clearTimeout(timeout)
-                  if (fetchError.name === 'AbortError') {
-                    newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
-                  } else {
-                    newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
-                  }
+                if (response.ok) {
+                  const data = await response.json()
+                  newDnsData[emailResult.email] = data
+                } else {
+                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                }
+              } catch (fetchError) {
+                clearTimeout(timeout)
+                if (fetchError.name === 'AbortError') {
+                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
+                } else {
+                  newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
                 }
               }
-            } catch (error) {
-              newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
             }
+          } catch (error) {
+            newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
           }
         }
-
-        setDnsData(newDnsData)
       }
 
-      fetchDnsData()
-    }, 1000)
-
-    // Cleanup on unmount
-    return () => {
-      if (dnsDebounceTimerRef.current) {
-        clearTimeout(dnsDebounceTimerRef.current)
-      }
+      setDnsData(newDnsData)
     }
+
+    fetchDnsData()
   }, [result])
 
   if (!result) {
@@ -234,14 +310,14 @@ export default function EmailValidatorOutputPanel({ result }) {
               <div key={idx} style={{
                 padding: '12px 14px',
                 backgroundColor: 'var(--color-background-tertiary)',
-                border: `1px solid ${emailResult.valid ? 'rgba(76, 175, 80, 0.3)' : 'rgba(239, 83, 80, 0.3)'}`,
+                border: `1px solid ${dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.3)' : emailResult.valid ? 'rgba(76, 175, 80, 0.3)' : 'rgba(239, 83, 80, 0.3)'}`,
                 borderRadius: '4px',
-                borderLeft: `3px solid ${emailResult.valid ? '#4caf50' : '#ef5350'}`,
+                borderLeft: `3px solid ${dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : emailResult.valid ? '#4caf50' : '#ef5350'}`,
               }}>
                 {/* Email header with status and copy button */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ color: emailResult.valid ? '#4caf50' : '#ef5350', fontSize: '14px', flexShrink: 0 }}>
-                    {emailResult.valid ? '✓' : '✗'}
+                  <span style={{ color: dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : emailResult.valid ? '#4caf50' : '#ef5350', fontSize: '14px', flexShrink: 0 }}>
+                    {dnsData[emailResult.email]?.mailHostType === 'none' ? '✗' : emailResult.valid ? '✓' : '✗'}
                   </span>
                   <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '500', wordBreak: 'break-all', overflowWrap: 'break-word', minWidth: 0 }}>
                     {emailResult.email}
@@ -253,17 +329,17 @@ export default function EmailValidatorOutputPanel({ result }) {
                   <span style={{
                     display: 'inline-block',
                     padding: '2px 8px',
-                    backgroundColor: emailResult.valid ? 'rgba(76, 175, 80, 0.15)' : 'rgba(239, 83, 80, 0.15)',
-                    color: emailResult.valid ? '#4caf50' : '#ef5350',
+                    backgroundColor: dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.15)' : emailResult.valid ? 'rgba(76, 175, 80, 0.15)' : 'rgba(239, 83, 80, 0.15)',
+                    color: dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : emailResult.valid ? '#4caf50' : '#ef5350',
                     borderRadius: '3px',
                     fontSize: '11px',
                     fontWeight: '600',
                     textTransform: 'uppercase',
                   }}>
-                    {emailResult.valid ? '✓ Valid' : emailResult.isDisposable ? '✗ Invalid (Disposable domain)' : emailResult.hasSyntaxError ? '✗ Invalid (Syntax error)' : '✗ Invalid'}
+                    {dnsData[emailResult.email]?.mailHostType === 'none' ? '✗ Invalid (No mail server records)' : emailResult.valid ? '✓ Valid' : emailResult.isDisposable ? '✗ Invalid (Disposable domain)' : emailResult.hasSyntaxError ? '✗ Invalid (Syntax error)' : '✗ Invalid'}
                   </span>
 
-                  {emailResult.campaignReadiness && (
+                  {emailResult.campaignReadiness && dnsData[emailResult.email]?.mailHostType !== 'none' && (
                     (() => {
                       const dnsRecord = dnsData[emailResult.email]
                       const { totalPenalty: dnsTotalPenalty } = calculateDnsRecordPenalties(dnsRecord)
@@ -297,13 +373,18 @@ export default function EmailValidatorOutputPanel({ result }) {
                 </div>
 
                 {/* Issues and flags */}
-                {(emailResult.issues?.length > 0 || emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation) && (
+                {(dnsData[emailResult.email]?.mailHostType === 'none' || (dnsData[emailResult.email]?.mailHostType !== 'none' && (emailResult.issues?.length > 0 || emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation))) && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {emailResult.issues?.length > 0 && (
+                    {(emailResult.issues?.length > 0 || dnsData[emailResult.email]?.mailHostType === 'none') && (
                       <div>
                         <div style={{ fontSize: '11px', fontWeight: '600', color: '#ef5350', marginBottom: '4px' }}>Issues:</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          {emailResult.issues.map((issue, issueIdx) => (
+                          {dnsData[emailResult.email]?.mailHostType === 'none' && (
+                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                              • This domain has no mail server records (MX/A/AAAA). Email cannot be delivered.
+                            </div>
+                          )}
+                          {emailResult.issues?.map((issue, issueIdx) => (
                             <div key={issueIdx} style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                               • {issue}
                             </div>
@@ -312,7 +393,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                       </div>
                     )}
 
-                    {(emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0) && (
+                    {dnsData[emailResult.email]?.mailHostType !== 'none' && (emailResult.roleBasedEmail || emailResult.isDisposable || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0) && (
                       <div>
                         <div style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
                           ⚠ Warnings:
@@ -349,8 +430,9 @@ export default function EmailValidatorOutputPanel({ result }) {
                   </div>
                 )}
 
+
                 {/* Campaign Readiness (Identity Score) Panel */}
-                {emailResult.identityScore !== undefined && (
+                {emailResult.identityScore !== undefined && dnsData[emailResult.email]?.mailHostType !== 'none' && (
                   <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '10px', marginBottom: '10px' }}>
                     <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Campaign Readiness
@@ -400,16 +482,16 @@ export default function EmailValidatorOutputPanel({ result }) {
                             return (
                               <>
                                 {allBreakdownItems.map((item, idx) => (
-                                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '10px', color: 'var(--color-text-secondary)', paddingBottom: idx < allBreakdownItems.length - 1 ? '4px' : '0px', borderBottom: idx < allBreakdownItems.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none' }}>
+                                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: item.isSubItem ? '10px' : '11px', color: 'var(--color-text-secondary)', paddingBottom: idx < allBreakdownItems.length - 1 ? '4px' : '0px', borderBottom: idx < allBreakdownItems.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none', paddingLeft: item.isSubItem ? '24px' : '0px' }}>
                                     <div style={{ flex: 1 }}>
-                                      <div style={{ fontWeight: '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
+                                      <div style={{ fontWeight: item.isSubItem ? '400' : '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
                                         {item.label}
                                       </div>
-                                      <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
+                                      <div style={{ fontSize: '9px', color: 'var(--color-text-secondary)', marginTop: '1px', display: item.description ? 'block' : 'none' }}>
                                         {item.description}
                                       </div>
                                     </div>
-                                    <div style={{ fontWeight: '700', marginLeft: '8px', textAlign: 'right', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                                    <div style={{ fontWeight: '700', marginLeft: '8px', textAlign: 'right', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)', whiteSpace: 'nowrap', display: item.points !== 0 ? 'block' : 'none' }}>
                                       {item.points > 0 ? '+' : ''}{item.points}
                                     </div>
                                   </div>
@@ -537,7 +619,7 @@ export default function EmailValidatorOutputPanel({ result }) {
 
 
                     {/* Username Analysis Section */}
-                    {(emailResult.gibberishScore !== undefined || emailResult.abusiveScore !== undefined || emailResult.roleBasedEmail) && (
+                    {dnsData[emailResult.email]?.mailHostType !== 'none' && (emailResult.gibberishScore !== undefined || emailResult.abusiveScore !== undefined || emailResult.roleBasedEmail) && (
                       <div style={{ padding: '10px', backgroundColor: 'rgba(255, 152, 0, 0.05)', borderRadius: '4px', border: '1px solid rgba(255, 152, 0, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                           Username Analysis
@@ -620,7 +702,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     )}
 
                     {/* Domain Intelligence Section */}
-                    {(emailResult.tldQuality || emailResult.businessEmail) && (
+                    {dnsData[emailResult.email]?.mailHostType !== 'none' && (emailResult.tldQuality || emailResult.businessEmail) && (
                       <div style={{ padding: '10px', backgroundColor: 'rgba(0, 150, 136, 0.05)', borderRadius: '4px', border: '1px solid rgba(0, 150, 136, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                           Domain Intelligence
@@ -667,7 +749,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     )}
 
                     {/* Phishing Intelligence Section */}
-                    {emailResult.phishingRisk && emailResult.phishingRisk !== 'Unknown' && (
+                    {dnsData[emailResult.email]?.mailHostType !== 'none' && emailResult.phishingRisk && emailResult.phishingRisk !== 'Unknown' && (
                       <div style={{ padding: '10px', backgroundColor: emailResult.phishingRisk === 'Very High' ? 'rgba(244, 67, 54, 0.05)' : emailResult.phishingRisk === 'High' ? 'rgba(255, 152, 0, 0.05)' : emailResult.phishingRisk === 'Medium' ? 'rgba(255, 193, 7, 0.05)' : 'rgba(76, 175, 80, 0.05)', borderRadius: '4px', border: emailResult.phishingRisk === 'Very High' ? '1px solid rgba(244, 67, 54, 0.2)' : emailResult.phishingRisk === 'High' ? '1px solid rgba(255, 152, 0, 0.2)' : emailResult.phishingRisk === 'Medium' ? '1px solid rgba(255, 193, 7, 0.2)' : '1px solid rgba(76, 175, 80, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                           Phishing Intelligence
@@ -706,7 +788,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     )}
 
                     {/* Normalized Email Section */}
-                    {emailResult.normalized && (
+                    {dnsData[emailResult.email]?.mailHostType !== 'none' && emailResult.normalized && (
                       <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '12px' }}>
                         <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                           Normalized Email
@@ -720,7 +802,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                 )}
 
                 {/* Domain Analysis */}
-                {emailResult.valid && (
+                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && (
                   <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
                     <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
                       DOMAIN ANALYSIS
@@ -816,27 +898,6 @@ export default function EmailValidatorOutputPanel({ result }) {
                             ) : (
                               <div style={{ marginLeft: '20px', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                                 ✗ No DMARC record found
-                              </div>
-                            )}
-                          </div>
-
-                          {/* DKIM Records */}
-                          <div style={{ marginTop: '8px' }}>
-                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600' }}>
-                              DKIM Records:
-                            </div>
-                            {dnsData[emailResult.email].dkimRecords && dnsData[emailResult.email].dkimRecords.length > 0 ? (
-                              <div style={{ marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {dnsData[emailResult.email].dkimRecords.map((record, idx) => (
-                                  <div key={idx} style={{ fontSize: '10px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', wordBreak: 'break-all', backgroundColor: 'rgba(76, 175, 80, 0.05)', padding: '6px', borderRadius: '3px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
-                                    <div style={{ fontWeight: '600', marginBottom: '3px' }}>✓ Selector: {record.selector}</div>
-                                    <div>{record.value}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div style={{ marginLeft: '20px', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                                ✗ No DKIM records found (checked selectors: default, k1, selector1, selector2, google, sendgrid, postmark)
                               </div>
                             )}
                           </div>

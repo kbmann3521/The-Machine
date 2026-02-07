@@ -23,7 +23,6 @@ export default async function handler(req, res) {
     let aaaaRecords = []
     let spfRecord = null
     let dmarcRecord = null
-    let dkimRecords = []
     let mailHostType = null
     let receivable = false
     let domainExists = false
@@ -159,36 +158,6 @@ export default async function handler(req, res) {
       // DMARC lookup failed, continue
     }
 
-    // 6. Try DKIM records (TXT records at selector._domainkey subdomain)
-    // Try common selectors
-    const commonSelectors = ['default', 'k1', 'selector1', 'selector2', 'google', 'sendgrid', 'postmark']
-
-    for (const selector of commonSelectors) {
-      try {
-        const dkimTxtResult = await Promise.race([
-          dns.resolveTxt(`${selector}._domainkey.${domain}`),
-          createTimeoutPromise()
-        ])
-
-        if (dkimTxtResult && dkimTxtResult.length > 0) {
-          // DKIM records start with 'v=DKIM1'
-          const dkimEntry = dkimTxtResult.find(record => {
-            const txtValue = Array.isArray(record) ? record.join('') : record
-            return txtValue.toLowerCase().startsWith('v=dkim1')
-          })
-          if (dkimEntry) {
-            const dkimValue = Array.isArray(dkimEntry) ? dkimEntry.join('') : dkimEntry
-            dkimRecords.push({
-              selector,
-              value: dkimValue
-            })
-          }
-        }
-      } catch (dkimError) {
-        // DKIM lookup failed for this selector, try next one
-      }
-    }
-
     return res.status(200).json({
       domain,
       domainExists,
@@ -197,7 +166,6 @@ export default async function handler(req, res) {
       aaaaRecords,
       spfRecord,
       dmarcRecord,
-      dkimRecords,
       mailHostType,  // 'mx' | 'fallback' | 'none'
       receivable,    // boolean: can receive mail
       success: true
@@ -211,7 +179,6 @@ export default async function handler(req, res) {
       aaaaRecords: [],
       spfRecord: null,
       dmarcRecord: null,
-      dkimRecords: [],
       mailHostType: 'none',
       receivable: false,
       error: error.message || 'DNS lookup failed',
