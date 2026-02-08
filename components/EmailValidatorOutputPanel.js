@@ -24,6 +24,255 @@ function hasDmarcReporting(dmarcRecord) {
   return hasRua || hasRuf
 }
 
+function analyzeSPFQuality(spfRecord) {
+  if (!spfRecord) return { score: 0, description: '' }
+
+  const spfLower = spfRecord.toLowerCase()
+  let qualityScore = 0
+  let description = ''
+
+  // Check for strict fail policy (-all)
+  const hasStrictFail = /-all/.test(spfLower)
+  const hasSoftFail = /~all/.test(spfLower)
+  const hasNeutral = /\?all/.test(spfLower)
+  const hasPass = /\+all/.test(spfLower)
+
+  // Check for missing terminal qualifier (ends abruptly without -all, ~all, ?all, or +all)
+  const hasTerminal = /[-~?+]all$/.test(spfLower)
+
+  // Count mechanisms (include:, ip4:, ip6:, a, mx, ptr, etc.)
+  const mechanisms = (spfRecord.match(/\b(include|ip4|ip6|a|mx|ptr|exists):/gi) || []).length
+  const dnsLookups = (spfRecord.match(/\b(include|a|mx|ptr|exists):/gi) || []).length
+
+  // === CRITICAL RULE: Positive points ONLY with -all ===
+  // Never award bonus if no strict fail policy
+
+  // Check for overly permissive +all (always penalize)
+  if (hasPass) {
+    return { score: -8, description: 'SPF allows all senders (+all) — effectively disables SPF' }
+  }
+
+  // Check for deprecated ptr mechanism
+  if (/\bptr:/i.test(spfRecord)) {
+    return { score: -5, description: 'Contains deprecated ptr mechanism' }
+  }
+
+  // Check for too many DNS lookups (>10)
+  if (dnsLookups > 10) {
+    return { score: -5, description: 'Too many DNS lookups (>10) — SPF can fail at runtime' }
+  }
+
+  // === STRICT FAIL POLICY (-all) ===
+  if (hasStrictFail) {
+    // Minimal, tight scope (few mechanisms)
+    if (mechanisms <= 3) {
+      qualityScore = 5
+      description = 'Strict and minimal SPF policy (-all) — strong authentication'
+    } else {
+      // Strict but more complex
+      qualityScore = 3
+      description = 'Strict SPF policy (-all) — domain actively prevents spoofing'
+    }
+    return { score: qualityScore, description }
+  }
+
+  // === NO STRICT FAIL (-all) ===
+  // Cannot earn bonus, but may or may not be penalized
+
+  if (hasSoftFail) {
+    // Soft fail: better than nothing, but permissive
+    return { score: 0, description: 'Soft SPF policy (~all) — permissive but functional' }
+  }
+
+  if (hasNeutral) {
+    // Neutral policy: essentially a no-op
+    return { score: 0, description: 'Neutral SPF policy (?all) — informational only' }
+  }
+
+  if (!hasTerminal) {
+    // No terminal qualifier (implicit ?all, like Gmail)
+    // Informational, not penalized, not rewarded
+    return { score: 0, description: 'SPF present but non-enforcing (no terminal qualifier)' }
+  }
+
+  // Fallback (should not reach)
+  return { score: 0, description: 'SPF record present' }
+}
+
+function analyzeDMARCQuality(dmarcRecord) {
+  if (!dmarcRecord) return { score: 0, description: '' }
+
+  const dmarcLower = dmarcRecord.toLowerCase()
+  let qualityScore = 0
+  let description = ''
+
+  // === Check for invalid/malformed DMARC ===
+  if (!dmarcLower.startsWith('v=dmarc1')) {
+    return { score: -5, description: 'DMARC record present but invalid — policy ignored by receivers' }
+  }
+
+  // Extract policy (p=)
+  const policyMatch = dmarcLower.match(/p=([a-z]+)/i)
+  if (!policyMatch) {
+    return { score: -5, description: 'DMARC record present but invalid — missing policy' }
+  }
+
+  const policy = policyMatch[1].toLowerCase()
+
+  // Validate policy value
+  if (!['none', 'quarantine', 'reject'].includes(policy)) {
+    return { score: -5, description: 'DMARC record present but invalid — unrecognized policy value' }
+  }
+
+  // === POLICY SCORING (mutually exclusive by design) ===
+  if (policy === 'reject') {
+    qualityScore = 5
+    description = 'DMARC policy requests rejection of unauthenticated mail'
+  } else if (policy === 'quarantine') {
+    qualityScore = 3
+    description = 'DMARC policy requests quarantine for unauthenticated mail'
+  } else if (policy === 'none') {
+    // p=none is neutral — no bonus, no penalty
+    // Fold monitoring status into this single interpretation
+    qualityScore = 0
+    description = 'DMARC present (monitoring mode — no enforcement)'
+  }
+
+  // === ALIGNMENT BONUS (optional, +1) ===
+  // Check for strict alignment: adkim=s; aspf=s
+  const hasStrictDkim = /adkim\s*=\s*s/i.test(dmarcRecord)
+  const hasStrictSpf = /aspf\s*=\s*s/i.test(dmarcRecord)
+
+  if (hasStrictDkim && hasStrictSpf) {
+    // Only add alignment bonus (max DMARC would be +6)
+    if (qualityScore > 0) {
+      qualityScore += 1
+      description += ' — with strict alignment'
+    } else if (qualityScore === 0 && policy !== 'none') {
+      // If p=none and has strict alignment, keep neutral (no bonus for p=none)
+      description += ' — with strict alignment'
+    }
+  }
+
+  return { score: qualityScore, description }
+}
+
+function analyzeMXSanity(mxRecords) {
+  if (!mxRecords || mxRecords.length === 0) {
+    return { score: 0, description: '' }
+  }
+
+  let worstScore = 0
+  let worstReason = ''
+
+  // === CHECK 1: MX pointing to CNAME (highest priority penalty) ===
+  // This is the strongest signal, so we check it first
+  const mxWithCname = mxRecords.filter(mx => mx.isCname)
+  if (mxWithCname.length > 0) {
+    worstScore = -5
+    worstReason = 'MX record points to a CNAME — non-standard and may cause delivery failures'
+    return { score: worstScore, description: worstReason }
+  }
+
+  // === CHECK 2: Single MX with very high priority (≥100) ===
+  if (mxRecords.length === 1 && mxRecords[0].priority >= 100) {
+    worstScore = -3
+    worstReason = 'Single high-priority MX detected — no failover configured'
+    return { score: worstScore, description: worstReason }
+  }
+
+  // === CHECK 3: 3+ MX records with identical priority ===
+  if (mxRecords.length >= 3) {
+    // Check if all MX records share the same priority
+    const priorities = new Set(mxRecords.map(mx => mx.priority))
+    if (priorities.size === 1) {
+      worstScore = -2
+      worstReason = 'Multiple MX records share the same priority — delivery order may be inconsistent'
+      return { score: worstScore, description: worstReason }
+    }
+  }
+
+  // No issues detected
+  return { score: 0, description: '' }
+}
+
+function analyzeNSDiversity(nsRecords) {
+  if (!nsRecords || nsRecords.length === 0) {
+    return { score: 0, description: '' }
+  }
+
+  const numNs = nsRecords.length
+
+  // === Single NS record (bad for resilience) ===
+  if (numNs === 1) {
+    return {
+      score: -1,
+      description: 'Single nameserver configured — no redundancy'
+    }
+  }
+
+  // === Multiple NS records (2+) ===
+  // Detect provider diversity by analyzing domain patterns
+
+  // Extract the domain part from each nameserver (e.g., "cloudflare.com" from "ns1.cloudflare.com")
+  const getNsProvider = (nsHostname) => {
+    const parts = nsHostname.toLowerCase().split('.')
+    // Take last 2 parts (domain.tld)
+    if (parts.length >= 2) {
+      return parts.slice(-2).join('.')
+    }
+    return nsHostname.toLowerCase()
+  }
+
+  // Get unique providers
+  const providers = new Set(nsRecords.map(ns => {
+    const hostname = ns.nameserver || ns
+    return getNsProvider(hostname)
+  }))
+
+  const numProviders = providers.size
+  const allSameProvider = numProviders === 1
+
+  // === All NS from different providers (best) ===
+  if (numProviders === numNs) {
+    return {
+      score: 2,
+      description: 'Multiple nameservers from different providers — excellent DNS resilience'
+    }
+  }
+
+  // === Multiple NS, some diversity (good) ===
+  // Has redundancy AND some provider variation (not all identical)
+  if (!allSameProvider && numProviders >= 2) {
+    return {
+      score: 1,
+      description: 'Multiple nameservers with good provider diversity — good DNS resilience'
+    }
+  }
+
+  // === All NS from same provider (neutral) ===
+  // Not bad (still has redundancy), but less diverse
+  if (allSameProvider) {
+    return {
+      score: 0,
+      description: `Multiple nameservers, all from same provider (${Array.from(providers)[0]}) — redundancy configured`
+    }
+  }
+
+  return { score: 0, description: 'Multiple nameservers configured' }
+}
+
+function analyzeDnssec(dnssecEnabled) {
+  if (!dnssecEnabled) {
+    return { score: 0, description: '' }
+  }
+
+  return {
+    score: 1,
+    description: 'DNSSEC enabled — improved DNS integrity'
+  }
+}
+
 function getMxProvider(mxHostname) {
   if (!mxHostname) return null
 
@@ -141,48 +390,101 @@ function calculateDnsRecordPenalties(dnsRecord) {
       }
     }
 
-    // Check MX redundancy
-    if (dnsRecord.mxRecords.length >= 2) {
-      // Multiple MX records indicate mature, redundant setup - small bonus
+    // Check MX sanity first (before redundancy bonus)
+    const mxSanity = analyzeMXSanity(dnsRecord.mxRecords)
+
+    if (mxSanity.score < 0) {
+      // MX configuration has issues - apply sanity penalty (overrides redundancy bonus)
+      penalties.push({ label: 'MX Configuration Issue', points: mxSanity.score, description: mxSanity.description })
+      totalPenalty += Math.abs(mxSanity.score)
+    } else if (dnsRecord.mxRecords.length >= 2) {
+      // No sanity issues found - apply redundancy bonus for multiple MX
       penalties.push({ label: 'MX Redundancy', points: 2, description: 'Multiple MX records configured — redundant, mature mail setup' })
       totalPenalty -= 2
     }
   }
 
-  // SPF penalty
+  // SPF analysis (penalty for missing, bonus for strict/clean)
   if (!dnsRecord.spfRecord) {
     penalties.push({ label: 'No SPF Record', points: -5, description: 'Missing SPF authentication' })
     totalPenalty += 5
+  } else {
+    // Analyze SPF quality for potential bonuses
+    const spfQuality = analyzeSPFQuality(dnsRecord.spfRecord)
+    if (spfQuality.score > 0) {
+      // Bonus for good SPF
+      penalties.push({ label: 'Strict SPF Policy', points: spfQuality.score, description: spfQuality.description })
+      totalPenalty -= spfQuality.score
+    } else if (spfQuality.score < 0) {
+      // Penalty for problematic SPF
+      penalties.push({ label: 'SPF Configuration Issue', points: Math.abs(spfQuality.score), description: spfQuality.description })
+      totalPenalty += Math.abs(spfQuality.score)
+    }
+    // score === 0 means acceptable but not bonus-worthy (e.g., soft fail, neutral)
   }
 
   // DMARC policy strength scoring
   if (!dnsRecord.dmarcRecord) {
     // No DMARC at all - significant risk
-    penalties.push({ label: 'No DMARC Policy', points: -10, description: 'Missing DMARC authentication policy' })
+    penalties.push({ label: 'No DMARC Policy', points: -10, description: 'No DMARC policy published — domain does not advertise authentication expectations' })
     totalPenalty += 10
   } else {
-    // Extract policy from DMARC record
-    const dmarcPolicy = extractDmarcPolicy(dnsRecord.dmarcRecord)
+    // Use the comprehensive DMARC quality analyzer
+    const dmarcQuality = analyzeDMARCQuality(dnsRecord.dmarcRecord)
 
-    if (dmarcPolicy === 'reject') {
-      // Strong enforcement - bonus
-      penalties.push({ label: 'DMARC Policy: Reject', points: 5, description: 'Strict DMARC enforcement (p=reject) — strong authentication' })
-      totalPenalty -= 5
-    } else if (dmarcPolicy === 'quarantine') {
-      // Moderate enforcement - neutral
-      penalties.push({ label: 'DMARC Policy: Quarantine', points: 0, description: 'Moderate DMARC enforcement (p=quarantine) — takes spoofing seriously' })
-      totalPenalty += 0
-    } else if (dmarcPolicy === 'none') {
-      // Weak enforcement - mild penalty
-      penalties.push({ label: 'DMARC Policy: None', points: -5, description: 'Weak DMARC enforcement (p=none) — monitoring only, not enforced' })
-      totalPenalty += 5
+    if (dmarcQuality.score !== 0) {
+      // Only add penalty/bonus item if there's a meaningful score
+      let labelPrefix = dmarcQuality.score > 0 ? 'DMARC Policy' : 'DMARC Policy'
+      penalties.push({
+        label: labelPrefix,
+        points: dmarcQuality.score,
+        description: dmarcQuality.description
+      })
+      totalPenalty -= dmarcQuality.score
+    } else if (dmarcQuality.score === 0) {
+      // Neutral scoring (p=none) - show it but with 0 impact
+      penalties.push({
+        label: 'DMARC Policy',
+        points: 0,
+        description: dmarcQuality.description
+      })
     }
+  }
 
-    // Check for DMARC reporting configuration
-    if (hasDmarcReporting(dnsRecord.dmarcRecord)) {
-      // Domain has reporting configured - maturity signal
-      penalties.push({ label: 'DMARC Monitoring', points: 3, description: 'Domain receives and monitors authentication failure reports (rua/ruf) — shows mature security practices' })
-      totalPenalty -= 3
+  // NS diversity analysis (nameserver resilience)
+  if (dnsRecord.nsRecords && dnsRecord.nsRecords.length > 0) {
+    const nsDiversity = analyzeNSDiversity(dnsRecord.nsRecords)
+
+    if (nsDiversity.score > 0) {
+      // Bonus for good NS resilience
+      penalties.push({
+        label: 'NS Diversity',
+        points: nsDiversity.score,
+        description: nsDiversity.description
+      })
+      totalPenalty -= nsDiversity.score
+    } else if (nsDiversity.score < 0) {
+      // Penalty for single NS
+      penalties.push({
+        label: 'NS Resilience',
+        points: Math.abs(nsDiversity.score),
+        description: nsDiversity.description
+      })
+      totalPenalty += Math.abs(nsDiversity.score)
+    }
+    // score === 0 means neutral (multiple NS but no major providers, or no data)
+  }
+
+  // DNSSEC analysis (optional polish signal)
+  if (dnsRecord.dnssecEnabled) {
+    const dnssecScore = analyzeDnssec(dnsRecord.dnssecEnabled)
+    if (dnssecScore.score > 0) {
+      penalties.push({
+        label: 'DNSSEC',
+        points: dnssecScore.score,
+        description: dnssecScore.description
+      })
+      totalPenalty -= dnssecScore.score
     }
   }
 
@@ -235,6 +537,8 @@ export default function EmailValidatorOutputPanel({ result }) {
     dmarcMonitoring: null, // null, true, false (has rua/ruf)
     spfRecord: null, // null, true, false (has SPF)
     noMxRecords: null, // null, true, false (has MX records)
+    nsDiversity: null, // null, true, false (good NS diversity)
+    dnssecEnabled: null, // null, true, false (DNSSEC enabled)
   })
   const dnsAbortControllerRef = React.useRef(null)
 
@@ -569,6 +873,19 @@ export default function EmailValidatorOutputPanel({ result }) {
         const hasMX = dnsRecord.mxRecords && dnsRecord.mxRecords.length > 0
         if (filters.noMxRecords && hasMX) return false // Filter shows "No MX" but email has MX
         if (!filters.noMxRecords && !hasMX) return false // Filter shows "Has MX" but email has no MX
+      }
+
+      if (filters.nsDiversity !== null && dnsRecord) {
+        const nsDiversity = analyzeNSDiversity(dnsRecord.nsRecords)
+        const hasGoodDiversity = nsDiversity.score > 0
+        if (filters.nsDiversity && !hasGoodDiversity) return false // Filter shows "Good" but no good diversity
+        if (!filters.nsDiversity && hasGoodDiversity) return false // Filter shows "Poor" but has good diversity
+      }
+
+      if (filters.dnssecEnabled !== null && dnsRecord) {
+        const hasDnssec = dnsRecord.dnssecEnabled === true
+        if (filters.dnssecEnabled && !hasDnssec) return false // Filter shows "Enabled" but DNSSEC disabled
+        if (!filters.dnssecEnabled && hasDnssec) return false // Filter shows "Disabled" but DNSSEC enabled
       }
 
       // TLD Quality filter
@@ -1057,6 +1374,50 @@ export default function EmailValidatorOutputPanel({ result }) {
                 </select>
               </div>
 
+              {/* NS Diversity Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>NS Diversity</label>
+                <select
+                  value={filters.nsDiversity === null ? 'null' : filters.nsDiversity}
+                  onChange={(e) => setFilters({ ...filters, nsDiversity: e.target.value === 'null' ? null : e.target.value === 'true' })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="null">All</option>
+                  <option value="true">Good</option>
+                  <option value="false">Poor</option>
+                </select>
+              </div>
+
+              {/* DNSSEC Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>DNSSEC</label>
+                <select
+                  value={filters.dnssecEnabled === null ? 'null' : filters.dnssecEnabled}
+                  onChange={(e) => setFilters({ ...filters, dnssecEnabled: e.target.value === 'null' ? null : e.target.value === 'true' })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="null">All</option>
+                  <option value="true">Enabled</option>
+                  <option value="false">Disabled</option>
+                </select>
+              </div>
+
               {/* Reset Button */}
               <button
                 onClick={() => setFilters({
@@ -1069,6 +1430,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                   dmarcMonitoring: null,
                   spfRecord: null,
                   noMxRecords: null,
+                  nsDiversity: null,
+                  dnssecEnabled: null,
                 })}
                 style={{
                   gridColumn: '1 / -1',
@@ -1827,6 +2190,42 @@ export default function EmailValidatorOutputPanel({ result }) {
                               </div>
                             )}
                           </div>
+
+                          {/* Nameservers */}
+                          <div style={{ marginTop: '8px' }}>
+                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600', fontSize: '14px' }}>
+                              Nameservers ({dnsData[emailResult.email].nsRecords?.length || 0}):
+                            </div>
+                            {dnsData[emailResult.email].nsRecords && dnsData[emailResult.email].nsRecords.length > 0 ? (
+                              <div style={{ marginLeft: '20px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                                {dnsData[emailResult.email].nsRecords.map((ns, idx) => (
+                                  <div key={idx} style={{ marginBottom: '4px', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                                    {idx + 1}. {ns.nameserver}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div style={{ marginLeft: '20px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                                ✗ No nameserver data available
+                              </div>
+                            )}
+                          </div>
+
+                          {/* DNSSEC Status */}
+                          <div style={{ marginTop: '8px' }}>
+                            <div style={{ color: 'var(--color-text-secondary)', marginBottom: '3px', fontWeight: '600', fontSize: '14px' }}>
+                              DNSSEC:
+                            </div>
+                            {dnsData[emailResult.email].dnssecEnabled ? (
+                              <div style={{ marginLeft: '20px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                                ✓ DNSSEC enabled
+                              </div>
+                            ) : (
+                              <div style={{ marginLeft: '20px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                                ✗ DNSSEC not enabled
+                              </div>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
@@ -1857,6 +2256,8 @@ export default function EmailValidatorOutputPanel({ result }) {
                     dmarcMonitoring: null,
                     spfRecord: null,
                     noMxRecords: null,
+                    nsDiversity: null,
+                    dnssecEnabled: null,
                   })}
                   style={{
                     marginTop: '8px',

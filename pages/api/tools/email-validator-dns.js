@@ -86,6 +86,43 @@ async function resolve6Safe(domain) {
   }
 }
 
+async function resolveCnameSafe(domain) {
+  try {
+    return await Promise.race([
+      dns.resolveCname(domain),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+    ])
+  } catch (e) {
+    // Fallback to Google DoH
+    const answers = await googleDohQuery(domain, 'CNAME')
+    return answers.map(ans => ans.data.replace(/\.$/, ''))
+  }
+}
+
+async function resolveNsSafe(domain) {
+  try {
+    return await Promise.race([
+      dns.resolveNs(domain),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+    ])
+  } catch (e) {
+    // Fallback to Google DoH
+    const answers = await googleDohQuery(domain, 'NS')
+    return answers.map(ans => ans.data.replace(/\.$/, ''))
+  }
+}
+
+async function resolveDnskeySafe(domain) {
+  try {
+    // Google DoH is most reliable for DNSKEY queries
+    const answers = await googleDohQuery(domain, 'DNSKEY')
+    return answers.length > 0 // Return true if DNSKEY records exist
+  } catch (e) {
+    // If DNSKEY lookup fails, assume DNSSEC not enabled
+    return false
+  }
+}
+
 function getParentDomain(domain) {
   const parts = domain.split('.')
   // Only extract parent if domain has more than 2 parts (is a subdomain)
@@ -95,6 +132,72 @@ function getParentDomain(domain) {
   return null
 }
 
+function isReputableNsProvider(nameserver) {
+  if (!nameserver) return false
+
+  const ns = nameserver.toLowerCase()
+
+  // Major DNS providers (reputable, enterprise-grade)
+  const reputableProviders = [
+    // Cloudflare
+    'cloudflare.com',
+    'ns1.cloudflare.com',
+    'ns2.cloudflare.com',
+    'ns3.cloudflare.com',
+    'ns4.cloudflare.com',
+
+    // AWS Route 53
+    'awsdns',
+
+    // Google Cloud DNS & Google Domains
+    'ns-cloud-',
+    'google.com',
+    'googledomains.com',
+
+    // Akamai
+    'akam.net',
+    'akamaized.net',
+
+    // Azure / Microsoft
+    'ns1.microsoft.com',
+    'ns2.microsoft.com',
+    'ns3.microsoft.com',
+
+    // Namecheap
+    'namecheap.com',
+
+    // GoDaddy
+    'secureserver.net',
+    'domaincontrol.com',
+
+    // Network Solutions
+    'networksolutions.com',
+
+    // DNSimple
+    'dnsimple.com',
+
+    // Rackspace
+    'rackspace.com',
+
+    // Linode
+    'linode.com',
+
+    // Digitalocean
+    'digitalocean.com',
+
+    // Vultr
+    'vultr.com',
+
+    // DirectNIC
+    'directnic.com',
+
+    // Quad9
+    'quad9.net'
+  ]
+
+  return reputableProviders.some(provider => ns.includes(provider))
+}
+
 async function lookupDomainRecords(domain) {
   const result = {
     domain,
@@ -102,8 +205,10 @@ async function lookupDomainRecords(domain) {
     mxRecords: [],
     aRecords: [],
     aaaaRecords: [],
+    nsRecords: [],
     spfRecord: null,
     dmarcRecord: null,
+    dnssecEnabled: false,
     mailHostType: null,
     receivable: false
   }
@@ -125,11 +230,25 @@ async function lookupDomainRecords(domain) {
 
           return {
             priority: typeof record.priority === 'number' ? record.priority : parseInt(record.priority) || 10,
-            hostname: String(hostname).trim()
+            hostname: String(hostname).trim(),
+            isCname: false // Will be updated after CNAME check
           }
         })
         .filter(record => record.hostname.length > 0) // Only keep records with non-empty hostnames
         .sort((a, b) => a.priority - b.priority)
+
+      // Check if any MX records point to CNAMEs (RFC violation)
+      for (const mxRecord of result.mxRecords) {
+        try {
+          const cnames = await resolveCnameSafe(mxRecord.hostname)
+          if (cnames && cnames.length > 0) {
+            mxRecord.isCname = true
+          }
+        } catch (e) {
+          // If CNAME lookup fails, assume it's not a CNAME
+          // (Could be A/AAAA record or just unreachable)
+        }
+      }
 
       // Only set as 'mx' if we have valid MX records with hostnames
       if (result.mxRecords.length > 0) {
@@ -229,6 +348,31 @@ async function lookupDomainRecords(domain) {
     // DMARC lookup failed, continue
   }
 
+  // 6. Try NS records (nameserver diversity)
+  try {
+    const nsResult = await resolveNsSafe(domain)
+
+    if (nsResult && nsResult.length > 0) {
+      result.nsRecords = nsResult.map(ns => {
+        // Normalize NS name (remove trailing dot)
+        const normalized = typeof ns === 'string' ? ns.replace(/\.$/, '') : ns
+        return {
+          nameserver: normalized
+        }
+      })
+    }
+  } catch (nsError) {
+    // NS lookup failed, continue
+  }
+
+  // 7. Try DNSSEC (DNSKEY records)
+  try {
+    result.dnssecEnabled = await resolveDnskeySafe(domain)
+  } catch (dnssecError) {
+    // DNSSEC lookup failed, assume disabled
+    result.dnssecEnabled = false
+  }
+
   return result
 }
 
@@ -267,8 +411,10 @@ export default async function handler(req, res) {
       mxRecords: [],
       aRecords: [],
       aaaaRecords: [],
+      nsRecords: [],
       spfRecord: null,
       dmarcRecord: null,
+      dnssecEnabled: false,
       mailHostType: 'none',
       receivable: false,
       error: error.message || 'DNS lookup failed',
