@@ -114,8 +114,6 @@ async function lookupDomainRecords(domain) {
 
     if (mxResult && mxResult.length > 0) {
       result.domainExists = true
-      result.mailHostType = 'mx'
-      result.receivable = true
       result.mxRecords = mxResult
         .map(record => {
           let hostname = ''
@@ -130,7 +128,14 @@ async function lookupDomainRecords(domain) {
             hostname: String(hostname).trim()
           }
         })
+        .filter(record => record.hostname.length > 0) // Only keep records with non-empty hostnames
         .sort((a, b) => a.priority - b.priority)
+
+      // Only set as 'mx' if we have valid MX records with hostnames
+      if (result.mxRecords.length > 0) {
+        result.mailHostType = 'mx'
+        result.receivable = true
+      }
     }
   } catch (mxError) {
     // MX lookup failed, will try A/AAAA fallback

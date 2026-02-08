@@ -74,6 +74,14 @@ function getMxProvider(mxHostname) {
   return null
 }
 
+function getCampaignReadinessLabel(score) {
+  if (score >= 90) return 'Excellent'
+  else if (score >= 75) return 'Good'
+  else if (score >= 55) return 'Risky'
+  else if (score >= 30) return 'Poor'
+  else return 'Very Poor'
+}
+
 function calculateDomainHealthScore(tldQuality, isDomainCorporate) {
   let dhs = 77 // Base: domain exists and can receive mail
 
@@ -219,10 +227,14 @@ export default function EmailValidatorOutputPanel({ result }) {
     campaignScore: { min: 0, max: 100 },
     // Specific warning filters
     roleBasedEmail: null, // null, true, false
+    // Domain filters
+    tldQuality: 'all', // all, high-trust, neutral, low-trust
+    gibberishScore: 'all', // all, high, medium, low
     // DNS filters
     dmarcPolicy: 'all', // all, reject, quarantine, none, missing
     dmarcMonitoring: null, // null, true, false (has rua/ruf)
     spfRecord: null, // null, true, false (has SPF)
+    noMxRecords: null, // null, true, false (has MX records)
   })
   const dnsAbortControllerRef = React.useRef(null)
 
@@ -315,7 +327,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         valid: isActuallyValid,
         isInvalid: !isActuallyValid || emailResult.isDisposable,
         campaignScore: finalCampaignScore,
-        campaignReadiness: isActuallyValid ? emailResult.campaignReadiness : 'Invalid',
+        campaignReadiness: isActuallyValid ? getCampaignReadinessLabel(finalCampaignScore) : 'Invalid',
         campaignBreakdown: updatedCampaignBreakdown.length > 0 ? updatedCampaignBreakdown : emailResult.campaignBreakdown,
         issues,
         dnsRecord: dnsRecord || undefined
@@ -335,10 +347,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         validEmailsForAverage.reduce((sum, r) => sum + r.campaignScore, 0) / validEmailsForAverage.length
       )
 
-      if (newAverageCampaignScore >= 85) newAverageCampaignReadiness = 'Excellent'
-      else if (newAverageCampaignScore >= 70) newAverageCampaignReadiness = 'Good'
-      else if (newAverageCampaignScore >= 50) newAverageCampaignReadiness = 'Risky'
-      else newAverageCampaignReadiness = 'Poor'
+      newAverageCampaignReadiness = getCampaignReadinessLabel(newAverageCampaignScore)
     }
 
     return {
@@ -391,10 +400,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         validEmailsForAverage.reduce((sum, r) => sum + r.adjustedCampaignScore, 0) / validEmailsForAverage.length
       )
 
-      if (newAverageCampaignScore >= 85) newAverageCampaignReadiness = 'Excellent'
-      else if (newAverageCampaignScore >= 70) newAverageCampaignReadiness = 'Good'
-      else if (newAverageCampaignScore >= 50) newAverageCampaignReadiness = 'Risky'
-      else newAverageCampaignReadiness = 'Poor'
+      newAverageCampaignReadiness = getCampaignReadinessLabel(newAverageCampaignScore)
     }
 
     return {
@@ -423,6 +429,9 @@ export default function EmailValidatorOutputPanel({ result }) {
       'DHS Breakdown',
       'LCS Breakdown',
       'Role-Based',
+      'TLD Quality',
+      'Gibberish Score',
+      'MX Records',
       'SPF Record',
       'DMARC Policy',
       'DMARC Monitoring'
@@ -468,6 +477,11 @@ export default function EmailValidatorOutputPanel({ result }) {
         }
       }
 
+      const mxRecordCount = dnsRecord?.mxRecords ? dnsRecord.mxRecords.length : 0
+      const mxStatus = mxRecordCount > 0 ? `Yes (${mxRecordCount})` : 'No'
+
+      const gibberishLevel = emailResult.gibberishScore >= 25 ? 'High' : emailResult.gibberishScore >= 15 ? 'Medium' : 'Low'
+
       return [
         emailResult.email,
         emailResult.valid && !emailResult.isDisposable ? 'Valid' : 'Invalid',
@@ -478,6 +492,9 @@ export default function EmailValidatorOutputPanel({ result }) {
         dhsBreakdownItems.join('; ') || 'N/A',
         lcsBreakdownItems.join('; ') || 'N/A',
         emailResult.roleBasedEmail ? 'Yes' : 'No',
+        emailResult.tldQuality || 'N/A',
+        gibberishLevel,
+        mxStatus,
         dnsRecord?.spfRecord ? 'Yes' : 'No',
         dmarcPolicy,
         dmarcMonitoring,
@@ -546,6 +563,27 @@ export default function EmailValidatorOutputPanel({ result }) {
         const hasSPF = dnsRecord.spfRecord !== null && dnsRecord.spfRecord !== undefined
         if (filters.spfRecord && !hasSPF) return false
         if (!filters.spfRecord && hasSPF) return false
+      }
+
+      if (filters.noMxRecords !== null && dnsRecord) {
+        const hasMX = dnsRecord.mxRecords && dnsRecord.mxRecords.length > 0
+        if (filters.noMxRecords && hasMX) return false // Filter shows "No MX" but email has MX
+        if (!filters.noMxRecords && !hasMX) return false // Filter shows "Has MX" but email has no MX
+      }
+
+      // TLD Quality filter
+      if (filters.tldQuality !== 'all') {
+        if (filters.tldQuality !== emailResult.tldQuality) return false
+      }
+
+      // Gibberish Score filter
+      if (filters.gibberishScore !== 'all') {
+        const gibScore = emailResult.gibberishScore || 0
+        let scoreLevel = 'low'
+        if (gibScore >= 25) scoreLevel = 'high'
+        else if (gibScore >= 15) scoreLevel = 'medium'
+
+        if (filters.gibberishScore !== scoreLevel) return false
       }
 
       return true
@@ -883,6 +921,52 @@ export default function EmailValidatorOutputPanel({ result }) {
                 </select>
               </div>
 
+              {/* TLD Quality Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>TLD Quality</label>
+                <select
+                  value={filters.tldQuality}
+                  onChange={(e) => setFilters({ ...filters, tldQuality: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="all">All</option>
+                  <option value="high-trust">High-Trust</option>
+                  <option value="neutral">Neutral</option>
+                  <option value="low-trust">Low-Trust</option>
+                </select>
+              </div>
+
+              {/* Gibberish Score Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>Gibberish Score</label>
+                <select
+                  value={filters.gibberishScore}
+                  onChange={(e) => setFilters({ ...filters, gibberishScore: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="all">All</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
               {/* DMARC Policy Filter */}
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>DMARC Policy</label>
@@ -929,6 +1013,28 @@ export default function EmailValidatorOutputPanel({ result }) {
                 </select>
               </div>
 
+              {/* MX Records Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>MX Records</label>
+                <select
+                  value={filters.noMxRecords === null ? 'null' : filters.noMxRecords}
+                  onChange={(e) => setFilters({ ...filters, noMxRecords: e.target.value === 'null' ? null : e.target.value === 'true' })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="null">All</option>
+                  <option value="false">Has MX</option>
+                  <option value="true">No MX</option>
+                </select>
+              </div>
+
               {/* SPF Record Filter */}
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>SPF Record</label>
@@ -957,9 +1063,12 @@ export default function EmailValidatorOutputPanel({ result }) {
                   status: 'all',
                   campaignScore: { min: 0, max: 100 },
                   roleBasedEmail: null,
+                  tldQuality: 'all',
+                  gibberishScore: 'all',
                   dmarcPolicy: 'all',
                   dmarcMonitoring: null,
                   spfRecord: null,
+                  noMxRecords: null,
                 })}
                 style={{
                   gridColumn: '1 / -1',
@@ -1110,12 +1219,17 @@ export default function EmailValidatorOutputPanel({ result }) {
                 )}
 
                 {/* Valid emails: Show warnings and details */}
-                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0) && (
+                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0 || (!dnsData[emailResult.email]?.mxRecords || dnsData[emailResult.email]?.mxRecords?.length === 0)) && (
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
                       ⚠ Warnings:
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                      {(!dnsData[emailResult.email]?.mxRecords || dnsData[emailResult.email]?.mxRecords?.length === 0) && (
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • No MX records found (using A/AAAA fallback)
+                        </div>
+                      )}
                       {emailResult.roleBasedEmail && (
                         <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Role-based email (may not be a real user account)
@@ -1158,11 +1272,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                       const adjustedScore = Math.min(adjustedDHS, lcsScore)
 
                       // Determine campaign readiness based on adjusted score
-                      let readinessLevel = 'Poor'
-                      if (adjustedScore >= 85) readinessLevel = 'Excellent'
-                      else if (adjustedScore >= 70) readinessLevel = 'Good'
-                      else if (adjustedScore >= 50) readinessLevel = 'Risky'
-                      else readinessLevel = 'Poor'
+                      const readinessLevel = getCampaignReadinessLabel(adjustedScore)
 
                       return (
                         <>
@@ -1725,9 +1835,12 @@ export default function EmailValidatorOutputPanel({ result }) {
                     status: 'all',
                     campaignScore: { min: 0, max: 100 },
                     roleBasedEmail: null,
+                    tldQuality: 'all',
+                    gibberishScore: 'all',
                     dmarcPolicy: 'all',
                     dmarcMonitoring: null,
                     spfRecord: null,
+                    noMxRecords: null,
                   })}
                   style={{
                     marginTop: '8px',
