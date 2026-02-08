@@ -74,6 +74,24 @@ function getMxProvider(mxHostname) {
   return null
 }
 
+function calculateDomainHealthScore(tldQuality, isDomainCorporate) {
+  let dhs = 77 // Base: domain exists and can receive mail
+
+  // TLD Quality
+  if (tldQuality === 'high-trust') {
+    dhs += 5
+  } else if (tldQuality === 'low-trust') {
+    dhs -= 10
+  }
+
+  // Corporate Domain
+  if (isDomainCorporate) {
+    dhs += 5
+  }
+
+  return Math.max(0, Math.min(100, dhs))
+}
+
 function calculateDnsRecordPenalties(dnsRecord) {
   const penalties = []
   let totalPenalty = 0
@@ -207,9 +225,10 @@ export default function EmailValidatorOutputPanel({ result }) {
       const isInvalidByDns = dnsRecord?.mailHostType === 'none'
       const isActuallyValid = emailResult.valid && !emailResult.isDisposable && !isInvalidByDns
 
-      // Calculate adjusted DHS based on DNS penalties
-      let adjustedDhs = emailResult.dhsScore || 75
-      let finalIdentityScore = emailResult.identityScore || 0
+      // Calculate DHS based on domain info and apply DNS adjustments
+      let baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
+      let adjustedDhs = baseDhs
+      let finalCampaignScore = emailResult.campaignScore || 0
       let dnsPenalties = []
 
       if (isActuallyValid && dnsRecord) {
@@ -217,43 +236,56 @@ export default function EmailValidatorOutputPanel({ result }) {
         dnsPenalties = penalties
         adjustedDhs = Math.max(0, Math.min(100, adjustedDhs - dnsTotalAdjustment))
         const lcsScore = emailResult.lcsScore || 100
-        finalIdentityScore = Math.min(adjustedDhs, lcsScore)
+        finalCampaignScore = Math.min(adjustedDhs, lcsScore)
       }
 
-      // Reconstruct identityBreakdown with adjusted scores and DNS penalties (no separators)
-      let updatedIdentityBreakdown = []
-      if (emailResult.identityBreakdown && emailResult.identityBreakdown.length > 0) {
-        // Filter out separators and update DHS/final score headers
-        updatedIdentityBreakdown = emailResult.identityBreakdown
-          .filter(item => !item.isSeparator && item.label !== '')
-          .map(item => {
-            // Update DHS header to show adjusted value
-            if (item.isSectionHeader && item.label.startsWith('Domain Health Score')) {
-              return {
-                ...item,
-                points: adjustedDhs,
-                description: `Infrastructure & domain maturity (adjusted: ${adjustedDhs})`
-              }
-            }
-            // Update final score to show adjusted value
-            if (item.label === 'Final Campaign Readiness Score') {
-              return {
-                ...item,
-                points: finalIdentityScore,
-                description: `min(Domain Health Score (${adjustedDhs}), Local-Part Credibility Score (${emailResult.lcsScore || 100}))`
-              }
-            }
-            return item
-          })
+      // Build complete campaignBreakdown with DHS + DNS + LCS for JSON output
+      let updatedCampaignBreakdown = [
+        { label: 'Domain Health Score', points: adjustedDhs, description: 'Infrastructure & domain maturity (adjusted with DNS results)', isSectionHeader: true }
+      ]
 
-        // Insert DNS penalties before the LCS section
-        if (dnsPenalties.length > 0) {
-          const lcsIndex = updatedIdentityBreakdown.findIndex(item => item.isSectionHeader && item.label.startsWith('Local-Part'))
-          if (lcsIndex > 0) {
-            updatedIdentityBreakdown.splice(lcsIndex, 0, ...dnsPenalties)
+      // Add base DHS items (TLD quality, corporate domain)
+      if (emailResult.tldQuality === 'high-trust') {
+        updatedCampaignBreakdown.push({ label: 'High-Trust TLD', points: 5, description: 'Established TLD (.com, .org, .edu, etc.)' })
+      } else if (emailResult.tldQuality === 'low-trust') {
+        updatedCampaignBreakdown.push({ label: 'Low-Trust TLD', points: -10, description: 'Suspicious or uncommon TLD' })
+      }
+
+      if (emailResult.isDomainCorporate) {
+        updatedCampaignBreakdown.push({ label: 'Corporate Domain', points: 5, description: 'Verified corporate/business domain' })
+      }
+
+      // Add DNS penalties if any
+      if (dnsPenalties.length > 0) {
+        updatedCampaignBreakdown.push(...dnsPenalties)
+      }
+
+      // Add LCS section and items from backend breakdown
+      updatedCampaignBreakdown.push({ label: 'Local-Part Credibility Score', points: emailResult.lcsScore || 100, description: 'Username quality & engagement likelihood (base: 100)', isSectionHeader: true })
+
+      if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
+        let foundLcsHeader = false
+        for (const item of emailResult.campaignBreakdown) {
+          if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
+            foundLcsHeader = true
+            continue
+          }
+          // Skip separators and the backend's final score item
+          if (item.isSeparator || item.label === 'Final Campaign Readiness Score') {
+            continue
+          }
+          if (foundLcsHeader) {
+            updatedCampaignBreakdown.push(item)
           }
         }
       }
+
+      // Add final score
+      updatedCampaignBreakdown.push({
+        label: 'Final Campaign Readiness Score',
+        points: finalCampaignScore,
+        description: `min(Domain Health Score (${adjustedDhs}), Local-Part Credibility Score (${emailResult.lcsScore || 100}))`
+      })
 
       // Ensure no-mailserver issue is in the issues array
       let issues = emailResult.issues || []
@@ -265,9 +297,8 @@ export default function EmailValidatorOutputPanel({ result }) {
         ...emailResult,
         valid: isActuallyValid,
         isInvalid: !isActuallyValid || emailResult.isDisposable,
-        identityScore: finalIdentityScore,
-        dhsScore: adjustedDhs,
-        identityBreakdown: updatedIdentityBreakdown.length > 0 ? updatedIdentityBreakdown : emailResult.identityBreakdown,
+        campaignScore: finalCampaignScore,
+        campaignBreakdown: updatedCampaignBreakdown.length > 0 ? updatedCampaignBreakdown : emailResult.campaignBreakdown,
         issues,
         dnsRecord: dnsRecord || undefined
       }
@@ -278,17 +309,17 @@ export default function EmailValidatorOutputPanel({ result }) {
     const invalidCount = updatedResults.length - validCount
 
     const validEmailsForAverage = updatedResults.filter(r => r.valid)
-    let newAverageIdentityScore = undefined
+    let newAverageCampaignScore = undefined
     let newAverageCampaignReadiness = undefined
 
     if (validEmailsForAverage.length > 0) {
-      newAverageIdentityScore = Math.round(
-        validEmailsForAverage.reduce((sum, r) => sum + r.identityScore, 0) / validEmailsForAverage.length
+      newAverageCampaignScore = Math.round(
+        validEmailsForAverage.reduce((sum, r) => sum + r.campaignScore, 0) / validEmailsForAverage.length
       )
 
-      if (newAverageIdentityScore >= 85) newAverageCampaignReadiness = 'Excellent'
-      else if (newAverageIdentityScore >= 70) newAverageCampaignReadiness = 'Good'
-      else if (newAverageIdentityScore >= 50) newAverageCampaignReadiness = 'Risky'
+      if (newAverageCampaignScore >= 85) newAverageCampaignReadiness = 'Excellent'
+      else if (newAverageCampaignScore >= 70) newAverageCampaignReadiness = 'Good'
+      else if (newAverageCampaignScore >= 50) newAverageCampaignReadiness = 'Risky'
       else newAverageCampaignReadiness = 'Poor'
     }
 
@@ -296,7 +327,7 @@ export default function EmailValidatorOutputPanel({ result }) {
       ...result,
       valid: validCount,
       invalid: invalidCount,
-      averageIdentityScore: newAverageIdentityScore,
+      averageCampaignScore: newAverageCampaignScore,
       averageCampaignReadiness: newAverageCampaignReadiness,
       results: updatedResults
     }
@@ -312,19 +343,20 @@ export default function EmailValidatorOutputPanel({ result }) {
       const isInvalidByDns = dnsRecord?.mailHostType === 'none'
       const isActuallyValid = emailResult.valid && !emailResult.isDisposable && !isInvalidByDns
 
-      // Calculate adjusted DHS based on DNS penalties
-      let adjustedIdentityScore = emailResult.identityScore || 0
+      // Calculate adjusted campaign score based on DNS penalties
+      let adjustedCampaignScore = emailResult.campaignScore || 0
       if (isActuallyValid && dnsRecord) {
         const { totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
-        const adjustedDhs = Math.max(0, Math.min(100, (emailResult.dhsScore || 75) - dnsTotalAdjustment))
+        const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
+        const adjustedDhs = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
         const lcsScore = emailResult.lcsScore || 100
-        adjustedIdentityScore = Math.min(adjustedDhs, lcsScore)
+        adjustedCampaignScore = Math.min(adjustedDhs, lcsScore)
       }
 
       return {
         ...emailResult,
         isActuallyValid,
-        adjustedIdentityScore
+        adjustedCampaignScore
       }
     })
 
@@ -333,24 +365,24 @@ export default function EmailValidatorOutputPanel({ result }) {
 
     // Recalculate average only for actually valid emails (using adjusted scores)
     const validEmailsForAverage = updatedResults.filter(r => r.isActuallyValid)
-    let newAverageIdentityScore = undefined
+    let newAverageCampaignScore = undefined
     let newAverageCampaignReadiness = undefined
 
     if (validEmailsForAverage.length > 0) {
-      newAverageIdentityScore = Math.round(
-        validEmailsForAverage.reduce((sum, r) => sum + r.adjustedIdentityScore, 0) / validEmailsForAverage.length
+      newAverageCampaignScore = Math.round(
+        validEmailsForAverage.reduce((sum, r) => sum + r.adjustedCampaignScore, 0) / validEmailsForAverage.length
       )
 
-      if (newAverageIdentityScore >= 85) newAverageCampaignReadiness = 'Excellent'
-      else if (newAverageIdentityScore >= 70) newAverageCampaignReadiness = 'Good'
-      else if (newAverageIdentityScore >= 50) newAverageCampaignReadiness = 'Risky'
+      if (newAverageCampaignScore >= 85) newAverageCampaignReadiness = 'Excellent'
+      else if (newAverageCampaignScore >= 70) newAverageCampaignReadiness = 'Good'
+      else if (newAverageCampaignScore >= 50) newAverageCampaignReadiness = 'Risky'
       else newAverageCampaignReadiness = 'Poor'
     }
 
     return {
       valid: validCount,
       invalid: invalidCount,
-      averageIdentityScore: newAverageIdentityScore,
+      averageCampaignScore: newAverageCampaignScore,
       averageCampaignReadiness: newAverageCampaignReadiness
     }
   }, [result, dnsData])
@@ -516,7 +548,7 @@ export default function EmailValidatorOutputPanel({ result }) {
           </div>
         )}
 
-        {recalculatedStats?.averageIdentityScore !== undefined && (
+        {recalculatedStats?.averageCampaignScore !== undefined && (
           <div style={{
             padding: '10px 12px',
             backgroundColor: 'rgba(156, 39, 176, 0.08)',
@@ -527,7 +559,7 @@ export default function EmailValidatorOutputPanel({ result }) {
             textAlign: 'center',
           }}>
             <div style={{ fontSize: '8px', fontWeight: '700', textTransform: 'uppercase', color: '#9c27b0', marginBottom: '4px', letterSpacing: '0.3px' }}>Avg Score</div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#9c27b0' }}>{recalculatedStats.averageIdentityScore}</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#9c27b0' }}>{recalculatedStats.averageCampaignScore}</div>
           </div>
         )}
       </div>
@@ -633,10 +665,10 @@ export default function EmailValidatorOutputPanel({ result }) {
                       const dnsRecord = dnsData[emailResult.email]
                       const { totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
 
-                      const dhsScore = emailResult.dhsScore || 75
-                      const lcsCap = emailResult.lcsCap || 100
-                      const adjustedDHS = Math.max(0, Math.min(100, dhsScore - dnsTotalAdjustment))
-                      const adjustedScore = Math.min(adjustedDHS, lcsCap)
+                      const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
+                      const lcsScore = emailResult.lcsScore || 100
+                      const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
+                      const adjustedScore = Math.min(adjustedDHS, lcsScore)
 
                       let readinessLevel = 'Poor'
                       if (adjustedScore >= 85) readinessLevel = 'Excellent'
@@ -701,11 +733,6 @@ export default function EmailValidatorOutputPanel({ result }) {
                           • Domain has poor reputation or is on blocklist
                         </div>
                       )}
-                      {emailResult.usernameHeuristics?.map((heuristic, hIdx) => (
-                        <div key={`uh-${hIdx}`} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                          • Username: {heuristic}
-                        </div>
-                      ))}
                       {emailResult.domainHeuristics?.map((heuristic, dhIdx) => (
                         <div key={`dh-${dhIdx}`} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Domain: {heuristic}
@@ -717,7 +744,7 @@ export default function EmailValidatorOutputPanel({ result }) {
 
 
                 {/* Campaign Readiness (Identity Score) Panel - Only show for valid emails */}
-                {emailResult.identityScore !== undefined && emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (
+                {emailResult.campaignScore !== undefined && emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (
                   <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '10px', marginBottom: '10px' }}>
                     <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Campaign Readiness
@@ -726,13 +753,12 @@ export default function EmailValidatorOutputPanel({ result }) {
                       const dnsRecord = dnsData[emailResult.email]
                       const { penalties: dnsPenalties, totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
 
-                      // ===== SINGLE SOURCE OF TRUTH: Use backend-calculated values directly =====
-                      // These are authoritative values from calculateIdentityScore() backend
-                      const dhsScore = emailResult.dhsScore || 75  // Domain Health Score (infrastructure)
+                      // ===== SINGLE SOURCE OF TRUTH: Calculate DHS + apply DNS adjustments =====
+                      const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
                       const lcsScore = emailResult.lcsScore || 100 // Local-Part Credibility Score (identity)
 
                       // Apply DNS adjustments to DHS only
-                      const adjustedDHS = Math.max(0, Math.min(100, dhsScore - dnsTotalAdjustment))
+                      const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
 
                       // Final score = min(adjusted DHS, LCS)
                       // This ensures bad identity cannot be rescued by good domain
@@ -763,7 +789,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     })()}
 
                     {/* Score Breakdown */}
-                    {emailResult.identityBreakdown && emailResult.identityBreakdown.length > 0 && (
+                    {emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0 && (
                       <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '3px', border: '1px solid rgba(156, 39, 176, 0.1)' }}>
                         <div style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                           Score Breakdown
@@ -775,61 +801,62 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                             // ===== SINGLE SOURCE OF TRUTH (breakdown section): Same values as above =====
                             // Ensures displayed scores match final calculation
-                            const dhsScore = emailResult.dhsScore || 75
+                            const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
                             const lcsScore = emailResult.lcsScore || 100
-                            const adjustedDHS = Math.max(0, Math.min(100, dhsScore - dnsTotalAdjustment))
+                            const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
                             const adjustedScore = Math.min(adjustedDHS, lcsScore)
 
-                            // Reorganize breakdown:
-                            // 1. Update DHS header to show final adjusted value
-                            // 2. Merge DNS items into DHS section so everything is visible
-                            // 3. Update final score description to show actual values
-                            const breakdownWithDns = [...(emailResult.identityBreakdown || [])]
+                            // Build complete breakdown with DHS + LCS + DNS penalties
+                            const breakdownWithDns = [
+                              { label: 'Domain Health Score', points: adjustedDHS, description: 'Infrastructure & domain maturity (adjusted with DNS results)', isSectionHeader: true }
+                            ]
 
-                            // Find indices for DHS header, separator before LCS, and final score
-                            let dhsSectionIndex = -1
-                            let separatorBeforeLcsIndex = -1
-                            let finalScoreIndex = -1
+                            // Add base DHS items (TLD quality, corporate domain)
+                            if (emailResult.tldQuality === 'high-trust') {
+                              breakdownWithDns.push({ label: 'High-Trust TLD', points: 5, description: 'Established TLD (.com, .org, .edu, etc.)' })
+                            } else if (emailResult.tldQuality === 'low-trust') {
+                              breakdownWithDns.push({ label: 'Low-Trust TLD', points: -10, description: 'Suspicious or uncommon TLD' })
+                            }
 
-                            for (let i = 0; i < breakdownWithDns.length; i++) {
-                              if (breakdownWithDns[i].isSectionHeader && breakdownWithDns[i].label.startsWith('Domain Health Score')) {
-                                dhsSectionIndex = i
-                              }
-                              if (breakdownWithDns[i].isSectionHeader && breakdownWithDns[i].label.startsWith('Local-Part Credibility Score')) {
-                                separatorBeforeLcsIndex = i - 1
-                              }
-                              if (breakdownWithDns[i].label === 'Final Campaign Readiness Score') {
-                                finalScoreIndex = i
+                            if (emailResult.isDomainCorporate) {
+                              breakdownWithDns.push({ label: 'Corporate Domain', points: 5, description: 'Verified corporate/business domain' })
+                            }
+
+                            // Add DNS penalties if any
+                            if (dnsPenalties.length > 0) {
+                              breakdownWithDns.push(...dnsPenalties)
+                            }
+
+                            // Add LCS section
+                            breakdownWithDns.push({ label: '', points: 0, description: '', isSeparator: true })
+                            breakdownWithDns.push({ label: 'Local-Part Credibility Score', points: lcsScore, description: 'Username quality & engagement likelihood (base: 100)', isSectionHeader: true })
+
+                            // Add LCS items from backend breakdown (skip the LCS header and final score since we're building those)
+                            if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
+                              let foundLcsHeader = false
+                              for (const item of emailResult.campaignBreakdown) {
+                                if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
+                                  foundLcsHeader = true
+                                  continue
+                                }
+                                // Skip the backend's final score item - we'll build our own
+                                if (item.label === 'Final Campaign Readiness Score') {
+                                  continue
+                                }
+                                if (foundLcsHeader) {
+                                  breakdownWithDns.push(item)
+                                }
                               }
                             }
 
-                            // STEP 1: Insert DNS penalties into DHS section (before the separator that precedes LCS)
-                            // This must happen BEFORE we update indices
-                            if (dhsSectionIndex >= 0 && separatorBeforeLcsIndex >= 0 && dnsPenalties.length > 0) {
-                              breakdownWithDns.splice(separatorBeforeLcsIndex, 0, ...dnsPenalties)
-                              // Adjust finalScoreIndex if it comes after the insertion point
-                              if (finalScoreIndex >= separatorBeforeLcsIndex) {
-                                finalScoreIndex += dnsPenalties.length
-                              }
-                            }
-
-                            // STEP 2: Update DHS header to show final adjusted value
-                            if (dhsSectionIndex >= 0) {
-                              breakdownWithDns[dhsSectionIndex] = {
-                                ...breakdownWithDns[dhsSectionIndex],
-                                points: adjustedDHS  // Show final adjusted DHS in header
-                              }
-                            }
-
-                            // STEP 3: Update final score description to show actual values
-                            if (finalScoreIndex >= 0) {
-                              breakdownWithDns[finalScoreIndex] = {
-                                ...breakdownWithDns[finalScoreIndex],
-                                points: adjustedScore,  // Ensure points is the final score, not a delta
-                                description: `min(Domain Health Score (${Math.round(adjustedDHS)}), Local-Part Credibility Score (${lcsScore}))`,
-                                isFinalScore: true  // Flag to render without +/- prefix
-                              }
-                            }
+                            // Add final score
+                            breakdownWithDns.push({ label: '', points: 0, description: '', isSeparator: true })
+                            breakdownWithDns.push({
+                              label: 'Final Campaign Readiness Score',
+                              points: adjustedScore,
+                              description: `min(Domain Health Score (${Math.round(adjustedDHS)}), Local-Part Credibility Score (${lcsScore}))`,
+                              isFinalScore: true
+                            })
 
                             return (
                               <>
