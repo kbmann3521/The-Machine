@@ -1100,7 +1100,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                 return (
                   <div key={idx} style={{
                     padding: '16px 14px',
-                    backgroundColor: 'var(--color-background-tertiary)',
+                    backgroundColor: 'transparent',
                     border: '1px solid var(--color-border)',
                     borderRadius: '4px',
                     borderLeft: '3px solid rgba(156, 39, 176, 0.3)',
@@ -1137,7 +1137,7 @@ export default function EmailValidatorOutputPanel({ result }) {
               return (
               <div key={idx} style={{
                 padding: '12px 14px',
-                backgroundColor: 'var(--color-background-tertiary)',
+                backgroundColor: 'transparent',
                 border: `1px solid ${!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? 'rgba(239, 83, 80, 0.3)' : 'rgba(76, 175, 80, 0.3)'}`,
                 borderRadius: '4px',
                 borderLeft: `3px solid ${!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none' ? '#ef5350' : '#4caf50'}`,
@@ -1177,11 +1177,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                       const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
                       const adjustedScore = Math.min(adjustedDHS, lcsScore)
 
-                      let readinessLevel = 'Poor'
-                      if (adjustedScore >= 85) readinessLevel = 'Excellent'
-                      else if (adjustedScore >= 70) readinessLevel = 'Good'
-                      else if (adjustedScore >= 50) readinessLevel = 'Risky'
-                      else readinessLevel = 'Poor'
+                      const readinessLevel = getCampaignReadinessLabel(adjustedScore)
 
                       return (
                         <span style={{
@@ -1194,8 +1190,9 @@ export default function EmailValidatorOutputPanel({ result }) {
                                  readinessLevel === 'Good' ? '#2196f3' :
                                  readinessLevel === 'Risky' ? '#ff9800' : '#ef5350',
                           borderRadius: '3px',
-                          fontSize: '11px',
+                          fontSize: '13px',
                           fontWeight: '600',
+                          textTransform: 'uppercase',
                         }}>
                           Campaign: {readinessLevel}
                         </span>
@@ -1252,8 +1249,8 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                 {/* Campaign Readiness (Identity Score) Panel - Only show for valid emails */}
                 {emailResult.campaignScore !== undefined && emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (
-                  <div style={{ padding: '10px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '4px', border: '1px solid rgba(156, 39, 176, 0.2)', marginTop: '10px', marginBottom: '10px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Campaign Readiness
                     </div>
                     {(() => {
@@ -1293,8 +1290,8 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                     {/* Score Breakdown */}
                     {emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0 && (
-                      <div style={{ marginBottom: '8px', padding: '8px', backgroundColor: 'rgba(156, 39, 176, 0.05)', borderRadius: '3px', border: '1px solid rgba(156, 39, 176, 0.1)' }}>
-                        <div style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                      <>
+                        <div style={{ fontSize: '9px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--color-border)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                           Score Breakdown
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1366,16 +1363,35 @@ export default function EmailValidatorOutputPanel({ result }) {
                                 {breakdownWithDns.map((item, idx) => {
                                   // Skip separators and headers
                                   if (item.isSeparator) {
+                                    // Don't render separator if next item is final score
+                                    const nextItem = idx + 1 < breakdownWithDns.length ? breakdownWithDns[idx + 1] : null
+                                    if (nextItem && nextItem.isFinalScore) {
+                                      return null
+                                    }
                                     return <div key={idx} style={{ height: '8px' }} />
                                   }
 
                                   if (item.isSectionHeader) {
+                                    // Check if this is the LCS header and if LCS score is 100 (no penalties)
+                                    const isLcsHeader = item.label.startsWith('Local-Part Credibility Score')
+                                    const isLcsClean = isLcsHeader && item.points === 100
+
+                                    // Count items in LCS section (between LCS header and final score separator)
+                                    let lcsItemCount = 0
+                                    if (isLcsHeader) {
+                                      for (let i = idx + 1; i < breakdownWithDns.length; i++) {
+                                        if (breakdownWithDns[i].isSeparator || breakdownWithDns[i].isFinalScore) break
+                                        if (!breakdownWithDns[i].isSectionHeader) lcsItemCount++
+                                      }
+                                    }
+
                                     return (
-                                      <div key={idx} style={{ marginTop: idx > 0 ? '8px' : '0px', marginBottom: '4px', paddingBottom: '4px', borderBottom: '1px solid rgba(156, 39, 176, 0.2)' }}>
-                                        <div style={{ fontSize: '12px', fontWeight: '700', color: '#9c27b0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                      <div key={idx} style={{ marginTop: idx > 0 ? '8px' : '0px', marginBottom: '4px', paddingBottom: '4px', borderBottom: '1px solid var(--color-border)' }}>
+                                        <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-text-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                           {item.label}: {Math.round(item.points)}
                                         </div>
                                         {item.description && <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{item.description}</div>}
+                                        {isLcsClean && lcsItemCount === 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '6px', fontStyle: 'italic' }}>✓ Nothing suspicious found</div>}
                                       </div>
                                     )
                                   }
@@ -1395,7 +1411,7 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                                   if (item.isFinalScore) {
                                     return (
-                                      <div key={idx} style={{ padding: '6px 0', marginTop: '4px', paddingTop: '6px', borderTop: '1px solid rgba(156, 39, 176, 0.3)', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#9c27b0' }}>
+                                      <div key={idx} style={{ padding: '6px 0', marginTop: '4px', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: 'var(--color-text-primary)' }}>
                                         <div style={{ flex: 1 }}>
                                           <div>{item.label}</div>
                                           <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '1px', fontWeight: '400' }}>
@@ -1410,7 +1426,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                                   }
 
                                   return (
-                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: item.isSubItem ? '12px' : '13px', color: 'var(--color-text-secondary)', paddingBottom: idx < breakdownWithDns.length - 1 ? '4px' : '0px', borderBottom: idx < breakdownWithDns.length - 1 ? '1px solid rgba(156, 39, 176, 0.1)' : 'none', paddingLeft: item.isSubItem ? '24px' : '0px' }}>
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: item.isSubItem ? '12px' : '13px', color: 'var(--color-text-secondary)', paddingBottom: idx < breakdownWithDns.length - 1 ? '4px' : '0px', borderBottom: idx < breakdownWithDns.length - 1 ? '1px solid var(--color-border)' : 'none', paddingLeft: item.isSubItem ? '24px' : '0px' }}>
                                       <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: item.isSubItem ? '400' : '600', color: item.points > 0 ? '#4caf50' : item.points < 0 ? '#ef5350' : 'var(--color-text-secondary)' }}>
                                           {item.label}
@@ -1429,7 +1445,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                             )
                           })()}
                         </div>
-                      </div>
+                      </>
                     )}
                   </div>
                 )}
