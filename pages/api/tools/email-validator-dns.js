@@ -213,96 +213,86 @@ async function lookupDomainRecords(domain) {
     receivable: false
   }
 
-  // 1. Try MX records first
-  try {
-    const mxResult = await resolveMxSafe(domain)
+  // 1. Parallelize initial lookups (MX, A, AAAA, SPF, DMARC, NS, DNSSEC all at once)
+  const [mxResult, aResult, aaaaResult, txtResult, dmarcTxtResult, nsResult, dnssecResult] = await Promise.allSettled([
+    resolveMxSafe(domain),
+    resolve4Safe(domain),
+    resolve6Safe(domain),
+    resolveTxtSafe(domain),
+    resolveTxtSafe(`_dmarc.${domain}`),
+    resolveNsSafe(domain),
+    resolveDnskeySafe(domain)
+  ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : null))
 
-    if (mxResult && mxResult.length > 0) {
-      result.domainExists = true
-      result.mxRecords = mxResult
-        .map(record => {
-          let hostname = ''
-          if (typeof record === 'object') {
-            hostname = record.exchange || record.hostname || ''
-          } else if (typeof record === 'string') {
-            hostname = record
-          }
+  // Process MX records
+  if (mxResult && mxResult.length > 0) {
+    result.domainExists = true
+    result.mxRecords = mxResult
+      .map(record => {
+        let hostname = ''
+        if (typeof record === 'object') {
+          hostname = record.exchange || record.hostname || ''
+        } else if (typeof record === 'string') {
+          hostname = record
+        }
 
-          return {
-            priority: typeof record.priority === 'number' ? record.priority : parseInt(record.priority) || 10,
-            hostname: String(hostname).trim(),
-            isCname: false // Will be updated after CNAME check
-          }
-        })
-        .filter(record => record.hostname.length > 0) // Only keep records with non-empty hostnames
-        .sort((a, b) => a.priority - b.priority)
+        return {
+          priority: typeof record.priority === 'number' ? record.priority : parseInt(record.priority) || 10,
+          hostname: String(hostname).trim(),
+          isCname: false // Will be updated after CNAME check
+        }
+      })
+      .filter(record => record.hostname.length > 0) // Only keep records with non-empty hostnames
+      .sort((a, b) => a.priority - b.priority)
 
-      // Check if any MX records point to CNAMEs (RFC violation)
-      for (const mxRecord of result.mxRecords) {
-        try {
-          const cnames = await resolveCnameSafe(mxRecord.hostname)
+    // Parallelize CNAME checks for all MX records at once
+    const cnameChecks = result.mxRecords.map(mxRecord =>
+      resolveCnameSafe(mxRecord.hostname)
+        .then(cnames => {
           if (cnames && cnames.length > 0) {
             mxRecord.isCname = true
           }
-        } catch (e) {
+        })
+        .catch(() => {
           // If CNAME lookup fails, assume it's not a CNAME
-          // (Could be A/AAAA record or just unreachable)
-        }
-      }
+        })
+    )
+    await Promise.all(cnameChecks)
 
-      // Only set as 'mx' if we have valid MX records with hostnames
-      if (result.mxRecords.length > 0) {
-        result.mailHostType = 'mx'
-        result.receivable = true
-      }
-    }
-  } catch (mxError) {
-    // MX lookup failed, will try A/AAAA fallback
-  }
-
-  // 2. If no MX records, try A records (fallback)
-  if (result.mxRecords.length === 0) {
-    try {
-      const aResult = await resolve4Safe(domain)
-
-      if (aResult && aResult.length > 0) {
-        result.domainExists = true
-        result.aRecords = aResult.map(ip => ({
-          address: ip,
-          type: 'A'
-        }))
-
-        // Domain has A records but no MX - this is fallback delivery
-        if (!result.mailHostType) {
-          result.mailHostType = 'fallback'
-          result.receivable = true
-        }
-      }
-    } catch (aError) {
-      // A lookup failed, try AAAA
+    // Only set as 'mx' if we have valid MX records with hostnames
+    if (result.mxRecords.length > 0) {
+      result.mailHostType = 'mx'
+      result.receivable = true
     }
   }
 
-  // 3. If no A records, try AAAA records (fallback)
-  if (result.mxRecords.length === 0 && result.aRecords.length === 0) {
-    try {
-      const aaaaResult = await resolve6Safe(domain)
+  // Process A records (fallback if no MX)
+  if (result.mxRecords.length === 0 && aResult && aResult.length > 0) {
+    result.domainExists = true
+    result.aRecords = aResult.map(ip => ({
+      address: ip,
+      type: 'A'
+    }))
 
-      if (aaaaResult && aaaaResult.length > 0) {
-        result.domainExists = true
-        result.aaaaRecords = aaaaResult.map(ip => ({
-          address: ip,
-          type: 'AAAA'
-        }))
+    // Domain has A records but no MX - this is fallback delivery
+    if (!result.mailHostType) {
+      result.mailHostType = 'fallback'
+      result.receivable = true
+    }
+  }
 
-        // Domain has AAAA records but no MX - this is fallback delivery
-        if (!result.mailHostType) {
-          result.mailHostType = 'fallback'
-          result.receivable = true
-        }
-      }
-    } catch (aaaaError) {
-      // AAAA lookup failed
+  // Process AAAA records (fallback if no MX and A)
+  if (result.mxRecords.length === 0 && result.aRecords.length === 0 && aaaaResult && aaaaResult.length > 0) {
+    result.domainExists = true
+    result.aaaaRecords = aaaaResult.map(ip => ({
+      address: ip,
+      type: 'AAAA'
+    }))
+
+    // Domain has AAAA records but no MX - this is fallback delivery
+    if (!result.mailHostType) {
+      result.mailHostType = 'fallback'
+      result.receivable = true
     }
   }
 
@@ -312,66 +302,41 @@ async function lookupDomainRecords(domain) {
     result.receivable = false
   }
 
-  // 4. Try SPF record (TXT record)
-  try {
-    const txtResult = await resolveTxtSafe(domain)
+  // Process SPF record
+  if (txtResult && txtResult.length > 0) {
+    const spfEntry = txtResult.find(record => {
+      const txtValue = Array.isArray(record) ? record.join('') : record
+      return txtValue.toLowerCase().startsWith('v=spf1')
+    })
+    if (spfEntry) {
+      result.spfRecord = Array.isArray(spfEntry) ? spfEntry.join('') : spfEntry
+    }
+  }
 
-    if (txtResult && txtResult.length > 0) {
-      // SPF records are TXT records starting with 'v=spf1'
-      const spfEntry = txtResult.find(record => {
-        const txtValue = Array.isArray(record) ? record.join('') : record
-        return txtValue.toLowerCase().startsWith('v=spf1')
-      })
-      if (spfEntry) {
-        result.spfRecord = Array.isArray(spfEntry) ? spfEntry.join('') : spfEntry
+  // Process DMARC record
+  if (dmarcTxtResult && dmarcTxtResult.length > 0) {
+    const dmarcEntry = dmarcTxtResult.find(record => {
+      const txtValue = Array.isArray(record) ? record.join('') : record
+      return txtValue.toLowerCase().startsWith('v=dmarc1')
+    })
+    if (dmarcEntry) {
+      result.dmarcRecord = Array.isArray(dmarcEntry) ? dmarcEntry.join('') : dmarcEntry
+    }
+  }
+
+  // Process NS records
+  if (nsResult && nsResult.length > 0) {
+    result.nsRecords = nsResult.map(ns => {
+      // Normalize NS name (remove trailing dot)
+      const normalized = typeof ns === 'string' ? ns.replace(/\.$/, '') : ns
+      return {
+        nameserver: normalized
       }
-    }
-  } catch (spfError) {
-    // SPF lookup failed, continue
+    })
   }
 
-  // 5. Try DMARC record (TXT record at _dmarc subdomain)
-  try {
-    const dmarcTxtResult = await resolveTxtSafe(`_dmarc.${domain}`)
-
-    if (dmarcTxtResult && dmarcTxtResult.length > 0) {
-      // DMARC records start with 'v=DMARC1'
-      const dmarcEntry = dmarcTxtResult.find(record => {
-        const txtValue = Array.isArray(record) ? record.join('') : record
-        return txtValue.toLowerCase().startsWith('v=dmarc1')
-      })
-      if (dmarcEntry) {
-        result.dmarcRecord = Array.isArray(dmarcEntry) ? dmarcEntry.join('') : dmarcEntry
-      }
-    }
-  } catch (dmarcError) {
-    // DMARC lookup failed, continue
-  }
-
-  // 6. Try NS records (nameserver diversity)
-  try {
-    const nsResult = await resolveNsSafe(domain)
-
-    if (nsResult && nsResult.length > 0) {
-      result.nsRecords = nsResult.map(ns => {
-        // Normalize NS name (remove trailing dot)
-        const normalized = typeof ns === 'string' ? ns.replace(/\.$/, '') : ns
-        return {
-          nameserver: normalized
-        }
-      })
-    }
-  } catch (nsError) {
-    // NS lookup failed, continue
-  }
-
-  // 7. Try DNSSEC (DNSKEY records)
-  try {
-    result.dnssecEnabled = await resolveDnskeySafe(domain)
-  } catch (dnssecError) {
-    // DNSSEC lookup failed, assume disabled
-    result.dnssecEnabled = false
-  }
+  // Process DNSSEC
+  result.dnssecEnabled = dnssecResult === true
 
   return result
 }
@@ -388,16 +353,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Look up the email domain
-    const domainResult = await lookupDomainRecords(domain)
-
-    // Check if this is a subdomain and look up parent
+    // Check if this is a subdomain
     const parentDomain = getParentDomain(domain)
-    let parentDomainResult = null
 
-    if (parentDomain) {
-      parentDomainResult = await lookupDomainRecords(parentDomain)
-    }
+    // Parallelize domain and parent domain lookups
+    const [domainResult, parentDomainResult] = await Promise.allSettled([
+      lookupDomainRecords(domain),
+      parentDomain ? lookupDomainRecords(parentDomain) : Promise.resolve(null)
+    ]).then(results => [
+      results[0].status === 'fulfilled' ? results[0].value : null,
+      results[1].status === 'fulfilled' ? results[1].value : null
+    ])
 
     return res.status(200).json({
       ...domainResult,

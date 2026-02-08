@@ -529,6 +529,7 @@ export default function EmailValidatorOutputPanel({ result }) {
     campaignScore: { min: 0, max: 100 },
     // Specific warning filters
     roleBasedEmail: null, // null, true, false
+    abuseContent: [], // array of: 'hateful', 'abusive', 'nsfw' (empty = show all)
     // Domain filters
     tldQuality: 'all', // all, high-trust, neutral, low-trust
     gibberishScore: 'all', // all, high, medium, low
@@ -842,6 +843,11 @@ export default function EmailValidatorOutputPanel({ result }) {
         if (!filters.roleBasedEmail && emailResult.roleBasedEmail) return false
       }
 
+      // Abuse content filter (exclusion - hide if type matches selection)
+      if (filters.abuseContent.length > 0 && emailResult.abusiveType) {
+        if (filters.abuseContent.includes(emailResult.abusiveType)) return false
+      }
+
       // DNS filters
       const dnsRecord = dnsData[emailResult.email]
 
@@ -928,7 +934,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         const abortController = new AbortController()
         dnsAbortControllerRef.current = abortController
 
-        // Create promises for each domain lookup
+        // Create promises for each domain lookup - update state progressively as each completes
         const dnsPromises = validEmails.map(async (emailResult) => {
           const domain = emailResult.email.split('@')[1]
           if (!domain) return
@@ -951,20 +957,33 @@ export default function EmailValidatorOutputPanel({ result }) {
 
               if (response.ok) {
                 const data = await response.json()
-                newDnsData[emailResult.email] = data
+                // Update state immediately for this email (progressive loading)
+                if (!abortController.signal.aborted) {
+                  setDnsData(prev => ({ ...prev, [emailResult.email]: data }))
+                }
               } else {
-                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                const errorData = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                if (!abortController.signal.aborted) {
+                  setDnsData(prev => ({ ...prev, [emailResult.email]: errorData }))
+                }
               }
             } catch (fetchError) {
               clearTimeout(timeoutId)
+              let errorData
               if (fetchError.name === 'AbortError') {
-                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
+                errorData = { domainExists: null, mxRecords: [], error: 'Lookup timeout' }
               } else {
-                newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+                errorData = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+              }
+              if (!abortController.signal.aborted) {
+                setDnsData(prev => ({ ...prev, [emailResult.email]: errorData }))
               }
             }
           } catch (error) {
-            newDnsData[emailResult.email] = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+            const errorData = { domainExists: null, mxRecords: [], error: 'Lookup failed' }
+            if (!abortController.signal.aborted) {
+              setDnsData(prev => ({ ...prev, [emailResult.email]: errorData }))
+            }
           }
 
           // Remove this email from loading state once its DNS data arrives
@@ -975,13 +994,8 @@ export default function EmailValidatorOutputPanel({ result }) {
           })
         })
 
-        // Wait for all DNS lookups to complete (even partial)
+        // Wait for all DNS lookups to complete (even partial) - but state updates happen progressively above
         await Promise.all(dnsPromises).catch(() => {}) // Ignore any errors, we handled them individually
-
-        // Only update state if this request wasn't aborted
-        if (!abortController.signal.aborted) {
-          setDnsData(newDnsData)
-        }
       }
 
       fetchDnsData()
@@ -1101,8 +1115,23 @@ export default function EmailValidatorOutputPanel({ result }) {
               color: 'var(--color-text-secondary)',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}>
-              Email Results {filteredResults.length !== result.results.length && `(${filteredResults.length}/${result.results.length})`}
+              Email Results
+              <span style={{
+                fontSize: '12px',
+                fontWeight: '500',
+                padding: '2px 8px',
+                backgroundColor: loadingEmails.size > 0 ? 'rgba(156, 39, 176, 0.1)' : 'rgba(76, 175, 80, 0.1)',
+                border: loadingEmails.size > 0 ? '1px solid rgba(156, 39, 176, 0.3)' : '1px solid rgba(76, 175, 80, 0.3)',
+                borderRadius: '3px',
+                color: loadingEmails.size > 0 ? '#9c27b0' : '#4caf50',
+              }}>
+                {result.results.length - loadingEmails.size}/{result.results.length} ready
+              </span>
+              {filteredResults.length !== result.results.length && `(${filteredResults.length}/${result.results.length})`}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
@@ -1418,12 +1447,47 @@ export default function EmailValidatorOutputPanel({ result }) {
                 </select>
               </div>
 
+              {/* Abuse Content Filter (Exclusion) */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>Exclude Content</label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {['hateful', 'abusive', 'nsfw'].map(type => (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        const newFilters = [...filters.abuseContent]
+                        if (newFilters.includes(type)) {
+                          newFilters.splice(newFilters.indexOf(type), 1)
+                        } else {
+                          newFilters.push(type)
+                        }
+                        setFilters({ ...filters, abuseContent: newFilters })
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        border: `1px solid ${filters.abuseContent.includes(type) ? '#9c27b0' : 'var(--color-border)'}`,
+                        borderRadius: '3px',
+                        backgroundColor: filters.abuseContent.includes(type) ? 'rgba(156, 39, 176, 0.15)' : 'transparent',
+                        color: filters.abuseContent.includes(type) ? '#9c27b0' : 'var(--color-text-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Reset Button */}
               <button
                 onClick={() => setFilters({
                   status: 'all',
                   campaignScore: { min: 0, max: 100 },
                   roleBasedEmail: null,
+                  abuseContent: [],
                   tldQuality: 'all',
                   gibberishScore: 'all',
                   dmarcPolicy: 'all',
@@ -2250,6 +2314,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                     status: 'all',
                     campaignScore: { min: 0, max: 100 },
                     roleBasedEmail: null,
+                    abuseContent: [],
                     tldQuality: 'all',
                     gibberishScore: 'all',
                     dmarcPolicy: 'all',
