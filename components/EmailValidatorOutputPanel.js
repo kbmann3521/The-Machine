@@ -524,6 +524,7 @@ export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
   const [loadingEmails, setLoadingEmails] = useState(new Set())
   const [showFilters, setShowFilters] = useState(false)
+  const loadingBatchRef = React.useRef(null) // Track which batch of emails we're currently loading
   const [filters, setFilters] = useState({
     status: 'all', // all, valid, invalid
     campaignScore: { min: 0, max: 100 },
@@ -926,16 +927,31 @@ export default function EmailValidatorOutputPanel({ result }) {
 
       const fetchDnsData = async () => {
         const validEmails = result.results.filter(emailResult => emailResult.valid)
+        const validEmailsSet = validEmails.map(e => e.email).sort().join('|') // Create unique identifier for this batch
+        const validEmailsList = validEmails.map(e => e.email)
 
-        // Initialize loading state for all valid emails
-        setLoadingEmails(new Set(validEmails.map(e => e.email)))
+        // Only initialize loading state if this is a NEW batch of emails (different from previous)
+        if (loadingBatchRef.current !== validEmailsSet) {
+          loadingBatchRef.current = validEmailsSet
+          // Reset loading state to all valid emails in this new batch
+          setLoadingEmails(new Set(validEmailsList))
+        }
 
-        const newDnsData = {}
         const abortController = new AbortController()
         dnsAbortControllerRef.current = abortController
 
         // Create promises for each domain lookup - update state progressively as each completes
         const dnsPromises = validEmails.map(async (emailResult) => {
+          // Skip if we already have DNS data for this email
+          if (dnsData[emailResult.email]) {
+            setLoadingEmails(prev => {
+              const updated = new Set(prev)
+              updated.delete(emailResult.email)
+              return updated
+            })
+            return
+          }
+
           const domain = emailResult.email.split('@')[1]
           if (!domain) return
 
