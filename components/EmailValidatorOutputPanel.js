@@ -213,6 +213,17 @@ function calculateDnsRecordPenalties(dnsRecord) {
 export default function EmailValidatorOutputPanel({ result }) {
   const [dnsData, setDnsData] = useState({})
   const [loadingEmails, setLoadingEmails] = useState(new Set())
+  const [showFilters, setShowFilters] = useState(false)
+  const [filters, setFilters] = useState({
+    status: 'all', // all, valid, invalid
+    campaignScore: { min: 0, max: 100 },
+    // Specific warning filters
+    roleBasedEmail: null, // null, true, false
+    // DNS filters
+    dmarcPolicy: 'all', // all, reject, quarantine, none, missing
+    dmarcMonitoring: null, // null, true, false (has rua/ruf)
+    spfRecord: null, // null, true, false (has SPF)
+  })
   const dnsAbortControllerRef = React.useRef(null)
 
   // Merge DNS data into results for JSON output and update valid flags/stats based on DNS
@@ -228,9 +239,10 @@ export default function EmailValidatorOutputPanel({ result }) {
       // Calculate DHS based on domain info and apply DNS adjustments
       let baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
       let adjustedDhs = baseDhs
-      let finalCampaignScore = emailResult.campaignScore || 0
+      let finalCampaignScore = 0
       let dnsPenalties = []
 
+      // Invalid emails always get campaign score of 0
       if (isActuallyValid && dnsRecord) {
         const { penalties, totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
         dnsPenalties = penalties
@@ -240,52 +252,57 @@ export default function EmailValidatorOutputPanel({ result }) {
       }
 
       // Build complete campaignBreakdown with DHS + DNS + LCS for JSON output
-      let updatedCampaignBreakdown = [
-        { label: 'Domain Health Score', points: adjustedDhs, description: 'Infrastructure & domain maturity (adjusted with DNS results)', isSectionHeader: true }
-      ]
+      // For invalid emails, don't show scoring breakdown
+      let updatedCampaignBreakdown = []
 
-      // Add base DHS items (TLD quality, corporate domain)
-      if (emailResult.tldQuality === 'high-trust') {
-        updatedCampaignBreakdown.push({ label: 'High-Trust TLD', points: 5, description: 'Established TLD (.com, .org, .edu, etc.)' })
-      } else if (emailResult.tldQuality === 'low-trust') {
-        updatedCampaignBreakdown.push({ label: 'Low-Trust TLD', points: -10, description: 'Suspicious or uncommon TLD' })
-      }
+      if (isActuallyValid) {
+        updatedCampaignBreakdown = [
+          { label: 'Domain Health Score', points: adjustedDhs, description: 'Infrastructure & domain maturity (adjusted with DNS results)', isSectionHeader: true }
+        ]
 
-      if (emailResult.isDomainCorporate) {
-        updatedCampaignBreakdown.push({ label: 'Corporate Domain', points: 5, description: 'Verified corporate/business domain' })
-      }
+        // Add base DHS items (TLD quality, corporate domain)
+        if (emailResult.tldQuality === 'high-trust') {
+          updatedCampaignBreakdown.push({ label: 'High-Trust TLD', points: 5, description: 'Established TLD (.com, .org, .edu, etc.)' })
+        } else if (emailResult.tldQuality === 'low-trust') {
+          updatedCampaignBreakdown.push({ label: 'Low-Trust TLD', points: -10, description: 'Suspicious or uncommon TLD' })
+        }
 
-      // Add DNS penalties if any
-      if (dnsPenalties.length > 0) {
-        updatedCampaignBreakdown.push(...dnsPenalties)
-      }
+        if (emailResult.isDomainCorporate) {
+          updatedCampaignBreakdown.push({ label: 'Corporate Domain', points: 5, description: 'Verified corporate/business domain' })
+        }
 
-      // Add LCS section and items from backend breakdown
-      updatedCampaignBreakdown.push({ label: 'Local-Part Credibility Score', points: emailResult.lcsScore || 100, description: 'Username quality & engagement likelihood (base: 100)', isSectionHeader: true })
+        // Add DNS penalties if any
+        if (dnsPenalties.length > 0) {
+          updatedCampaignBreakdown.push(...dnsPenalties)
+        }
 
-      if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
-        let foundLcsHeader = false
-        for (const item of emailResult.campaignBreakdown) {
-          if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
-            foundLcsHeader = true
-            continue
-          }
-          // Skip separators and the backend's final score item
-          if (item.isSeparator || item.label === 'Final Campaign Readiness Score') {
-            continue
-          }
-          if (foundLcsHeader) {
-            updatedCampaignBreakdown.push(item)
+        // Add LCS section and items from backend breakdown
+        updatedCampaignBreakdown.push({ label: 'Local-Part Credibility Score', points: emailResult.lcsScore || 100, description: 'Username quality & engagement likelihood (base: 100)', isSectionHeader: true })
+
+        if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
+          let foundLcsHeader = false
+          for (const item of emailResult.campaignBreakdown) {
+            if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
+              foundLcsHeader = true
+              continue
+            }
+            // Skip separators and the backend's final score item
+            if (item.isSeparator || item.label === 'Final Campaign Readiness Score') {
+              continue
+            }
+            if (foundLcsHeader) {
+              updatedCampaignBreakdown.push(item)
+            }
           }
         }
-      }
 
-      // Add final score
-      updatedCampaignBreakdown.push({
-        label: 'Final Campaign Readiness Score',
-        points: finalCampaignScore,
-        description: `min(Domain Health Score (${adjustedDhs}), Local-Part Credibility Score (${emailResult.lcsScore || 100}))`
-      })
+        // Add final score
+        updatedCampaignBreakdown.push({
+          label: 'Final Campaign Readiness Score',
+          points: finalCampaignScore,
+          description: `min(Domain Health Score (${adjustedDhs}), Local-Part Credibility Score (${emailResult.lcsScore || 100}))`
+        })
+      }
 
       // Ensure no-mailserver issue is in the issues array
       let issues = emailResult.issues || []
@@ -298,6 +315,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         valid: isActuallyValid,
         isInvalid: !isActuallyValid || emailResult.isDisposable,
         campaignScore: finalCampaignScore,
+        campaignReadiness: isActuallyValid ? emailResult.campaignReadiness : 'Invalid',
         campaignBreakdown: updatedCampaignBreakdown.length > 0 ? updatedCampaignBreakdown : emailResult.campaignBreakdown,
         issues,
         dnsRecord: dnsRecord || undefined
@@ -386,6 +404,153 @@ export default function EmailValidatorOutputPanel({ result }) {
       averageCampaignReadiness: newAverageCampaignReadiness
     }
   }, [result, dnsData])
+
+  // Generate CSV export
+  const exportToCSV = () => {
+    if (!filteredResults || filteredResults.length === 0) {
+      alert('No results to export')
+      return
+    }
+
+    // CSV headers
+    const headers = [
+      'Email',
+      'Status',
+      'Campaign Score',
+      'Campaign Readiness',
+      'DHS Score',
+      'LCS Score',
+      'DHS Breakdown',
+      'LCS Breakdown',
+      'Role-Based',
+      'SPF Record',
+      'DMARC Policy',
+      'DMARC Monitoring'
+    ]
+
+    // CSV rows
+    const rows = filteredResults.map(emailResult => {
+      const dnsRecord = dnsData[emailResult.email]
+      let dmarcPolicy = 'Missing'
+      if (dnsRecord?.dmarcRecord) {
+        const policyMatch = dnsRecord.dmarcRecord.match(/p=([a-z]+)/i)
+        dmarcPolicy = policyMatch ? policyMatch[1].toUpperCase() : 'None'
+      }
+      const dmarcMonitoring = dnsRecord?.dmarcRecord && (/rua=/i.test(dnsRecord.dmarcRecord) || /ruf=/i.test(dnsRecord.dmarcRecord)) ? 'Yes' : 'No'
+
+      // Extract DHS and LCS scores and breakdowns from campaignBreakdown
+      let dhsScore = 'N/A'
+      let lcsScore = emailResult.lcsScore || 100
+      const dhsBreakdownItems = []
+      const lcsBreakdownItems = []
+
+      if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
+        let inDhsSection = false
+        let inLcsSection = false
+
+        for (const item of emailResult.campaignBreakdown) {
+          if (item.isSectionHeader && item.label.startsWith('Domain Health Score')) {
+            inDhsSection = true
+            inLcsSection = false
+            dhsScore = item.points
+          } else if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
+            inDhsSection = false
+            inLcsSection = true
+            lcsScore = item.points
+          } else if (!item.isSectionHeader && !item.isSeparator && item.label) {
+            const label = `${item.label} (${item.points > 0 ? '+' : ''}${item.points})`
+            if (inDhsSection) {
+              dhsBreakdownItems.push(label)
+            } else if (inLcsSection) {
+              lcsBreakdownItems.push(label)
+            }
+          }
+        }
+      }
+
+      return [
+        emailResult.email,
+        emailResult.valid && !emailResult.isDisposable ? 'Valid' : 'Invalid',
+        emailResult.campaignScore || 0,
+        emailResult.campaignReadiness || 'N/A',
+        dhsScore,
+        lcsScore,
+        dhsBreakdownItems.join('; ') || 'N/A',
+        lcsBreakdownItems.join('; ') || 'N/A',
+        emailResult.roleBasedEmail ? 'Yes' : 'No',
+        dnsRecord?.spfRecord ? 'Yes' : 'No',
+        dmarcPolicy,
+        dmarcMonitoring,
+      ]
+    })
+
+    // Create CSV content
+    const csvContent = [
+      headers.map(h => `"${h}"`).join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `email-validator-results-${new Date().toISOString().slice(0, 10)}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Apply active filters to results
+  const filteredResults = React.useMemo(() => {
+    if (!mergedResult || !mergedResult.results) return []
+
+    return mergedResult.results.filter(emailResult => {
+      // Status filter
+      if (filters.status === 'valid' && (!emailResult.valid || emailResult.isDisposable)) return false
+      if (filters.status === 'invalid' && emailResult.valid && !emailResult.isDisposable) return false
+
+      // Campaign score filter
+      const score = emailResult.campaignScore || 0
+      if (score < filters.campaignScore.min || score > filters.campaignScore.max) return false
+
+      // Specific warning filters
+      if (filters.roleBasedEmail !== null) {
+        if (filters.roleBasedEmail && !emailResult.roleBasedEmail) return false
+        if (!filters.roleBasedEmail && emailResult.roleBasedEmail) return false
+      }
+
+      // DNS filters
+      const dnsRecord = dnsData[emailResult.email]
+
+      if (filters.dmarcPolicy !== 'all' && dnsRecord) {
+        const dmarcRecord = dnsRecord.dmarcRecord
+        let policy = 'missing'
+        if (dmarcRecord) {
+          const policyMatch = dmarcRecord.match(/p=([a-z]+)/i)
+          if (policyMatch) {
+            policy = policyMatch[1].toLowerCase()
+          }
+        }
+        if (filters.dmarcPolicy !== policy) return false
+      }
+
+      if (filters.dmarcMonitoring !== null && dnsRecord) {
+        const hasMonitoring = dnsRecord.dmarcRecord && (/rua=/i.test(dnsRecord.dmarcRecord) || /ruf=/i.test(dnsRecord.dmarcRecord))
+        if (filters.dmarcMonitoring && !hasMonitoring) return false
+        if (!filters.dmarcMonitoring && hasMonitoring) return false
+      }
+
+      if (filters.spfRecord !== null && dnsRecord) {
+        const hasSPF = dnsRecord.spfRecord !== null && dnsRecord.spfRecord !== undefined
+        if (filters.spfRecord && !hasSPF) return false
+        if (!filters.spfRecord && hasSPF) return false
+      }
+
+      return true
+    })
+  }, [mergedResult, dnsData, filters])
 
   // Fetch DNS data for valid emails with debounce (500ms wait after changes stop)
   React.useEffect(() => {
@@ -568,20 +733,253 @@ export default function EmailValidatorOutputPanel({ result }) {
       {result.results && result.results.length > 0 && (
         <div>
           <div style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            color: 'var(--color-text-secondary)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: '12px',
             paddingBottom: '8px',
             borderBottom: '1px solid var(--color-border)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
           }}>
-            Email Results
+            <div style={{
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Email Results {filteredResults.length !== result.results.length && `(${filteredResults.length}/${result.results.length})`}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={exportToCSV}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                ↓ Export CSV
+              </button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  backgroundColor: showFilters ? 'rgba(156, 39, 176, 0.15)' : 'transparent',
+                  color: showFilters ? '#9c27b0' : 'var(--color-text-secondary)',
+                  border: `1px solid ${showFilters ? '#9c27b0' : 'var(--color-border)'}`,
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                ⚙ Filters
+              </button>
+            </div>
           </div>
 
+          {/* Filters Panel */}
+          {showFilters && (
+            <div style={{
+              padding: '12px',
+              backgroundColor: 'rgba(156, 39, 176, 0.05)',
+              border: '1px solid rgba(156, 39, 176, 0.2)',
+              borderRadius: '4px',
+              marginBottom: '12px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '12px',
+            }}>
+              {/* Status Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>Status</label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="all">All</option>
+                  <option value="valid">Valid Only</option>
+                  <option value="invalid">Invalid Only</option>
+                </select>
+              </div>
+
+              {/* Campaign Score Range */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>Campaign Score</label>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={filters.campaignScore.min}
+                    onChange={(e) => setFilters({ ...filters, campaignScore: { ...filters.campaignScore, min: parseInt(e.target.value) || 0 } })}
+                    style={{
+                      flex: 1,
+                      padding: '6px',
+                      fontSize: '12px',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '3px',
+                      backgroundColor: 'var(--color-background-primary)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                    placeholder="Min"
+                  />
+                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>–</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={filters.campaignScore.max}
+                    onChange={(e) => setFilters({ ...filters, campaignScore: { ...filters.campaignScore, max: parseInt(e.target.value) || 100 } })}
+                    style={{
+                      flex: 1,
+                      padding: '6px',
+                      fontSize: '12px',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '3px',
+                      backgroundColor: 'var(--color-background-primary)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+
+              {/* Role-Based Email Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>Role-Based</label>
+                <select
+                  value={filters.roleBasedEmail === null ? 'null' : filters.roleBasedEmail}
+                  onChange={(e) => setFilters({ ...filters, roleBasedEmail: e.target.value === 'null' ? null : e.target.value === 'true' })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="null">All</option>
+                  <option value="true">Role-Based</option>
+                  <option value="false">Not Role-Based</option>
+                </select>
+              </div>
+
+              {/* DMARC Policy Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>DMARC Policy</label>
+                <select
+                  value={filters.dmarcPolicy}
+                  onChange={(e) => setFilters({ ...filters, dmarcPolicy: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="all">All</option>
+                  <option value="reject">Reject</option>
+                  <option value="quarantine">Quarantine</option>
+                  <option value="none">None</option>
+                  <option value="missing">Missing</option>
+                </select>
+              </div>
+
+              {/* DMARC Monitoring Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>DMARC Monitoring</label>
+                <select
+                  value={filters.dmarcMonitoring === null ? 'null' : filters.dmarcMonitoring}
+                  onChange={(e) => setFilters({ ...filters, dmarcMonitoring: e.target.value === 'null' ? null : e.target.value === 'true' })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="null">All</option>
+                  <option value="true">With Reports (rua/ruf)</option>
+                  <option value="false">No Reports</option>
+                </select>
+              </div>
+
+              {/* SPF Record Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>SPF Record</label>
+                <select
+                  value={filters.spfRecord === null ? 'null' : filters.spfRecord}
+                  onChange={(e) => setFilters({ ...filters, spfRecord: e.target.value === 'null' ? null : e.target.value === 'true' })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="null">All</option>
+                  <option value="true">Has SPF</option>
+                  <option value="false">No SPF</option>
+                </select>
+              </div>
+
+              {/* Reset Button */}
+              <button
+                onClick={() => setFilters({
+                  status: 'all',
+                  campaignScore: { min: 0, max: 100 },
+                  roleBasedEmail: null,
+                  dmarcPolicy: 'all',
+                  dmarcMonitoring: null,
+                  spfRecord: null,
+                })}
+                style={{
+                  gridColumn: '1 / -1',
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  backgroundColor: 'transparent',
+                  color: '#9c27b0',
+                  border: '1px solid #9c27b0',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                }}
+              >
+                Reset All Filters
+              </button>
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {result.results.map((emailResult, idx) => {
+            {filteredResults.map((emailResult, idx) => {
               // Invalid emails render immediately (no DNS lookup needed)
               const isInvalidEmail = !emailResult.valid || emailResult.isDisposable
 
@@ -702,11 +1100,6 @@ export default function EmailValidatorOutputPanel({ result }) {
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: '#ef5350', marginBottom: '4px' }}>Issues:</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                      {dnsData[emailResult.email]?.mailHostType === 'none' && (
-                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
-                          • This domain has no mail server records (MX/A/AAAA). Email cannot be delivered.
-                        </div>
-                      )}
                       {emailResult.issues?.map((issue, issueIdx) => (
                         <div key={issueIdx} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • {issue}
@@ -1320,6 +1713,37 @@ export default function EmailValidatorOutputPanel({ result }) {
               </div>
             )
             })}
+            {filteredResults.length === 0 && result.results.length > 0 && (
+              <div style={{
+                padding: '32px 16px',
+                textAlign: 'center',
+                color: 'var(--color-text-secondary)',
+              }}>
+                <div style={{ fontSize: '14px', marginBottom: '4px' }}>No emails match the current filters</div>
+                <button
+                  onClick={() => setFilters({
+                    status: 'all',
+                    campaignScore: { min: 0, max: 100 },
+                    roleBasedEmail: null,
+                    dmarcPolicy: 'all',
+                    dmarcMonitoring: null,
+                    spfRecord: null,
+                  })}
+                  style={{
+                    marginTop: '8px',
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    backgroundColor: 'transparent',
+                    color: '#9c27b0',
+                    border: '1px solid #9c27b0',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Reset Filters
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
