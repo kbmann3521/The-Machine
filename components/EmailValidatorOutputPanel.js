@@ -918,6 +918,16 @@ export default function EmailValidatorOutputPanel({ result }) {
   React.useEffect(() => {
     if (!result || !result.results) return
 
+    const validEmails = result.results.filter(emailResult => emailResult.valid)
+    const validEmailsSet = validEmails.map(e => e.email).sort().join('|') // Create unique identifier for this batch
+    const validEmailsList = validEmails.map(e => e.email)
+
+    // Detect batch change IMMEDIATELY (outside debounce)
+    if (loadingBatchRef.current !== validEmailsSet) {
+      // New batch detected - reset loading state immediately
+      setLoadingEmails(new Set(validEmailsList))
+    }
+
     // Debounce: wait 500ms before starting lookups to avoid repeated requests while typing
     const debounceTimer = setTimeout(() => {
       // Abort any previous in-flight requests
@@ -926,15 +936,9 @@ export default function EmailValidatorOutputPanel({ result }) {
       }
 
       const fetchDnsData = async () => {
-        const validEmails = result.results.filter(emailResult => emailResult.valid)
-        const validEmailsSet = validEmails.map(e => e.email).sort().join('|') // Create unique identifier for this batch
-        const validEmailsList = validEmails.map(e => e.email)
-
-        // Only initialize loading state if this is a NEW batch of emails (different from previous)
+        // Update batch ref only when actually fetching
         if (loadingBatchRef.current !== validEmailsSet) {
           loadingBatchRef.current = validEmailsSet
-          // Reset loading state to all valid emails in this new batch
-          setLoadingEmails(new Set(validEmailsList))
         }
 
         const abortController = new AbortController()
