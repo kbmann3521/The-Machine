@@ -530,6 +530,7 @@ export default function EmailValidatorOutputPanel({ result }) {
     campaignScore: { min: 0, max: 100 },
     // Specific warning filters
     roleBasedEmail: null, // null, true, false
+    throwawayEmail: null, // null, true, false
     abuseContent: [], // array of: 'hateful', 'abusive', 'nsfw' (empty = show all)
     // Domain filters
     tldQuality: 'all', // all, high-trust, neutral, low-trust
@@ -569,7 +570,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         finalCampaignScore = Math.min(adjustedDhs, lcsScore)
       }
 
-      // Build complete campaignBreakdown with DHS + DNS + LCS for JSON output
+      // Build complete campaignBreakdown with DHS + DNS + Gibberish Score for JSON output
       // For invalid emails, don't show scoring breakdown
       let updatedCampaignBreakdown = []
 
@@ -594,13 +595,13 @@ export default function EmailValidatorOutputPanel({ result }) {
           updatedCampaignBreakdown.push(...dnsPenalties)
         }
 
-        // Add LCS section and items from backend breakdown
-        updatedCampaignBreakdown.push({ label: 'Local-Part Credibility Score', points: emailResult.lcsScore || 100, description: 'Username quality & engagement likelihood (base: 100)', isSectionHeader: true })
+        // Add Gibberish Score section and items from backend breakdown
+        updatedCampaignBreakdown.push({ label: 'Local-Part Gibberish Score', points: emailResult.lcsScore || 100, description: 'Username gibberish detection & engagement likelihood (base: 100)', isSectionHeader: true })
 
         if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
           let foundLcsHeader = false
           for (const item of emailResult.campaignBreakdown) {
-            if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
+            if (item.isSectionHeader && item.label.startsWith('Local-Part Gibberish Score')) {
               foundLcsHeader = true
               continue
             }
@@ -618,7 +619,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         updatedCampaignBreakdown.push({
           label: 'Final Campaign Readiness Score',
           points: finalCampaignScore,
-          description: `min(Domain Health Score (${adjustedDhs}), Local-Part Credibility Score (${emailResult.lcsScore || 100}))`
+          description: `min(Domain Health Score (${adjustedDhs}), Local-Part Gibberish Score (${emailResult.lcsScore || 100}))`
         })
       }
 
@@ -731,9 +732,9 @@ export default function EmailValidatorOutputPanel({ result }) {
       'Campaign Score',
       'Campaign Readiness',
       'DHS Score',
-      'LCS Score',
+      'Gibberish Score',
       'DHS Breakdown',
-      'LCS Breakdown',
+      'Gibberish Breakdown',
       'Role-Based',
       'TLD Quality',
       'Gibberish Score',
@@ -755,29 +756,29 @@ export default function EmailValidatorOutputPanel({ result }) {
 
       // Extract DHS and LCS scores and breakdowns from campaignBreakdown
       let dhsScore = 'N/A'
-      let lcsScore = emailResult.lcsScore || 100
+      let gibberishScore = emailResult.lcsScore || 100
       const dhsBreakdownItems = []
-      const lcsBreakdownItems = []
+      const gibberishBreakdownItems = []
 
       if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
         let inDhsSection = false
-        let inLcsSection = false
+        let inGibberishSection = false
 
         for (const item of emailResult.campaignBreakdown) {
           if (item.isSectionHeader && item.label.startsWith('Domain Health Score')) {
             inDhsSection = true
-            inLcsSection = false
+            inGibberishSection = false
             dhsScore = item.points
-          } else if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
+          } else if (item.isSectionHeader && item.label.startsWith('Local-Part Gibberish Score')) {
             inDhsSection = false
-            inLcsSection = true
-            lcsScore = item.points
+            inGibberishSection = true
+            gibberishScore = item.points
           } else if (!item.isSectionHeader && !item.isSeparator && item.label) {
             const label = `${item.label} (${item.points > 0 ? '+' : ''}${item.points})`
             if (inDhsSection) {
               dhsBreakdownItems.push(label)
-            } else if (inLcsSection) {
-              lcsBreakdownItems.push(label)
+            } else if (inGibberishSection) {
+              gibberishBreakdownItems.push(label)
             }
           }
         }
@@ -794,9 +795,9 @@ export default function EmailValidatorOutputPanel({ result }) {
         emailResult.campaignScore || 0,
         emailResult.campaignReadiness || 'N/A',
         dhsScore,
-        lcsScore,
+        gibberishScore,
         dhsBreakdownItems.join('; ') || 'N/A',
-        lcsBreakdownItems.join('; ') || 'N/A',
+        gibberishBreakdownItems.join('; ') || 'N/A',
         emailResult.roleBasedEmail ? 'Yes' : 'No',
         emailResult.tldQuality || 'N/A',
         gibberishLevel,
@@ -842,6 +843,11 @@ export default function EmailValidatorOutputPanel({ result }) {
       if (filters.roleBasedEmail !== null) {
         if (filters.roleBasedEmail && !emailResult.roleBasedEmail) return false
         if (!filters.roleBasedEmail && emailResult.roleBasedEmail) return false
+      }
+
+      if (filters.throwawayEmail !== null) {
+        if (filters.throwawayEmail && !emailResult.isThrowaway) return false
+        if (!filters.throwawayEmail && emailResult.isThrowaway) return false
       }
 
       // Abuse content filter (exclusion - hide if type matches selection)
@@ -1287,6 +1293,28 @@ export default function EmailValidatorOutputPanel({ result }) {
                 </select>
               </div>
 
+              {/* Throwaway Email Filter */}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>Throwaway/Test</label>
+                <select
+                  value={filters.throwawayEmail === null ? 'null' : filters.throwawayEmail}
+                  onChange={(e) => setFilters({ ...filters, throwawayEmail: e.target.value === 'null' ? null : e.target.value === 'true' })}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '12px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '3px',
+                    backgroundColor: 'var(--color-background-primary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="null">All</option>
+                  <option value="true">Throwaway/Test</option>
+                  <option value="false">Not Throwaway/Test</option>
+                </select>
+              </div>
+
               {/* TLD Quality Filter */}
               <div>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', color: 'var(--color-text-secondary)' }}>TLD Quality</label>
@@ -1663,7 +1691,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                 )}
 
                 {/* Valid emails: Show warnings and details */}
-                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.hasBadReputation || emailResult.usernameHeuristics?.length > 0 || emailResult.domainHeuristics?.length > 0 || (!dnsData[emailResult.email]?.mxRecords || dnsData[emailResult.email]?.mxRecords?.length === 0)) && (
+                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.isThrowaway || emailResult.hasBadReputation || emailResult.domainHeuristics?.length > 0 || emailResult.hatefulTermsMatched?.length > 0 || emailResult.abusiveTermsMatched?.length > 0 || emailResult.nsfwTermsMatched?.length > 0 || (!dnsData[emailResult.email]?.mxRecords || dnsData[emailResult.email]?.mxRecords?.length === 0)) && (
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
                       ⚠ Warnings:
@@ -1677,6 +1705,26 @@ export default function EmailValidatorOutputPanel({ result }) {
                       {emailResult.roleBasedEmail && (
                         <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Role-based email (may not be a real user account)
+                        </div>
+                      )}
+                      {emailResult.isThrowaway && (
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • Throwaway/test email pattern detected{emailResult.throwawayWordMatched ? ` ("${emailResult.throwawayWordMatched}")` : ''} (unsuitable for campaigns)
+                        </div>
+                      )}
+                      {emailResult.hatefulTermsMatched?.length > 0 && (
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • Hateful content detected ({emailResult.hatefulTermsMatched.map(t => `"${t}"`).join(', ')})
+                        </div>
+                      )}
+                      {emailResult.abusiveTermsMatched?.length > 0 && (
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • Abusive content detected ({emailResult.abusiveTermsMatched.map(t => `"${t}"`).join(', ')})
+                        </div>
+                      )}
+                      {emailResult.nsfwTermsMatched?.length > 0 && (
+                        <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • NSFW/adult content detected ({emailResult.nsfwTermsMatched.map(t => `"${t}"`).join(', ')})
                         </div>
                       )}
                       {emailResult.hasBadReputation && (
@@ -1706,13 +1754,13 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                       // ===== SINGLE SOURCE OF TRUTH: Calculate DHS + apply DNS adjustments =====
                       const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
-                      const lcsScore = emailResult.lcsScore || 100 // Local-Part Credibility Score (identity)
+                      const lcsScore = emailResult.lcsScore || 100 // Local-Part Gibberish Score
 
                       // Apply DNS adjustments to DHS only
                       const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
 
-                      // Final score = min(adjusted DHS, LCS)
-                      // This ensures bad identity cannot be rescued by good domain
+                      // Final score = min(adjusted DHS, Gibberish Score)
+                      // This ensures bad gibberish detection cannot be rescued by good domain
                       const adjustedScore = Math.min(adjustedDHS, lcsScore)
 
                       // Determine campaign readiness based on adjusted score
@@ -1729,7 +1777,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                             </span>
                           </div>
                           <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.4', marginBottom: '8px' }}>
-                            Identity-based score for email campaign suitability (0–100)
+                            Gibberish detection score for email campaign suitability (0–100)
                           </div>
                         </>
                       )
@@ -1749,11 +1797,11 @@ export default function EmailValidatorOutputPanel({ result }) {
                             // ===== SINGLE SOURCE OF TRUTH (breakdown section): Same values as above =====
                             // Ensures displayed scores match final calculation
                             const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
-                            const lcsScore = emailResult.lcsScore || 100
+                            const lcsScore = emailResult.lcsScore || 100 // Local-Part Gibberish Score
                             const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
                             const adjustedScore = Math.min(adjustedDHS, lcsScore)
 
-                            // Build complete breakdown with DHS + LCS + DNS penalties
+                            // Build complete breakdown with DHS + Gibberish Score + DNS penalties
                             const breakdownWithDns = [
                               { label: 'Domain Health Score', points: adjustedDHS, description: 'Infrastructure & domain maturity (adjusted with DNS results)', isSectionHeader: true }
                             ]
@@ -1774,15 +1822,15 @@ export default function EmailValidatorOutputPanel({ result }) {
                               breakdownWithDns.push(...dnsPenalties)
                             }
 
-                            // Add LCS section
+                            // Add Gibberish Score section
                             breakdownWithDns.push({ label: '', points: 0, description: '', isSeparator: true })
-                            breakdownWithDns.push({ label: 'Local-Part Credibility Score', points: lcsScore, description: 'Username quality & engagement likelihood (base: 100)', isSectionHeader: true })
+                            breakdownWithDns.push({ label: 'Local-Part Gibberish Score', points: lcsScore, description: 'Username gibberish detection & engagement likelihood (base: 100)', isSectionHeader: true })
 
-                            // Add LCS items from backend breakdown (skip the LCS header and final score since we're building those)
+                            // Add Gibberish Score items from backend breakdown (skip the header and final score since we're building those)
                             if (emailResult.campaignBreakdown && emailResult.campaignBreakdown.length > 0) {
                               let foundLcsHeader = false
                               for (const item of emailResult.campaignBreakdown) {
-                                if (item.isSectionHeader && item.label.startsWith('Local-Part Credibility Score')) {
+                                if (item.isSectionHeader && item.label.startsWith('Local-Part Gibberish Score')) {
                                   foundLcsHeader = true
                                   continue
                                 }
@@ -1801,7 +1849,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                             breakdownWithDns.push({
                               label: 'Final Campaign Readiness Score',
                               points: adjustedScore,
-                              description: `min(Domain Health Score (${Math.round(adjustedDHS)}), Local-Part Credibility Score (${lcsScore}))`,
+                              description: `min(Domain Health Score (${Math.round(adjustedDHS)}), Local-Part Gibberish Score (${lcsScore}))`,
                               isFinalScore: true
                             })
 
@@ -1819,16 +1867,16 @@ export default function EmailValidatorOutputPanel({ result }) {
                                   }
 
                                   if (item.isSectionHeader) {
-                                    // Check if this is the LCS header and if LCS score is 100 (no penalties)
-                                    const isLcsHeader = item.label.startsWith('Local-Part Credibility Score')
-                                    const isLcsClean = isLcsHeader && item.points === 100
+                                    // Check if this is the Gibberish Score header and if score is 100 (no penalties)
+                                    const isGibberishHeader = item.label.startsWith('Local-Part Gibberish Score')
+                                    const isGibberishClean = isGibberishHeader && item.points === 100
 
-                                    // Count items in LCS section (between LCS header and final score separator)
-                                    let lcsItemCount = 0
-                                    if (isLcsHeader) {
+                                    // Count items in Gibberish Score section (between header and final score separator)
+                                    let gibberishItemCount = 0
+                                    if (isGibberishHeader) {
                                       for (let i = idx + 1; i < breakdownWithDns.length; i++) {
                                         if (breakdownWithDns[i].isSeparator || breakdownWithDns[i].isFinalScore) break
-                                        if (!breakdownWithDns[i].isSectionHeader) lcsItemCount++
+                                        if (!breakdownWithDns[i].isSectionHeader) gibberishItemCount++
                                       }
                                     }
 
@@ -1838,7 +1886,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                                           {item.label}: {Math.round(item.points)}
                                         </div>
                                         {item.description && <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{item.description}</div>}
-                                        {isLcsClean && lcsItemCount === 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '6px', fontStyle: 'italic' }}>✓ Nothing suspicious found</div>}
+                                        {isGibberishClean && gibberishItemCount === 0 && <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '6px', fontStyle: 'italic' }}>✓ No gibberish found</div>}
                                       </div>
                                     )
                                   }
