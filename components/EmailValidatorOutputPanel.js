@@ -1052,6 +1052,27 @@ export default function EmailValidatorOutputPanel({ result }) {
   // Build the friendly output display
   const renderEmailValidationContent = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Limit Exceeded Error */}
+      {result.limitExceeded && result.error && (
+        <div style={{
+          padding: '16px',
+          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+          border: '1px solid rgba(244, 67, 54, 0.5)',
+          borderRadius: '6px',
+          borderLeft: '4px solid #f44336',
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: '600', color: '#f44336', marginBottom: '8px' }}>
+            ⚠ Email List Too Large
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
+            {result.error}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '8px', fontStyle: 'italic' }}>
+            This limit exists to prevent DNS flooding, browser memory issues, and network timeouts. Please split your list into smaller batches.
+          </div>
+        </div>
+      )}
+
       {/* Summary stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' }}>
         <div style={{
