@@ -61,6 +61,9 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
     if (selectedTool.toolId === 'ip-address-toolkit') {
       return "Enter an IP address, hostname, CIDR notation, or range (e.g., google.com, 192.168.1.1 to 192.168.1.10)..."
     }
+    if (selectedTool.toolId === 'email-validator') {
+      return "Type or paste emails here — one per line or separated by commas."
+    }
     return "Type or paste content here..."
   }
 
