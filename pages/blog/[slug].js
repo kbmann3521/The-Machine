@@ -95,6 +95,7 @@ export default function BlogPost({ post, customCss: initialCss = '' }) {
         <meta property="og:type" content="article" />
         {ogImage && <meta property="og:image" content={ogImage} />}
         <link rel="canonical" href={`https://www.pioneerwebtools.com/blog/${post.slug}`} />
+        {initialCss && <style id="blog-custom-css-style" dangerouslySetInnerHTML={{ __html: initialCss }} />}
       </Head>
 
       {isAdmin && <AdminCSSBar onCSSChange={setCustomCss} postId={post.id} />}
