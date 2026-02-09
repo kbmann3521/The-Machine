@@ -2431,8 +2431,7 @@ export default function EmailValidatorOutputPanel({ result }) {
           <div style={{ fontSize: '13px' }}>✓ Domain existence verification</div>
           <div style={{ fontWeight: '600', color: 'var(--color-text-primary)', marginTop: '4px', fontSize: '14px' }}>Campaign Readiness / Identity Score (0-100):</div>
           <div style={{ fontSize: '13px' }}>✓ Domain Health Score (infrastructure & maturity)</div>
-          <div style={{ fontSize: '13px' }}>✓ Local-Part Credibility Score (username quality)</div>
-          <div style={{ fontSize: '13px' }}>✓ Personal name detection</div>
+          <div style={{ fontSize: '13px' }}>✓ Local-Part Gibberish Score (username gibberish detection)</div>
           <div style={{ fontSize: '13px' }}>✓ Role-based email scoring</div>
           <div style={{ fontSize: '13px' }}>✓ DNS penalties (SPF, DMARC, MX redundancy)</div>
           <div style={{ fontSize: '13px' }}>✓ Provider reputation (Gmail, Outlook, Yahoo, etc.)</div>
