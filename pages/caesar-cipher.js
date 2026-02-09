@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import CaesarCipherTool from '../components/CaesarCipherTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function CaesarCipherPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['caesar-cipher']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Caesar Cipher | Encrypt, Decrypt & Analyze Shifts Online',
     description: 'Free online Caesar cipher tool with encryption, decryption, auto-detection, ROT13 support, and brute force analysis. Shift text by any amount, view all 26 shifts, and preserve case or punctuation. Deterministic, rule-based cipher with no data retention.',
     path: '/caesar-cipher',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

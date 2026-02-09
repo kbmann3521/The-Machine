@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import CronTesterTool from '../components/CronTesterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function CronTesterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['cron-tester']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Cron Expression Tester | Validate & Explain Cron Schedules Online',
     description: 'Free online cron expression validator and scheduler. Test cron syntax, see next execution times, and understand schedules across timezones. Supports Linux/Unix cron format with timezone-aware scheduling. Deterministic, rule-based validation with no data retention.',
     path: '/cron-tester',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

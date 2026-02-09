@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import WebPlaygroundTool from '../components/WebPlaygroundTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function WebPlaygroundPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['web-playground']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Web Playground | Format & Validate HTML, Markdown, CSS & JavaScript',
     description: 'Free, deterministic web playground for validating, formatting, and converting HTML, Markdown, CSS, and JavaScript. Check syntax errors, validate accessibility, detect semantic issues, and beautify code with rule-based processing.',
     path: '/web-playground',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

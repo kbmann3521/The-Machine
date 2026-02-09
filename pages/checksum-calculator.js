@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import ChecksumCalculatorTool from '../components/ChecksumCalculatorTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function ChecksumCalculatorPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['checksum-calculator']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Checksum Calculator | Calculate MD5, SHA, CRC & More Online',
     description: 'Free online checksum and hash calculator with 11+ algorithms (MD5, SHA-1/256/512, CRC, Adler-32, Fletcher). Multiple input/output formats, file integrity verification, data corruption detection. Deterministic, rule-based calculation with no data retention.',
     path: '/checksum-calculator',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

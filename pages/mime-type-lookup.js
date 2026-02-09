@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import MimeTypeLookupTool from '../components/MimeTypeLookupTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function MimeTypeLookupPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['mime-type-lookup']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'MIME Type Lookup | Convert Extensions, MIME Types & Headers Online',
     description: 'Free online MIME type lookup tool. Convert between file extensions, MIME types, filenames, and Content-Type headers. Get security notes, category classification, and rich metadata. Bulk processing with fuzzy matching. Deterministic, rule-based lookup with no data retention.',
     path: '/mime-type-lookup',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

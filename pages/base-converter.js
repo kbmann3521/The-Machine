@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import BaseConverterTool from '../components/BaseConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function BaseConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['base-converter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Base Converter | Convert Between Binary, Octal, Decimal & Hex',
     description: 'Free online base converter for converting numbers between binary, octal, decimal, and hexadecimal. Auto-detect input base, convert with full precision, and view results in all bases. Deterministic, rule-based processing with no data retention.',
     path: '/base-converter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

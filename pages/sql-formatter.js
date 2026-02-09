@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import SqlFormatterTool from '../components/SqlFormatterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function SqlFormatterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['sql-formatter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'SQL Formatter | Format, Beautify & Validate SQL Queries Online',
     description: 'Free online SQL formatter and beautifier supporting multiple SQL dialects (MySQL, PostgreSQL, T-SQL, SQLite). Format, minify, validate, and beautify SQL queries with customizable indentation and syntax highlighting. Deterministic, rule-based processing with no data retention.',
     path: '/sql-formatter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

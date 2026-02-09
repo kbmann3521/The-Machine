@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import UnitConverterTool from '../components/UnitConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function UnitConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['unit-converter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Unit Converter | Convert Between Hundreds of Units Instantly',
     description: 'Free online unit converter supporting distance, weight, volume, temperature, speed, time, and more. Convert between metric, imperial, and other unit systems instantly. Deterministic, rule-based processing with no data retention.',
     path: '/unit-converter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

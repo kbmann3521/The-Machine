@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import QrCodeGeneratorTool from '../components/QrCodeGeneratorTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function QrCodeGeneratorPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['qr-code-generator']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'QR Code Generator | Create Scannable QR Codes with Custom Colors & Size',
     description: 'Free online QR code generator with customizable size, colors, error correction, and margins. Generate scannable QR codes from URLs, text, or data in PNG and SVG formats. Create codes for marketing, events, product labels, and more. Deterministic, rule-based generation with no data retention.',
     path: '/qr-code-generator',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

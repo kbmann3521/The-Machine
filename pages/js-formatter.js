@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import JsFormatterTool from '../components/JsFormatterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function JsFormatterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['js-formatter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'JavaScript Formatter | Format, Minify & Analyze JS Online',
     description: 'Free online JavaScript formatter with beautification, minification, validation, and code analysis. Format JS with custom indentation, minify for production, validate syntax, and detect issues. Deterministic, rule-based processing with no data retention.',
     path: '/js-formatter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import HttpStatusLookupTool from '../components/HttpStatusLookupTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function HttpStatusLookupPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['http-status-lookup']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'HTTP Status Code Lookup | Understand Status Codes & Get Code Examples',
     description: 'Free HTTP status code lookup tool with auto-detection, explanations, and code examples for 9 frameworks. Analyze logs, understand status meanings, check retryability, and see implementation examples. Deterministic, rule-based lookup with no data retention.',
     path: '/http-status-lookup',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

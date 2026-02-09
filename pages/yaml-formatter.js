@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import YamlFormatterTool from '../components/YamlFormatterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function YamlFormatterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['yaml-formatter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'YAML Formatter | Format, Validate & Convert YAML Online',
     description: 'Free online YAML formatter with beautification, validation, and conversion to JSON and other formats. Format YAML with proper indentation, validate syntax, and convert between formats. Deterministic, rule-based processing with no data retention.',
     path: '/yaml-formatter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

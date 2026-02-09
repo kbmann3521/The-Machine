@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import MathEvaluatorTool from '../components/MathEvaluatorTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function MathEvaluatorPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['math-evaluator']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Math Expression Evaluator | Calculate Complex Formulas with 30+ Functions',
     description: 'Free online math expression evaluator with 30+ functions (trigonometric, logarithmic, statistical, and more). High-precision calculations with BigNumber support, custom rounding, and detailed diagnostics. Calculate complex formulas safely and accurately. Deterministic, rule-based evaluation with no data retention.',
     path: '/math-evaluator',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

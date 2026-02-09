@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import Base64ConverterTool from '../components/Base64ConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function Base64ConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['base64-converter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Base64 Converter | Encode & Decode with Auto-Detection',
     description: 'Free online Base64 encoder and decoder with auto-detection, URL-safe variants, MIME encoding, and metadata analysis. Encode text to Base64, decode Base64 strings, and view compression ratios. Deterministic, rule-based processing with no data retention.',
     path: '/base64-converter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

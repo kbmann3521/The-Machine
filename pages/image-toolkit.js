@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import ImageToolkitTool from '../components/ImageToolkitTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function ImageToolkitPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['image-toolkit']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Image Toolkit | Plan Image Transformations & Optimize Dimensions Online',
     description: 'Free online image toolkit for planning image transformations. Set dimensions, scale factors, quality levels, and aspect ratios. Calculate optimal settings for responsive design, thumbnails, and batch processing. Deterministic transformation planning with no data retention.',
     path: '/image-toolkit',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

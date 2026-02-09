@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import ColorConverterTool from '../components/ColorConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function ColorConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['color-converter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Color Converter | Convert Between RGB, HEX, HSL, CMYK & More',
     description: 'Free online color converter supporting 10+ formats (HEX, RGB, HSL, CMYK, LAB, LCH, HSV, XYZ). Convert colors, compare with Delta-E, generate gradients, simulate color blindness, and export palettes. Deterministic, rule-based processing with no data retention.',
     path: '/color-converter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

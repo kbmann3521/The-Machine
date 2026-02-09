@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import XmlFormatterTool from '../components/XmlFormatterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function XmlFormatterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['xml-formatter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'XML Formatter | Format, Validate & Convert XML Online',
     description: 'Free online XML formatter with beautification, minification, validation, XPath queries, and conversion to JSON and YAML. Format XML with custom indentation, validate syntax, query with XPath, and convert formats. Deterministic, rule-based processing with no data retention.',
     path: '/xml-formatter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

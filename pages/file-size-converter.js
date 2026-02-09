@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import FileSizeConverterTool from '../components/FileSizeConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function FileSizeConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['file-size-converter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'File Size Converter | Convert Between KB, MB, GB, TB & PB',
     description: 'Free online file size converter with instant conversions between bytes, KB, MB, GB, TB, and PB. Accurately convert file sizes for storage planning, disk management, and bandwidth calculations. Deterministic, rule-based conversion with no data retention.',
     path: '/file-size-converter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

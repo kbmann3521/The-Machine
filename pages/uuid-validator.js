@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import UuidValidatorTool from '../components/UuidValidatorTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function UuidValidatorPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['uuid-validator']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'UUID Validator | Generate, Validate & Analyze UUIDs',
     description: 'Free online UUID validator and generator supporting versions 1, 3, 4, 5, and 7. Validate UUID format, identify version and variant, generate random or time-based UUIDs, and bulk validate lists. Deterministic, rule-based processing with no data retention.',
     path: '/uuid-validator',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

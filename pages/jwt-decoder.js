@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import JwtDecoderTool from '../components/JwtDecoderTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function JwtDecoderPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['jwt-decoder']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'JWT Decoder | Decode, Analyze & Verify JSON Web Tokens',
     description: 'Free online JWT decoder with signature verification, JWKS support, and token claim inspection. Decode JWT header, payload, and verify authenticity. Check expiration, view claims, and debug authentication flows. Deterministic, rule-based processing with no data retention.',
     path: '/jwt-decoder',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

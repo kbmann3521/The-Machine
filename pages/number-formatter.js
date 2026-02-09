@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import NumberFormatterTool from '../components/NumberFormatterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function NumberFormatterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['number-formatter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Number Formatter | Format Numbers with Custom Separators & Styles Online',
     description: 'Free online number formatter with thousands separators, decimal places, percentages, abbreviations, and scientific notation. Support for international number standards, multiple rounding modes, and bulk formatting. Deterministic, rule-based formatting with no data retention.',
     path: '/number-formatter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import CsvJsonConverterTool from '../components/CsvJsonConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function CsvJsonConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['csv-json-converter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'CSV to JSON Converter | Convert CSV to JSON, SQL, JavaScript & More Online',
     description: 'Free online CSV to JSON converter with support for SQL, JavaScript, and TypeScript output. Auto-detect delimiters and headers, convert data types, normalize headers. Handle any CSV format with intelligent parsing. Deterministic, rule-based conversion with no data retention.',
     path: '/csv-json-converter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import EmailValidatorTool from '../components/EmailValidatorTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function EmailValidatorPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['email-validator']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Email Validator | Validate Email Addresses with Detailed Analysis',
     description: 'Free online email validator with RFC 5322 compliance checking, format analysis, DNS verification, and detailed diagnostics. Validate single emails or bulk lists with actionable feedback. Deterministic, rule-based processing with no data retention.',
     path: '/email-validator',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

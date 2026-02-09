@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import RegexTesterTool from '../components/RegexTesterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function RegexTesterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['regex-tester']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Regex Tester | Test, Debug & Explain Regular Expressions Online',
     description: 'Free online regex tester with real-time matching, pattern explanation, capture groups, replacements, and warnings. Debug JavaScript regex patterns with visual highlighting and detailed diagnostics. Test email, URL, phone patterns. Deterministic, rule-based processing with no data retention.',
     path: '/regex-tester',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

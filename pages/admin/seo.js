@@ -42,6 +42,8 @@ export default function AdminSEO() {
     twitter_card_type: 'summary_large_image',
     twitter_site: '',
     twitter_creator: '',
+    tool_og_title_template: '<tool-name>',
+    tool_og_description_template: '<tool-short-description>',
   })
 
   useEffect(() => {
@@ -561,6 +563,46 @@ export default function AdminSEO() {
                   />
                 </label>
               </div>
+            </section>
+
+            {/* Standalone Tool Pages OG Settings */}
+            <section className={seoStyles.section}>
+              <h2 className={seoStyles.sectionTitle}>Standalone Tool Pages Open Graph Settings</h2>
+              <p className={seoStyles.hint}>Templates for dynamically generating OG/Twitter meta tags on tool pages. Use <code>&lt;tool-name&gt;</code> and <code>&lt;tool-short-description&gt;</code> as placeholders.</p>
+
+              <div className={seoStyles.fieldGroup}>
+                <label className={seoStyles.label}>
+                  OG Title Template
+                  <input
+                    type="text"
+                    name="tool_og_title_template"
+                    value={settings.tool_og_title_template}
+                    onChange={handleChange}
+                    className={seoStyles.input}
+                    placeholder="<tool-name>"
+                  />
+                </label>
+                <p className={seoStyles.hint}>Example: "&lt;tool-name&gt;" will become "Email Validator"</p>
+              </div>
+
+              <div className={seoStyles.fieldGroup}>
+                <label className={seoStyles.label}>
+                  OG Description Template
+                  <textarea
+                    name="tool_og_description_template"
+                    value={settings.tool_og_description_template}
+                    onChange={handleChange}
+                    className={seoStyles.textarea}
+                    placeholder="<tool-short-description>"
+                    rows="2"
+                  />
+                </label>
+                <p className={seoStyles.hint}>Example: "&lt;tool-short-description&gt;" will become the tool's description</p>
+              </div>
+
+              <p className={seoStyles.hint} style={{ marginTop: '1rem', fontStyle: 'italic' }}>
+                The OG Image URL from the Social Sharing section above will be used for all tool pages. Twitter Card type and settings will also be shared across tool pages.
+              </p>
             </section>
           </div>
 

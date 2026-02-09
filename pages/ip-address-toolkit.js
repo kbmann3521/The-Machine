@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import IpAddressToolkitTool from '../components/IpAddressToolkitTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function IpAddressToolkitPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['ip-address-toolkit']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'IP Address Toolkit | Validate, Analyze & Convert IPv4/IPv6 Online',
     description: 'Free comprehensive IP address toolkit with validation, geolocation, CIDR calculation, bulk processing, and network diagnostics for IPv4 and IPv6. Analyze IP ranges, compare addresses, detect threats, and plan subnets. Deterministic, rule-based analysis with no data retention.',
     path: '/ip-address-toolkit',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

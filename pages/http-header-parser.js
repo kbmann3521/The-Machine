@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import HttpHeaderParserTool from '../components/HttpHeaderParserTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function HttpHeaderParserPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['http-header-parser']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'HTTP Header Parser | Validate, Analyze & Debug HTTP Headers',
     description: 'Free online HTTP header parser with security analysis, validation, and performance insights. Analyze request/response headers, detect vulnerabilities, simulate cache behavior, and export in multiple formats. Deterministic, rule-based processing with no data retention.',
     path: '/http-header-parser',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

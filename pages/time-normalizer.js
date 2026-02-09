@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import TimeNormalizerTool from '../components/TimeNormalizerTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function TimeNormalizerPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['time-normalizer']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'Time Normalizer | Parse, Normalize & Convert Dates Between Timezones',
     description: 'Free online time normalizer supporting Unix timestamps, ISO 8601, and human-readable dates. Auto-detect date formats, normalize to standard formats, and convert between 30+ timezones. Deterministic, rule-based processing with no data retention.',
     path: '/time-normalizer',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

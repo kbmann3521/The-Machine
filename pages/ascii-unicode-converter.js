@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import AsciiUnicodeConverterTool from '../components/AsciiUnicodeConverterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function AsciiUnicodeConverterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['ascii-unicode-converter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'ASCII/Unicode Converter | Convert Text to Character Codes Online',
     description: 'Free online ASCII/Unicode converter. Convert text to ASCII decimal, hex, and Unicode codes. Reverse conversion from codes to text. Support for emoji, international text, and character encoding analysis. Deterministic, rule-based conversion with no data retention.',
     path: '/ascii-unicode-converter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

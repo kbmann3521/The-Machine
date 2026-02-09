@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import UrlToolkitTool from '../components/UrlToolkitTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function UrlToolkitPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['url-toolkit']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'URL Toolkit | Parse, Analyze & Optimize URLs Online',
     description: 'Free online URL toolkit with comprehensive parsing, domain analysis, tracking parameter detection, sensitive data detection, SEO analysis, and security grading. Parse URLs, remove tracking parameters, analyze domain structure, and detect security issues. Deterministic, rule-based processing with no data retention.',
     path: '/url-toolkit',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

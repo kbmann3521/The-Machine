@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import SvgOptimizerTool from '../components/SvgOptimizerTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function SvgOptimizerPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['svg-optimizer']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'SVG Optimizer | Minify & Optimize SVG Files Online',
     description: 'Free online SVG optimizer with minification, structure analysis, ID graph analysis, and detailed change tracking. Optimize SVG files with safety presets, remove unused definitions, clean up design exports, and reduce file size. Deterministic, rule-based processing with no data retention.',
     path: '/svg-optimizer',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {

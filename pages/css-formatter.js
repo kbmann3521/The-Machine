@@ -5,16 +5,20 @@ import PageFooter from '../components/PageFooter'
 import CssFormatterTool from '../components/CssFormatterTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
+import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
 
 export default function CssFormatterPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
+
+  const toolMetadata = TOOLS['css-formatter']
 
   const metadata = generatePageMetadata({
     seoSettings: props?.seoSettings || {},
     title: 'CSS Formatter | Format, Validate & Beautify CSS',
     description: 'Free online CSS formatter with beautification, minification, validation, linting, and vendor prefixing. Format CSS with custom indentation, validate syntax, detect issues, and beautify code. Deterministic, rule-based processing with no data retention.',
     path: '/css-formatter',
+    toolMetadata: toolMetadata,
   })
 
   const containerStyle = {
