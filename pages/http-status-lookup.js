@@ -34,6 +34,20 @@ export default function HttpStatusLookupPage(props) {
         <meta name="description" content={metadata.description} />
         {metadata.keywords && <meta name="keywords" content={metadata.keywords} />}
         <link rel="canonical" href={metadata.canonical || `${props?.seoSettings?.canonical_base_url}/http-status-lookup` || 'https://www.pioneerwebtools.com/http-status-lookup'} />
+
+        {/* Open Graph Tags for social sharing */}
+        <meta property="og:title" content={metadata.openGraph?.title || metadata.title} />
+        <meta property="og:description" content={metadata.openGraph?.description || metadata.description} />
+        <meta property="og:url" content={metadata.openGraph?.url || `${props?.seoSettings?.canonical_base_url || 'https://www.pioneerwebtools.com'}/http-status-lookup`} />
+        <meta property="og:type" content={metadata.openGraph?.type || 'website'} />
+        {metadata.openGraph?.image && <meta property="og:image" content={metadata.openGraph.image} />}
+
+        {/* Twitter Card Tags */}
+        <meta name="twitter:card" content={metadata.twitter?.card || 'summary_large_image'} />
+        <meta name="twitter:title" content={metadata.twitter?.title || metadata.title} />
+        <meta name="twitter:description" content={metadata.twitter?.description || metadata.description} />
+        {metadata.twitter?.site && <meta name="twitter:site" content={metadata.twitter.site} />}
+        {metadata.twitter?.creator && <meta name="twitter:creator" content={metadata.twitter.creator} />}
       </Head>
       <Script
         type="application/ld+json"
