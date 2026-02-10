@@ -296,6 +296,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       'removeExtras': 'removeExtras',
       'sortLines': 'sortLines',
       'delimiterTransformer': 'delimiterTransformer',
+      'numberRows': 'numberRows',
     }
     return keyMap[section]
   }
@@ -394,7 +395,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
 
   // For text-toolkit, check if current section has content
   const isTextToolkitWithoutContent = toolId === 'text-toolkit' && displayResult &&
-    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection) &&
+    ['findReplace', 'slugGenerator', 'reverseText', 'removeExtras', 'whitespaceVisualizer', 'sortLines', 'delimiterTransformer', 'numberRows'].includes(activeToolkitSection) &&
     !displayResult[getToolkitSectionKey(activeToolkitSection)]
 
   // Show blank tabs when no result (but skip for markdown formatter - it has its own rendering)
@@ -440,6 +441,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         textToCopy = displayResult.sortLines
       } else if (activeToolkitSection === 'delimiterTransformer' && displayResult.delimiterTransformer) {
         textToCopy = displayResult.delimiterTransformer
+      } else if (activeToolkitSection === 'numberRows' && displayResult.numberRows) {
+        textToCopy = displayResult.numberRows
       }
     }
 
@@ -7475,7 +7478,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               contentType: 'text'
             })
             // Add JSON tab for slug generator, reverse text, and clean text
-            if (['slugGenerator', 'reverseText', 'removeExtras', 'sortLines', 'delimiterTransformer'].includes(activeToolkitSection)) {
+            if (['slugGenerator', 'reverseText', 'removeExtras', 'sortLines', 'delimiterTransformer', 'numberRows'].includes(activeToolkitSection)) {
               tabs.push({
                 id: 'json',
                 label: 'JSON',

@@ -79,6 +79,11 @@ export default function Home(props) {
     mode: 'rows',
     joinSeparator: ' ',
   })
+  const [numberRowsConfig, setNumberRowsConfig] = useState({
+    start: 1,
+    pad: 0,
+    separator: '. ',
+  })
   const [checksumCompareText, setChecksumCompareText] = useState('')
   const [previousInputLength, setPreviousInputLength] = useState(0)
   const [numericConfig, setNumericConfig] = useState({
@@ -797,6 +802,13 @@ export default function Home(props) {
             mode: delimiterTransformerConfig.mode ?? 'rows',
             joinSeparator: delimiterTransformerConfig.joinSeparator ?? ',',
           }
+        } else if (tool.toolId === 'text-toolkit' && activeToolkitSection === 'numberRows') {
+          finalConfig = {
+            ...config,
+            start: numberRowsConfig.start || 1,
+            pad: numberRowsConfig.pad || 0,
+            separator: numberRowsConfig.separator ?? '. ',
+          }
         } else if (tool.toolId === 'checksum-calculator') {
           finalConfig = {
             ...config,
@@ -906,7 +918,7 @@ export default function Home(props) {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig, delimiterTransformerConfig]
+    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig, delimiterTransformerConfig, numberRowsConfig]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -937,7 +949,7 @@ export default function Home(props) {
     }
 
     runTool()
-  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, activeToolkitSection])
+  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, numberRowsConfig, activeToolkitSection])
 
   // Helper function to determine if there's output to use
   const getHasOutputToUse = () => {
@@ -953,7 +965,8 @@ export default function Home(props) {
         'sortLines': 'sortLines',
         'findReplace': 'findReplace',
         'caseConverter': 'caseConverter',
-        'delimiterTransformer': 'delimiterTransformer'
+        'delimiterTransformer': 'delimiterTransformer',
+        'numberRows': 'numberRows'
       }
       const key = supportedSections[activeToolkitSection]
       return key && outputResult[key]
@@ -1357,6 +1370,8 @@ export default function Home(props) {
                         onRemoveExtrasConfigChange={setRemoveExtrasConfig}
                         delimiterTransformerConfig={delimiterTransformerConfig}
                         onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                        numberRowsConfig={numberRowsConfig}
+                        onNumberRowsConfigChange={setNumberRowsConfig}
                         onSetGeneratedText={handleInputChange}
                         showAnalysisTab={showAnalysisTab}
                         onShowAnalysisTabChange={setShowAnalysisTab}

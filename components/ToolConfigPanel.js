@@ -7,7 +7,7 @@ import Phase2Controls from './SVGOptimizer/Phase2Controls'
 // Lazy-load RegexToolkit - only needed when configuring regex patterns
 const RegexToolkit = dynamic(() => import('./RegexToolkit'), { ssr: false })
 
-export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, onSetGeneratedText, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, markdownInputMode = 'input', cssConfigOptions = {}, onCssConfigChange = null }) {
+export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegenerate, currentConfig = {}, result, contentClassification, activeToolkitSection, onToolkitSectionChange, findReplaceConfig, onFindReplaceConfigChange, diffConfig, onDiffConfigChange, sortLinesConfig, onSortLinesConfigChange, removeExtrasConfig, onRemoveExtrasConfigChange, delimiterTransformerConfig, onDelimiterTransformerConfigChange, numberRowsConfig, onNumberRowsConfigChange, onSetGeneratedText, showAnalysisTab, onShowAnalysisTabChange, showRulesTab, onShowRulesTabChange, markdownInputMode = 'input', cssConfigOptions = {}, onCssConfigChange = null }) {
   const [config, setConfig] = useState({})
   const [colorSuggestions, setColorSuggestions] = useState({})
   const [activeSuggestionsField, setActiveSuggestionsField] = useState(null)
@@ -559,6 +559,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
     { id: 'sortLines', label: 'Sort Lines' },
     { id: 'findReplace', label: 'Find & Replace' },
     { id: 'delimiterTransformer', label: 'Delimiter Transformer' },
+    { id: 'numberRows', label: 'Number Rows' },
   ]
 
   return (
@@ -932,6 +933,54 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                   />
                 </div>
               )}
+            </div>
+          )}
+
+          {activeToolkitSection === 'numberRows' && (
+            <div className={styles.findReplaceFields}>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="rowNumberStart">
+                  Starting Number
+                </label>
+                <input
+                  id="rowNumberStart"
+                  type="number"
+                  className={styles.input}
+                  placeholder="1"
+                  value={numberRowsConfig?.start ?? 1}
+                  onChange={(e) => onNumberRowsConfigChange({ ...numberRowsConfig, start: parseInt(e.target.value) || 1 })}
+                  min="1"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="rowNumberPad">
+                  Pad with zeros
+                </label>
+                <input
+                  id="rowNumberPad"
+                  type="number"
+                  className={styles.input}
+                  placeholder="0 (no padding)"
+                  value={numberRowsConfig?.pad ?? 0}
+                  onChange={(e) => onNumberRowsConfigChange({ ...numberRowsConfig, pad: parseInt(e.target.value) || 0 })}
+                  min="0"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="rowNumberSeparator">
+                  Separator (between number and text)
+                </label>
+                <input
+                  id="rowNumberSeparator"
+                  type="text"
+                  className={styles.input}
+                  placeholder=". "
+                  value={numberRowsConfig?.separator ?? '. '}
+                  onChange={(e) => onNumberRowsConfigChange({ ...numberRowsConfig, separator: e.target.value })}
+                  maxLength="5"
+                  autoComplete="off"
+                />
+              </div>
             </div>
           )}
         </div>

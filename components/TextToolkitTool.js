@@ -85,6 +85,11 @@ export default function TextToolkitTool() {
     mode: 'rows',
     joinSeparator: ' ',
   })
+  const [numberRowsConfig, setNumberRowsConfig] = useState({
+    start: 1,
+    pad: 0,
+    separator: '. ',
+  })
 
   // Refs
   const debounceTimerRef = useRef(null)
@@ -136,7 +141,7 @@ export default function TextToolkitTool() {
       return () => clearTimeout(timer)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig])
+  }, [activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, numberRowsConfig])
 
   // Handle input change and execution
   const handleInputChange = useCallback((text, image = null, preview = null, isLoadExample = false) => {
@@ -241,6 +246,12 @@ export default function TextToolkitTool() {
           mode: delimiterTransformerConfig.mode ?? 'rows',
           joinSeparator: delimiterTransformerConfig.joinSeparator ?? ',',
         }
+      } else if (activeToolkitSection === 'numberRows') {
+        finalConfig = {
+          start: numberRowsConfig.start || 1,
+          pad: numberRowsConfig.pad || 0,
+          separator: numberRowsConfig.separator ?? '. ',
+        }
       }
 
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || '')
@@ -284,7 +295,7 @@ export default function TextToolkitTool() {
       }
       setLoading(false)
     }
-  }, [activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig])
+  }, [activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, numberRowsConfig])
 
   const handleImageChange = () => {
     // Not used in text-toolkit
@@ -420,6 +431,8 @@ export default function TextToolkitTool() {
                 onRemoveExtrasConfigChange={setRemoveExtrasConfig}
                 delimiterTransformerConfig={delimiterTransformerConfig}
                 onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                numberRowsConfig={numberRowsConfig}
+                onNumberRowsConfigChange={setNumberRowsConfig}
               />
             </div>
           }

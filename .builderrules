@@ -1,0 +1,1 @@
+when modyfing tool functionality/features/design, ALWAYS ALWAYS ALWAYS modify the tools root functionality (the tool on the main/home page) so it carries over to the standalone tool page. NEVER modify a standalone tool's functionality/features/design unless instructed to. this is because the way the standalone tool pages are set up. they mirror the tool on the home page.
