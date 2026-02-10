@@ -988,6 +988,11 @@ export default function Home(props) {
       return !!(outputResult?.formatted || outputResult?.output)
     }
 
+    // For ASCII/Unicode Converter, check fullOutput field
+    if (selectedTool.toolId === 'ascii-unicode-converter' && outputResult?.fullOutput) {
+      return true
+    }
+
     // For regular tools, check output field
     return !!outputResult?.output
   }

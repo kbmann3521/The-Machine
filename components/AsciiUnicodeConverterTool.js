@@ -45,6 +45,7 @@ export default function AsciiUnicodeConverterTool() {
   const [dividerLeftRatio, setDividerLeftRatio] = useState(50)
 
   const [configOptions, setConfigOptions] = useState({
+    autoDetect: true,
     mode: 'toCode',
   })
 
