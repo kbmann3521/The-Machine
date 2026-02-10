@@ -520,7 +520,20 @@ function calculateDnsRecordPenalties(dnsRecord) {
   return { penalties, totalPenalty }
 }
 
-export default function EmailValidatorOutputPanel({ result }) {
+// Helper function to calculate final campaign score based on DHS, LCS, and config
+function calculateFinalCampaignScore(adjustedDhs, lcsScore, config = {}) {
+  const { ignoreLcsIfLower = false } = config
+
+  if (ignoreLcsIfLower && adjustedDhs > lcsScore) {
+    // When ignoring LCS if lower, use DHS if it's higher
+    return adjustedDhs
+  }
+
+  // Default behavior: use the minimum (constraint model)
+  return Math.min(adjustedDhs, lcsScore)
+}
+
+export default function EmailValidatorOutputPanel({ result, configOptions = {}, onConfigChange = null }) {
   const [dnsData, setDnsData] = useState({})
   const [loadingEmails, setLoadingEmails] = useState(new Set())
   const [showFilters, setShowFilters] = useState(false)
@@ -567,7 +580,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         dnsPenalties = penalties
         adjustedDhs = Math.max(0, Math.min(100, adjustedDhs - dnsTotalAdjustment))
         const lcsScore = emailResult.lcsScore || 100
-        finalCampaignScore = Math.min(adjustedDhs, lcsScore)
+        finalCampaignScore = calculateFinalCampaignScore(adjustedDhs, lcsScore, result?.config)
       }
 
       // Build complete campaignBreakdown with DHS + DNS + Gibberish Score for JSON output
@@ -684,7 +697,7 @@ export default function EmailValidatorOutputPanel({ result }) {
         const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
         const adjustedDhs = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
         const lcsScore = emailResult.lcsScore || 100
-        adjustedCampaignScore = Math.min(adjustedDhs, lcsScore)
+        adjustedCampaignScore = calculateFinalCampaignScore(adjustedDhs, lcsScore, result?.config)
       }
 
       return {
@@ -1550,6 +1563,53 @@ export default function EmailValidatorOutputPanel({ result }) {
                 </div>
               </div>
 
+              {/* Ignore LCS If Lower Toggle */}
+              <div style={{ gridColumn: '1 / -1', paddingTop: '8px', borderTop: '1px solid rgba(156, 39, 176, 0.2)' }}>
+                <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-text-secondary)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Scoring Option
+                </div>
+                <button
+                  onClick={() => {
+                    const newConfig = { ...configOptions, ignoreLcsIfLower: !configOptions.ignoreLcsIfLower }
+                    onConfigChange?.(newConfig)
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    border: `1px solid ${configOptions.ignoreLcsIfLower ? '#9c27b0' : 'var(--color-border)'}`,
+                    borderRadius: '3px',
+                    backgroundColor: configOptions.ignoreLcsIfLower ? 'rgba(156, 39, 176, 0.15)' : 'transparent',
+                    color: configOptions.ignoreLcsIfLower ? '#9c27b0' : 'var(--color-text-primary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <span>Use Domain Health When Higher</span>
+                  <span style={{
+                    display: 'inline-block',
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '2px',
+                    backgroundColor: configOptions.ignoreLcsIfLower ? '#9c27b0' : 'rgba(156, 39, 176, 0.2)',
+                    marginLeft: '8px',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    {configOptions.ignoreLcsIfLower && <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
+                  </span>
+                </button>
+                {configOptions.ignoreLcsIfLower && (
+                  <div style={{ fontSize: '11px', color: '#2196f3', marginTop: '6px', padding: '6px 8px', backgroundColor: 'rgba(33, 150, 243, 0.1)', borderRadius: '3px', borderLeft: '3px solid #2196f3' }}>
+                    ℹ️ When enabled, uses Domain Health Score instead of the minimum when DHS is higher than Local-Part Gibberish Score
+                  </div>
+                )}
+              </div>
+
               {/* Reset Button */}
               <button
                 onClick={() => setFilters({
@@ -1671,7 +1731,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                       const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
                       const lcsScore = emailResult.lcsScore || 100
                       const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
-                      const adjustedScore = Math.min(adjustedDHS, lcsScore)
+                      const adjustedScore = calculateFinalCampaignScore(adjustedDHS, lcsScore, result?.config)
 
                       const readinessLevel = getCampaignReadinessLabel(adjustedScore)
 
@@ -1696,6 +1756,39 @@ export default function EmailValidatorOutputPanel({ result }) {
                     })()
                   )}
                 </div>
+
+                {/* Indicator when LCS is being ignored */}
+                {result?.config?.ignoreLcsIfLower && emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (() => {
+                  const dnsRecord = dnsData[emailResult.email]
+                  const { totalPenalty: dnsTotalAdjustment } = calculateDnsRecordPenalties(dnsRecord)
+                  const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
+                  const lcsScore = emailResult.lcsScore || 100
+                  const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
+
+                  // Only show indicator if DHS > LCS (meaning LCS was ignored)
+                  if (adjustedDHS > lcsScore) {
+                    return (
+                      <div style={{
+                        padding: '6px 10px',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        border: '1px solid rgba(33, 150, 243, 0.3)',
+                        borderRadius: '3px',
+                        marginBottom: '8px',
+                        fontSize: '12px',
+                        color: '#2196f3',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}>
+                        <span style={{ fontWeight: '600' }}>ℹ️ Local-Part Gibberish Score Ignored</span>
+                        <span style={{ fontSize: '11px', opacity: 0.8 }}>
+                          (DHS {Math.round(adjustedDHS)} used instead of LCS {lcsScore})
+                        </span>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
 
                 {/* Invalid emails: Show ONLY issues, nothing else */}
                 {(!emailResult.valid || emailResult.isDisposable || dnsData[emailResult.email]?.mailHostType === 'none') && (
@@ -1780,9 +1873,9 @@ export default function EmailValidatorOutputPanel({ result }) {
                       // Apply DNS adjustments to DHS only
                       const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
 
-                      // Final score = min(adjusted DHS, Gibberish Score)
-                      // This ensures bad gibberish detection cannot be rescued by good domain
-                      const adjustedScore = Math.min(adjustedDHS, lcsScore)
+                      // Final score = min(adjusted DHS, Gibberish Score) by default
+                      // Or use DHS if higher than LCS when config option is enabled
+                      const adjustedScore = calculateFinalCampaignScore(adjustedDHS, lcsScore, result?.config)
 
                       // Determine campaign readiness based on adjusted score
                       const readinessLevel = getCampaignReadinessLabel(adjustedScore)
@@ -1820,7 +1913,7 @@ export default function EmailValidatorOutputPanel({ result }) {
                             const baseDhs = calculateDomainHealthScore(emailResult.tldQuality, emailResult.isDomainCorporate)
                             const lcsScore = emailResult.lcsScore || 100 // Local-Part Gibberish Score
                             const adjustedDHS = Math.max(0, Math.min(100, baseDhs - dnsTotalAdjustment))
-                            const adjustedScore = Math.min(adjustedDHS, lcsScore)
+                            const adjustedScore = calculateFinalCampaignScore(adjustedDHS, lcsScore, result?.config)
 
                             // Build complete breakdown with DHS + Gibberish Score + DNS penalties
                             const breakdownWithDns = [
@@ -1867,10 +1960,13 @@ export default function EmailValidatorOutputPanel({ result }) {
 
                             // Add final score
                             breakdownWithDns.push({ label: '', points: 0, description: '', isSeparator: true })
+                            const scoreDescription = result?.config?.ignoreLcsIfLower && adjustedDHS > lcsScore
+                              ? `Domain Health Score (${Math.round(adjustedDHS)}) [LCS ignored: ${lcsScore} < DHS]`
+                              : `min(Domain Health Score (${Math.round(adjustedDHS)}), Local-Part Gibberish Score (${lcsScore}))`
                             breakdownWithDns.push({
                               label: 'Final Campaign Readiness Score',
                               points: adjustedScore,
-                              description: `min(Domain Health Score (${Math.round(adjustedDHS)}), Local-Part Gibberish Score (${lcsScore}))`,
+                              description: scoreDescription,
                               isFinalScore: true
                             })
 

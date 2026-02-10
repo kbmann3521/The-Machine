@@ -7581,7 +7581,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
       case 'cron-tester':
         return renderCronTesterOutput()
       case 'email-validator':
-        return <EmailValidatorOutputPanel result={displayResult} />
+        return <EmailValidatorOutputPanel result={displayResult} configOptions={configOptions} onConfigChange={onConfigChange} />
       case 'csv-json-converter': {
         // CSV to JSON/SQL/JS/TS output - show format-specific tab only
         const tabs = []

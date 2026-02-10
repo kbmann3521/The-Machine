@@ -1,9 +1,15 @@
-import { TOOLS, getToolExampleForMetadata } from '../../../lib/tools'
+import { TOOLS } from '../../../lib/tool-metadata'
+import { getToolExampleForMetadata } from '../../../lib/tools'
 
 export default function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  // Disable caching for tool metadata to ensure fresh config schema
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
 
   // Build metadata from local TOOLS using show_in_recommendations flag
   const toolMetadata = {}

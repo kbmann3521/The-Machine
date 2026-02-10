@@ -1391,6 +1391,8 @@ export default function Home(props) {
                   <EmailValidatorOutputPanel
                     key={selectedTool?.toolId}
                     result={outputResult}
+                    configOptions={configOptions}
+                    onConfigChange={handleConfigChange}
                   />
                 ) : selectedTool?.toolId === 'qr-code-generator' ? (
                   <QRCodeGeneratorOutputPanel
