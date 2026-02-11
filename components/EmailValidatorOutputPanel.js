@@ -1805,7 +1805,7 @@ export default function EmailValidatorOutputPanel({ result, configOptions = {}, 
                 )}
 
                 {/* Valid emails: Show warnings and details */}
-                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.isThrowaway || emailResult.hasBadReputation || emailResult.domainHeuristics?.length > 0 || emailResult.hatefulTermsMatched?.length > 0 || emailResult.abusiveTermsMatched?.length > 0 || emailResult.nsfwTermsMatched?.length > 0 || (!dnsData[emailResult.email]?.mxRecords || dnsData[emailResult.email]?.mxRecords?.length === 0)) && (
+                {emailResult.valid && dnsData[emailResult.email]?.mailHostType !== 'none' && !emailResult.isDisposable && (emailResult.roleBasedEmail || emailResult.isThrowaway || emailResult.hasBadReputation || emailResult.domainHeuristics?.length > 0 || emailResult.hatefulTermsMatched?.length > 0 || emailResult.abusiveTermsMatched?.length > 0 || emailResult.nsfwTermsMatched?.length > 0 || emailResult.trustworthinessWarnings?.length > 0 || (!dnsData[emailResult.email]?.mxRecords || dnsData[emailResult.email]?.mxRecords?.length === 0)) && (
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: '600', color: '#ff9800', marginBottom: '4px' }}>
                       ⚠ Warnings:
@@ -1849,6 +1849,11 @@ export default function EmailValidatorOutputPanel({ result, configOptions = {}, 
                       {emailResult.domainHeuristics?.map((heuristic, dhIdx) => (
                         <div key={`dh-${dhIdx}`} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
                           • Domain: {heuristic}
+                        </div>
+                      ))}
+                      {emailResult.trustworthinessWarnings?.map((warning, twIdx) => (
+                        <div key={`tw-${twIdx}`} style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginLeft: '16px' }}>
+                          • {warning}
                         </div>
                       ))}
                     </div>

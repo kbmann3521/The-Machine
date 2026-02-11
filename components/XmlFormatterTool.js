@@ -46,6 +46,7 @@ export default function XmlFormatterTool() {
   const [configOptions, setConfigOptions] = useState({
     mode: 'beautify',
     indentSize: '2',
+    showLinting: true,
   })
 
   const debounceTimerRef = useRef(null)
