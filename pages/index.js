@@ -1004,7 +1004,6 @@ export default function Home(props) {
 
     // Tools that don't support copying output back to input
     const nonCopyableTools = [
-      'base-converter',
       'qr-code-generator',
       'ip-toolkit',
       'email-validator',
@@ -1122,6 +1121,30 @@ export default function Home(props) {
       value,
       onSelect: () => handleInputChange(value),
     }))
+  })()
+
+  // Generate base converter conversion results for INPUT tab chevron menu
+  const baseConverterConversionResults = (() => {
+    if (selectedTool?.toolId !== 'base-converter' || !outputResult?.conversions) {
+      return []
+    }
+
+    const conversions = outputResult.conversions
+    const baseLabels = {
+      binary: 'Binary',
+      octal: 'Octal',
+      decimal: 'Decimal',
+      hexadecimal: 'Hexadecimal',
+    }
+
+    return Object.entries(conversions).map(([key, value]) => {
+      let label = baseLabels[key] || key
+      return {
+        label,
+        value,
+        onSelect: () => handleInputChange(value),
+      }
+    })
   })()
 
   // Handler for replacing CSS input with formatted CSS output
@@ -1242,7 +1265,7 @@ export default function Home(props) {
                 onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
                 infoContent={<ValuePropositionCard />}
                 tabActions={null}
-                inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : caseConversionResults}
+                inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : selectedTool?.toolId === 'base-converter' ? baseConverterConversionResults : caseConversionResults}
                 hasOutputToUse={getHasOutputToUse()}
                 onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
                 canCopyOutput={getCanCopyOutput()}

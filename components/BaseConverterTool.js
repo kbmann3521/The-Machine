@@ -193,6 +193,30 @@ export default function BaseConverterTool() {
     handleInputChange
   )
 
+  // Generate base converter conversion results for INPUT tab chevron menu
+  const baseConverterConversionResults = (() => {
+    if (!outputResult?.conversions) {
+      return []
+    }
+
+    const conversions = outputResult.conversions
+    const baseLabels = {
+      binary: 'Binary',
+      octal: 'Octal',
+      decimal: 'Decimal',
+      hexadecimal: 'Hexadecimal',
+    }
+
+    return Object.entries(conversions).map(([key, value]) => {
+      let label = baseLabels[key] || key
+      return {
+        label,
+        value,
+        onSelect: () => handleInputChange(value),
+      }
+    })
+  })()
+
   return (
     <div
       className={`${styles.toolContainer} ${isPreviewFullscreen ? styles.fullscreenPreview : ''}`}
@@ -217,7 +241,7 @@ export default function BaseConverterTool() {
               />
             </div>
           }
-          inputTabResults={[]}
+          inputTabResults={baseConverterConversionResults}
           hasOutputToUse={hasOutput}
           onUseOutput={handleUseOutput}
           canCopyOutput={true}
