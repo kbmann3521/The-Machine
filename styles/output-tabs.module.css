@@ -73,6 +73,12 @@
   gap: 6px;
 }
 
+.copyTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .optionsLabel {
   display: inline;
 }

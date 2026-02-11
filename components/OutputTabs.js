@@ -814,9 +814,18 @@ export default function OutputTabs({
                   {tab.label}
                 </button>
               ))}
+              {showCopyButton && (
+                <button
+                  className={`${styles.tab} ${styles.copyTab}`}
+                  onClick={handleCopy}
+                  title="Copy output"
+                >
+                  {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
+                </button>
+              )}
             </div>
 
-            {(activeTabConfig?.contentType === 'json' || jsOptionsContent || showCopyButton || activeTabConfig?.actions?.length > 0) && (
+            {(activeTabConfig?.contentType === 'json' || jsOptionsContent || activeTabConfig?.actions?.length > 0) && (
               <div className={styles.tabActions}>
                 {activeTabConfig?.contentType === 'json' && (
                   <button
@@ -835,12 +844,6 @@ export default function OutputTabs({
                     title="JavaScript options"
                   >
                     ⚙️
-                  </button>
-                )}
-
-                {showCopyButton && (
-                  <button className="copy-action" onClick={handleCopy} title="Copy output">
-                    {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
                   </button>
                 )}
 
