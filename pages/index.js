@@ -97,6 +97,7 @@ export default function Home(props) {
   const [showAnalysisTab, setShowAnalysisTab] = useState(false)
   const [showRulesTab, setShowRulesTab] = useState(false)
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
+  const [descriptionSidebarOpen, setDescriptionSidebarOpen] = useState(false)
   const [markdownCustomCss, setMarkdownCustomCss] = useState('')
   const [markdownCustomJs, setMarkdownCustomJs] = useState('')
   const [cssFormattedOutput, setCssFormattedOutput] = useState(null)
@@ -1214,7 +1215,7 @@ export default function Home(props) {
           <ThemeToggle />
         </div>
 
-        <div className={styles.bodyContainer}>
+        <div className={`${styles.bodyContainer} ${descriptionSidebarOpen ? styles.sidebarOpenDesktop : ''}`}>
           <ToolSidebar
             predictedTools={predictedTools}
             selectedTool={selectedTool}
@@ -1390,6 +1391,7 @@ export default function Home(props) {
                   ) : null
                 }
                 tabOptionsMap={{}}
+                onOptionsClick={isDesktop ? () => setDescriptionSidebarOpen(!descriptionSidebarOpen) : null}
               />
             </div>
 
@@ -1462,11 +1464,47 @@ export default function Home(props) {
       </main>
         </div>
 
+      <ToolDescriptionSidebar
+        tool={selectedTool}
+        isOpen={descriptionSidebarOpen}
+        onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
+        content={selectedTool ? (
+          <ToolConfigPanel
+            tool={selectedTool}
+            onConfigChange={handleConfigChange}
+            onCssConfigChange={setCssConfigOptions}
+            loading={toolLoading}
+            onRegenerate={handleRegenerate}
+            currentConfig={configOptions}
+            result={outputResult}
+            contentClassification={contentClassification}
+            activeToolkitSection={activeToolkitSection}
+            onToolkitSectionChange={setActiveToolkitSection}
+            markdownInputMode={selectedTool?.toolId === 'web-playground' ? 'input' : undefined}
+            cssConfigOptions={cssConfigOptions}
+            findReplaceConfig={findReplaceConfig}
+            onFindReplaceConfigChange={setFindReplaceConfig}
+            diffConfig={diffConfig}
+            onDiffConfigChange={setDiffConfig}
+            sortLinesConfig={sortLinesConfig}
+            onSortLinesConfigChange={setSortLinesConfig}
+            removeExtrasConfig={removeExtrasConfig}
+            onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+            delimiterTransformerConfig={delimiterTransformerConfig}
+            onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+            numberRowsConfig={numberRowsConfig}
+            onNumberRowsConfigChange={setNumberRowsConfig}
+            onSetGeneratedText={handleInputChange}
+            showAnalysisTab={showAnalysisTab}
+            onShowAnalysisTabChange={setShowAnalysisTab}
+            showRulesTab={showRulesTab}
+            onShowRulesTabChange={setShowRulesTab}
+          />
+        ) : null}
+      />
 
-
-        <PageFooter showBackToTools={false} />
-      </div>
-
+      <PageFooter showBackToTools={false} />
+    </div>
 
     </>
   )

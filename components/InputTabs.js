@@ -48,6 +48,7 @@ export default function InputTabs({
   onUseJsOutput = null,
   canCopyJsOutput = true,
   useJsOutputLabel = 'Replace with output',
+  onOptionsClick = null,
 }) {
   const [userSelectedTabId, setUserSelectedTabId] = useState('input')
   const [openOptionsDropdown, setOpenOptionsDropdown] = useState(null)
@@ -371,18 +372,20 @@ export default function InputTabs({
                 )}
               </div>
             ))}
-          </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {/* Global options - always shown if globalOptionsContent is provided */}
             {globalOptionsContent && (
               <div className={styles.tabOptionsContainer} ref={globalOptionsRef}>
                 <button
-                  className={styles.tabSettingsButton}
+                  className={`${styles.tab} ${styles.optionsTab}`}
                   onClick={() => {
-                    if (openGlobalOptions) {
-                      setClosingGlobalOptions(true)
+                    if (onOptionsClick) {
+                      onOptionsClick()
                     } else {
-                      setOpenGlobalOptions(true)
+                      if (openGlobalOptions) {
+                        setClosingGlobalOptions(true)
+                      } else {
+                        setOpenGlobalOptions(true)
+                      }
                     }
                   }}
                   title="Global options"
@@ -413,6 +416,8 @@ export default function InputTabs({
                 )}
               </div>
             )}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
 
             {/* Settings gear icon - only visible for active tab if it has options */}
             {hasTabOptions && (

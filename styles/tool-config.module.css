@@ -55,8 +55,8 @@
 .fieldsContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 15px;
+  gap: 8px;
+  margin-bottom: 10px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -72,7 +72,7 @@
 }
 
 .field:has(.toggleContainer) .fieldLabel {
-  visibility: hidden;
+  display: none;
 }
 
 

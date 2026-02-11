@@ -816,46 +816,48 @@ export default function OutputTabs({
               ))}
             </div>
 
-            <div className={styles.tabActions}>
-              {activeTabConfig?.contentType === 'json' && (
-                <button
-                  className={styles.minifyToggle}
-                  onClick={() => setIsMinified(!isMinified)}
-                  title={isMinified ? 'Expand JSON' : 'Minify JSON'}
-                >
-                  {isMinified ? 'Expand' : 'Minify'}
-                </button>
-              )}
-
-              {jsOptionsContent && (
-                <button
-                  className="copy-action"
-                  onClick={() => setLocalShowJsOptionsModal(!localShowJsOptionsModal)}
-                  title="JavaScript options"
-                >
-                  ⚙️
-                </button>
-              )}
-
-              {showCopyButton && (
-                <button className="copy-action" onClick={handleCopy} title="Copy output">
-                  {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
-                </button>
-              )}
-
-              {activeTabConfig?.actions && (
-                activeTabConfig.actions.map((action, idx) => (
+            {(activeTabConfig?.contentType === 'json' || jsOptionsContent || showCopyButton || activeTabConfig?.actions?.length > 0) && (
+              <div className={styles.tabActions}>
+                {activeTabConfig?.contentType === 'json' && (
                   <button
-                    key={idx}
-                    className={action.className || 'copy-action'}
-                    onClick={() => action.onClick && action.onClick()}
-                    title={action.title}
+                    className={styles.minifyToggle}
+                    onClick={() => setIsMinified(!isMinified)}
+                    title={isMinified ? 'Expand JSON' : 'Minify JSON'}
                   >
-                    {action.label || action.icon}
+                    {isMinified ? 'Expand' : 'Minify'}
                   </button>
-                ))
-              )}
-            </div>
+                )}
+
+                {jsOptionsContent && (
+                  <button
+                    className="copy-action"
+                    onClick={() => setLocalShowJsOptionsModal(!localShowJsOptionsModal)}
+                    title="JavaScript options"
+                  >
+                    ⚙️
+                  </button>
+                )}
+
+                {showCopyButton && (
+                  <button className="copy-action" onClick={handleCopy} title="Copy output">
+                    {copied ? '✓ Copied' : <><FaCopy /> Copy</>}
+                  </button>
+                )}
+
+                {activeTabConfig?.actions && (
+                  activeTabConfig.actions.map((action, idx) => (
+                    <button
+                      key={idx}
+                      className={action.className || 'copy-action'}
+                      onClick={() => action.onClick && action.onClick()}
+                      title={action.title}
+                    >
+                      {action.label || action.icon}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           <div className={`${styles.tabContent} ${styles.tabContentFull}`}>

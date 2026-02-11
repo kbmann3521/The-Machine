@@ -1044,6 +1044,21 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
             // If there are fields with row numbers, render them grouped by row
             if (Object.keys(rows).length > 0) {
+              // Separate non-row fields into non-toggles and toggles
+              const nonToggleFieldsWithoutRow = []
+              const toggleFieldsWithoutRow = []
+
+              fieldsWithoutRow.forEach(field => {
+                if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
+                  return
+                }
+                if (field.type === 'toggle') {
+                  toggleFieldsWithoutRow.push(field)
+                } else {
+                  nonToggleFieldsWithoutRow.push(field)
+                }
+              })
+
               return (
                 <>
                   {Object.keys(rows).sort((a, b) => a - b).map(rowNum => (
@@ -1067,12 +1082,23 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                       })}
                     </div>
                   ))}
-                  {fieldsWithoutRow.length > 0 && (
+                  {(nonToggleFieldsWithoutRow.length > 0 || toggleFieldsWithoutRow.length > 0) && (
                     <div className={styles.fieldsContainer}>
-                      {fieldsWithoutRow.map(field => {
-                        if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
-                          return null;
+                      {nonToggleFieldsWithoutRow.map(field => {
+                        const renderedField = renderField(field)
+                        if (!renderedField) {
+                          return null
                         }
+                        return (
+                          <div key={field.id} className={styles.field}>
+                            <label className={styles.fieldLabel} htmlFor={field.id}>
+                              {field.label}
+                            </label>
+                            {renderedField}
+                          </div>
+                        );
+                      })}
+                      {toggleFieldsWithoutRow.map(field => {
                         const renderedField = renderField(field)
                         if (!renderedField) {
                           return null
@@ -1122,7 +1148,7 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
                       )}
                     </div>
                   )}
-                  {fieldsWithoutRow.length === 0 && tool.toolId === 'css-formatter' && (
+                  {fieldsWithoutRow.length === 0 && nonToggleFieldsWithoutRow.length === 0 && tool.toolId === 'css-formatter' && (
                     <div className={styles.fieldsContainer}>
                       <div className={styles.field}>
                         <label className={styles.fieldLabel}></label>
@@ -1165,17 +1191,43 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
             if (tool.toolId === 'markdown-html-formatter' && cssSchema.length > 0) {
               // Only show HTML/Markdown options when INPUT tab is active
               if (markdownInputMode === 'input') {
+                const mdNonToggleFields = []
+                const mdToggleFields = []
+
+                configSchema.forEach(field => {
+                  // Check visibility
+                  if (field.visibleWhen) {
+                    const { field: conditionField, value: conditionValue } = field.visibleWhen
+                    if (config[conditionField] !== conditionValue) {
+                      return
+                    }
+                  }
+
+                  if (field.type === 'toggle') {
+                    mdToggleFields.push(field)
+                  } else {
+                    mdNonToggleFields.push(field)
+                  }
+                })
+
                 return (
                   <div className={styles.fieldsContainer}>
-                    {configSchema.map(field => {
-                      // Check visibility
-                      if (field.visibleWhen) {
-                        const { field: conditionField, value: conditionValue } = field.visibleWhen
-                        if (config[conditionField] !== conditionValue) {
-                          return null
-                        }
+                    {mdNonToggleFields.map(field => {
+                      const renderedField = renderField(field)
+                      if (!renderedField) {
+                        return null
                       }
 
+                      return (
+                        <div key={field.id} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={field.id}>
+                            {field.label}
+                          </label>
+                          {renderedField}
+                        </div>
+                      )
+                    })}
+                    {mdToggleFields.map(field => {
                       const renderedField = renderField(field)
                       if (!renderedField) {
                         return null
@@ -1196,22 +1248,48 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
 
               // Show CSS options for both CSS tab and HTML tab (for validation/linting toggles)
               if (markdownInputMode === 'css' || markdownInputMode === 'input') {
+                const cssNonToggleFields = []
+                const cssToggleFields = []
+
+                cssSchema.forEach(field => {
+                  // Check visibility
+                  if (field.visibleWhen) {
+                    const { field: conditionField, value: conditionValue } = field.visibleWhen
+                    if (cssConfigOptions[conditionField] !== conditionValue) {
+                      return
+                    }
+                  }
+
+                  // For HTML tab (input mode), only show validation/linting toggles
+                  if (markdownInputMode === 'input' && !['showValidation', 'showLinting'].includes(field.id)) {
+                    return
+                  }
+
+                  if (field.type === 'toggle') {
+                    cssToggleFields.push(field)
+                  } else {
+                    cssNonToggleFields.push(field)
+                  }
+                })
+
                 return (
                   <div className={styles.fieldsContainer}>
-                    {cssSchema.map(field => {
-                      // Check visibility
-                      if (field.visibleWhen) {
-                        const { field: conditionField, value: conditionValue } = field.visibleWhen
-                        if (cssConfigOptions[conditionField] !== conditionValue) {
-                          return null
-                        }
-                      }
-
-                      // For HTML tab (input mode), only show validation/linting toggles
-                      if (markdownInputMode === 'input' && !['showValidation', 'showLinting'].includes(field.id)) {
+                    {cssNonToggleFields.map(field => {
+                      const renderedField = renderCssField(field)
+                      if (!renderedField) {
                         return null
                       }
 
+                      return (
+                        <div key={`css-${field.id}`} className={styles.field}>
+                          <label className={styles.fieldLabel} htmlFor={`css-${field.id}`}>
+                            {field.label}
+                          </label>
+                          {renderedField}
+                        </div>
+                      )
+                    })}
+                    {cssToggleFields.map(field => {
                       const renderedField = renderCssField(field)
                       if (!renderedField) {
                         return null
@@ -1262,22 +1340,49 @@ export default function ToolConfigPanel({ tool, onConfigChange, loading, onRegen
               }
             }
 
+            // Separate fields into non-toggles and toggles for proper ordering
+            const nonToggleFields = []
+            const toggleFields = []
+
+            configSchema.forEach(field => {
+              // Skip fields handled by RegexToolkit for regex-tester
+              if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
+                return
+              }
+
+              // Check visibility
+              if (field.visibleWhen) {
+                const { field: conditionField, value: conditionValue } = field.visibleWhen
+                if (config[conditionField] !== conditionValue) {
+                  return
+                }
+              }
+
+              if (field.type === 'toggle') {
+                toggleFields.push(field)
+              } else {
+                nonToggleFields.push(field)
+              }
+            })
+
             return (
               <div className={styles.fieldsContainer}>
-                {configSchema.map(field => {
-                  // Skip fields handled by RegexToolkit for regex-tester
-                  if (tool.toolId === 'regex-tester' && ['pattern', 'flags', 'replacement'].includes(field.id)) {
-                    return null;
+                {nonToggleFields.map(field => {
+                  const renderedField = renderField(field)
+                  if (!renderedField) {
+                    return null
                   }
 
-                  // Check visibility
-                  if (field.visibleWhen) {
-                    const { field: conditionField, value: conditionValue } = field.visibleWhen
-                    if (config[conditionField] !== conditionValue) {
-                      return null
-                    }
-                  }
-
+                  return (
+                    <div key={field.id} className={styles.field}>
+                      <label className={styles.fieldLabel} htmlFor={field.id}>
+                        {field.label}
+                      </label>
+                      {renderedField}
+                    </div>
+                  )
+                })}
+                {toggleFields.map(field => {
                   const renderedField = renderField(field)
                   if (!renderedField) {
                     return null

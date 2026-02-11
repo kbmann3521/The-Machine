@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import styles from '../styles/tool-description-sidebar.module.css'
 
-export default function ToolDescriptionSidebar({ tool, isOpen, onToggle }) {
+export default function ToolDescriptionSidebar({ tool, isOpen, onToggle, content = null }) {
   const [expandedSection, setExpandedSection] = useState(null)
 
   const toggleSection = (section) => {
@@ -10,6 +10,27 @@ export default function ToolDescriptionSidebar({ tool, isOpen, onToggle }) {
 
   if (!tool) {
     return null
+  }
+
+  // If custom content is provided, use that instead of description
+  if (content) {
+    return (
+      <aside className={`${styles.descriptionSidebar} ${isOpen ? styles.open : ''}`}>
+        <div className={styles.sidebarHeader}>
+          <h2 className={styles.toolTitle}>{tool.name}</h2>
+          <button
+            className={styles.closeButton}
+            onClick={onToggle}
+            aria-label="Close sidebar"
+          >
+            ✕
+          </button>
+        </div>
+        <div className={styles.sidebarContent}>
+          {content}
+        </div>
+      </aside>
+    )
   }
 
   const description = tool.detailedDescription || {

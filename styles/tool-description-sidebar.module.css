@@ -1,10 +1,10 @@
 .descriptionSidebar {
   position: fixed;
-  right: -400px;
+  right: 0;
   top: 50px;
   bottom: 0;
-  width: 400px;
-  background-color: var(--color-background-secondary);
+  width: 280px;
+  background-color: var(--color-background-tertiary);
   border-left: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
@@ -12,22 +12,11 @@
   z-index: 10;
   overflow: hidden;
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+  right: -280px;
 }
 
 .descriptionSidebar.open {
   right: 0;
-  animation: slideInRight 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideInRight {
-  from {
-    right: -400px;
-    opacity: 0;
-  }
-  to {
-    right: 0;
-    opacity: 1;
-  }
 }
 
 .sidebarHeader {
@@ -73,10 +62,12 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px;
+  padding: 10px 10px 40px 10px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   scrollbar-gutter: stable;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .sidebarContent::-webkit-scrollbar {
@@ -226,7 +217,6 @@
     position: fixed;
     bottom: 0;
     height: auto;
-    max-height: calc(100vh - 100px);
   }
 
   .closeButton {
@@ -236,12 +226,12 @@
 
 @media (max-width: 1200px) {
   .descriptionSidebar {
-    width: 350px;
-    right: -350px;
+    width: 280px;
+    right: -280px;
   }
 
   .sidebarHeader {
-    width: 350px;
+    width: 280px;
   }
 
   .sectionContent {
@@ -252,6 +242,12 @@
 @media (max-width: 1200px) and (min-width: 769px) {
   .descriptionSidebar.open {
     right: 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .descriptionSidebar {
+    display: none;
   }
 }
 

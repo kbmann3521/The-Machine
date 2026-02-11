@@ -20,7 +20,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 10px 0 0;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--color-border, #ddd);
   background-color: var(--color-background-secondary, #f9f9f9);
   gap: 0;
@@ -29,18 +29,18 @@
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0;
+  gap: 6px;
   align-items: flex-start;
   flex: 1;
   min-width: 0;
 }
 
 .tab {
-  height: 40px;
-  padding: 0 8px 0 16px;
-  border: none;
-  border-bottom: 3px solid transparent;
-  background-color: transparent;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 6px;
+  background-color: var(--color-background-primary, #fff);
   color: var(--color-text-secondary, #666);
   font-size: 12px;
   font-weight: 600;
@@ -51,47 +51,87 @@
   white-space: nowrap;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .tab:hover {
   color: var(--color-text-primary, #000);
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--color-background-secondary, #f5f5f5);
+  border-color: var(--color-border-hover, #999);
 }
 
 .tab.tabActive {
-  color: #0066cc;
-  border-bottom: 3px solid #0066cc;
+  color: white;
+  background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+  border-color: #0066cc;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+}
+
+.optionsTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.optionsLabel {
+  display: inline;
+}
+
+.settingsIcon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+/* Specific styling for INPUT tab that's part of tabWrapper with chevron */
+.tabWrapper:has(.useOutputContainer) .tab {
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+}
+
+/* All other tabWrapper tabs get full rounded corners */
+.tabWrapper:not(:has(.useOutputContainer)) .tab {
+  border-radius: 6px;
 }
 
 .tabWrapper {
   display: flex;
   align-items: center;
   gap: 0;
-  height: 40px;
+  height: 32px;
 }
 
 .useOutputChevron {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
+  height: 32px;
   padding: 0 8px;
-  margin-left: -6px;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
+  background: var(--color-background-primary, #fff);
+  border: 1px solid var(--color-border, #ddd);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
   cursor: pointer;
   color: var(--color-text-secondary, #666);
   transition: all 0.2s ease;
 }
 
 .tabWrapper:has(.tabActive) .useOutputChevron {
-  color: #0066cc;
-  border-bottom-color: #0066cc;
+  color: white;
+  border-color: #0066cc;
+  background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
 }
 
 .useOutputChevron:hover {
   color: #0066cc;
+  border-color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.08);
+}
+
+.tabWrapper:has(.tabActive) .useOutputChevron:hover {
+  color: white;
+  background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%);
 }
 
 .useOutputChevron:active {
@@ -102,7 +142,7 @@
   display: flex;
   align-items: center;
   position: relative;
-  height: 40px;
+  height: 32px;
 }
 
 .useOutputMenu {
@@ -169,7 +209,7 @@
   padding: 0 12px;
   border-left: 1px solid var(--color-border, #ddd);
   flex-shrink: 0;
-  height: 40px;
+  height: 32px;
 }
 
 .minifyToggle {
@@ -664,19 +704,19 @@
 /* Tablet and smaller screens */
 @media (max-width: 900px) {
   .tab {
-    height: 35px;
+    height: 31px;
     padding: 8px 12px;
     font-size: 11px;
   }
 
   .tabActions {
-    height: 35px;
+    height: 31px;
     padding: 6px 10px;
     gap: 6px;
   }
 
   .useOutputChevron {
-    height: 35px;
+    height: 31px;
   }
 
   .inputTabContent {
@@ -964,7 +1004,7 @@
   border-bottom: 1px solid var(--color-border, #ddd);
   flex-shrink: 0;
   gap: 8px;
-  height: 40px;
+  height: 32px;
 }
 
 .controlsToggleBtn {
@@ -1530,7 +1570,7 @@
   }
 
   .useOutputChevron {
-    height: 35px;
+    height: 31px;
   }
 
   .inputTabContent {
