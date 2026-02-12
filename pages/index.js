@@ -1523,7 +1523,22 @@ export default function Home(props) {
             showRulesTab={showRulesTab}
             onShowRulesTabChange={setShowRulesTab}
           />
-        ) : null}
+        ) : (
+          <div style={{
+            padding: '24px 16px',
+            textAlign: 'center',
+            color: 'var(--color-text-secondary)',
+            fontSize: '14px',
+            lineHeight: '1.6',
+          }}>
+            <div style={{ marginBottom: '8px', fontSize: '16px', fontWeight: '500' }}>
+              Tool options
+            </div>
+            <div>
+              Select a tool to configure its settings and options
+            </div>
+          </div>
+        )}
       />
 
       <PageFooter showBackToTools={false} />

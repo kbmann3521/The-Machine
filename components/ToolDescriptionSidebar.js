@@ -8,16 +8,12 @@ export default function ToolDescriptionSidebar({ tool, isOpen, onToggle, content
     setExpandedSection(expandedSection === section ? null : section)
   }
 
-  if (!tool) {
-    return null
-  }
-
-  // If custom content is provided, use that instead of description
-  if (content) {
+  // If custom content is provided, use that (either with tool or without)
+  if (content !== null && content !== undefined) {
     return (
       <aside className={`${styles.descriptionSidebar} ${isOpen ? styles.open : ''}`}>
         <div className={styles.sidebarHeader}>
-          <h2 className={styles.toolTitle}>{tool.name}</h2>
+          <h2 className={styles.toolTitle}>{tool?.name || 'Options'}</h2>
           <button
             className={styles.closeButton}
             onClick={onToggle}
@@ -31,6 +27,10 @@ export default function ToolDescriptionSidebar({ tool, isOpen, onToggle, content
         </div>
       </aside>
     )
+  }
+
+  if (!tool) {
+    return null
   }
 
   const description = tool.detailedDescription || {
