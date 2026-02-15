@@ -6793,6 +6793,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
         )}
 
+        {/* Non-Printable Characters Warning */}
+        {displayResult?.hasNonPrintable && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+            border: '1px solid rgba(255, 152, 0, 0.3)',
+            borderRadius: '4px',
+            fontSize: '13px',
+            color: '#ff9800',
+          }}>
+            ⚠️ Output contains {displayResult.nonPrintableCount} non-printable character{displayResult.nonPrintableCount !== 1 ? 's' : ''}. Showing escaped representation below.
+          </div>
+        )}
+
         {/* Primary Output */}
         <div>
           <div style={{
@@ -6813,7 +6827,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <button
                 type="button"
                 className="copy-action"
-                onClick={() => handleCopyField(output, 'hex-to-text-primary')}
+                onClick={() => handleCopyField(displayResult?.hasNonPrintable ? displayResult.escaped : output, 'hex-to-text-primary')}
                 title="Copy to clipboard"
                 style={{
                   display: 'inline-flex',
@@ -6827,8 +6841,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 {copiedField === 'hex-to-text-primary' ? '✓' : <FaCopy />}
               </button>
             </div>
-            <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
-              {output}
+            <div className={styles.copyCardValue} style={{
+              wordBreak: 'break-all',
+              fontFamily: displayResult?.hasNonPrintable ? '"Courier New", "Courier", "Monaco", monospace' : 'inherit',
+              fontSize: displayResult?.hasNonPrintable ? '13px' : 'inherit',
+              lineHeight: displayResult?.hasNonPrintable ? '1.5' : 'inherit'
+            }}>
+              {displayResult?.hasNonPrintable ? displayResult.escaped : output}
             </div>
           </div>
         </div>
@@ -7012,6 +7031,20 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
           </div>
         )}
 
+        {/* Non-Printable Characters Warning */}
+        {displayResult?.hasNonPrintable && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+            border: '1px solid rgba(255, 152, 0, 0.3)',
+            borderRadius: '4px',
+            fontSize: '13px',
+            color: '#ff9800',
+          }}>
+            ⚠️ Output contains {displayResult.nonPrintableCount} non-printable character{displayResult.nonPrintableCount !== 1 ? 's' : ''}. Showing escaped representation below.
+          </div>
+        )}
+
         {/* Primary Output */}
         <div>
           <div style={{
@@ -7032,7 +7065,7 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
               <button
                 type="button"
                 className="copy-action"
-                onClick={() => handleCopyField(output, 'binary-to-text-primary')}
+                onClick={() => handleCopyField(displayResult?.hasNonPrintable ? displayResult.escaped : output, 'binary-to-text-primary')}
                 title="Copy to clipboard"
                 style={{
                   display: 'inline-flex',
@@ -7046,8 +7079,13 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
                 {copiedField === 'binary-to-text-primary' ? '✓' : <FaCopy />}
               </button>
             </div>
-            <div className={styles.copyCardValue} style={{ wordBreak: 'break-all' }}>
-              {output}
+            <div className={styles.copyCardValue} style={{
+              wordBreak: 'break-all',
+              fontFamily: '"Courier New", "Courier", "Monaco", monospace',
+              fontSize: '13px',
+              lineHeight: '1.5'
+            }}>
+              {displayResult?.hasNonPrintable ? displayResult.escaped : output}
             </div>
           </div>
         </div>
