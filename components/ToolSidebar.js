@@ -41,6 +41,8 @@ const toolIcons = {
   'email-validator': FaEnvelope,
   'ip-address-toolkit': FaNetworkWired,
   'qr-code-generator': BsQrCode,
+  'hexadecimal-converter': FaCode,
+  'binary-converter': FaCode,
 }
 
 // Map tool IDs to their category groups
@@ -51,6 +53,8 @@ const toolGroups = {
   'base64-converter': 'Text & Encoding',
   'caesar-cipher': 'Text & Encoding',
   'regex-tester': 'Text & Encoding',
+  'hexadecimal-converter': 'Text & Encoding',
+  'binary-converter': 'Text & Encoding',
   'js-formatter': 'Data Formats & Languages',
   'json-formatter': 'Data Formats & Languages',
   'web-playground': 'Data Formats & Languages',

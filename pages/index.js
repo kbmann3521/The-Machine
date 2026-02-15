@@ -1147,6 +1147,70 @@ export default function Home(props) {
     })
   })()
 
+  // Generate hex converter format results for INPUT tab chevron menu
+  const hexConverterResults = (() => {
+    if (selectedTool?.toolId !== 'hexadecimal-converter' || !outputResult?.formats) {
+      return []
+    }
+
+    const results = []
+
+    // Add primary output as first option
+    if (outputResult.output) {
+      results.push({
+        label: 'Output',
+        value: outputResult.output,
+        onSelect: () => handleInputChange(outputResult.output),
+      })
+    }
+
+    // Add all format variants
+    const formats = outputResult.formats
+    Object.entries(formats)
+      .filter(([, value]) => value)
+      .forEach(([label, value]) => {
+        results.push({
+          label,
+          value,
+          onSelect: () => handleInputChange(value),
+        })
+      })
+
+    return results
+  })()
+
+  // Generate binary converter format results for INPUT tab chevron menu
+  const binaryConverterResults = (() => {
+    if (selectedTool?.toolId !== 'binary-converter' || !outputResult?.formats) {
+      return []
+    }
+
+    const results = []
+
+    // Add primary output as first option
+    if (outputResult.output) {
+      results.push({
+        label: 'Output',
+        value: outputResult.output,
+        onSelect: () => handleInputChange(outputResult.output),
+      })
+    }
+
+    // Add all format variants
+    const formats = outputResult.formats
+    Object.entries(formats)
+      .filter(([, value]) => value)
+      .forEach(([label, value]) => {
+        results.push({
+          label,
+          value,
+          onSelect: () => handleInputChange(value),
+        })
+      })
+
+    return results
+  })()
+
   // Handler for replacing CSS input with formatted CSS output
   const handleUseCssOutputClick = () => {
     if (cssFormattedOutput && activeMarkdownInputTab === 'css') {
@@ -1265,7 +1329,7 @@ export default function Home(props) {
                 onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
                 infoContent={<ValuePropositionCard />}
                 tabActions={null}
-                inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : selectedTool?.toolId === 'base-converter' ? baseConverterConversionResults : caseConversionResults}
+                inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : selectedTool?.toolId === 'base-converter' ? baseConverterConversionResults : selectedTool?.toolId === 'hexadecimal-converter' ? hexConverterResults : selectedTool?.toolId === 'binary-converter' ? binaryConverterResults : caseConversionResults}
                 hasOutputToUse={getHasOutputToUse()}
                 onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
                 canCopyOutput={getCanCopyOutput()}

@@ -97,12 +97,6 @@ export default async function handler(req, res) {
 
     const inputTypeLabel = inputType.type
 
-    console.log(
-      `Detected: ${inputTypeLabel} (${(
-        inputType.confidence * 100
-      ).toFixed(0)}%)`
-    )
-
     // Build full scored list of tools
     let toolsWithScores = []
 
