@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic'
 import ToolSidebar from '../components/ToolSidebar'
 import ToolConfigPanel from '../components/ToolConfigPanel'
 import NumericConfig from '../components/NumericConfig'
+import EncoderDecoderConfig from '../components/EncoderDecoderConfig'
 import ToolOutputPanel from '../components/ToolOutputPanel'
 import JSEditorInput from '../components/JSEditorInput'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
@@ -378,6 +379,19 @@ export default function Home(props) {
           visibleTools = [selectedToolRef.current, ...visibleTools]
         }
 
+        // Permanently pin Encoder & Decoder tool during transition period
+        if (!visibleTools.find(t => t.toolId === 'encoder-decoder')) {
+          const encoderDecoderTool = TOOLS['encoder-decoder']
+          if (encoderDecoderTool) {
+            visibleTools.push({
+              ...encoderDecoderTool,
+              toolId: 'encoder-decoder',
+              similarity: 0,
+              source: 'pinned'
+            })
+          }
+        }
+
         // Sync visibility map from tool metadata
         const newVisibilityMap = {}
         allTools.forEach(tool => {
@@ -432,12 +446,25 @@ export default function Home(props) {
         selectedToolRef.current = tool  // Update ref for next comparison
 
         // Initialize config for the selected tool (always, not just on change)
-        const initialConfig = {}
+        let initialConfig = {}
         if (tool?.configSchema) {
           tool.configSchema.forEach(field => {
-            initialConfig[field.id] = field.default || ''
+            initialConfig[field.id] = field.default !== undefined ? field.default : ''
           })
         }
+
+        // Special handling for tools with custom configs not in schema
+        if (tool?.toolId === 'encoder-decoder') {
+          initialConfig = {
+            ...initialConfig,
+            direction: 'encode',
+            transformers: [{ id: 'base64', name: 'Base64' }],
+            transformerConfigs: { base64: { variant: 'standard' } },
+            finalOutputFormat: 'text',
+            finalOutputConfig: {}
+          }
+        }
+
         setConfigOptions(initialConfig)
 
         // Update URL with selected tool
@@ -690,6 +717,25 @@ export default function Home(props) {
 
           // Filter out tools with show_in_recommendations = false
           toolsWithMetadata = toolsWithMetadata.filter(tool => tool.show_in_recommendations !== false)
+
+          // Ensure selected tool is always in the visible list to prevent it from disappearing
+          if (selectedToolRef.current && !toolsWithMetadata.find(t => t.toolId === selectedToolRef.current.toolId)) {
+            toolsWithMetadata.unshift(selectedToolRef.current)
+          }
+
+          // Permanently pin Encoder & Decoder tool during transition period
+          if (!toolsWithMetadata.find(t => t.toolId === 'encoder-decoder')) {
+            const encoderDecoderTool = TOOLS['encoder-decoder']
+            if (encoderDecoderTool) {
+              toolsWithMetadata.push({
+                ...encoderDecoderTool,
+                toolId: 'encoder-decoder',
+                similarity: 0,
+                source: 'pinned'
+              })
+            }
+          }
+
           console.log('After filtering, showing tools:', toolsWithMetadata.slice(0, 5).map(t => ({ toolId: t.toolId, name: t.name, similarity: t.similarity })))
           setPredictedTools(toolsWithMetadata)
         } catch (err) {
@@ -1211,6 +1257,21 @@ export default function Home(props) {
     return results
   })()
 
+  // Generate encoder/decoder results for INPUT tab chevron menu
+  const encoderDecoderResults = (() => {
+    if (selectedTool?.toolId !== 'encoder-decoder' || !outputResult?.output) {
+      return []
+    }
+
+    return [
+      {
+        label: 'Output',
+        value: outputResult.output,
+        onSelect: () => handleInputChange(outputResult.output),
+      },
+    ]
+  })()
+
   // Handler for replacing CSS input with formatted CSS output
   const handleUseCssOutputClick = () => {
     if (cssFormattedOutput && activeMarkdownInputTab === 'css') {
@@ -1329,7 +1390,7 @@ export default function Home(props) {
                 onActiveTabChange={selectedTool?.toolId === 'web-playground' ? handleMarkdownInputTabChange : null}
                 infoContent={<ValuePropositionCard />}
                 tabActions={null}
-                inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : selectedTool?.toolId === 'base-converter' ? baseConverterConversionResults : selectedTool?.toolId === 'hexadecimal-converter' ? hexConverterResults : selectedTool?.toolId === 'binary-converter' ? binaryConverterResults : caseConversionResults}
+                inputTabResults={selectedTool?.toolId === 'base64-converter' ? base64ConversionResults : selectedTool?.toolId === 'base-converter' ? baseConverterConversionResults : selectedTool?.toolId === 'hexadecimal-converter' ? hexConverterResults : selectedTool?.toolId === 'binary-converter' ? binaryConverterResults : selectedTool?.toolId === 'encoder-decoder' ? encoderDecoderResults : caseConversionResults}
                 hasOutputToUse={getHasOutputToUse()}
                 onUseOutput={getCanCopyOutput() ? handleUseOutputClick : null}
                 canCopyOutput={getCanCopyOutput()}
@@ -1440,39 +1501,45 @@ export default function Home(props) {
                 globalOptionsContent={
                   selectedTool ? (
                     <div className={styles.configSection}>
-                      <ToolConfigPanel
-                        tool={selectedTool}
-                        onConfigChange={handleConfigChange}
-                        onCssConfigChange={setCssConfigOptions}
-                        loading={toolLoading}
-                        onRegenerate={handleRegenerate}
-                        currentConfig={configOptions}
-                        result={outputResult}
-                        contentClassification={contentClassification}
-                        activeToolkitSection={activeToolkitSection}
-                        onToolkitSectionChange={setActiveToolkitSection}
-                        markdownInputMode={selectedTool?.toolId === 'web-playground' ? 'input' : undefined}
-                        cssConfigOptions={cssConfigOptions}
-                        findReplaceConfig={findReplaceConfig}
-                        onFindReplaceConfigChange={setFindReplaceConfig}
-                        diffConfig={diffConfig}
-                        onDiffConfigChange={setDiffConfig}
-                        sortLinesConfig={sortLinesConfig}
-                        onSortLinesConfigChange={setSortLinesConfig}
-                        removeExtrasConfig={removeExtrasConfig}
-                        onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-                        delimiterTransformerConfig={delimiterTransformerConfig}
-                        onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
-                        numberRowsConfig={numberRowsConfig}
-                        onNumberRowsConfigChange={setNumberRowsConfig}
-                        onSetGeneratedText={handleInputChange}
-                        showAnalysisTab={showAnalysisTab}
-                        onShowAnalysisTabChange={setShowAnalysisTab}
-                        showRulesTab={showRulesTab}
-                        onShowRulesTabChange={setShowRulesTab}
-                      />
-                      {selectedTool?.toolId === 'math-evaluator' && (
-                        <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
+                      {selectedTool?.toolId === 'encoder-decoder' ? (
+                        <EncoderDecoderConfig config={configOptions} onConfigChange={handleConfigChange} />
+                      ) : (
+                        <>
+                          <ToolConfigPanel
+                            tool={selectedTool}
+                            onConfigChange={handleConfigChange}
+                            onCssConfigChange={setCssConfigOptions}
+                            loading={toolLoading}
+                            onRegenerate={handleRegenerate}
+                            currentConfig={configOptions}
+                            result={outputResult}
+                            contentClassification={contentClassification}
+                            activeToolkitSection={activeToolkitSection}
+                            onToolkitSectionChange={setActiveToolkitSection}
+                            markdownInputMode={selectedTool?.toolId === 'web-playground' ? 'input' : undefined}
+                            cssConfigOptions={cssConfigOptions}
+                            findReplaceConfig={findReplaceConfig}
+                            onFindReplaceConfigChange={setFindReplaceConfig}
+                            diffConfig={diffConfig}
+                            onDiffConfigChange={setDiffConfig}
+                            sortLinesConfig={sortLinesConfig}
+                            onSortLinesConfigChange={setSortLinesConfig}
+                            removeExtrasConfig={removeExtrasConfig}
+                            onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                            delimiterTransformerConfig={delimiterTransformerConfig}
+                            onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                            numberRowsConfig={numberRowsConfig}
+                            onNumberRowsConfigChange={setNumberRowsConfig}
+                            onSetGeneratedText={handleInputChange}
+                            showAnalysisTab={showAnalysisTab}
+                            onShowAnalysisTabChange={setShowAnalysisTab}
+                            showRulesTab={showRulesTab}
+                            onShowRulesTabChange={setShowRulesTab}
+                          />
+                          {selectedTool?.toolId === 'math-evaluator' && (
+                            <NumericConfig config={numericConfig} onConfigChange={setNumericConfig} floatArtifactDetected={outputResult?.diagnostics?.warnings?.some(w => w.includes('Floating-point precision artifact'))} />
+                          )}
+                        </>
                       )}
                     </div>
                   ) : null
@@ -1556,37 +1623,43 @@ export default function Home(props) {
         isOpen={descriptionSidebarOpen}
         onToggle={() => setDescriptionSidebarOpen(!descriptionSidebarOpen)}
         content={selectedTool ? (
-          <ToolConfigPanel
-            tool={selectedTool}
-            onConfigChange={handleConfigChange}
-            onCssConfigChange={setCssConfigOptions}
-            loading={toolLoading}
-            onRegenerate={handleRegenerate}
-            currentConfig={configOptions}
-            result={outputResult}
-            contentClassification={contentClassification}
-            activeToolkitSection={activeToolkitSection}
-            onToolkitSectionChange={setActiveToolkitSection}
-            markdownInputMode={selectedTool?.toolId === 'web-playground' ? 'input' : undefined}
-            cssConfigOptions={cssConfigOptions}
-            findReplaceConfig={findReplaceConfig}
-            onFindReplaceConfigChange={setFindReplaceConfig}
-            diffConfig={diffConfig}
-            onDiffConfigChange={setDiffConfig}
-            sortLinesConfig={sortLinesConfig}
-            onSortLinesConfigChange={setSortLinesConfig}
-            removeExtrasConfig={removeExtrasConfig}
-            onRemoveExtrasConfigChange={setRemoveExtrasConfig}
-            delimiterTransformerConfig={delimiterTransformerConfig}
-            onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
-            numberRowsConfig={numberRowsConfig}
-            onNumberRowsConfigChange={setNumberRowsConfig}
-            onSetGeneratedText={handleInputChange}
-            showAnalysisTab={showAnalysisTab}
-            onShowAnalysisTabChange={setShowAnalysisTab}
-            showRulesTab={showRulesTab}
-            onShowRulesTabChange={setShowRulesTab}
-          />
+          <div className={styles.configSection}>
+            {selectedTool?.toolId === 'encoder-decoder' ? (
+              <EncoderDecoderConfig config={configOptions} onConfigChange={handleConfigChange} />
+            ) : (
+              <ToolConfigPanel
+                tool={selectedTool}
+                onConfigChange={handleConfigChange}
+                onCssConfigChange={setCssConfigOptions}
+                loading={toolLoading}
+                onRegenerate={handleRegenerate}
+                currentConfig={configOptions}
+                result={outputResult}
+                contentClassification={contentClassification}
+                activeToolkitSection={activeToolkitSection}
+                onToolkitSectionChange={setActiveToolkitSection}
+                markdownInputMode={selectedTool?.toolId === 'web-playground' ? 'input' : undefined}
+                cssConfigOptions={cssConfigOptions}
+                findReplaceConfig={findReplaceConfig}
+                onFindReplaceConfigChange={setFindReplaceConfig}
+                diffConfig={diffConfig}
+                onDiffConfigChange={setDiffConfig}
+                sortLinesConfig={sortLinesConfig}
+                onSortLinesConfigChange={setSortLinesConfig}
+                removeExtrasConfig={removeExtrasConfig}
+                onRemoveExtrasConfigChange={setRemoveExtrasConfig}
+                delimiterTransformerConfig={delimiterTransformerConfig}
+                onDelimiterTransformerConfigChange={setDelimiterTransformerConfig}
+                numberRowsConfig={numberRowsConfig}
+                onNumberRowsConfigChange={setNumberRowsConfig}
+                onSetGeneratedText={handleInputChange}
+                showAnalysisTab={showAnalysisTab}
+                onShowAnalysisTabChange={setShowAnalysisTab}
+                showRulesTab={showRulesTab}
+                onShowRulesTabChange={setShowRulesTab}
+              />
+            )}
+          </div>
         ) : (
           <div style={{
             padding: '24px 16px',

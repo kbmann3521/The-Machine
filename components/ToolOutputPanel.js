@@ -6529,6 +6529,197 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
     )
   }
 
+  const renderEncoderDecoderOutput = () => {
+    if (!displayResult || typeof displayResult !== 'object') {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>No output</div>,
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult || {}, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    if (displayResult.error) {
+      return (
+        <OutputTabs
+          key={toolId}
+          tabs={[
+            {
+              id: 'output',
+              label: 'OUTPUT',
+              content: (
+                <div style={{ padding: '16px', color: 'var(--color-error, #ff6b6b)' }}>
+                  <strong>Error:</strong> {displayResult.error}
+                </div>
+              ),
+              contentType: 'component'
+            },
+            {
+              id: 'json',
+              label: 'JSON',
+              content: JSON.stringify(displayResult, null, 2),
+              contentType: 'json'
+            }
+          ]}
+          toolCategory={toolCategory}
+          toolId={toolId}
+          showCopyButton={true}
+        />
+      )
+    }
+
+    const { output, transformations = [], metadata = {} } = displayResult
+
+    const outputContent = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Primary Output */}
+        <div>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: '600',
+            color: 'var(--color-text-secondary)',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--color-border)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Result
+          </div>
+          <div className={styles.copyCard}>
+            <div className={styles.copyCardHeader}>
+              <span className={styles.copyCardLabel}>Final Output</span>
+              <button
+                type="button"
+                className="copy-action"
+                onClick={() => handleCopyField(output, 'encdec-final')}
+                title="Copy to clipboard"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  minWidth: '32px',
+                  minHeight: '28px'
+                }}
+              >
+                {copiedField === 'encdec-final' ? '✓' : <FaCopy />}
+              </button>
+            </div>
+            <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}>
+              {output}
+            </div>
+          </div>
+        </div>
+
+        {/* Transformation Steps */}
+        {transformations.length > 0 && (
+          <div>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '600',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '12px',
+              paddingBottom: '8px',
+              borderBottom: '1px solid var(--color-border)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Transformation Chain
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {transformations.map((step, idx) => (
+                <div key={idx} className={styles.copyCard}>
+                  <div className={styles.copyCardHeader}>
+                    <span className={styles.copyCardLabel}>Step {idx + 1}: {step.transformer}</span>
+                    <button
+                      type="button"
+                      className="copy-action"
+                      onClick={() => handleCopyField(step.output, `encdec-step-${idx}`)}
+                      title="Copy this step's result"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        minWidth: '32px',
+                        minHeight: '28px'
+                      }}
+                    >
+                      {copiedField === `encdec-step-${idx}` ? '✓' : <FaCopy />}
+                    </button>
+                  </div>
+                  <div className={styles.copyCardValue} style={{ wordBreak: 'break-all', maxHeight: '100px', overflowY: 'auto', fontSize: '11px', opacity: 0.9 }}>
+                    {step.output}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metadata Summary */}
+        {Object.keys(metadata).length > 0 && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(158, 158, 158, 0.1)',
+            border: '1px solid rgba(158, 158, 158, 0.2)',
+            borderRadius: '4px',
+            fontSize: '13px',
+          }}>
+            <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>Execution Summary</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '8px', color: 'var(--color-text-secondary)', fontSize: '12px' }}>
+              {Object.entries(metadata).map(([metaKey, metaValue]) => (
+                <div key={metaKey}>
+                  <strong>{metaKey}:</strong> {String(metaValue)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <OutputTabs
+        key={toolId}
+        tabs={[
+          {
+            id: 'output',
+            label: 'OUTPUT',
+            content: outputContent,
+            contentType: 'component'
+          },
+          {
+            id: 'json',
+            label: 'JSON',
+            content: JSON.stringify(displayResult, null, 2),
+            contentType: 'json'
+          }
+        ]}
+        toolCategory={toolCategory}
+        toolId={toolId}
+        showCopyButton={true}
+      />
+    )
+  }
+
   const renderBase64ConverterOutput = () => {
     if (!displayResult || typeof displayResult !== 'object') {
       return (
@@ -8051,6 +8242,8 @@ export default function ToolOutputPanel({ result, outputType, loading, error, to
         return renderUnitConverterOutput()
       case 'file-size-converter':
         return renderFileSizeConverterOutput()
+      case 'encoder-decoder':
+        return renderEncoderDecoderOutput()
       case 'ascii-unicode-converter':
         return renderAsciiUnicodeOutput()
       case 'base64-converter':

@@ -149,6 +149,22 @@ export default function ToolDescriptionContent({ tool, isStandaloneMode = false 
         </section>
       )}
 
+      {/* Examples */}
+      {description.examples && description.examples.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Examples</h2>
+          <div className={styles.sectionContent}>
+            <ul className={styles.usecasesList}>
+              {description.examples.map((example, idx) => (
+                <li key={idx} style={{ fontFamily: 'monospace', fontSize: '13px', backgroundColor: 'var(--color-background-secondary)', padding: '8px 12px', borderRadius: '4px', marginBottom: '8px', border: '1px solid var(--color-border)' }}>
+                  {example}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       {/* Final Notes */}
       {description.finalNotes && (
         <section className={styles.section}>
@@ -232,6 +248,7 @@ export default function ToolDescriptionContent({ tool, isStandaloneMode = false 
           'csv-json-converter',
           'css-formatter',
           'email-validator',
+          'encoder-decoder',
           'file-size-converter',
           'http-header-parser',
           'http-status-lookup',

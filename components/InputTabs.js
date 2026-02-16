@@ -247,7 +247,7 @@ export default function InputTabs({
                     {showUseOutputMenu && (
                       <div className={styles.useOutputMenu}>
                         {/* Show results list if available (for tools with multiple results like case converter) */}
-                        {inputTabResults && inputTabResults.length > 0 ? (
+                        {inputTabResults && inputTabResults.length > 1 ? (
                           <>
                             <div style={{ padding: '8px 12px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)', letterSpacing: '0.5px', borderBottom: '1px solid var(--color-border)' }}>
                               Replace with output
@@ -270,7 +270,7 @@ export default function InputTabs({
                           <div className={styles.useOutputMenuDisabled}>
                             This output can't be copied
                           </div>
-                        ) : !hasOutputToUse ? (
+                        ) : (!hasOutputToUse && !(inputTabResults && inputTabResults.length === 1)) ? (
                           <div className={styles.useOutputMenuDisabled}>
                             Nothing to copy to input
                           </div>
@@ -278,7 +278,11 @@ export default function InputTabs({
                           <button
                             className={styles.useOutputMenuButton}
                             onClick={() => {
-                              onUseOutput()
+                              if (inputTabResults && inputTabResults.length === 1) {
+                                inputTabResults[0].onSelect()
+                              } else if (onUseOutput) {
+                                onUseOutput()
+                              }
                               setShowUseOutputMenu(false)
                             }}
                             type="button"

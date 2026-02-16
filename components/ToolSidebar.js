@@ -43,6 +43,7 @@ const toolIcons = {
   'qr-code-generator': BsQrCode,
   'hexadecimal-converter': FaCode,
   'binary-converter': FaCode,
+  'encoder-decoder': FaCode,
 }
 
 // Map tool IDs to their category groups
@@ -55,6 +56,7 @@ const toolGroups = {
   'regex-tester': 'Text & Encoding',
   'hexadecimal-converter': 'Text & Encoding',
   'binary-converter': 'Text & Encoding',
+  'encoder-decoder': 'Text & Encoding',
   'js-formatter': 'Data Formats & Languages',
   'json-formatter': 'Data Formats & Languages',
   'web-playground': 'Data Formats & Languages',
