@@ -17,6 +17,11 @@ export default function handler(req, res) {
 
   // Add all tools
   Object.entries(TOOLS).forEach(([toolId, tool]) => {
+    // Skip tools that are hidden from recommendations
+    if (tool.show_in_recommendations === false) {
+      return
+    }
+
     xml += '  <url>\n'
     xml += `    <loc>${siteUrl}/?tool=${toolId}</loc>\n`
     xml += `    <lastmod>${today}</lastmod>\n`
@@ -37,6 +42,7 @@ export default function handler(req, res) {
     'csv-json-converter',
     'css-formatter',
     'email-validator',
+    'encoder-decoder',
     'file-size-converter',
     'http-header-parser',
     'http-status-lookup',
