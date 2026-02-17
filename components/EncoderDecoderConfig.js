@@ -13,6 +13,7 @@ const AVAILABLE_TRANSFORMERS = [
   { id: 'roman', name: 'Roman Numerals' },
   { id: 'ascii', name: 'ASCII/Unicode' },
   { id: 'caesar', name: 'Caesar Cipher' },
+  { id: 'affine', name: 'Affine Cipher' },
   { id: 'morse', name: 'Morse Code' },
 ]
 
@@ -364,7 +365,52 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
             id: 'alphabet',
             name: 'Alphabet',
             type: 'text',
-            default: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+            default: 'abcdefghijklmnopqrstuvwxyz',
+          },
+          {
+            id: 'strategy',
+            name: 'Case Strategy',
+            type: 'select',
+            default: 'preserve',
+            options: [
+              { value: 'preserve', label: 'Preserve' },
+              { value: 'ignore', label: 'Ignore' },
+              { value: 'strict', label: 'Strict (No Shift)' },
+            ]
+          },
+          {
+            id: 'foreignChars',
+            name: 'Foreign Characters',
+            type: 'select',
+            default: 'include',
+            options: [
+              { value: 'include', label: 'Include' },
+              { value: 'ignore', label: 'Ignore' },
+            ]
+          }
+        ],
+      },
+      affine: {
+        options: [
+          {
+            id: 'a',
+            name: 'Key A (Multiplicative)',
+            type: 'number',
+            default: 5,
+            min: 1,
+          },
+          {
+            id: 'b',
+            name: 'Key B (Additive)',
+            type: 'number',
+            default: 8,
+            min: 0,
+          },
+          {
+            id: 'alphabet',
+            name: 'Alphabet',
+            type: 'text',
+            default: 'abcdefghijklmnopqrstuvwxyz',
           },
           {
             id: 'strategy',
@@ -540,69 +586,74 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
 
       {/* Transformers Section */}
       <div className={styles.field}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative' }}
+          ref={menuRef}
+        >
           <label className={styles.fieldLabel}>TRANSFORMERS</label>
-          <div style={{ position: 'relative' }} ref={menuRef}>
-            <button
-              onClick={() => setShowTransformerMenu(!showTransformerMenu)}
-              style={{
-                padding: '4px 10px',
-                fontSize: '11px',
-                fontWeight: '600',
-                height: 'auto',
-                color: '#ffffff',
-                backgroundColor: '#0066cc',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'none',
-                outline: 'none',
-              }}
-              disabled={availableTransformers.length === 0}
-            >
-              + Add
-            </button>
+          <button
+            onClick={() => setShowTransformerMenu(!showTransformerMenu)}
+            style={{
+              padding: '4px 10px',
+              fontSize: '11px',
+              fontWeight: '600',
+              height: 'auto',
+              color: '#ffffff',
+              backgroundColor: '#0066cc',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'none',
+              outline: 'none',
+            }}
+            disabled={availableTransformers.length === 0}
+          >
+            + Add
+          </button>
 
-            {/* Transformer Menu Dropdown */}
-            {showTransformerMenu && availableTransformers.length > 0 && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                backgroundColor: 'var(--color-background-secondary)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '4px',
-                minWidth: '160px',
-                marginTop: '4px',
-                zIndex: 1000,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              }}>
-                {availableTransformers.map(transformer => (
-                  <button
-                    key={transformer.id}
-                    onClick={() => handleAddTransformer(transformer)}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      color: 'var(--color-text-primary)',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      borderBottom: '1px solid var(--color-border)',
-                      transition: 'background-color 0.2s',
-                    }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                  >
-                    {transformer.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Transformer Menu Dropdown */}
+          {showTransformerMenu && availableTransformers.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              backgroundColor: 'var(--color-background-secondary)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              marginTop: '4px',
+              zIndex: 1000,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              overflow: 'hidden',
+            }}>
+              {availableTransformers.map(transformer => (
+                <button
+                  key={transformer.id}
+                  onClick={() => handleAddTransformer(transformer)}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-text-primary)',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    transition: 'background-color 0.2s',
+                    borderBottom: '1px solid var(--color-border)',
+                    borderRight: '1px solid var(--color-border)',
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                >
+                  {transformer.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Transformers List */}
@@ -633,7 +684,16 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
                     className={`${styles.transformerItem} ${draggedIndex === index ? styles.dragging : ''} ${dragOverIndex === index && draggedIndex !== index ? styles.dragOver : ''}`}
                   >
                     {/* Transformer Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: module.options.length > 0 ? '8px' : '0' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: module.options.length > 0 ? '8px' : '0',
+                        position: 'relative'
+                      }}
+                      ref={swappingIndex === index ? swapMenuRef : null}
+                    >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div
                           className={styles.dragHandle}
@@ -648,81 +708,27 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
                         >
                           <MdDragIndicator size={16} />
                         </div>
-                        <div
+                        <span
+                          onClick={() => setSwappingIndex(swappingIndex === index ? null : index)}
                           style={{
-                            position: 'relative',
-                            display: 'flex',
-                            alignItems: 'center'
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            color: 'var(--color-text-primary)',
+                            cursor: 'pointer',
+                            padding: '2px 4px',
+                            borderRadius: '3px',
+                            backgroundColor: swappingIndex === index ? 'var(--color-background-secondary)' : 'transparent',
+                            transition: 'none'
                           }}
-                          ref={swappingIndex === index ? swapMenuRef : null}
+                          onMouseEnter={(e) => {
+                            if (swappingIndex !== index) e.target.style.backgroundColor = 'var(--color-background-secondary)'
+                          }}
+                          onMouseLeave={(e) => {
+                            if (swappingIndex !== index) e.target.style.backgroundColor = 'transparent'
+                          }}
                         >
-                          <span
-                            onClick={() => setSwappingIndex(swappingIndex === index ? null : index)}
-                            style={{
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              color: 'var(--color-text-primary)',
-                              cursor: 'pointer',
-                              padding: '2px 4px',
-                              borderRadius: '3px',
-                              backgroundColor: swappingIndex === index ? 'var(--color-background-secondary)' : 'transparent',
-                              transition: 'none'
-                            }}
-                            onMouseEnter={(e) => {
-                              if (swappingIndex !== index) e.target.style.backgroundColor = 'var(--color-background-secondary)'
-                            }}
-                            onMouseLeave={(e) => {
-                              if (swappingIndex !== index) e.target.style.backgroundColor = 'transparent'
-                            }}
-                          >
-                            {index + 1}. {transformer.name}
-                          </span>
-
-                          {/* Swap Menu Dropdown */}
-                          {swappingIndex === index && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '100%',
-                              left: 0,
-                              backgroundColor: 'var(--color-background-secondary)',
-                              border: '1px solid var(--color-border)',
-                              borderRadius: '4px',
-                              minWidth: '160px',
-                              marginTop: '4px',
-                              zIndex: 1001,
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                            }}>
-                              {AVAILABLE_TRANSFORMERS.filter(opt => opt.id === transformer.id || !usedTransformerIds.includes(opt.id)).map(opt => (
-                                <button
-                                  key={opt.id}
-                                  onClick={() => handleSwapTransformer(index, opt)}
-                                  style={{
-                                    display: 'block',
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    border: 'none',
-                                    backgroundColor: transformer.id === opt.id ? 'var(--color-background-tertiary)' : 'transparent',
-                                    color: transformer.id === opt.id ? '#0066cc' : 'var(--color-text-primary)',
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                    fontSize: '12px',
-                                    fontWeight: transformer.id === opt.id ? '600' : '400',
-                                    borderBottom: '1px solid var(--color-border)',
-                                    transition: 'none',
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    if (transformer.id !== opt.id) e.target.style.backgroundColor = 'var(--color-background-tertiary)'
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    if (transformer.id !== opt.id) e.target.style.backgroundColor = 'transparent'
-                                  }}
-                                >
-                                  {opt.name}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                          {index + 1}. {transformer.name}
+                        </span>
                       </div>
                       <button
                         onClick={() => handleRemoveTransformer(index)}
@@ -740,6 +746,55 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
                       >
                         Remove
                       </button>
+
+                      {/* Swap Menu Dropdown */}
+                      {swappingIndex === index && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          backgroundColor: 'var(--color-background-secondary)',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '4px',
+                          marginTop: '4px',
+                          zIndex: 1001,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          overflow: 'hidden',
+                        }}>
+                          {AVAILABLE_TRANSFORMERS.filter(opt => opt.id === transformer.id || !usedTransformerIds.includes(opt.id)).map(opt => (
+                            <button
+                              key={opt.id}
+                              onClick={() => handleSwapTransformer(index, opt)}
+                              style={{
+                                display: 'block',
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: 'none',
+                                backgroundColor: transformer.id === opt.id ? 'var(--color-background-tertiary)' : 'transparent',
+                                color: transformer.id === opt.id ? '#0066cc' : 'var(--color-text-primary)',
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: transformer.id === opt.id ? '600' : '400',
+                                borderBottom: '1px solid var(--color-border)',
+                                borderRight: '1px solid var(--color-border)',
+                                transition: 'none',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (transformer.id !== opt.id) e.target.style.backgroundColor = 'var(--color-background-tertiary)'
+                              }}
+                              onMouseLeave={(e) => {
+                                if (transformer.id !== opt.id) e.target.style.backgroundColor = 'transparent'
+                              }}
+                            >
+                              {opt.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Transformer Options */}
@@ -924,71 +979,75 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
                   </div>
 
                   {/* Inline Add Button after each transformer */}
-                  <div style={{ display: 'flex', justifyContent: 'center', margin: '-4px 0' }}>
-                    <div style={{ position: 'relative' }} ref={inlineAddIndex === index ? inlineAddRef : null}>
-                      <button
-                        onClick={() => setInlineAddIndex(inlineAddIndex === index ? null : index)}
-                        style={{
-                          padding: '2px 8px',
-                          fontSize: '10px',
-                          fontWeight: '600',
-                          color: '#ffffff',
-                          backgroundColor: '#0066cc',
-                          border: 'none',
-                          borderRadius: '3px',
-                          cursor: 'pointer',
-                          transition: 'none',
-                          outline: 'none',
-                          opacity: 0.8
-                        }}
-                        onMouseEnter={(e) => e.target.style.opacity = '1'}
-                        onMouseLeave={(e) => e.target.style.opacity = '0.8'}
-                        disabled={availableTransformers.length === 0}
-                      >
-                        + Add
-                      </button>
+                  <div
+                    style={{ display: 'flex', justifyContent: 'center', margin: '-4px 0', position: 'relative' }}
+                    ref={inlineAddIndex === index ? inlineAddRef : null}
+                  >
+                    <button
+                      onClick={() => setInlineAddIndex(inlineAddIndex === index ? null : index)}
+                      style={{
+                        padding: '2px 8px',
+                        fontSize: '10px',
+                        fontWeight: '600',
+                        color: '#ffffff',
+                        backgroundColor: '#0066cc',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        transition: 'none',
+                        outline: 'none',
+                        opacity: 0.8
+                      }}
+                      onMouseEnter={(e) => e.target.style.opacity = '1'}
+                      onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+                      disabled={availableTransformers.length === 0}
+                    >
+                      + Add
+                    </button>
 
-                      {/* Inline Add Menu Dropdown */}
-                      {inlineAddIndex === index && availableTransformers.length > 0 && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          backgroundColor: 'var(--color-background-secondary)',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '4px',
-                          minWidth: '160px',
-                          marginTop: '4px',
-                          zIndex: 1002,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                        }}>
-                          {availableTransformers.map(opt => (
-                            <button
-                              key={opt.id}
-                              onClick={() => handleAddTransformer(opt, index + 1)}
-                              style={{
-                                display: 'block',
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                color: 'var(--color-text-primary)',
-                                textAlign: 'left',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                borderBottom: '1px solid var(--color-border)',
-                                transition: 'none',
-                              }}
-                              onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
-                              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                            >
-                              {opt.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {/* Inline Add Menu Dropdown */}
+                    {inlineAddIndex === index && availableTransformers.length > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        backgroundColor: 'var(--color-background-secondary)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '4px',
+                        marginTop: '4px',
+                        zIndex: 1002,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        overflow: 'hidden',
+                      }}>
+                        {availableTransformers.map(opt => (
+                          <button
+                            key={opt.id}
+                            onClick={() => handleAddTransformer(opt, index + 1)}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              padding: '10px 12px',
+                              border: 'none',
+                              backgroundColor: 'transparent',
+                              color: 'var(--color-text-primary)',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              borderBottom: '1px solid var(--color-border)',
+                              borderRight: '1px solid var(--color-border)',
+                              transition: 'none',
+                            }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--color-background-tertiary)'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                          >
+                            {opt.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </React.Fragment>
               )
