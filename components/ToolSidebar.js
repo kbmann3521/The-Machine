@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator, FaChevronLeft } from 'react-icons/fa6'
+import { FaFont, FaImage, FaHashtag, FaCode, FaClock, FaFileExcel, FaMarkdown, FaFileCode, FaGlobe, FaTicket, FaPalette, FaQuoteLeft, FaLock, FaTerminal, FaQuestion, FaNetworkWired, FaRuler, FaEnvelope, FaToggleOn, FaCalculator, FaChevronLeft, FaBarcode } from 'react-icons/fa6'
 import { BsRegex, BsQrCode } from 'react-icons/bs'
 import { ImCalculator } from 'react-icons/im'
 import styles from '../styles/tool-sidebar.module.css'
@@ -41,6 +41,7 @@ const toolIcons = {
   'email-validator': FaEnvelope,
   'ip-address-toolkit': FaNetworkWired,
   'qr-code-generator': BsQrCode,
+  'barcode-generator': FaBarcode,
   'hexadecimal-converter': FaCode,
   'binary-converter': FaCode,
   'encoder-decoder': FaCode,
@@ -83,6 +84,7 @@ const toolGroups = {
   'image-toolkit': 'Media & Visual',
   'svg-optimizer': 'Media & Visual',
   'qr-code-generator': 'Media & Visual',
+  'barcode-generator': 'Media & Visual',
   'color-converter': 'Media & Visual',
 }
 

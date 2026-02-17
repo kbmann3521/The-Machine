@@ -14,6 +14,7 @@ import JSEditorInput from '../components/JSEditorInput'
 import IPToolkitOutputPanel from '../components/IPToolkitOutputPanel'
 import EmailValidatorOutputPanel from '../components/EmailValidatorOutputPanel'
 import QRCodeGeneratorOutputPanel from '../components/QRCodeGeneratorOutputPanel'
+import BarcodeGeneratorOutputPanel from '../components/BarcodeGeneratorOutputPanel'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
 import ToolDescriptionSidebar from '../components/ToolDescriptionSidebar'
@@ -1569,6 +1570,13 @@ export default function Home(props) {
                     result={outputResult}
                     configOptions={configOptions}
                     onConfigChange={handleConfigChange}
+                  />
+                ) : selectedTool?.toolId === 'barcode-generator' ? (
+                  <BarcodeGeneratorOutputPanel
+                    key={selectedTool?.toolId}
+                    result={outputResult}
+                    loading={toolLoading}
+                    error={error}
                   />
                 ) : selectedTool?.toolId === 'qr-code-generator' ? (
                   <QRCodeGeneratorOutputPanel
