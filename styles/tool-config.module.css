@@ -709,3 +709,46 @@
 .radioLabel span {
   flex: 1;
 }
+
+/* Drag and Drop Styling */
+.transformerItem {
+  padding: 10px;
+  background-color: var(--color-background-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  cursor: default;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+}
+
+.transformerItem.dragging {
+  opacity: 0.4;
+  border-style: dashed;
+  border-color: #0066cc;
+}
+
+.transformerItem.dragOver {
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.dragHandle {
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-secondary);
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  padding: 4px;
+  margin: -4px;
+}
+
+.dragHandle:hover {
+  opacity: 1;
+  color: #0066cc;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}

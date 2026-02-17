@@ -4,11 +4,16 @@ import styles from '../styles/tool-config.module.css'
 
 const AVAILABLE_TRANSFORMERS = [
   { id: 'base64', name: 'Base64' },
+  { id: 'base32', name: 'Base32' },
   { id: 'url', name: 'URL Encoding' },
   { id: 'hex', name: 'Hexadecimal' },
   { id: 'binary', name: 'Binary' },
+  { id: 'octal', name: 'Octal (8)' },
+  { id: 'decimal', name: 'Decimal (10)' },
+  { id: 'roman', name: 'Roman Numerals' },
   { id: 'ascii', name: 'ASCII/Unicode' },
   { id: 'caesar', name: 'Caesar Cipher' },
+  { id: 'morse', name: 'Morse Code' },
 ]
 
 export default function EncoderDecoderConfig({ config, onConfigChange }) {
@@ -16,6 +21,8 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
   const [swappingIndex, setSwappingIndex] = useState(null)
   const [inlineAddIndex, setInlineAddIndex] = useState(null)
   const [draggedIndex, setDraggedIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+  const [localTransformers, setLocalTransformers] = useState(null)
   const [duplicateError, setDuplicateError] = useState(null)
   const menuRef = useRef(null)
   const swapMenuRef = useRef(null)
@@ -29,12 +36,17 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
         { id: 'base64', name: 'Base64' },
       ],
       transformerConfigs: config?.transformerConfigs || {
-        base64: { variant: 'standard' },
+        base64: { rfc_variant: 'standard', format: 'standard' },
       },
       finalOutputFormat: config?.finalOutputFormat || 'text',
       finalOutputConfig: config?.finalOutputConfig || {},
     }
   }, [config])
+
+  // Use local transformers for immediate drag feedback, otherwise use normalized config
+  const currentTransformers = useMemo(() => {
+    return localTransformers || normalizedConfig.transformers
+  }, [localTransformers, normalizedConfig.transformers])
 
   // Handle click away to close menu
   useEffect(() => {
@@ -170,31 +182,56 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
 
   const handleDragStart = (e, index) => {
     setDraggedIndex(index)
+    setLocalTransformers([...normalizedConfig.transformers])
     e.dataTransfer.effectAllowed = 'move'
+
     // Set a transparent ghost image to avoid the default one
     const img = new Image()
     img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
     e.dataTransfer.setDragImage(img, 0, 0)
+
+    // Add dragging class after a small timeout so it doesn't affect the drag image
+    const target = e.currentTarget
+    setTimeout(() => {
+      target.classList.add(styles.dragging)
+    }, 0)
   }
 
   const handleDragOver = (e, index) => {
     e.preventDefault()
     if (draggedIndex === null || draggedIndex === index) return
 
-    const newTransformers = [...normalizedConfig.transformers]
+    // Midpoint logic to prevent jitter with variable item heights
+    const rect = e.currentTarget.getBoundingClientRect()
+    const verticalMidpoint = (rect.top + rect.bottom) / 2
+
+    // If dragging down, only swap if mouse is below midpoint
+    if (draggedIndex < index && e.clientY < verticalMidpoint) return
+    // If dragging up, only swap if mouse is above midpoint
+    if (draggedIndex > index && e.clientY > verticalMidpoint) return
+
+    const newTransformers = [...localTransformers]
     const draggedItem = newTransformers[draggedIndex]
     newTransformers.splice(draggedIndex, 1)
     newTransformers.splice(index, 0, draggedItem)
 
     setDraggedIndex(index)
-    onConfigChange({
-      ...normalizedConfig,
-      transformers: newTransformers,
-    })
+    setDragOverIndex(index)
+    setLocalTransformers(newTransformers)
   }
 
   const handleDragEnd = () => {
+    // Only call onConfigChange once when the drag is complete
+    if (localTransformers) {
+      onConfigChange({
+        ...normalizedConfig,
+        transformers: localTransformers,
+      })
+    }
+
     setDraggedIndex(null)
+    setDragOverIndex(null)
+    setLocalTransformers(null)
   }
 
   const getTransformerModule = (transformerId) => {
@@ -202,20 +239,58 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
       base64: {
         options: [
           {
-            id: 'variant',
+            id: 'rfc_variant',
+            name: 'Variants',
+            type: 'select',
+            default: 'standard',
+            options: [
+              { value: 'standard', label: 'Base64 (RFC 3548, RFC 4648)' },
+              { value: 'url', label: 'Base64url (RFC 4648 §5)' },
+              { value: 'mime', label: 'Transfer encoding for MIME (RFC 2045)' },
+              { value: 'original', label: 'Original Base64 (RFC 1421)' }
+            ]
+          },
+          {
+            id: 'format',
             name: 'Format Variant',
             type: 'select',
             default: 'standard',
             options: [
-              { value: 'standard', label: 'Standard Base64' },
-              { value: 'url-safe', label: 'URL-Safe Base64' },
-              { value: 'no-padding', label: 'No Padding' },
-              { value: 'url-safe-no-padding', label: 'URL-Safe No Padding' },
-              { value: 'line-wrapped', label: 'Line Wrapped (76 chars)' },
-              { value: 'url-safe-wrapped', label: 'URL-Safe Wrapped' },
-              { value: 'wrapped-no-padding', label: 'Wrapped No Padding' }
+              { value: 'standard', label: 'Standard' },
+              { value: 'no-padding', label: 'Standard (No padding)' },
+              { value: 'url-safe-no-padding', label: 'URL-Safe (No padding)' },
+              { value: 'url-safe', label: 'URL-Safe (Padded)' },
+              { value: 'line-wrapped', label: 'Line Wrapped (MIME)' }
             ]
           },
+        ],
+      },
+      base32: {
+        options: [
+          {
+            id: 'variant',
+            name: 'Variant',
+            type: 'select',
+            default: 'rfc4648',
+            options: [
+              { value: 'rfc4648', label: 'RFC 4648 (Standard)' },
+              { value: 'base32hex', label: 'Base32Hex' },
+              { value: 'crockford', label: 'Crockford' },
+              { value: 'z-base-32', label: 'z-base-32' },
+            ]
+          },
+          {
+            id: 'format',
+            name: 'Format Variant',
+            type: 'select',
+            default: 'standard',
+            options: [
+              { value: 'standard', label: 'Standard' },
+              { value: 'no-padding', label: 'URL Safe (No padding)' },
+              { value: 'line-wrapped', label: 'Line Wrapped (76 chars)' },
+              { value: 'url-safe-wrapped', label: 'URL Safe Wrapped' }
+            ]
+          }
         ],
       },
       url: {
@@ -311,6 +386,73 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
               { value: 'include', label: 'Include' },
               { value: 'ignore', label: 'Ignore' },
             ]
+          }
+        ],
+      },
+      octal: {
+        options: [
+          {
+            id: 'separator',
+            name: 'Separator',
+            type: 'select',
+            default: ' ',
+            options: [
+              { value: ' ', label: 'Space' },
+              { value: ', ', label: 'Comma' },
+              { value: '', label: 'None' },
+            ]
+          }
+        ],
+      },
+      decimal: {
+        options: [
+          {
+            id: 'separator',
+            name: 'Separator',
+            type: 'select',
+            default: ' ',
+            options: [
+              { value: ' ', label: 'Space' },
+              { value: ', ', label: 'Comma' },
+              { value: '', label: 'None' },
+            ]
+          }
+        ],
+      },
+      roman: {
+        options: [
+          {
+            id: 'separator',
+            name: 'Separator',
+            type: 'select',
+            default: ' ',
+            options: [
+              { value: ' ', label: 'Space' },
+              { value: ', ', label: 'Comma' },
+              { value: '', label: 'None' },
+            ]
+          }
+        ],
+      },
+      morse: {
+        options: [
+          {
+            id: 'short',
+            name: 'SHORT',
+            type: 'text',
+            default: '.',
+          },
+          {
+            id: 'long',
+            name: 'LONG',
+            type: 'text',
+            default: '-',
+          },
+          {
+            id: 'space',
+            name: 'SPACE',
+            type: 'text',
+            default: '/',
           }
         ],
       },
@@ -464,7 +606,7 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
         </div>
 
         {/* Transformers List */}
-        {normalizedConfig.transformers.length === 0 ? (
+        {currentTransformers.length === 0 ? (
           <div style={{
             padding: '12px',
             backgroundColor: 'rgba(255, 152, 0, 0.1)',
@@ -477,7 +619,7 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {normalizedConfig.transformers.map((transformer, index) => {
+            {currentTransformers.map((transformer, index) => {
               const module = getTransformerModule(transformer.id)
               const transformerConfig = normalizedConfig.transformerConfigs[transformer.id] || {}
 
@@ -488,30 +630,21 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragEnd={handleDragEnd}
-                    style={{
-                      padding: '10px',
-                      backgroundColor: draggedIndex === index ? 'var(--color-background-secondary)' : 'var(--color-background-tertiary)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '5px',
-                      opacity: draggedIndex === index ? 0.5 : 1,
-                      cursor: 'default',
-                      position: 'relative',
-                      transition: 'none', // Ensure no transition during drag
-                    }}
+                    className={`${styles.transformerItem} ${draggedIndex === index ? styles.dragging : ''} ${dragOverIndex === index && draggedIndex !== index ? styles.dragOver : ''}`}
                   >
                     {/* Transformer Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: module.options.length > 0 ? '8px' : '0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div
-                          style={{
-                            cursor: 'grab',
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: 'var(--color-text-secondary)',
-                            opacity: 0.6
+                          className={styles.dragHandle}
+                          onMouseDown={(e) => {
+                            const parent = e.currentTarget.closest('[draggable]')
+                            if (parent) parent.setAttribute('draggable', 'true')
                           }}
-                          onMouseDown={(e) => e.currentTarget.parentElement.parentElement.parentElement.setAttribute('draggable', 'true')}
-                          onMouseUp={(e) => e.currentTarget.parentElement.parentElement.parentElement.setAttribute('draggable', 'false')}
+                          onMouseUp={(e) => {
+                            const parent = e.currentTarget.closest('[draggable]')
+                            if (parent) parent.setAttribute('draggable', 'false')
+                          }}
                         >
                           <MdDragIndicator size={16} />
                         </div>
@@ -612,108 +745,180 @@ export default function EncoderDecoderConfig({ config, onConfigChange }) {
                     {/* Transformer Options */}
                     {module.options.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {module.options.map(option => (
-                          <div key={option.id} className={styles.field}>
-                            {option.type === 'toggle' && (
-                              <div className={styles.toggleContainer} style={{ height: '28px', padding: '4px 8px' }}>
-                                <label className={styles.toggleLabel}>
-                                  <input
-                                    type="checkbox"
-                                    className={styles.toggleInput}
-                                    checked={transformerConfig[option.id] ?? option.default}
-                                    onChange={(e) => handleTransformerConfigChange(transformer.id, option.id, e.target.checked)}
-                                  />
-                                  <span className={styles.toggleSlider} style={{ width: '28px', height: '14px' }}></span>
-                                  <span style={{ fontSize: '11px' }}>{option.name}</span>
-                                </label>
+                        {/* Group options by row if applicable */}
+                        {(() => {
+                          const rows = {}
+                          const nonGrouped = []
+                          module.options.forEach(opt => {
+                            if (opt.row) {
+                              if (!rows[opt.row]) rows[opt.row] = []
+                              rows[opt.row].push(opt)
+                            } else {
+                              nonGrouped.push(opt)
+                            }
+                          })
+
+                          const renderOption = (option) => {
+                            if (option.condition && !option.condition(transformerConfig)) return null
+
+                            return (
+                              <div key={option.id} className={styles.field} style={{ flex: option.row !== undefined ? 1 : 'none' }}>
+                                {option.type === 'toggle' && (
+                                  <div className={styles.toggleContainer} style={{ height: '28px', padding: '4px 8px' }}>
+                                    <label className={styles.toggleLabel}>
+                                      <input
+                                        type="checkbox"
+                                        className={styles.toggleInput}
+                                        checked={transformerConfig[option.id] ?? option.default}
+                                        onChange={(e) => handleTransformerConfigChange(transformer.id, option.id, e.target.checked)}
+                                      />
+                                      <span className={styles.toggleSlider} style={{ width: '28px', height: '14px' }}></span>
+                                      <span style={{ fontSize: '11px' }}>{option.name}</span>
+                                    </label>
+                                  </div>
+                                )}
+
+                                {option.type === 'select' && (
+                                  <div className={styles.field}>
+                                    <label className={styles.fieldLabel} style={{ fontSize: '10px' }}>{option.name}</label>
+                                    <select
+                                      className={styles.select}
+                                      style={{ height: '28px', fontSize: '11px', padding: '2px 8px' }}
+                                      value={transformerConfig[option.id] ?? option.default}
+                                      onChange={(e) => handleTransformerConfigChange(transformer.id, option.id, e.target.value)}
+                                    >
+                                      {(typeof option.options === 'function' ? option.options(transformerConfig) : option.options).map(opt => {
+                                        const val = typeof opt === 'object' ? opt.value : opt
+                                        const label = typeof opt === 'object' ? opt.label : opt
+                                        return <option key={val} value={val}>{label}</option>
+                                      })}
+                                    </select>
+                                  </div>
+                                )}
+
+                                {option.type === 'number' && (
+                                  <div className={styles.field}>
+                                    <label className={styles.fieldLabel} style={{ fontSize: '10px' }}>{option.name}</label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <button
+                                        onClick={() => handleTransformerConfigChange(transformer.id, option.id, Math.max(option.min || 0, (transformerConfig[option.id] ?? option.default) - 1))}
+                                        style={{
+                                          width: '20px',
+                                          height: '28px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          border: '1px solid var(--color-border)',
+                                          borderRadius: '4px',
+                                          backgroundColor: 'var(--color-background-secondary)',
+                                          color: 'var(--color-text-primary)',
+                                          cursor: 'pointer',
+                                          fontSize: '14px'
+                                        }}
+                                      >
+                                        -
+                                      </button>
+                                      <div style={{
+                                        flex: 1,
+                                        height: '28px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: 'var(--color-background-secondary)',
+                                        border: '1px solid var(--color-border)',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: '600'
+                                      }}>
+                                        {(transformerConfig[option.id] ?? option.default)} {String.fromCharCode(64 + (transformerConfig[option.id] ?? option.default))}
+                                      </div>
+                                      <button
+                                        onClick={() => handleTransformerConfigChange(transformer.id, option.id, Math.min(option.max || 999, (transformerConfig[option.id] ?? option.default) + 1))}
+                                        style={{
+                                          width: '20px',
+                                          height: '28px',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          border: '1px solid var(--color-border)',
+                                          borderRadius: '4px',
+                                          backgroundColor: 'var(--color-background-secondary)',
+                                          color: 'var(--color-text-primary)',
+                                          cursor: 'pointer',
+                                          fontSize: '14px'
+                                        }}
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {option.type === 'text' && (
+                                  <div className={styles.field} style={{ position: 'relative' }}>
+                                    <label className={styles.fieldLabel} style={{ fontSize: '10px' }}>{option.name}</label>
+                                    <input
+                                      type="text"
+                                      className={styles.input}
+                                      style={{
+                                        height: '28px',
+                                        fontSize: '11px',
+                                        padding: '2px 8px',
+                                        border: duplicateError?.transformerId === transformer.id && duplicateError?.optionId === option.id
+                                          ? '1px solid #ff4d4f'
+                                          : '1px solid var(--color-border)'
+                                      }}
+                                      value={transformerConfig[option.id] ?? option.default}
+                                      onChange={(e) => {
+                                        handleTransformerConfigChange(transformer.id, option.id, e.target.value)
+                                      }}
+                                    />
+                                    {duplicateError?.transformerId === transformer.id && duplicateError?.optionId === option.id && (
+                                      <div style={{
+                                        position: 'absolute',
+                                        bottom: '100%',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        backgroundColor: '#ff4d4f',
+                                        color: 'white',
+                                        padding: '4px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '10px',
+                                        whiteSpace: 'nowrap',
+                                        marginBottom: '5px',
+                                        zIndex: 10,
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                        pointerEvents: 'none'
+                                      }}>
+                                        Alphabet cannot contain duplicate characters
+                                        <div style={{
+                                          position: 'absolute',
+                                          top: '100%',
+                                          left: '50%',
+                                          marginLeft: '-4px',
+                                          borderWidth: '4px',
+                                          borderStyle: 'solid',
+                                          borderColor: '#ff4d4f transparent transparent transparent'
+                                        }} />
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            )
+                          }
 
-                            {option.type === 'select' && (
-                            <div className={styles.field}>
-                              <label className={styles.fieldLabel} style={{ fontSize: '10px' }}>{option.name}</label>
-                              <select
-                                className={styles.select}
-                                style={{ height: '28px', fontSize: '11px', padding: '2px 8px' }}
-                                value={transformerConfig[option.id] ?? option.default}
-                                onChange={(e) => handleTransformerConfigChange(transformer.id, option.id, e.target.value)}
-                              >
-                                {option.options.map(opt => {
-                                  const val = typeof opt === 'object' ? opt.value : opt
-                                  const label = typeof opt === 'object' ? opt.label : opt
-                                  return <option key={val} value={val}>{label}</option>
-                                })}
-                              </select>
-                            </div>
-                          )}
-
-                          {option.type === 'number' && (
-                            <div className={styles.field}>
-                              <label className={styles.fieldLabel} style={{ fontSize: '10px' }}>{option.name}</label>
-                              <input
-                                type="number"
-                                className={styles.input}
-                                style={{ height: '28px', fontSize: '11px', padding: '2px 8px' }}
-                                value={transformerConfig[option.id] ?? option.default}
-                                min={option.min}
-                                max={option.max}
-                                onChange={(e) => handleTransformerConfigChange(transformer.id, option.id, e.target.value)}
-                              />
-                            </div>
-                          )}
-
-                          {option.type === 'text' && (
-                            <div className={styles.field} style={{ position: 'relative' }}>
-                              <label className={styles.fieldLabel} style={{ fontSize: '10px' }}>{option.name}</label>
-                              <input
-                                type="text"
-                                className={styles.input}
-                                style={{
-                                  height: '28px',
-                                  fontSize: '11px',
-                                  padding: '2px 8px',
-                                  border: duplicateError?.transformerId === transformer.id && duplicateError?.optionId === option.id
-                                    ? '1px solid #ff4d4f'
-                                    : '1px solid var(--color-border)'
-                                }}
-                                value={transformerConfig[option.id] ?? option.default}
-                                onChange={(e) => {
-                                  handleTransformerConfigChange(transformer.id, option.id, e.target.value)
-                                }}
-                              />
-                              {duplicateError?.transformerId === transformer.id && duplicateError?.optionId === option.id && (
-                                <div style={{
-                                  position: 'absolute',
-                                  bottom: '100%',
-                                  left: '50%',
-                                  transform: 'translateX(-50%)',
-                                  backgroundColor: '#ff4d4f',
-                                  color: 'white',
-                                  padding: '4px 8px',
-                                  borderRadius: '4px',
-                                  fontSize: '10px',
-                                  whiteSpace: 'nowrap',
-                                  marginBottom: '5px',
-                                  zIndex: 10,
-                                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                  pointerEvents: 'none'
-                                }}>
-                                  Alphabet cannot contain duplicate characters
-                                  <div style={{
-                                    position: 'absolute',
-                                    top: '100%',
-                                    left: '50%',
-                                    marginLeft: '-4px',
-                                    borderWidth: '4px',
-                                    borderStyle: 'solid',
-                                    borderColor: '#ff4d4f transparent transparent transparent'
-                                  }} />
+                          return (
+                            <>
+                              {nonGrouped.map(opt => renderOption(opt))}
+                              {Object.keys(rows).map(rowId => (
+                                <div key={rowId} style={{ display: 'flex', gap: '8px' }}>
+                                  {rows[rowId].map(opt => renderOption(opt))}
                                 </div>
-                              )}
-                            </div>
-                          )}
-                          </div>
-                        ))}
+                              ))}
+                            </>
+                          )
+                        })()}
                       </div>
                     )}
                   </div>
