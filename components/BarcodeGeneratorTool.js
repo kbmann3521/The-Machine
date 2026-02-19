@@ -1,4 +1,6 @@
 import { useCallback, useState, useRef, useEffect } from 'react'
+import * as XLSX from 'xlsx'
+import Papa from 'papaparse'
 import InputTabs from './InputTabs'
 import BarcodeGeneratorOutputPanel from './BarcodeGeneratorOutputPanel'
 import UniversalInput from './UniversalInput'
@@ -37,6 +39,8 @@ export default function BarcodeGeneratorTool() {
   }
 
   const [inputText, setInputText] = useState('')
+  const [inputImage, setInputImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
   const [outputResult, setOutputResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -48,7 +52,11 @@ export default function BarcodeGeneratorTool() {
     width: 2,
     height: 50,
     includeText: true,
+    ignoreLeadingZeros: true,
+    barcodeColumn: '',
   })
+
+  const [spreadsheetData, setSpreadsheetData] = useState(null)
 
   const debounceTimerRef = useRef(null)
   const abortControllerRef = useRef(null)
@@ -83,21 +91,33 @@ export default function BarcodeGeneratorTool() {
   }, [handleDividerMouseMove, handleDividerMouseUp])
 
   useEffect(() => {
-    if (inputText?.trim()) {
+    const isSpreadsheetFile = (inputImage !== null && (inputImage.name?.endsWith('.csv') || inputImage.name?.endsWith('.xlsx') || inputImage.name?.endsWith('.xls')))
+
+    // If it's a spreadsheet but we haven't parsed it yet, wait for spreadsheetData
+    if (isSpreadsheetFile && !spreadsheetData) {
+      return
+    }
+
+    if (inputText?.trim() || spreadsheetData || imagePreview || isSpreadsheetFile) {
       const timer = setTimeout(() => {
         executeTool(inputText)
       }, 0)
       return () => clearTimeout(timer)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configOptions])
+  }, [configOptions, spreadsheetData, imagePreview, inputImage])
 
-  const handleInputChange = useCallback((text) => {
+  const handleInputChange = useCallback((text, file, preview) => {
     const isEmpty = !text || text.trim() === ''
     setInputText(text)
+    if (file !== undefined) setInputImage(file)
+    if (preview !== undefined) setImagePreview(preview)
     previousInputLengthRef.current = text.length
 
-    if (isEmpty) {
+    const isSpreadsheet = (file && (file.name?.endsWith('.csv') || file.name?.endsWith('.xlsx') || file.name?.endsWith('.xls'))) ||
+                         (inputImage && (inputImage.name?.endsWith('.csv') || inputImage.name?.endsWith('.xlsx') || inputImage.name?.endsWith('.xls')))
+
+    if (isEmpty && !spreadsheetData && !preview && !isSpreadsheet) {
       setOutputResult(null)
       setError(null)
       setLoading(false)
@@ -111,10 +131,11 @@ export default function BarcodeGeneratorTool() {
     debounceTimerRef.current = setTimeout(() => {
       executeTool(text)
     }, 300)
-  }, [])
+  }, [spreadsheetData, executeTool])
 
-  const executeTool = useCallback(async (text) => {
-    if (!text.trim()) {
+  const executeTool = useCallback(async (text, fileData = null) => {
+    const dataToUse = fileData || spreadsheetData
+    if (!text.trim() && !dataToUse) {
       setOutputResult(null)
       return
     }
@@ -155,7 +176,10 @@ export default function BarcodeGeneratorTool() {
         body: JSON.stringify({
           toolId: 'barcode-generator',
           inputText: text,
-          config: configOptions,
+          config: {
+            ...configOptions,
+            structuredData: fileData || spreadsheetData
+          },
         }),
         signal: controller.signal,
         credentials: 'same-origin',
@@ -186,9 +210,63 @@ export default function BarcodeGeneratorTool() {
       }
       setLoading(false)
     }
-  }, [configOptions])
+  }, [configOptions, spreadsheetData])
 
-  const handleImageChange = () => {}
+  const handleImageChange = useCallback((file, result) => {
+    setInputImage(file)
+    const isImage = file?.type?.startsWith('image/')
+    setImagePreview(isImage ? result : null)
+
+    if (!file) {
+      setSpreadsheetData(null)
+      setOutputResult(null)
+      return
+    }
+
+    const isCsv = file.name.endsWith('.csv')
+    const isXlsx = file.name.endsWith('.xlsx') || file.name.endsWith('.xls')
+
+    if (isCsv) {
+      setError(null)
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const data = {
+            headers: results.meta.fields,
+            rows: results.data,
+            fileName: file.name
+          }
+          setSpreadsheetData(data)
+          executeTool(inputText, data)
+        },
+        error: (err) => {
+          setError('Error parsing CSV: ' + err.message)
+        }
+      })
+    } else if (isXlsx) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result)
+        const workbook = XLSX.read(data, { type: 'array' })
+        const firstSheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[firstSheetName]
+        const json = XLSX.utils.sheet_to_json(worksheet)
+
+        if (json.length > 0) {
+          const headers = Object.keys(json[0])
+          const formattedData = {
+            headers,
+            rows: json,
+            fileName: file.name
+          }
+          setSpreadsheetData(formattedData)
+          executeTool(inputText, formattedData)
+        }
+      }
+      reader.readAsArrayBuffer(file)
+    }
+  }, [inputText, executeTool])
 
   const { handleUseOutput, hasOutput } = useOutputToInput(
     outputResult,
@@ -214,6 +292,31 @@ export default function BarcodeGeneratorTool() {
           optionsContent={<ToolDescriptionContent tool={barcodeGeneratorTool} isStandaloneMode={true} />}
           globalOptionsContent={
             <div style={{ padding: '16px' }}>
+              {spreadsheetData && (
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>Barcode / UPC Column</label>
+                  <select
+                    value={configOptions.barcodeColumn}
+                    onChange={(e) => setConfigOptions(prev => ({ ...prev, barcodeColumn: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      borderRadius: '4px',
+                      border: '1px solid var(--color-border)',
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text-primary)'
+                    }}
+                  >
+                    <option value="">Auto-detect</option>
+                    {spreadsheetData.headers.map(header => (
+                      <option key={header} value={header}>{header}</option>
+                    ))}
+                  </select>
+                  <p style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                    Detected {spreadsheetData.rows.length} rows in "{spreadsheetData.fileName || 'file'}"
+                  </p>
+                </div>
+              )}
               <ToolConfigPanel
                 tool={barcodeGeneratorTool}
                 onConfigChange={setConfigOptions}
@@ -232,8 +335,8 @@ export default function BarcodeGeneratorTool() {
               <UniversalInput
                 ref={universalInputRef}
                 inputText={inputText}
-                inputImage={null}
-                imagePreview={null}
+                inputImage={inputImage}
+                imagePreview={imagePreview}
                 onInputChange={handleInputChange}
                 onImageChange={handleImageChange}
                 onCompareTextChange={() => {}}

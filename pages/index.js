@@ -106,6 +106,7 @@ export default function Home(props) {
   const [jsFormattedOutput, setJsFormattedOutput] = useState(null)
   const [jsFormatterDiagnostics, setJsFormatterDiagnostics] = useState([])
   const [activeMarkdownInputTab, setActiveMarkdownInputTab] = useState('input')
+  const [spreadsheetData, setSpreadsheetData] = useState(null)
   const [markdownInputMode, setMarkdownInputMode] = useState('input') // 'input', 'css', or 'js' - tracks which input mode is active
   const [cssConfigOptions, setCssConfigOptions] = useState({
     mode: 'beautify',
@@ -544,7 +545,8 @@ export default function Home(props) {
     }
 
     // Clear output immediately if input is empty based on actual value, not state
-    if (isEmpty) {
+    // but only if there's no image/file being used either
+    if (isEmpty && !image && !preview) {
       setOutputResult(null)
       setError(null)
       setLoading(false)
@@ -768,9 +770,58 @@ export default function Home(props) {
     }, 300)
   }, [fastLocalClassification, previousInputLength, selectedTool, setConfigOptions])
 
-  const handleImageChange = useCallback((image, preview) => {
+  const handleImageChange = useCallback(async (image, preview) => {
     setInputImage(image)
-    setImagePreview(preview)
+    const isImage = image?.type?.startsWith('image/')
+    setImagePreview(isImage ? preview : null)
+
+    if (!image) {
+      setSpreadsheetData(null)
+      return
+    }
+
+    const isCsv = image.name.endsWith('.csv')
+    const isXlsx = image.name.endsWith('.xlsx') || image.name.endsWith('.xls')
+
+    if (isCsv || isXlsx) {
+      setError(null) // Clear any previous "Missing input" error as we are about to parse a new file
+      try {
+        if (isCsv) {
+          const Papa = (await import('papaparse')).default
+          Papa.parse(image, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+              setSpreadsheetData({
+                headers: results.meta.fields,
+                rows: results.data,
+                fileName: image.name
+              })
+            }
+          })
+        } else {
+          const XLSX = await import('xlsx')
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result)
+            const workbook = XLSX.read(data, { type: 'array' })
+            const firstSheetName = workbook.SheetNames[0]
+            const worksheet = workbook.Sheets[firstSheetName]
+            const json = XLSX.utils.sheet_to_json(worksheet)
+            if (json.length > 0) {
+              setSpreadsheetData({
+                headers: Object.keys(json[0]),
+                rows: json,
+                fileName: image.name
+              })
+            }
+          }
+          reader.readAsArrayBuffer(image)
+        }
+      } catch (err) {
+        console.error('Error parsing spreadsheet:', err)
+      }
+    }
   }, [])
 
 
@@ -793,8 +844,9 @@ export default function Home(props) {
       try {
         let textToUse = textInput || ''
 
-        // If no input and no image, don't run the tool
-        if (!textToUse && !imageInput) {
+        // If no input, no image, and no spreadsheet data, don't run the tool
+        // Check for both imageInput (usually preview) and the raw inputImage
+        if (!textToUse && !imageInput && !inputImage && !spreadsheetData) {
           setToolLoading(false)
           return
         }
@@ -861,6 +913,13 @@ export default function Home(props) {
           finalConfig = {
             ...config,
             compareText: checksumCompareText || '',
+          }
+        }
+
+        if (tool.toolId === 'barcode-generator') {
+          finalConfig = {
+            ...config,
+            structuredData: spreadsheetData
           }
         }
 
@@ -966,7 +1025,7 @@ export default function Home(props) {
         setToolLoading(false)
       }
     },
-    [inputText, imagePreview, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig, delimiterTransformerConfig, numberRowsConfig]
+    [inputText, imagePreview, inputImage, activeToolkitSection, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, checksumCompareText, numericConfig, delimiterTransformerConfig, numberRowsConfig, spreadsheetData]
   )
 
   const handleRegenerate = useCallback(() => {
@@ -984,7 +1043,14 @@ export default function Home(props) {
     const isEmpty = !actualInput || actualInput.trim() === ''
 
     // If actual input is empty, clear output immediately and stop
-    if (isEmpty && !imagePreview) {
+    const isSpreadsheetFile = (inputImage !== null && (inputImage.name?.endsWith('.csv') || inputImage.name?.endsWith('.xlsx') || inputImage.name?.endsWith('.xls')))
+
+    // If we have a spreadsheet file but haven't finished parsing it yet, wait
+    if (isSpreadsheetFile && !spreadsheetData) {
+      return
+    }
+
+    if (isEmpty && !imagePreview && !spreadsheetData && !isSpreadsheetFile) {
       setOutputResult(null)
       setError(null)
       setLoading(false)
@@ -997,7 +1063,7 @@ export default function Home(props) {
     }
 
     runTool()
-  }, [selectedTool, imagePreview, configOptions, checksumCompareText, autoRunTool, inputChangeKey, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, numberRowsConfig, activeToolkitSection])
+  }, [selectedTool, imagePreview, inputImage, configOptions, checksumCompareText, autoRunTool, inputChangeKey, findReplaceConfig, diffConfig, sortLinesConfig, removeExtrasConfig, delimiterTransformerConfig, numberRowsConfig, activeToolkitSection, spreadsheetData])
 
   // Helper function to determine if there's output to use
   const getHasOutputToUse = () => {
@@ -1506,6 +1572,33 @@ export default function Home(props) {
                         <EncoderDecoderConfig config={configOptions} onConfigChange={handleConfigChange} />
                       ) : (
                         <>
+                          {selectedTool?.toolId === 'barcode-generator' && spreadsheetData && (
+                            <div style={{ padding: '16px', borderTop: '1px solid var(--color-border)' }}>
+                              <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'var(--color-background-secondary)', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>Barcode / UPC Column</label>
+                                <select
+                                  value={configOptions.barcodeColumn || ''}
+                                  onChange={(e) => handleConfigChange({ barcodeColumn: e.target.value })}
+                                  style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'var(--color-background)',
+                                    color: 'var(--color-text-primary)'
+                                  }}
+                                >
+                                  <option value="">Auto-detect</option>
+                                  {spreadsheetData.headers.map(header => (
+                                    <option key={header} value={header}>{header}</option>
+                                  ))}
+                                </select>
+                                <p style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                                  Detected {spreadsheetData.rows.length} rows in "{spreadsheetData.fileName || 'file'}"
+                                </p>
+                              </div>
+                            </div>
+                          )}
                           <ToolConfigPanel
                             tool={selectedTool}
                             onConfigChange={handleConfigChange}

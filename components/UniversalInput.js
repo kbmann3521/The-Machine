@@ -189,25 +189,40 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
     isPasteRef.current = true
   }
 
-  const handleImageFile = (file) => {
+  const handleInputFile = (file) => {
     // Clear any previous errors
     setImageError(null)
 
-    if (!file.type.startsWith('image/')) {
-      setImageError('Please select a valid image file (JPG, PNG, GIF, WebP, etc.)')
+    const isImage = file.type.startsWith('image/')
+    const isSpreadsheet = file.name.endsWith('.csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')
+
+    if (!isImage && !isSpreadsheet) {
+      setImageError('Please select a valid image file or spreadsheet (CSV, XLSX).')
       return
     }
 
-    // Check file size
-    if (file.size > MAX_IMAGE_SIZE) {
-      const sizeMB = (MAX_IMAGE_SIZE / (1024 * 1024)).toFixed(0)
+    // Proactively show the spreadsheet/image icon before reading the file
+    // and clear text input for spreadsheets to keep it 'internal'
+    if (isSpreadsheet) {
+      setLocalInputImage(file)
+      setLocalInputText('')
+      setCharCount(0)
+      setLocalImagePreview(null)
+      // Notify parent immediately that text is cleared to avoid split-second flicker
+      onInputChange('', file, null, false)
+    }
+
+    // Check file size (10MB limit)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(0)
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
-      setImageError(`Image file is too large (${fileSizeMB}MB). Maximum allowed size is ${sizeMB}MB.`)
+      setImageError(`File is too large (${fileSizeMB}MB). Maximum allowed size is ${sizeMB}MB.`)
       return
     }
 
     // Log file details for debugging mobile issues
-    console.log('Image file selected:', {
+    console.log('File selected:', {
       name: file.name,
       type: file.type,
       size: file.size,
@@ -223,27 +238,36 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
         const result = e.target.result
         if (!result) {
           console.error('FileReader result is empty')
-          setImageError('Failed to read image file. Please try again.')
+          setImageError('Failed to read file. Please try again.')
           return
         }
-        console.log('Image file read successfully, size:', result.length)
-        setLocalImagePreview(result)
+        console.log('File read successfully, size:', result.length)
+
+        if (isImage) {
+          setLocalImagePreview(result)
+        } else {
+          // For spreadsheets, we already set localInputImage proactively
+          // and we don't show a preview in the image box
+        }
+
         setLocalInputImage(file)
         setImageError(null) // Clear error on success
         onImageChange(file, result)
-        // Also trigger input change to run prediction for image toolkit detection
-        console.log('Calling onInputChange for image prediction:', { text: localInputText, hasFile: !!file, hasPreview: !!result })
-        onInputChange(localInputText, file, result, false)
+        // Also trigger input change to run prediction
+        // For spreadsheets, we already cleared the text proactively above
+        if (!isSpreadsheet) {
+          onInputChange(localInputText, file, isImage ? result : null, false)
+        }
       } catch (err) {
-        console.error('Error processing image file:', err)
-        setImageError('Error processing image file: ' + err.message)
+        console.error('Error processing file:', err)
+        setImageError('Error processing file: ' + err.message)
       }
     }
 
     reader.onerror = (err) => {
       clearTimeout(readerTimeout)
       console.error('FileReader error:', err)
-      setImageError('Failed to read image file. Please check file permissions and try again.')
+      setImageError('Failed to read file. Please check file permissions and try again.')
     }
 
     reader.onabort = () => {
@@ -252,15 +276,21 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
       setImageError('File reading was cancelled.')
     }
 
-    // Add timeout for FileReader (some mobile devices may hang)
+    // Add timeout for FileReader
     readerTimeout = setTimeout(() => {
-      console.warn('FileReader timeout - image file took too long to read')
+      console.warn('FileReader timeout - file took too long to read')
       reader.abort()
-      setImageError('Image loading timed out. File may be too large. Please try with a smaller image.')
-    }, 30000) // 30 second timeout
+      setImageError('Loading timed out. File may be too large.')
+    }, 30000)
 
     try {
-      reader.readAsDataURL(file)
+      if (isImage) {
+        reader.readAsDataURL(file)
+      } else if (file.name.endsWith('.csv')) {
+        reader.readAsText(file)
+      } else {
+        reader.readAsArrayBuffer(file)
+      }
     } catch (err) {
       clearTimeout(readerTimeout)
       console.error('Error starting FileReader:', err)
@@ -271,7 +301,7 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0]
     if (file) {
-      handleImageFile(file)
+      handleInputFile(file)
     }
   }
 
@@ -289,15 +319,28 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
     setIsDragging(false)
     const file = e.dataTransfer.files?.[0]
     if (file) {
-      handleImageFile(file)
+      handleInputFile(file)
     }
   }
 
   const removeImage = () => {
+    const isSpreadsheet = localInputImage && (localInputImage.name.endsWith('.csv') || localInputImage.name.endsWith('.xlsx') || localInputImage.name.endsWith('.xls'))
+
     setLocalImagePreview(null)
     setLocalInputImage(null)
     setImageError(null)
+    // For spreadsheets, we might want to preserve the text if it was read
+    // But the user's feedback suggests they expect it to work like an image
     onImageChange(null, null)
+    // If it's a spreadsheet being removed, we should also trigger an input change
+    // to clear the structured data in the parent
+    if (isSpreadsheet) {
+      setLocalInputText('')
+      setCharCount(0)
+      onInputChange('', null, null, false)
+    } else {
+      onInputChange(localInputText, null, null, false)
+    }
   }
 
   const openFileDialog = () => {
@@ -457,13 +500,13 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
                       <polyline points="17 8 12 3 7 8"></polyline>
                       <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
-                    <span className={styles.buttonText}>Upload Image</span>
+                    <span className={styles.buttonText}>Upload File</span>
                   </button>
                   <input
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileSelect}
-                    accept="image/*"
+                    accept="image/*,.csv,.xlsx,.xls"
                     className={styles.fileInput}
                   />
                   <div className={styles.headerButtonGroup}>
@@ -565,6 +608,26 @@ const UniversalInputComponent = forwardRef(({ inputText = '', inputImage = null,
                       className={styles.removeImageOverlay}
                       onClick={removeImage}
                       title="Remove image"
+                      type="button"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : localInputImage && (localInputImage.name.endsWith('.csv') || localInputImage.name.endsWith('.xlsx') || localInputImage.name.endsWith('.xls')) ? (
+                  <div className={styles.centeredImageContainer} style={{ backgroundColor: 'var(--color-background-tertiary)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '40px' }}>
+                      <div style={{ fontSize: '48px' }}>📄</div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontWeight: '600', color: 'var(--color-text-primary)' }}>{localInputImage.name}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                          {(localInputImage.size / 1024).toFixed(1)} KB • Spreadsheet detected
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      className={styles.removeImageOverlay}
+                      onClick={removeImage}
+                      title="Remove file"
                       type="button"
                     >
                       ✕

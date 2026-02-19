@@ -20,8 +20,9 @@ export default async function handler(req, res) {
       'lorem-ipsum-generator',
     ]
 
+    const hasStructuredData = config && config.structuredData
     const requiresInput = !noInputRequiredTools.includes(toolId)
-    if (requiresInput && !inputText && !inputImage) {
+    if (requiresInput && !inputText && !inputImage && !hasStructuredData) {
       return res.status(400).json({ error: 'Missing inputText or inputImage' })
     }
 
