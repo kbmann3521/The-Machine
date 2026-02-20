@@ -1,12 +1,17 @@
+import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Script from 'next/script'
 import ThemeToggle from '../components/ThemeToggle'
 import PageFooter from '../components/PageFooter'
-import BarcodeGeneratorTool from '../components/BarcodeGeneratorTool'
 import { withSeoSettings } from '../lib/getSeoSettings'
 import { generatePageMetadata } from '../lib/seoUtils'
 import { TOOLS } from '../lib/tool-metadata'
 import styles from '../styles/hub.module.css'
+
+const BarcodeGeneratorTool = dynamic(() => import('../components/BarcodeGeneratorTool'), {
+  ssr: false,
+  loading: () => <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>Loading tool...</div>
+})
 
 export default function BarcodeGeneratorPage(props) {
   const siteName = props?.siteName || 'Pioneer Web Tools'
